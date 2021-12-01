@@ -28,6 +28,15 @@ public class GraphqlConfig {
     private Map<String, Project> projects;
     private String schema;
     private List<String> documents;
+    private Extension extensions;
+
+    public Extension getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(Extension extensions) {
+        this.extensions = extensions;
+    }
 
     public Map<String, Project> getProjects() {
         return projects;

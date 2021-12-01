@@ -42,6 +42,7 @@ allprojects {
         maven {
             url = 'https://maven.wso2.org/nexus/content/repositories/releases/'
         }
+        
         maven {
             url = 'https://maven.wso2.org/nexus/content/groups/wso2-public/'
         }
@@ -98,6 +99,7 @@ dependencies {
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.29' // NEW
     shadow group: 'com.graphql-java', name: 'graphql-java', version: '17.2' // NEW
     shadow 'com.google.guava:guava:30.1.1-jre' // NEW
+    shadow group: 'org.json', name: 'json', version: '20210307' // NEW
 }
 
 shadowJar {

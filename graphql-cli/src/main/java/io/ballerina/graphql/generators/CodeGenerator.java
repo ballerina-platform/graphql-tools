@@ -18,13 +18,26 @@
 
 package io.ballerina.graphql.generators;
 
+import graphql.language.Document;
+import graphql.schema.GraphQLSchema;
+import io.ballerina.graphql.cmd.Utils;
+import io.ballerina.graphql.cmd.mappers.Extension;
+import io.ballerina.graphql.exceptions.BallerinaGraphqlDocumentPathValidationException;
+import io.ballerina.graphql.exceptions.BallerinaGraphqlIntospectionException;
+import io.ballerina.graphql.exceptions.BallerinaGraphqlSchemaPathValidationException;
+
+import java.io.IOException;
+
 /**
  * This class implements the GraphQL client generator tool.
  */
 public class CodeGenerator implements ICodeGenerator {
 
     @Override
-    public void generate(String sdlInput, String queriesInput, String outputPath) {
-
+    public void generate(String schema, String document, Extension extensions, String outputPath)
+            throws BallerinaGraphqlIntospectionException, IOException,
+            BallerinaGraphqlSchemaPathValidationException, BallerinaGraphqlDocumentPathValidationException {
+        GraphQLSchema graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
+        Document parsedDocument = Utils.getGraphQLQueriesDocument(document);
     }
 }
