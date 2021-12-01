@@ -19,22 +19,24 @@
 package io.ballerina.graphql.cmd;
 
 import graphql.language.Document;
-import graphql.parser.Parser;
 import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.RuntimeWiring;
-import graphql.schema.idl.SchemaGenerator;
-import graphql.schema.idl.SchemaParser;
-import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.errors.SchemaProblem;
 import graphql.validation.ValidationError;
 import graphql.validation.Validator;
 import io.ballerina.cli.BLauncherCmd;
+import io.ballerina.graphql.cmd.mappers.Default;
+import io.ballerina.graphql.cmd.mappers.Endpoints;
+import io.ballerina.graphql.cmd.mappers.Extension;
 import io.ballerina.graphql.cmd.mappers.GraphqlConfig;
 import io.ballerina.graphql.cmd.mappers.Project;
+import io.ballerina.graphql.exceptions.BallerinaGraphqlDocumentPathValidationException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlException;
+import io.ballerina.graphql.exceptions.BallerinaGraphqlIntospectionException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlQueryValidationException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlSDLValidationException;
+import io.ballerina.graphql.exceptions.BallerinaGraphqlSchemaPathValidationException;
 import io.ballerina.graphql.generators.CodeGenerator;
+import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
@@ -45,16 +47,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_YAML;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_YAML;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_GRAPHQL_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
+import static io.ballerina.graphql.cmd.Utils.isValidURL;
 
 /**
  * Main class to implement "graphql" command for Ballerina.
@@ -169,7 +172,7 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     /**
-     * Constructs `GraphqlConfig` reading the given GraphQL config file.
+     * Constructs an instance of the `GraphqlConfig` reading the given GraphQL config file.
      *
      * @param filePath         the path of the GraphQl config file
      * @return                 the instance of the Graphql config file
@@ -179,8 +182,20 @@ public class GraphqlCmd implements BLauncherCmd {
             BallerinaGraphqlException, IOException {
         if (filePath.endsWith(YAML_EXTENSION)) {
             InputStream inputStream = new FileInputStream(new File(filePath));
-            Yaml yaml = new Yaml(new Constructor(GraphqlConfig.class));
+            Constructor constructor = new Constructor(GraphqlConfig.class);
+
+            TypeDescription endpointsDesc = new TypeDescription(Endpoints.class);
+            endpointsDesc.substituteProperty("default", Default.class,
+                    "getDefaultName", "setDefaultName");
+            constructor.addTypeDescription(endpointsDesc);
+
+            Yaml yaml = new Yaml(constructor);
             GraphqlConfig graphqlConfig = yaml.load(inputStream);
+            if (graphqlConfig == null) {
+                outStream.println(MESSAGE_FOR_EMPTY_CONFIGURATION_YAML);
+                exitError(this.exitWhenFinish);
+                return null;
+            }
             validateGraphQLConfig(graphqlConfig);
             return graphqlConfig;
         } else {
@@ -198,117 +213,134 @@ public class GraphqlCmd implements BLauncherCmd {
     private void validateGraphQLConfig(GraphqlConfig graphqlConfig)
             throws BallerinaGraphqlSDLValidationException, BallerinaGraphqlQueryValidationException,
             BallerinaGraphqlException, IOException {
+        validateAllProjectsConfiguration(graphqlConfig);
+        validateAllProjectsContent(graphqlConfig);
+    }
+
+    /**
+     * Validates the configuration of all the projects in the given GraphQL config file.
+     *
+     * @param graphqlConfig         the instance of the Graphql config file
+     */
+    private void validateAllProjectsConfiguration(GraphqlConfig graphqlConfig) throws IOException {
         String schema = graphqlConfig.getSchema();
         List<String> documents = graphqlConfig.getDocuments();
         Map<String, Project> projects = graphqlConfig.getProjects();
 
-        validateExistenceOfSchemaAndDocuments(schema, documents);
+        validateProjectConfiguration(schema, documents);
 
         if (projects != null) {
             for (String projectName : projects.keySet()) {
-                validateExistenceOfProject(projects.get(projectName), projectName);
-
-                validateSchemaAndDocuments(projects.get(projectName).getSchema(),
-                        projects.get(projectName).getDocuments());
+                validateProjectConfiguration(projects.get(projectName));
             }
         }
-        validateSchemaAndDocuments(schema, documents);
+    }
 
-        validateProjects(graphqlConfig);
+    /**
+     * Validates the configuration of the root project in the GraphQL config file.
+     *
+     * @param schema         the schema value of the Graphql config file
+     * @param documents      the documents value of the Graphql config file
+     */
+    private void validateProjectConfiguration(String schema, List<String> documents) throws IOException {
+        validateExistenceOfSchemaAndDocuments(schema, documents);
+        validateSchemaAndDocumentsConfiguration(schema, documents);
+    }
+
+    /**
+     * Validates the configuration of a project in the GraphQL config file.
+     *
+     * @param project         a project of the Graphql config file
+     */
+    private void validateProjectConfiguration(Project project) throws IOException {
+        validateExistenceOfProject(project);
+        validateExistenceOfSchemaAndDocuments(project.getSchema(), project.getDocuments());
+        validateSchemaAndDocumentsConfiguration(project.getSchema(), project.getDocuments());
     }
 
     /**
      * Validates the existence of schema & document sections of the GraphQL config file.
      *
      * @param schema         the schema section of the Graphql config file
-     * @param documents      the documents section of the Graphql config file
+     * @param documents      the documents' section of the Graphql config file
      */
     private void validateExistenceOfSchemaAndDocuments(String schema, List<String> documents) {
         if ((schema == null && documents != null) || (schema != null && documents == null)) {
             outStream.println(MESSAGE_FOR_INVALID_CONFIGURATION_YAML);
             exitError(this.exitWhenFinish);
         }
-
-        if (schema != null && schema.startsWith("http")) {
-            outStream.println("The schema path cannot be a URL.");
-            exitError(this.exitWhenFinish);
-        }
     }
 
     /**
-     * Validates the existence of schema & document sections of the GraphQL config file.
-     *
-     * @param schema         the schema section of the Graphql config file
-     * @param documents      the documents section of the Graphql config file
-     * @param projectName    the project name of a project under Graphql config file
-     */
-    private void validateExistenceOfSchemaAndDocuments(String schema, List<String> documents, String projectName) {
-        if ((schema == null && documents != null) || (schema != null && documents == null)) {
-            outStream.println(MESSAGE_FOR_INVALID_CONFIGURATION_YAML);
-            exitError(this.exitWhenFinish);
-        }
-
-        if (schema != null && schema.startsWith("http")) {
-            outStream.println("The schema path of project " + projectName + " cannot be a URL.");
-            exitError(this.exitWhenFinish);
-        }
-    }
-
-    /**
-     * Validates the existence of projects in the GraphQL config file.
-     *
-     * @param project         a project of the Graphql config file
-     * @param projectName     the project name of a project under Graphql config file
-     */
-    private void validateExistenceOfProject(Project project, String projectName) {
-        if (project == null) {
-            outStream.println(MESSAGE_FOR_INVALID_CONFIGURATION_YAML);
-            exitError(this.exitWhenFinish);
-        }
-        validateExistenceOfSchemaAndDocuments(project.getSchema(),
-                project.getDocuments(), projectName);
-    }
-
-    /**
-     * Validates the schema & documents in the GraphQL config file.
+     * Validates the configuration of the schema & documents in the GraphQL config file.
      *
      * @param schema         the schema value of the Graphql config file
      * @param documents      the documents value of the Graphql config file
      */
-    private void validateSchemaAndDocuments(String schema, List<String> documents) throws IOException {
-        if (schema != null && documents != null) {
+    private void validateSchemaAndDocumentsConfiguration(String schema, List<String> documents) throws IOException {
+        if (schema != null && documents != null && schema.startsWith("http")) {
+            validateSchemaUrl(schema);
+        }
+
+        if (schema != null && documents != null && !schema.startsWith("http")) {
             File schemaFile = new File(schema);
             Path schemaPath = Paths.get(schemaFile.getCanonicalPath());
-            validateSchemaPath(schemaPath);
+            try {
+                Utils.validateSchemaPath(schemaPath);
+            } catch (BallerinaGraphqlSchemaPathValidationException e) {
+                outStream.println(e.getMessage());
+                exitError(this.exitWhenFinish);
+            }
 
             for (String document : documents) {
                 File documentFile = new File(document);
                 Path documentPath = Paths.get(documentFile.getCanonicalPath());
-                validateDocumentPath(documentPath);
+                try {
+                    Utils.validateDocumentPath(documentPath);
+                } catch (BallerinaGraphqlDocumentPathValidationException e) {
+                    outStream.println(e.getMessage());
+                    exitError(this.exitWhenFinish);
+                }
             }
         }
     }
 
     /**
-     * Validates the SDL & queries of projects in the given GraphQL config file.
+     * Validates the existence of projects section in the GraphQL config file.
+     *
+     * @param project         a project of the Graphql config file
+     */
+    private void validateExistenceOfProject(Project project) {
+        if (project == null) {
+            outStream.println(MESSAGE_FOR_INVALID_CONFIGURATION_YAML);
+            exitError(this.exitWhenFinish);
+        }
+    }
+
+    /**
+     * Validates the SDL & queries of all the projects in the given GraphQL config file.
      *
      * @param graphqlConfig         the instance of the Graphql config file
      */
-    private void validateProjects(GraphqlConfig graphqlConfig)
+    private void validateAllProjectsContent(GraphqlConfig graphqlConfig)
             throws BallerinaGraphqlSDLValidationException, BallerinaGraphqlQueryValidationException,
-            BallerinaGraphqlException, IOException {
+            BallerinaGraphqlException {
         String schema = graphqlConfig.getSchema();
         List<String> documents = graphqlConfig.getDocuments();
         Map<String, Project> projects = graphqlConfig.getProjects();
+        Extension extensions = graphqlConfig.getExtensions();
+
+        validateProjectContent(schema, documents, extensions);
 
         if (projects != null) {
             for (String projectName : projects.keySet()) {
-                validateProject(
+                Extension projectExtensions = projects.get(projectName).getExtensions();
+                validateProjectContent(
                         projects.get(projectName).getSchema(),
-                        projects.get(projectName).getDocuments());
+                        projects.get(projectName).getDocuments(),
+                        projectExtensions);
             }
         }
-        validateProject(schema, documents);
     }
 
     /**
@@ -316,15 +348,14 @@ public class GraphqlCmd implements BLauncherCmd {
      *
      * @param schema         the schema value of the Graphql config file
      * @param documents      the documents value of the Graphql config file
+     * @param extensions     the extensions value of the Graphql config file
      */
-    private void validateProject(String schema, List<String> documents)
+    private void validateProjectContent(String schema, List<String> documents, Extension extensions)
             throws BallerinaGraphqlSDLValidationException, BallerinaGraphqlQueryValidationException,
-            BallerinaGraphqlException, IOException  {
+            BallerinaGraphqlException  {
         if (schema != null && documents != null) {
-            String schemaContent = extractSchemaContent(schema);
             for (String document : documents) {
-                String documentContent = extractDocumentContent(document);
-                validate(schemaContent, documentContent);
+                validate(schema, document, extensions);
             }
         }
     }
@@ -332,27 +363,27 @@ public class GraphqlCmd implements BLauncherCmd {
     /**
      * Validates the given SDL and GraphQL queries.
      *
-     * @param sdlInput         the schema content
-     * @param queriesInput     the queries content
+     * @param schema         the schema
+     * @param document       the document
      */
-    private void validate(String sdlInput, String queriesInput) throws BallerinaGraphqlSDLValidationException,
-            BallerinaGraphqlQueryValidationException, BallerinaGraphqlException {
+    private void validate(String schema, String document, Extension extensions)
+            throws BallerinaGraphqlSDLValidationException, BallerinaGraphqlQueryValidationException,
+            BallerinaGraphqlException {
         try {
-            SchemaParser schemaParser = new SchemaParser();
-            SchemaGenerator schemaGenerator = new SchemaGenerator();
-            TypeDefinitionRegistry typeRegistry = schemaParser.parse(sdlInput);
-            GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeRegistry,
-                    RuntimeWiring.MOCKED_WIRING);
+            GraphQLSchema graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
 
-            Parser parser = new Parser();
-            Document document = parser.parseDocument(queriesInput);
+            Document parsedDocument = Utils.getGraphQLQueriesDocument(document);
 
             Validator validator = new Validator();
-            List<ValidationError> validationErrorList = validator.validateDocument(graphQLSchema, document);
+            List<ValidationError> validationErrorList = validator.validateDocument(graphQLSchema, parsedDocument);
             if (validationErrorList.size() > 0) {
                 throw new BallerinaGraphqlQueryValidationException("Graph Query validation exception",
                         validationErrorList);
             }
+        } catch (BallerinaGraphqlIntospectionException | BallerinaGraphqlSchemaPathValidationException |
+                BallerinaGraphqlDocumentPathValidationException e) {
+            outStream.println(e.getMessage());
+            exitError(this.exitWhenFinish);
         } catch (SchemaProblem e) {
             throw new BallerinaGraphqlSDLValidationException("GraphQL SDL validation exception", e.getErrors());
         } catch (BallerinaGraphqlQueryValidationException e) {
@@ -363,51 +394,13 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     /**
-     * Extracts the schema content.
+     * Validates the schema URL.
      *
-     * @param schema         the schema value of the Graphql config file
-     * @return               the schema content
+     * @param schema         the path to the schema
      */
-    private String extractSchemaContent(String schema) throws IOException {
-        File schemaFile = new File(schema);
-        Path schemaPath = Paths.get(schemaFile.getCanonicalPath());
-        validateSchemaPath(schemaPath);
-        return Files.readString(schemaPath);
-    }
-
-    /**
-     * Validates the schema path.
-     *
-     * @param schemaPath         the path to the schema
-     */
-    private void validateSchemaPath(Path schemaPath) {
-        if (!Files.exists(schemaPath)) {
-            outStream.println("Schema file " + schemaPath + " doesn't exist.");
-            exitError(this.exitWhenFinish);
-        }
-    }
-
-    /**
-     * Extracts the document content.
-     *
-     * @param document         the document value of the Graphql config file
-     * @return                 the document content
-     */
-    private String extractDocumentContent(String document) throws IOException {
-        File documentFile = new File(document);
-        Path documentPath = Paths.get(documentFile.getCanonicalPath());
-        validateDocumentPath(documentPath);
-        return Files.readString(documentPath);
-    }
-
-    /**
-     * Validates the documents' path.
-     *
-     * @param documentPath         the path to the document
-     */
-    private void validateDocumentPath(Path documentPath) {
-        if (!Files.exists(documentPath)) {
-            outStream.println("Queries file " + documentPath + " doesn't exist.");
+    private void validateSchemaUrl(String schema) {
+        if (!isValidURL(schema)) {
+            outStream.println("Invalid URL " + schema);
             exitError(this.exitWhenFinish);
         }
     }
@@ -421,15 +414,18 @@ public class GraphqlCmd implements BLauncherCmd {
         String schema = graphqlConfig.getSchema();
         List<String> documents = graphqlConfig.getDocuments();
         Map<String, Project> projects = graphqlConfig.getProjects();
+        Extension extensions = graphqlConfig.getExtensions();
 
+        generateProjectCode(schema, documents, extensions);
         if (projects != null) {
             for (String projectName : projects.keySet()) {
+                Extension projectExtensions = projects.get(projectName).getExtensions();
                 generateProjectCode(
                         projects.get(projectName).getSchema(),
-                        projects.get(projectName).getDocuments());
+                        projects.get(projectName).getDocuments(),
+                        projectExtensions);
             }
         }
-        generateProjectCode(schema, documents);
     }
 
     /**
@@ -438,16 +434,16 @@ public class GraphqlCmd implements BLauncherCmd {
      * @param schema         the schema value of the Graphql config file
      * @param documents      the documents value of the Graphql config file
      */
-    private void generateProjectCode(String schema, List<String> documents) throws IOException {
+    private void generateProjectCode(String schema, List<String> documents, Extension extensions) throws IOException {
         CodeGenerator codeGenerator = new CodeGenerator();
-
-        if (schema != null && documents != null) {
-            String schemaContent = extractSchemaContent(schema);
-
-            for (String document : documents) {
-                String documentContent = extractDocumentContent(document);
-
-                codeGenerator.generate(schemaContent, documentContent, getTargetOutputPath().toString());
+        for (String document : documents) {
+            try {
+                codeGenerator.generate(schema, document, extensions, getTargetOutputPath().toString());
+            } catch (BallerinaGraphqlIntospectionException |
+                    BallerinaGraphqlSchemaPathValidationException |
+                    BallerinaGraphqlDocumentPathValidationException e) {
+                outStream.println(e.getMessage());
+                exitError(this.exitWhenFinish);
             }
         }
     }

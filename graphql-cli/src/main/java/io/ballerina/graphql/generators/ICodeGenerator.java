@@ -18,9 +18,12 @@
 
 package io.ballerina.graphql.generators;
 
-import io.ballerina.graphql.exceptions.BallerinaGraphqlException;
-import io.ballerina.graphql.exceptions.BallerinaGraphqlQueryValidationException;
-import io.ballerina.graphql.exceptions.BallerinaGraphqlSDLValidationException;
+import io.ballerina.graphql.cmd.mappers.Extension;
+import io.ballerina.graphql.exceptions.BallerinaGraphqlDocumentPathValidationException;
+import io.ballerina.graphql.exceptions.BallerinaGraphqlIntospectionException;
+import io.ballerina.graphql.exceptions.BallerinaGraphqlSchemaPathValidationException;
+
+import java.io.IOException;
 
 /**
  * Interface for code generator. Any code generator implementation should implement this.
@@ -30,11 +33,12 @@ public interface ICodeGenerator {
     /**
      * Generates the code for a given GraphQL project queries and schema.
      *
-     * @param sdlInput         the schema content
-     * @param queriesInput     the queries content
-     * @param outputPath       the target output path for the code generation
+     * @param schema            the schema value of the Graphql config file
+     * @param document          the document value of the Graphql config file
+     * @param extensions        the extensions value of the Graphql config file
+     * @param outputPath        the target output path for the code generation
      */
-    void generate(String sdlInput, String queriesInput, String outputPath)
-            throws BallerinaGraphqlException, BallerinaGraphqlSDLValidationException,
-            BallerinaGraphqlQueryValidationException;
+    void generate(String schema, String document, Extension extensions, String outputPath)
+            throws BallerinaGraphqlIntospectionException, IOException,
+            BallerinaGraphqlSchemaPathValidationException, BallerinaGraphqlDocumentPathValidationException;
 }
