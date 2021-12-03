@@ -1,0 +1,71 @@
+query QueryWithArguments($filmId: ID!, $firstFive: Int) {
+    film1: film(filmID: $filmId) {
+        title
+        characterConnection(first: $firstFive) {
+            characters {
+                name
+                vehicleConnection(first: 2) {
+                    vehicles {
+                        name
+                    }
+                }
+            }
+        }
+    }
+    species1: planet(planetID: 1) {
+        residentConnection(first: 3) {
+            residents {
+                name
+            }
+        }
+    }
+    species(speciesID: 1) {
+        filmConnection(last: 1) {
+            films {
+                starshipConnection(first: 2) {
+                    starships {
+                        name
+                    }
+                }
+            }
+        }
+    }
+    film(filmID: 1) {
+        ... dataFields
+    }
+}
+
+query QuerySpecies {
+    species1: planet(planetID: 1) {
+        residentConnection(first: 3) {
+            residents {
+                name
+            }
+        }
+    }
+    species(speciesID: 1) {
+        filmConnection(last: 1) {
+            films {
+                starshipConnection(first: 2) {
+                    starships {
+                        name
+                    }
+                }
+            }
+        }
+    }
+}
+
+fragment dataFields on Film {
+    title
+    director
+    planetConnection(first: 1) {
+        edges {
+            node {
+                name
+            }
+        }
+    }
+}
+
+
