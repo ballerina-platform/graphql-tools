@@ -27,6 +27,7 @@ import io.ballerina.graphql.exceptions.BallerinaGraphqlIntospectionException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlSchemaPathValidationException;
 import io.ballerina.graphql.generators.ballerina.AuthConfigGenerator;
 import io.ballerina.graphql.generators.ballerina.ClientGenerator;
+import io.ballerina.graphql.generators.ballerina.UtilsGenerator;
 import io.ballerina.graphql.generators.model.GenSrcFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +39,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.ballerina.graphql.generators.CodeGeneratorConstants.UTILS_FILE_NAME;
 
 /**
  * This class implements the GraphQL client code generator tool.
@@ -89,7 +92,14 @@ public class CodeGenerator implements ICodeGenerator {
             sourceFiles.add(new GenSrcFile(GenSrcFile.GenFileType.GEN_SRC, projectName,
                     CodeGeneratorUtils.getClientFileName(documentFile), clientFileContent));
         }
-        // TODO: Invoke the utils generator
+        if (ballerinaAuthConfigGenerator.isApiKeysConfig()) {
+            UtilsGenerator ballerinaUtilsGenerator = new UtilsGenerator();
+            String utilsFileContent = Formatter.format(
+                    ballerinaUtilsGenerator.generateSyntaxTree()).toString();
+
+            sourceFiles.add(new GenSrcFile(
+                    GenSrcFile.GenFileType.GEN_SRC, projectName, UTILS_FILE_NAME, utilsFileContent));
+        }
         return sourceFiles;
     }
 
