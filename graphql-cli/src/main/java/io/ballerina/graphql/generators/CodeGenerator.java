@@ -25,9 +25,11 @@ import io.ballerina.graphql.cmd.mappers.Extension;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlDocumentPathValidationException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlIntospectionException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlSchemaPathValidationException;
+import io.ballerina.graphql.generators.ballerina.ClientGenerator;
 import io.ballerina.graphql.generators.model.GenSrcFile;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 
 import java.io.File;
@@ -74,12 +76,12 @@ public class CodeGenerator implements ICodeGenerator {
         for (String document : documents) {
             File documentFile = new File(document);
             // TODO: Pass auth config generator instance to the client generator
-            // TODO: Invoke client generator
+            ClientGenerator ballerinaClientGenerator = new ClientGenerator();
 
             Document queriesDocument = Utils.getGraphQLQueriesDocument(document);
             String queriesDocumentName = CodeGeneratorUtils.getDocumentName(documentFile);
-            // TODO: Invoke client generator to generate syntax tree
-            String clientFileContent = "";
+            String clientFileContent = Formatter.format(ballerinaClientGenerator.
+                    generateSyntaxTree(queriesDocument, queriesDocumentName)).toString();
 
             sourceFiles.add(new GenSrcFile(GenSrcFile.GenFileType.GEN_SRC, projectName,
                     CodeGeneratorUtils.getClientFileName(documentFile), clientFileContent));
