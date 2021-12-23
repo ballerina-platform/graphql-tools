@@ -208,10 +208,17 @@ public class ClientGenerator {
 
         IdentifierToken functionName = createIdentifierToken(INIT);
 
-        // TODO: Invoke function signature generator & function body generator
+        // TODO: Pass an instance of auth config generator to function signature generator
+        FunctionSignatureGenerator functionSignatureGenerator =
+                new FunctionSignatureGenerator();
+        FunctionSignatureNode functionSignatureNode = functionSignatureGenerator.getInitFunctionSignatureNode();
+        // TODO: Pass an instance of auth config generator to function body generator
+        FunctionBodyGenerator functionBodyGenerator =
+                new FunctionBodyGenerator();
+        FunctionBodyNode functionBodyNode = functionBodyGenerator.getInitFunctionBodyNode();
 
         return createFunctionDefinitionNode(null, metadataNode, qualifierList, createToken(FUNCTION_KEYWORD),
-                functionName, createEmptyNodeList(), null, null);
+                functionName, createEmptyNodeList(), functionSignatureNode, functionBodyNode);
     }
 
     /**
@@ -246,9 +253,16 @@ public class ClientGenerator {
         // Obtain functionName from queryName
         IdentifierToken functionName = createIdentifierToken(def.getName());
 
-        // TODO: Invoke function signature generator & function body generator
+        // TODO: Pass an instance of auth config generator to function signature generator
+        FunctionSignatureGenerator functionSignatureGenerator =
+                new FunctionSignatureGenerator();
+        FunctionSignatureNode functionSignatureNode = functionSignatureGenerator.getRemoteFunctionSignatureNode(def);
+        // TODO: Pass an instance of auth config generator to function body generator
+        FunctionBodyGenerator functionBodyGenerator =
+                new FunctionBodyGenerator();
+        FunctionBodyNode functionBodyNode = functionBodyGenerator.getRemoteFunctionBodyNode(def);
 
         return createFunctionDefinitionNode(null, metadataNode, qualifierList, createToken(FUNCTION_KEYWORD),
-                functionName, createEmptyNodeList(), null, null);
+                functionName, createEmptyNodeList(), functionSignatureNode, functionBodyNode);
     }
 }
