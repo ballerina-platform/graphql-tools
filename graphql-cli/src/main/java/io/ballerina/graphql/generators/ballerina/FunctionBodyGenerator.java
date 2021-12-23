@@ -51,7 +51,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -116,7 +115,11 @@ import static io.ballerina.graphql.generators.CodeGeneratorConstants.SELF;
  */
 public class FunctionBodyGenerator {
     private static final Log log = LogFactory.getLog(FunctionBodyGenerator.class);
-    // TODO: Create an instance of auth config generator
+    private final AuthConfigGenerator ballerinaAuthConfigGenerator;
+
+    public FunctionBodyGenerator(AuthConfigGenerator ballerinaAuthConfigGenerator) {
+        this.ballerinaAuthConfigGenerator = ballerinaAuthConfigGenerator;
+    }
 
     /**
      * Returns the client class init function body node.
@@ -146,7 +149,9 @@ public class FunctionBodyGenerator {
         assignmentNodes.add(clientInitializationNode);
         assignmentNodes.add(httpClientAssignmentStatementNode);
 
-        // TODO: Invoke auth config generator
+        if (ballerinaAuthConfigGenerator.isApiKeysConfig()) {
+            assignmentNodes.add(apiKeyConfigAssignmentStatementNode);
+        }
 
         assignmentNodes.add(returnStatementNode);
         NodeList<StatementNode> statementList = createNodeList(assignmentNodes);
@@ -240,9 +245,13 @@ public class FunctionBodyGenerator {
         assignmentNodes.add(queryVariableDeclarationNode);
         assignmentNodes.add(graphqlVariablesDeclarationNode);
 
-        // TODO: Invoke auth config generator
-        assignmentNodes.add(returnStatementNode);
-
+        if (ballerinaAuthConfigGenerator.isApiKeysConfig()) {
+            assignmentNodes.add(headerValuesVariableDeclarationNode);
+            assignmentNodes.add(httpHeadersVariableDeclarationNode);
+            assignmentNodes.add(getReturnStatementNodeWithHttpHeaders(def));
+        } else {
+            assignmentNodes.add(returnStatementNode);
+        }
         NodeList<StatementNode> statementList = createNodeList(assignmentNodes);
 
         return createFunctionBodyBlockNode(createToken(OPEN_BRACE_TOKEN),
@@ -332,8 +341,7 @@ public class FunctionBodyGenerator {
         TypedBindingPatternNode typedBindingPatternNode = createTypedBindingPatternNode(typeBindingPattern,
                 bindingPattern);
 
-        // TODO: Invoke auth config generator
-        Set<String> apiHeaders = new HashSet<>();
+        Set<String> apiHeaders = ballerinaAuthConfigGenerator.getApiHeaders();
 
         // Expression node
         List<Node> specificFields = new ArrayList<>();

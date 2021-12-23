@@ -86,7 +86,11 @@ import static io.ballerina.graphql.generators.CodeGeneratorConstants.INIT;
  */
 public class ClientGenerator {
     private static final Log log = LogFactory.getLog(ClientGenerator.class);
-    // TODO: Create an instance of auth config generator
+    private final AuthConfigGenerator ballerinaAuthConfigGenerator;
+
+    public ClientGenerator(AuthConfigGenerator ballerinaAuthConfigGenerator) {
+        this.ballerinaAuthConfigGenerator = ballerinaAuthConfigGenerator;
+    }
 
     /**
      * Generates the client syntax tree.
@@ -106,7 +110,7 @@ public class ClientGenerator {
         NodeList<ImportDeclarationNode> importsList = createNodeList(imports);
 
         List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
-        // TODO: Invoke auth config generator to add auth related records
+        ballerinaAuthConfigGenerator.addAuthRelatedRecords(members);
         members.add(getClassDefinitionNode(queriesDocument, documentName));
 
         ModulePartNode modulePartNode =
@@ -167,7 +171,9 @@ public class ClientGenerator {
                 qualifierList, typeName, fieldName, null, null, createToken(SEMICOLON_TOKEN));
         fieldNodeList.add(graphqlClientField);
 
-        // TODO: Invoke auth config generator to add api keys field
+        if (ballerinaAuthConfigGenerator.isApiKeysConfig()) {
+            fieldNodeList.add(getApiKeysFieldNode());
+        }
 
         return fieldNodeList;
     }
@@ -208,13 +214,11 @@ public class ClientGenerator {
 
         IdentifierToken functionName = createIdentifierToken(INIT);
 
-        // TODO: Pass an instance of auth config generator to function signature generator
         FunctionSignatureGenerator functionSignatureGenerator =
-                new FunctionSignatureGenerator();
+                new FunctionSignatureGenerator(ballerinaAuthConfigGenerator);
         FunctionSignatureNode functionSignatureNode = functionSignatureGenerator.getInitFunctionSignatureNode();
-        // TODO: Pass an instance of auth config generator to function body generator
         FunctionBodyGenerator functionBodyGenerator =
-                new FunctionBodyGenerator();
+                new FunctionBodyGenerator(ballerinaAuthConfigGenerator);
         FunctionBodyNode functionBodyNode = functionBodyGenerator.getInitFunctionBodyNode();
 
         return createFunctionDefinitionNode(null, metadataNode, qualifierList, createToken(FUNCTION_KEYWORD),
@@ -253,13 +257,11 @@ public class ClientGenerator {
         // Obtain functionName from queryName
         IdentifierToken functionName = createIdentifierToken(def.getName());
 
-        // TODO: Pass an instance of auth config generator to function signature generator
         FunctionSignatureGenerator functionSignatureGenerator =
-                new FunctionSignatureGenerator();
+                new FunctionSignatureGenerator(ballerinaAuthConfigGenerator);
         FunctionSignatureNode functionSignatureNode = functionSignatureGenerator.getRemoteFunctionSignatureNode(def);
-        // TODO: Pass an instance of auth config generator to function body generator
         FunctionBodyGenerator functionBodyGenerator =
-                new FunctionBodyGenerator();
+                new FunctionBodyGenerator(ballerinaAuthConfigGenerator);
         FunctionBodyNode functionBodyNode = functionBodyGenerator.getRemoteFunctionBodyNode(def);
 
         return createFunctionDefinitionNode(null, metadataNode, qualifierList, createToken(FUNCTION_KEYWORD),

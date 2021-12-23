@@ -73,7 +73,11 @@ import static io.ballerina.graphql.generators.CodeGeneratorConstants.SERVICE_URL
  */
 public class FunctionSignatureGenerator {
     private static final Log log = LogFactory.getLog(FunctionSignatureGenerator.class);
-    // TODO: Create an instance of auth config generator
+    private final AuthConfigGenerator ballerinaAuthConfigGenerator;
+
+    public FunctionSignatureGenerator(AuthConfigGenerator ballerinaAuthConfigGenerator) {
+        this.ballerinaAuthConfigGenerator = ballerinaAuthConfigGenerator;
+    }
 
     /**
      * Returns the client class init function signature node.
@@ -113,11 +117,27 @@ public class FunctionSignatureGenerator {
 
         Node serviceURLNode = getServiceURLNode();
 
-        // TODO: Invoke auth config generator
-        parameters.add(serviceURLNode);
-        parameters.add(createToken(COMMA_TOKEN));
-        parameters.add(defaultHTTPConfig);
-
+        if (ballerinaAuthConfigGenerator.isApiKeysConfig() && ballerinaAuthConfigGenerator.isClientConfig()) {
+            parameters.add(getClientConfigNode());
+            parameters.add(createToken(COMMA_TOKEN));
+            parameters.add(getApiKeysConfigNode());
+            parameters.add(createToken(COMMA_TOKEN));
+            parameters.add(serviceURLNode);
+        } else if (ballerinaAuthConfigGenerator.isApiKeysConfig() && !ballerinaAuthConfigGenerator.isClientConfig()) {
+            parameters.add(getApiKeysConfigNode());
+            parameters.add(createToken(COMMA_TOKEN));
+            parameters.add(serviceURLNode);
+            parameters.add(createToken(COMMA_TOKEN));
+            parameters.add(defaultHTTPConfig);
+        } else if (ballerinaAuthConfigGenerator.isClientConfig() && !ballerinaAuthConfigGenerator.isApiKeysConfig()) {
+            parameters.add(getClientConfigNode());
+            parameters.add(createToken(COMMA_TOKEN));
+            parameters.add(serviceURLNode);
+        } else {
+            parameters.add(serviceURLNode);
+            parameters.add(createToken(COMMA_TOKEN));
+            parameters.add(defaultHTTPConfig);
+        }
         return parameters;
     }
 

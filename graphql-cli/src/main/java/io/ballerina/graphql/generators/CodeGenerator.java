@@ -25,6 +25,7 @@ import io.ballerina.graphql.cmd.mappers.Extension;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlDocumentPathValidationException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlIntospectionException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlSchemaPathValidationException;
+import io.ballerina.graphql.generators.ballerina.AuthConfigGenerator;
 import io.ballerina.graphql.generators.ballerina.ClientGenerator;
 import io.ballerina.graphql.generators.model.GenSrcFile;
 import org.apache.commons.logging.Log;
@@ -70,13 +71,15 @@ public class CodeGenerator implements ICodeGenerator {
             BallerinaGraphqlSchemaPathValidationException, BallerinaGraphqlDocumentPathValidationException {
         GraphQLSchema schemaDocument = Utils.getGraphQLSchemaDocument(schema, extensions);
 
-        // TODO: Invoke auth config generator
+        AuthConfigGenerator ballerinaAuthConfigGenerator = new AuthConfigGenerator();
+        ballerinaAuthConfigGenerator.setAuthConfigTypes(extensions);
+        ballerinaAuthConfigGenerator.setApiHeaders(extensions);
+        ballerinaAuthConfigGenerator.setApiKeysConfigRecordFields(extensions);
 
         List<GenSrcFile> sourceFiles = new ArrayList<>();
         for (String document : documents) {
             File documentFile = new File(document);
-            // TODO: Pass auth config generator instance to the client generator
-            ClientGenerator ballerinaClientGenerator = new ClientGenerator();
+            ClientGenerator ballerinaClientGenerator = new ClientGenerator(ballerinaAuthConfigGenerator);
 
             Document queriesDocument = Utils.getGraphQLQueriesDocument(document);
             String queriesDocumentName = CodeGeneratorUtils.getDocumentName(documentFile);
