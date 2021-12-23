@@ -33,8 +33,10 @@ import io.ballerina.graphql.exceptions.BallerinaGraphqlIntospectionException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlQueryValidationException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlSDLValidationException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlSchemaPathValidationException;
+import io.ballerina.graphql.generators.CodeGenerator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ballerinalang.formatter.core.FormatterException;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
@@ -58,6 +60,7 @@ import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.cmd.Utils.isValidURL;
+import static io.ballerina.graphql.generators.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
 /**
  * Main class to implement "graphql" command for Ballerina.
@@ -406,7 +409,31 @@ public class GraphqlCmd implements BLauncherCmd {
      * @param graphqlConfig         the instance of the Graphql config file
      */
     private void generateCode(GraphqlConfig graphqlConfig) throws IOException {
-        // TODO: Invoke the code generator
+        try {
+            CodeGenerator codeGenerator = new CodeGenerator();
+            String schema = graphqlConfig.getSchema();
+            List<String> documents = graphqlConfig.getDocuments();
+            Extension extensions = graphqlConfig.getExtensions();
+            Map<String, Project> projects = graphqlConfig.getProjects();
+
+            codeGenerator.generateProjectCode(schema, documents, extensions, getTargetOutputPath().toString(),
+                    ROOT_PROJECT_NAME);
+            if (projects != null) {
+                for (String projectName : projects.keySet()) {
+                    Extension projectExtensions = projects.get(projectName).getExtensions();
+                    codeGenerator.generateProjectCode(
+                            projects.get(projectName).getSchema(),
+                            projects.get(projectName).getDocuments(),
+                            projectExtensions,
+                            getTargetOutputPath().toString(),
+                            projectName);
+                }
+            }
+        } catch (BallerinaGraphqlIntospectionException | BallerinaGraphqlSchemaPathValidationException |
+                BallerinaGraphqlDocumentPathValidationException | FormatterException e) {
+            outStream.println(e.getMessage());
+            exitError(this.exitWhenFinish);
+        }
     }
 
     /**
