@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.cmd;
 
+import graphql.introspection.IntrospectionResultToSchema;
 import graphql.language.Document;
 import graphql.parser.Parser;
 import graphql.schema.GraphQLSchema;
@@ -34,17 +35,29 @@ import io.ballerina.graphql.exceptions.BallerinaGraphqlIntospectionException;
 import io.ballerina.graphql.exceptions.BallerinaGraphqlSchemaPathValidationException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+
+import static io.ballerina.graphql.cmd.Constants.APPLICATION_JSON;
+import static io.ballerina.graphql.cmd.Constants.CONTENT_TYPE;
+import static io.ballerina.graphql.cmd.Constants.INTROSPECTION_QUERY;
+import static io.ballerina.graphql.cmd.Constants.QUERY;
 
 /**
  * Utility class for GraphQL client generation command line tool.
@@ -79,7 +92,14 @@ public class Utils {
             throws BallerinaGraphqlIntospectionException, BallerinaGraphqlSchemaPathValidationException, IOException {
         Document introspectSchema = null;
         if (isValidURL(schema)) {
-            // TODO: Implement introspection logic
+            Map<String, Object> introspectionResult;
+            if (extensions != null) {
+                introspectionResult = getIntrospectionResult(schema, extensions);
+            } else {
+                introspectionResult = getIntrospectionResult(schema);
+            }
+            IntrospectionResultToSchema introspectionResultToSchema = new IntrospectionResultToSchema();
+            introspectSchema = introspectionResultToSchema.createSchemaDefinition(introspectionResult);
         }
 
         SchemaParser schemaParser = new SchemaParser();
@@ -162,6 +182,123 @@ public class Utils {
     }
 
     /**
+     * Returns the introspection results map for a given GraphQL schema URL.
+     *
+     * @param schema         the GraphQL schema URL value of the Graphql config file
+     * @param extensions     the extensions value of the Graphql config file
+     * @return               the introspection results map
+     */
+    public static Map<String, Object> getIntrospectionResult(String schema, Extension extensions)
+            throws BallerinaGraphqlIntospectionException {
+        try {
+            HttpClient httpClient = HttpClient.newHttpClient();
+            HttpRequest httpRequest = createHttpRequest(schema, extensions);
+            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                JSONObject introspectionResult = new JSONObject(response.body());
+                if (introspectionResult.get("data") == null) {
+                    throw new BallerinaGraphqlIntospectionException("Failed to retrieve SDL");
+                }
+                return ((JSONObject) introspectionResult.get("data")).toMap();
+            } else {
+                throw new BallerinaGraphqlIntospectionException("Failed to retrieve SDL");
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new BallerinaGraphqlIntospectionException("Failed to retrieve SDL. Please provide a valid GraphQL " +
+                    "endpoint or a local SDL file path.");
+        } catch (Exception e) {
+            throw new BallerinaGraphqlIntospectionException(e.getMessage());
+        }
+    }
+
+    /**
+     * Returns the introspection results map for a given GraphQL schema file path.
+     *
+     * @param schema         the GraphQL schema file path value of the Graphql config file
+     * @return               the introspection results map
+     */
+    public static Map<String, Object> getIntrospectionResult(String schema)
+            throws BallerinaGraphqlIntospectionException {
+        try {
+            HttpClient httpClient = HttpClient.newHttpClient();
+            HttpRequest httpRequest = createHttpRequest(schema);
+            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                JSONObject introspectionResult = new JSONObject(response.body());
+                if (introspectionResult.get("data") == null) {
+                    throw new BallerinaGraphqlIntospectionException("Failed to retrieve SDL");
+                }
+                return ((JSONObject) introspectionResult.get("data")).toMap();
+            } else {
+                throw new BallerinaGraphqlIntospectionException("Failed to retrieve SDL");
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new BallerinaGraphqlIntospectionException("Failed to retrieve SDL. Please provide a valid GraphQL " +
+                    "endpoint or a local SDL file path.");
+        }
+    }
+
+    /**
+     * Creates the HTTP request object with the GraphQL payload attached to it.
+     *
+     * @param endpoint         the Graphql API endpoint
+     * @return                 the HTTP request object
+     */
+    private static HttpRequest createHttpRequest(String endpoint, Extension extensions) {
+        Map<String, String> headers = null;
+        Endpoints endpoints = extensions.getEndpoints();
+        if (endpoints != null) {
+            Default defaultName = endpoints.getDefaultName();
+            if (defaultName != null) {
+                headers = defaultName.getHeaders();
+            }
+        }
+        String graphqlPayload = getRequestPayload();
+        HttpRequest request;
+        if (headers != null) {
+            request = addHeaders(HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .headers(CONTENT_TYPE, APPLICATION_JSON)
+                    .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8)), headers)
+                    .build();
+        } else {
+            request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .headers(CONTENT_TYPE, APPLICATION_JSON)
+                    .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8))
+                    .build();
+        }
+        return request;
+    }
+
+    /**
+     * Creates the HTTP request object with the GraphQL payload attached to it.
+     *
+     * @param endpoint         the Graphql API endpoint
+     * @return                 the HTTP request object
+     */
+    private static HttpRequest createHttpRequest(String endpoint) {
+        String graphqlPayload = getRequestPayload();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .headers(CONTENT_TYPE, APPLICATION_JSON)
+                .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8))
+                .build();
+        return request;
+    }
+
+    /**
+     * Gets the GraphQL request payload constructed using the introspection query.
+     *
+     * @return               the GraphQL request payload
+     */
+    private static String getRequestPayload() {
+        JSONObject graphqlJsonPayload = new JSONObject();
+        graphqlJsonPayload.put(QUERY, INTROSPECTION_QUERY);
+        return graphqlJsonPayload.toString();
+    }
+
+    /**
      * Checks whether the schema is a valid URL.
      *
      * @param schema         the schema value
@@ -173,5 +310,18 @@ public class Utils {
         } catch (MalformedURLException | URISyntaxException e) {
             return false;
         }
+    }
+
+    /**
+     * Attaches headers to the HTTP request object.
+     *
+     * @param builder         the builder of HTTP requests
+     * @param headers         the headers map
+     */
+    private static HttpRequest.Builder addHeaders(HttpRequest.Builder builder, Map<String, String> headers) {
+        for (Map.Entry<String, String> e : headers.entrySet()) {
+            builder.header(e.getKey(), e.getValue());
+        }
+        return builder;
     }
 }
