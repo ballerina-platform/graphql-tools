@@ -9,7 +9,6 @@ import java.util.Map;
 
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
 
-
 /**
  * Utility class to store result comparing union types.
  */
@@ -66,14 +65,6 @@ public class UnionTypeEqualityResult {
 
     public UnionTypeDescriptorNode generateCombinedUnionType() {
         return nextUnionType;
-    }
-
-    public void addToAdditions(String addition) {
-        addedUnionMembers.add(addition);
-    }
-
-    public void addToRemovals(String removal) {
-        removedUnionMembers.add(removal);
     }
 
     public boolean isEqual() {

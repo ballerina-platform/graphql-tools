@@ -8,7 +8,11 @@ import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMethodDeclarationQualifiers;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMethodDeclarationName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isMetadataEqual;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isRelativeResourcePathEquals;
 
 /**
  * Utility class used to store result comparing two method declarations.
@@ -32,22 +36,33 @@ public class MethodDeclarationEqualityResult {
         isRelativeResourcePathsEqual = false;
     }
 
-    public void setNextFunctionName(String nextFunctionName) {
-        this.nextFunctionName = nextFunctionName;
-    }
-
-    public void setRelativeResourcePathsEqual(boolean relativeResourcePathsEqual) {
-        isRelativeResourcePathsEqual = relativeResourcePathsEqual;
-    }
-
     public boolean isMatch() {
-        return prevFunctionName.equals(nextFunctionName);
+        return getMethodDeclarationName(prevMethodDeclaration).equals(getMethodDeclarationName(nextMethodDeclaration));
     }
 
     public boolean isEqual() {
-        return isQualifierSimilar() && isMetadataEqual(prevMethodDeclaration.metadata().orElse(null),
-                nextMethodDeclaration.metadata().orElse(null)) && isMatch() && isRelativeResourcePathsEqual &&
-                functionSignatureEqualityResult.isEqual();
+        return isQualifiersEquals() && isMetadataEqual(prevMethodDeclaration.metadata().orElse(null),
+                nextMethodDeclaration.metadata().orElse(null)) && isMethodNameEquals() &&
+                isRelativeResourcePathEquals(prevMethodDeclaration.relativeResourcePath(),
+                        nextMethodDeclaration.relativeResourcePath()) && functionSignatureEqualityResult.isEqual();
+    }
+
+    private boolean isQualifiersEquals() {
+        if (prevMethodDeclaration.qualifierList().size() == nextMethodDeclaration.qualifierList().size()) {
+            for (int i = 0; i < prevMethodDeclaration.qualifierList().size(); i++) {
+                String prevQualifierName = prevMethodDeclaration.qualifierList().get(i).text();
+                String nextQualifierName = nextMethodDeclaration.qualifierList().get(i).text();
+                if (!prevQualifierName.equals(nextQualifierName)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isMethodNameEquals() {
+        return prevMethodDeclaration.methodName().text().equals(nextMethodDeclaration.methodName().text());
     }
 
     public FunctionSignatureEqualityResult getFunctionSignatureEqualityResult() {
@@ -59,11 +74,7 @@ public class MethodDeclarationEqualityResult {
     }
 
     public String getPrevFunctionName() {
-        return prevFunctionName;
-    }
-
-    public void setPrevFunctionName(String prevFunctionName) {
-        this.prevFunctionName = prevFunctionName;
+        return getMethodDeclarationName(prevMethodDeclaration);
     }
 
     private List<String> getPrevQualifiers() {
@@ -74,10 +85,6 @@ public class MethodDeclarationEqualityResult {
         return results;
     }
 
-    public void setPrevQualifiers(NodeList<Token> prevQualifiers) {
-        this.prevQualifiers = prevQualifiers;
-    }
-
     private List<String> getNextQualifiers() {
         List<String> results = new ArrayList<>();
         for (Token qualifierToken : nextQualifiers) {
@@ -86,26 +93,12 @@ public class MethodDeclarationEqualityResult {
         return results;
     }
 
-    public void setNextQualifiers(NodeList<Token> nextQualifiers) {
-        this.nextQualifiers = nextQualifiers;
-    }
-
     public String getPrevMainQualifier() {
-        if (getPrevQualifiers().contains(Constants.RESOURCE)) {
-            return Constants.RESOURCE;
-        } else if (getPrevQualifiers().contains(Constants.REMOTE)) {
-            return Constants.REMOTE;
-        }
-        return null;
+        return getMainQualifier(prevMethodDeclaration.qualifierList()).text();
     }
 
     public String getNextMainQualifier() {
-        if (getNextQualifiers().contains(Constants.RESOURCE)) {
-            return Constants.RESOURCE;
-        } else if (getNextQualifiers().contains(Constants.REMOTE)) {
-            return Constants.REMOTE;
-        }
-        return null;
+        return getMainQualifier(nextMethodDeclaration.qualifierList()).text();
     }
 
     public String getPrevMethodType() {
@@ -147,12 +140,12 @@ public class MethodDeclarationEqualityResult {
     }
 
     public boolean isQualifierSimilar() {
-        if (getPrevQualifiers().contains(Constants.RESOURCE) && getNextQualifiers().contains(Constants.RESOURCE)) {
-            return true;
-        } else if (getPrevQualifiers().contains(Constants.REMOTE) && getNextQualifiers().contains(Constants.REMOTE)) {
-            return true;
+        Token prevMainQualifier = getMainQualifier(prevMethodDeclaration.qualifierList());
+        Token nextMainQualifier = getMainQualifier(nextMethodDeclaration.qualifierList());
+        if (prevMainQualifier != null && nextMainQualifier != null) {
+            return prevMainQualifier.text().equals(nextMainQualifier.text());
         }
-        return false;
+        return prevMainQualifier == null && nextMainQualifier == null;
     }
 
     public MethodDeclarationNode generateCombinedMethodDeclaration() {

@@ -64,10 +64,6 @@ public class EnumDeclarationEqualityResult {
         }
     }
 
-    public List<String> getRemovedMembers() {
-        return removedMembers;
-    }
-
     public EnumDeclarationNode generateCombinedResult() {
         return nextEnum.modify(nextEnum.metadata().orElse(null), prevEnum.qualifier().orElse(null),
                 nextEnum.enumKeywordToken(), nextEnum.identifier(), prevEnum.openBraceToken(),
