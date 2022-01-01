@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createCommentMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
@@ -93,8 +94,6 @@ public class EqualityResultUtils {
             MethodDeclarationNode prevMethodDeclaration, MethodDeclarationNode nextMethodDeclaration) {
         MethodDeclarationEqualityResult methodDeclarationEquality =
                 new MethodDeclarationEqualityResult(prevMethodDeclaration, nextMethodDeclaration);
-        methodDeclarationEquality.setPrevMethodType(prevMethodDeclaration.methodName().text());
-        methodDeclarationEquality.setNextMethodType(nextMethodDeclaration.methodName().text());
         FunctionSignatureEqualityResult funcSignatureEquals =
                 isFuncSignatureEquals(prevMethodDeclaration.methodSignature(), nextMethodDeclaration.methodSignature());
         methodDeclarationEquality.setFunctionSignatureEqualityResult(funcSignatureEquals);
@@ -138,6 +137,26 @@ public class EqualityResultUtils {
             return methodDeclaration.methodName().text();
         }
         return null;
+    }
+
+    public static String getMethodDeclarationResolverType(MethodDeclarationNode methodDeclaration) {
+        if (methodDeclaration.methodName().text().equals(CodeGeneratorConstants.GET)) {
+            return CodeGeneratorConstants.GET;
+        } else if (methodDeclaration.methodName().text().equals(CodeGeneratorConstants.SUBSCRIBE)) {
+            return CodeGeneratorConstants.SUBSCRIBE;
+        } else {
+            return null;
+        }
+    }
+
+    public static String getFunctionDefinitionResolverType(FunctionDefinitionNode functionDefinition) {
+        if (functionDefinition.functionName().text().equals(CodeGeneratorConstants.GET)) {
+            return CodeGeneratorConstants.GET;
+        } else if (functionDefinition.functionName().text().equals(CodeGeneratorConstants.SUBSCRIBE)) {
+            return CodeGeneratorConstants.SUBSCRIBE;
+        } else {
+            return null;
+        }
     }
 
     public static String getFunctionName(FunctionDefinitionNode functionDefinition) {
@@ -362,13 +381,6 @@ public class EqualityResultUtils {
             }
         }
         return createNodeList(mergedQualifiers);
-    }
-
-    public static MetadataNode getMergedMetadata(MetadataNode prevMetadata, MetadataNode nextMetadata) {
-        if (nextMetadata == null) {
-            return prevMetadata;
-        }
-        return nextMetadata;
     }
 
     public static boolean isMetadataEqual(MetadataNode prevMetadata, MetadataNode nextMetadata) {

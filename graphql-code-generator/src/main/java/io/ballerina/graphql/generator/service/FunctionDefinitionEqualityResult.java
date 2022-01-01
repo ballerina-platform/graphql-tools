@@ -2,13 +2,10 @@ package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
-import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionDefinitionResolverType;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedFunctionDefinitionQualifiers;
@@ -70,16 +67,6 @@ public class FunctionDefinitionEqualityResult {
 
     public String getNextMethodType() {
         return getFunctionDefinitionResolverType(nextFunctionDefinition);
-    }
-
-    public String getFunctionDefinitionResolverType(FunctionDefinitionNode functionDefinition) {
-        String prevFunctionName = functionDefinition.functionName().text();
-        if (prevFunctionName.equals(CodeGeneratorConstants.GET)) {
-            return CodeGeneratorConstants.GET;
-        } else if (prevFunctionName.equals(CodeGeneratorConstants.SUBSCRIBE)) {
-            return CodeGeneratorConstants.SUBSCRIBE;
-        }
-        return null;
     }
 
     public boolean isGetAndSubscribeInterchanged() {
