@@ -165,7 +165,7 @@ public class ServiceCombiner {
             return false;
         }
         breakingChangeWarnings.addAll(classDefinitionEqualityResult.generateBreakingChangeWarnings());
-        objectTypesModuleMembers.add(classDefinitionEqualityResult.generateCombinedClassDefinition());
+        objectTypesModuleMembers.add(classDefinitionEqualityResult.generateCombinedResult());
         return true;
     }
 
