@@ -4,7 +4,6 @@ import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
-import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
 import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
@@ -56,22 +55,6 @@ public class EqualityResultUtils {
         return null;
     }
 
-    public static MetadataNode getEnumMemberMetadata(Node member) {
-        if (member instanceof EnumMemberNode) {
-            EnumMemberNode enumMember = (EnumMemberNode) member;
-            return enumMember.metadata().orElse(null);
-        }
-        return null;
-    }
-
-    public static MetadataNode getEnumMetadata(Node member) {
-        if (member instanceof EnumDeclarationNode) {
-            EnumDeclarationNode enumDeclaration = (EnumDeclarationNode) member;
-            return enumDeclaration.metadata().orElse(null);
-        }
-        return null;
-    }
-
     public static SeparatedNodeList<Node> getCommaAddedSeparatedNodeList(List<Node> nodes) {
         List<Node> commaAddedNodes = new ArrayList<>();
         for (int i = 0; i < nodes.size(); i++) {
@@ -110,16 +93,8 @@ public class EqualityResultUtils {
             MethodDeclarationNode prevMethodDeclaration, MethodDeclarationNode nextMethodDeclaration) {
         MethodDeclarationEqualityResult methodDeclarationEquality =
                 new MethodDeclarationEqualityResult(prevMethodDeclaration, nextMethodDeclaration);
-        methodDeclarationEquality.setPrevFunctionName(getMethodDeclarationName(prevMethodDeclaration));
-        methodDeclarationEquality.setNextFunctionName(getMethodDeclarationName(nextMethodDeclaration));
-        methodDeclarationEquality.setPrevQualifiers(prevMethodDeclaration.qualifierList());
-        methodDeclarationEquality.setNextQualifiers(nextMethodDeclaration.qualifierList());
         methodDeclarationEquality.setPrevMethodType(prevMethodDeclaration.methodName().text());
         methodDeclarationEquality.setNextMethodType(nextMethodDeclaration.methodName().text());
-        if (isRelativeResourcePathEquals(prevMethodDeclaration.relativeResourcePath(),
-                nextMethodDeclaration.relativeResourcePath())) {
-            methodDeclarationEquality.setRelativeResourcePathsEqual(true);
-        }
         FunctionSignatureEqualityResult funcSignatureEquals =
                 isFuncSignatureEquals(prevMethodDeclaration.methodSignature(), nextMethodDeclaration.methodSignature());
         methodDeclarationEquality.setFunctionSignatureEqualityResult(funcSignatureEquals);
@@ -188,17 +163,6 @@ public class EqualityResultUtils {
                                                                    FunctionDefinitionNode nextClassFuncDef) {
         FunctionDefinitionEqualityResult functionDefinitionEquality =
                 new FunctionDefinitionEqualityResult(prevClassFuncDef, nextClassFuncDef);
-//        functionDefinitionEquality.setPrevFunctionName(getFunctionName(prevClassFuncDef));
-//        functionDefinitionEquality.setNextFunctionName(getFunctionName(nextClassFuncDef));
-//        functionDefinitionEquality.setPrevQualifiers(prevClassFuncDef.qualifierList());
-//        functionDefinitionEquality.setNextQualifiers(nextClassFuncDef.qualifierList());
-//        functionDefinitionEquality.setPrevMethodType(prevClassFuncDef.functionName().text());
-//        functionDefinitionEquality.setNextMethodType(nextClassFuncDef.functionName().text());
-//        functionDefinitionEquality.setFunctionNameEqual(
-//                prevClassFuncDef.functionName().text().equals(nextClassFuncDef.functionName().text()));
-//        functionDefinitionEquality.setRelativeResourcePathsEqual(
-//                isRelativeResourcePathEquals(prevClassFuncDef.relativeResourcePath(),
-//                        nextClassFuncDef.relativeResourcePath()));
         FunctionSignatureEqualityResult funcSignatureEquals =
                 isFuncSignatureEquals(prevClassFuncDef.functionSignature(), nextClassFuncDef.functionSignature());
         functionDefinitionEquality.setFunctionSignatureEqualityResult(funcSignatureEquals);
@@ -365,22 +329,33 @@ public class EqualityResultUtils {
         return false;
     }
 
+    public static NodeList<Token> getMergedFunctionDefinitionQualifiers(NodeList<Token> prevQualifiers,
+                                                                        NodeList<Token> nextQualifiers,
+                                                                        boolean isFirstFunctionDefinition) {
+        return getMergedQualifiers(prevQualifiers, nextQualifiers, true, isFirstFunctionDefinition);
+    }
+
+    public static NodeList<Token> getMergedMethodDeclarationQualifiers(NodeList<Token> prevQualifiers,
+                                                                       NodeList<Token> nextQualifiers) {
+        return getMergedQualifiers(prevQualifiers, nextQualifiers, false, false);
+    }
+
     public static NodeList<Token> getMergedQualifiers(
-            NodeList<Token> prevQualifiers, NodeList<Token> nextQualifiers, boolean isFirstFunctionDefinition) {
+            NodeList<Token> prevQualifiers, NodeList<Token> nextQualifiers,
+            boolean addNewLineInFront, boolean isFirst) {
         List<Token> mergedQualifiers = new ArrayList<>();
         Token prevMainQualifier = getMainQualifier(prevQualifiers);
         Token nextMainQualifier = getMainQualifier(nextQualifiers);
         if (prevMainQualifier == null) {
             return nextQualifiers;
         } else {
-            boolean addNewLineInFront = true;
             for (Token prevQualifier : prevQualifiers) {
                 if (!prevQualifier.equals(prevMainQualifier)) {
                     mergedQualifiers.add(prevQualifier);
                 } else {
                     Token modifiedNextMainQualifier =
                             generateQualifierToken(nextMainQualifier.text(),
-                                    addNewLineInFront && !isFirstFunctionDefinition);
+                                    addNewLineInFront && !isFirst);
                     mergedQualifiers.add(modifiedNextMainQualifier);
                 }
                 addNewLineInFront = false;

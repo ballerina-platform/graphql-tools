@@ -157,7 +157,9 @@ public class MethodDeclarationEqualityResult {
 
     public MethodDeclarationNode generateCombinedMethodDeclaration() {
         return prevMethodDeclaration.modify(prevMethodDeclaration.kind(), nextMethodDeclaration.metadata().orElse(null),
-                nextMethodDeclaration.qualifierList(), nextMethodDeclaration.functionKeyword(),
+                getMergedMethodDeclarationQualifiers(
+                        prevMethodDeclaration.qualifierList(), nextMethodDeclaration.qualifierList()),
+                nextMethodDeclaration.functionKeyword(),
                 nextMethodDeclaration.methodName(), nextMethodDeclaration.relativeResourcePath(),
                 nextMethodDeclaration.methodSignature(), nextMethodDeclaration.semicolon());
     }

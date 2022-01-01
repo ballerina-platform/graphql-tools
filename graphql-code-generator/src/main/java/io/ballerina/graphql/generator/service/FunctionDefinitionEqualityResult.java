@@ -12,7 +12,6 @@ import java.util.List;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedQualifiers;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedQualifiers;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isRelativeResourcePathEquals;
 
 /**
