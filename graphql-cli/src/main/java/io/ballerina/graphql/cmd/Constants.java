@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  WSO2 Inc. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -24,14 +24,26 @@ package io.ballerina.graphql.cmd;
 public class Constants {
 
     // GraphQL command line tool messages
-    public static final String MESSAGE_FOR_MISSING_INPUT_ARGUMENT = "Missing the input file path," +
-            " Please provide the path of the GraphQL config file with -i flag";
-    public static final String MESSAGE_FOR_MISSING_GRAPHQL_CONFIGURATION_FILE = "A GraphQL configuration file " +
-            "is required to generate the clients. \ne.g: bal graphql --input <GraphQL configuration file>";
-    public static final String MESSAGE_FOR_EMPTY_CONFIGURATION_YAML = "Empty GraphQL " +
-            "configuration YAML file provided. Please provide a valid content in the YAML file.";
-    public static final String MESSAGE_FOR_INVALID_CONFIGURATION_YAML = "Invalid structure used for the GraphQL " +
-            "configuration YAML file.";
+    public static final String MESSAGE_FOR_MISSING_INPUT_ARGUMENT = "The input file path argument is missing. " +
+            "Please provide the path of the GraphQL config file with -i or --input flag. " +
+            "\ne.g: bal graphql --input <GraphQL configuration file>";
+    public static final String MESSAGE_FOR_INVALID_CONFIGURATION_FILE_EXTENSION = "A GraphQL configuration file " +
+            "with .yaml or .yml extension is required to generate the clients. " +
+            "\nPlease provide the path of the GraphQL config file with -i or --input flag." +
+            "\ne.g: bal graphql --input <GraphQL configuration file>";
+    public static final String MESSAGE_FOR_EMPTY_CONFIGURATION_FILE = "The GraphQL " +
+            "configuration YAML file is empty. \nPlease provide a valid content in the YAML file.";
+    public static final String MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT = "The GraphQL config file is not in " +
+            "the specific config file format.\n";
+    public static final String MESSAGE_FOR_EMPTY_PROJECT = "The GraphQL configuration YAML file is configured " +
+            "with an empty project. \nPlease provide a valid project content in the YAML file.";
+    public static final String MESSAGE_FOR_MISSING_SCHEMA_OR_DOCUMENTS = "The GraphQL configuration YAML file " +
+            "project is configured with a missing schema or documents section. " +
+            "\nPlease provide both the schema & documents section under each project in the YAML file.";
+    public static final String MESSAGE_FOR_INVALID_SCHEMA_URL = "The GraphQL configuration YAML file " +
+            "project is configured with an invalid web URL for schema location. " +
+            "\nPlease provide a valid graphQL endpoint URL or file path for the schema section " +
+            "under each project in the YAML file. \nInvalid URL ";
 
     // GraphQL config file extensions supported
     public static final String YAML_EXTENSION = ".yaml";
