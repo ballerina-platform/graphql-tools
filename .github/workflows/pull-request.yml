@@ -24,6 +24,7 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
+          WORKING_DIR: ./graphql-cli
         run: |
             graphql-cli/gradlew build codeCoverageReport --stacktrace --scan --console=plain --no-daemon
       - name: Generate Codecov Report
@@ -45,5 +46,6 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
+          WORKING_DIR: ./graphql-cli
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
         run: graphql-cli/gradlew.bat build --stacktrace --scan --console=plain --no-daemon
