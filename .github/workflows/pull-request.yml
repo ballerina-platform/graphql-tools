@@ -25,7 +25,7 @@ jobs:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            ./gradlew build codeCoverageReport --stacktrace --scan --console=plain --no-daemon
+            graphql-cli/gradlew build codeCoverageReport --stacktrace --scan --console=plain --no-daemon
       - name: Generate Codecov Report
         if:  github.event_name == 'pull_request'
         uses: codecov/codecov-action@v1
@@ -46,4 +46,4 @@ jobs:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
-        run: ./gradlew.bat build --stacktrace --scan --console=plain --no-daemon
+        run: graphql-cli/gradlew.bat build --stacktrace --scan --console=plain --no-daemon
