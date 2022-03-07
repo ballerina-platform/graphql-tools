@@ -1,0 +1,3 @@
+schema: src/test/resources/specs/schema.graphql
+documents: 
+  - src/test/resources/specs/queries/country-queries.graphql
