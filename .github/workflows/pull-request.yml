@@ -4,7 +4,6 @@ on:
   pull_request:
   push:
     branches-ignore:
-      - main
       - "automated/dependency_version_update"
       - "automated/dependency_version_update_tmp"
 
@@ -28,5 +27,4 @@ jobs:
         run: |
             ./gradlew build codeCoverageReport --stacktrace --scan --console=plain --no-daemon
       - name: Generate Codecov Report
-        if:  github.event_name == 'pull_request'
         uses: codecov/codecov-action@v2
