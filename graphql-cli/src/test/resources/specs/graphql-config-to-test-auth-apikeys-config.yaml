@@ -1,0 +1,8 @@
+schema: src/test/resources/specs/custom.schema.graphql
+documents:
+  - src/test/resources/specs/queries/queries-to-test-arguments.graphql
+extensions:
+  endpoints:
+    default:
+      headers:
+        { "Header1": "Header1Value", "Header2": "Header2Value" }

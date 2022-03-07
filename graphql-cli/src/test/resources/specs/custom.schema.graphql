@@ -1,0 +1,28 @@
+type Query {
+  operation1(argument1: Boolean!, argument2: String!, argument3: Int!, argument4: Float!, argument5: ID!, argument6: CustomScalar!, argument7: CustomInput!, argument8: [CustomInput]!, argument9: [CustomInput!]!): CustomObject
+  operation2(argument1: CustomInput, argument2: [CustomInput], argument3: [CustomInput!]): CustomObject
+  operation3(argument1: CustomInput!, argument2: CustomInput): CustomObject
+  operation4(argument1: CustomInput, argument2: CustomInput!): CustomObject
+}
+
+type CustomObject {
+ field1: String
+ field2: String!
+ field3: [String]
+ field4: [String]!
+ field5: [String!]
+ field6: [String!]!
+}
+
+
+input CustomInput {
+  field1: String
+  field2: CustomInput1
+}
+
+input CustomInput1 {
+  field1: String
+  field2: String!
+}
+
+scalar CustomScalar

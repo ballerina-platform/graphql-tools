@@ -1,0 +1,10 @@
+query getViewer {
+    viewer {
+        login
+        repositories(last: 10) {
+            nodes {
+                name
+            }
+        }
+    }
+}
