@@ -30,6 +30,7 @@ dependencies {
     implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
     implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    implementation "org.json:json:${orgJsonVersion}" // NEW
     shadow "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
     shadow "com.google.guava:guava:${googleGuavaVersion}" // NEW
     shadow "org.json:json:${orgJsonVersion}" // NEW
