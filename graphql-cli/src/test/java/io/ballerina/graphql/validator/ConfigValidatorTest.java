@@ -20,68 +20,24 @@ package io.ballerina.graphql.validator;
 
 import io.ballerina.cli.launcher.BLauncherException;
 import io.ballerina.graphql.cmd.GraphqlCmd;
+import io.ballerina.graphql.common.GraphqlTest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_SCHEMA_URL;
 
 /**
  * This class is used to test the functionality of the GraphQL configuration file validator.
  */
-public class ConfigValidatorTest {
+public class ConfigValidatorTest extends GraphqlTest {
     private static final Log log = LogFactory.getLog(ConfigValidatorTest.class);
-    protected Path tmpDir;
-    private ByteArrayOutputStream console;
-    protected PrintStream printStream;
-    protected final Path resourceDir = Paths.get("src/test/resources/").toAbsolutePath();
-
-    @BeforeClass
-    public void setup() throws IOException {
-        this.tmpDir = Files.createTempDirectory("graphql-cmd-test-out-" + System.nanoTime());
-        this.console = new ByteArrayOutputStream();
-        this.printStream = new PrintStream(this.console);
-    }
-
-    @AfterClass
-    public void cleanup() throws IOException {
-        Files.walk(this.tmpDir)
-                .sorted(Comparator.reverseOrder())
-                .forEach(path -> {
-                    try {
-                        Files.delete(path);
-                    } catch (IOException e) {
-                        Assert.fail(e.getMessage(), e);
-                    }
-                });
-        this.console.close();
-        this.printStream.close();
-    }
-
-    @BeforeTest(description = "This will create a new ballerina project for testing below scenarios.")
-    public void setupBallerinaProject() throws IOException {
-        setup();
-    }
-
-    @AfterTest
-    public void clean() {
-        System.setErr(null);
-        System.setOut(null);
-    }
 
     @Test(description = "Test graphql command execution with invalid schema URL")
     public void testValidateWithInvalidSchemaUrl() {
@@ -126,16 +82,4 @@ public class ConfigValidatorTest {
 //            Assert.fail(e.getMessage());
 //        }
 //    }
-
-    protected String readOutput(boolean status) throws IOException {
-        String output = this.console.toString();
-        this.console.close();
-        this.console = new ByteArrayOutputStream();
-        this.printStream = new PrintStream(this.console);
-        if (!status) {
-            PrintStream out = System.out;
-            out.println(output);
-        }
-        return output;
-    }
 }

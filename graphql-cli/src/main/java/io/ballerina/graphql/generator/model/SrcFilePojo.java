@@ -55,31 +55,15 @@ public class SrcFilePojo {
         return type;
     }
 
-    public void setType(GenFileType type) {
-        this.type = type;
-    }
-
     public String getModuleName() {
         return moduleName;
-    }
-
-    public void setModuleName(String moduleName) {
-        this.moduleName = moduleName;
     }
 
     public String getFileName() {
         return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
     public String getContent() {
         return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
     }
 }

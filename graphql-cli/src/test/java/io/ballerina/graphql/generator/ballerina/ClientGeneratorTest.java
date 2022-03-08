@@ -45,7 +45,7 @@ import java.util.List;
  */
 public class ClientGeneratorTest extends GraphqlTest {
 
-    @Test(description = "Test the functionality of the GraphQL client code generator")
+    @Test(description = "Test the successful generation of client code")
     public void testGenerateSrc() throws CmdException, IOException, ParseException, ValidationException {
         try {
             List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
@@ -69,6 +69,78 @@ public class ClientGeneratorTest extends GraphqlTest {
 
             Path expectedClientFile =
                     resourceDir.resolve(Paths.get("expectedGenCode", "country_queries_client.bal"));
+            String expectedClientContent = readContent(expectedClientFile);
+
+            Assert.assertEquals(expectedClientContent, generatedClientContent);
+
+        } catch (ClientGenerationException e) {
+            Assert.fail("Error while generating the client code. " + e.getMessage());
+        }
+    }
+
+    @Test(description = "Test the successful generation of client code with API keys config")
+    public void testGenerateSrcWithApiKeysConfig()
+            throws CmdException, IOException, ParseException, ValidationException {
+        try {
+            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+                    this.resourceDir.resolve(Paths.get("specs",
+                            "graphql-config-with-auth-apikeys-config.yaml")).toString(),
+                    this.tmpDir);
+
+            Extension extensions = projects.get(0).getExtensions();
+            List<String> documents = projects.get(0).getDocuments();
+            GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+
+            AuthConfig authConfig = new AuthConfig();
+            AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
+            AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
+
+            Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
+            String queryDocumentName = CodeGeneratorUtils.getDocumentName(new File(documents.get(0)));
+
+            String generatedClientContent = ClientGenerator.getInstance().
+                    generateSrc(queryDocument, queryDocumentName, schema, authConfig)
+                    .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
+
+            Path expectedClientFile =
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client", "apiKeysConfig",
+                            "country_queries_client.bal"));
+            String expectedClientContent = readContent(expectedClientFile);
+
+            Assert.assertEquals(expectedClientContent, generatedClientContent);
+
+        } catch (ClientGenerationException e) {
+            Assert.fail("Error while generating the client code. " + e.getMessage());
+        }
+    }
+
+    @Test(description = "Test the successful generation of client code with client config")
+    public void testGenerateSrcWithClientConfig()
+            throws CmdException, IOException, ParseException, ValidationException {
+        try {
+            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+                    this.resourceDir.resolve(Paths.get("specs",
+                            "graphql-config-with-auth-client-config.yaml")).toString(),
+                    this.tmpDir);
+
+            Extension extensions = projects.get(0).getExtensions();
+            List<String> documents = projects.get(0).getDocuments();
+            GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+
+            AuthConfig authConfig = new AuthConfig();
+            AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
+            AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
+
+            Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
+            String queryDocumentName = CodeGeneratorUtils.getDocumentName(new File(documents.get(0)));
+
+            String generatedClientContent = ClientGenerator.getInstance().
+                    generateSrc(queryDocument, queryDocumentName, schema, authConfig)
+                    .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
+
+            Path expectedClientFile =
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client", "clientConfig",
+                            "country_queries_client.bal"));
             String expectedClientContent = readContent(expectedClientFile);
 
             Assert.assertEquals(expectedClientContent, generatedClientContent);
