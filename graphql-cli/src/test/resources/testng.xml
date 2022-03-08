@@ -23,6 +23,7 @@
     <test name="graphql-test-suite" parallel="false">
         <classes>
             <class name="io.ballerina.graphql.cmd.GraphqlCmdTest"/>
+            <class name="io.ballerina.graphql.generator.ballerina.TypesGeneratorTest"/>
             <class name="io.ballerina.graphql.validator.SDLValidatorTest"/>
             <class name="io.ballerina.graphql.validator.QueryValidatorTest"/>
 <!--            <class name="io.ballerina.graphql.validator.ConfigValidatorTest"/>-->

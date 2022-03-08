@@ -1,0 +1,3 @@
+schema: src/test/resources/recordTypesTests/country.graphql
+documents: 
+- src/test/resources/recordTypesTests/queries/country-queries.graphql

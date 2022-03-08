@@ -29,6 +29,7 @@ import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
 import io.ballerina.graphql.validator.SDLValidator;
+import org.testng.Assert;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
@@ -38,10 +39,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
@@ -54,6 +59,8 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  * Utility class for tests.
  */
 public class TestUtils {
+    private static final Path RES_DIR = Paths.get("src/test/resources/").toAbsolutePath();
+    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     /**
      * Constructs an instance of the `Config` reading the given GraphQL config file.
@@ -131,5 +138,19 @@ public class TestUtils {
             QueryValidator.getInstance().validate(project);
         }
         return projects;
+    }
+
+    //Get string as a content of ballerina file
+    public static String getStringFromGivenBalFile(Path expectedFile) throws IOException {
+        Stream<String> expectedLines = Files.lines(expectedFile);
+        String expectedContent = expectedLines.collect(Collectors.joining(LINE_SEPARATOR));
+        expectedLines.close();
+        return expectedContent.replaceAll(LINE_SEPARATOR, "");
+    }
+
+    public static void compareGeneratedFileWithExpectedFile(String generatedFile, String expectedFile) {
+        generatedFile = (generatedFile.trim()).replaceAll("\\s+", "");
+        expectedFile = (expectedFile.trim()).replaceAll("\\s+", "");
+        Assert.assertTrue(generatedFile.contains(expectedFile));
     }
 }
