@@ -58,6 +58,7 @@ public class CodeGeneratorConstants {
     public static final String CLONE_READ_ONLY = "cloneReadOnly";
 
     public static final String QUERY = "Query";
+    public static final String MUTATION = "Mutation";
     public static final String RESPONSE = "Response";
     public static final String HTTP_CLIENT_CONFIG_TYPE_NAME = "http:ClientConfiguration";
     public static final String HTTP_CLIENT_CONFIG_PARAM_NAME = "clientConfig";

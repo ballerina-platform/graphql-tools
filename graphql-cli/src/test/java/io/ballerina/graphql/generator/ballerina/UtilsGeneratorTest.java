@@ -22,7 +22,7 @@ public class UtilsGeneratorTest extends GraphqlTest {
                     .replaceAll(System.lineSeparator(), "");;
 
             Path expectedUtilsFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "github", "types.bal"));
+                    resourceDir.resolve(Paths.get("expectedGenCode", "utils.bal"));
             String expectedUtilsContent = readContent(expectedUtilsFile);
 
             Assert.assertEquals(expectedUtilsContent, generatedUtilsContent);

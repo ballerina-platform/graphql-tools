@@ -41,12 +41,34 @@ import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
  */
 public class IntrospectorTest extends GraphqlTest {
 
-    @Test
+    @Test(description = "Test successful introspection")
     public void testGetIntrospectionResult()
             throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-with-extensions.yaml")).toString(),
+                this.tmpDir);
+
+        String schema = projects.get(0).getSchema();
+        Extension extensions = projects.get(0).getExtensions();
+
+        try {
+            if (schema.startsWith(URL_RECOGNIZER)) {
+                Map<String, Object> introspectionResult =
+                        Introspector.getInstance().getIntrospectionResult(schema, extensions);
+            }
+            Assert.assertTrue(true);
+        } catch (IntospectionException e) {
+            Assert.fail("Error while introspecting. " + e.getMessage());
+        }
+    }
+
+    @Test(description = "Test successful introspection with empty headers")
+    public void testGetIntrospectionResultWithEmptyHeaders()
+            throws ValidationException, CmdException, IOException, ParseException {
+        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+                this.resourceDir.resolve(Paths.get("specs",
+                        "graphql-config-with-empty-headers.yaml")).toString(),
                 this.tmpDir);
 
         String schema = projects.get(0).getSchema();

@@ -23,19 +23,17 @@
     <test name="graphql-test-suite" parallel="false">
         <classes>
             <class name="io.ballerina.graphql.cmd.GraphqlCmdTest"/>
+            <class name="io.ballerina.graphql.cmd.IntrospectorTest"/>
             <class name="io.ballerina.graphql.validator.SDLValidatorTest"/>
             <class name="io.ballerina.graphql.validator.QueryValidatorTest"/>
-<!--            <class name="io.ballerina.graphql.validator.ConfigValidatorTest"/>-->
-            <class name="io.ballerina.graphql.generator.CodeGeneratorTest"/>
-            <class name="io.ballerina.graphql.generator.ballerina.ClientGeneratorTest"/>
-<!--            <class name="io.ballerina.graphql.generator.ballerina.UtilsGeneratorTest"/>-->
+            <class name="io.ballerina.graphql.generator.graphql.SpecReaderTest"/>
+            <class name="io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinitionTest"/>
+            <class name="io.ballerina.graphql.generator.graphql.QueryReaderTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.AuthConfigGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.FunctionSignatureGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.FunctionBodyGeneratorTest"/>
-            <class name="io.ballerina.graphql.generator.graphql.SpecReaderTest"/>
-            <class name="io.ballerina.graphql.generator.graphql.QueryReaderTest"/>
-            <class name="io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinitionTest"/>
-            <class name="io.ballerina.graphql.cmd.IntrospectorTest"/>
+            <class name="io.ballerina.graphql.generator.ballerina.ClientGeneratorTest"/>
+            <class name="io.ballerina.graphql.generator.CodeGeneratorTest"/>
         </classes>
     </test>
 </suite>
