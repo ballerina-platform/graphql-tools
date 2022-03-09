@@ -71,6 +71,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.RECORD_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.MUTATION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.NEW_LINE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.RESPONSE;
@@ -144,6 +145,8 @@ public class TypesGenerator {
     private void addQueryResponseRecords(GraphQLSchema schema, List<String> documents, List<TypeDefinitionNode>
             typeDefinitionNodeList) throws IOException {
         Map<String, FieldType> queryFieldsMap = SpecReader.getObjectTypeFieldsMap(schema, QUERY);
+        Map<String, FieldType> mutationFieldsMap = SpecReader.getObjectTypeFieldsMap(schema, MUTATION);
+        queryFieldsMap.putAll(mutationFieldsMap);
 
         for (String document: documents) {
             QueryReader queryReader = new QueryReader(Utils.getGraphQLQueryDocument(document));
