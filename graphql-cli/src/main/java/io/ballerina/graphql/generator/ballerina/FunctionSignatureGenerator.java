@@ -68,6 +68,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.INIT_RETURN_
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.NULLABLE_EXPRESSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUESTION_MARK;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.SERVICE_URL_TYPE_NAME;
+import static io.ballerina.graphql.generator.CodeGeneratorUtils.escapeIdentifier;
 
 /**
  * This class is used to generate function signatures in the ballerina client file.
@@ -267,7 +268,7 @@ public class FunctionSignatureGenerator {
             if (variableDefinitionsMap.get(variableName).getFieldTypeAsString().endsWith(QUESTION_MARK)) {
                 BuiltinSimpleNameReferenceNode optionalFieldTypeName = createBuiltinSimpleNameReferenceNode(null,
                         createIdentifierToken(variableDefinitionsMap.get(variableName).getFieldTypeAsString()));
-                IdentifierToken optionalFieldParamName = createIdentifierToken(variableName);
+                IdentifierToken optionalFieldParamName = createIdentifierToken(escapeIdentifier(variableName));
                 IdentifierToken equalToken = createIdentifierToken(CodeGeneratorConstants.EQUAL);
                 BasicLiteralNode nullableExpression =
                         createBasicLiteralNode(null, createIdentifierToken(NULLABLE_EXPRESSION));
@@ -278,7 +279,7 @@ public class FunctionSignatureGenerator {
             } else {
                 BuiltinSimpleNameReferenceNode requiredFieldTypeName = createBuiltinSimpleNameReferenceNode(null,
                         createIdentifierToken(variableDefinitionsMap.get(variableName).getFieldTypeAsString()));
-                IdentifierToken requiredFieldParamName = createIdentifierToken(variableName);
+                IdentifierToken requiredFieldParamName = createIdentifierToken(escapeIdentifier(variableName));
                 RequiredParameterNode requiredFieldNode = createRequiredParameterNode(createEmptyNodeList(),
                         requiredFieldTypeName, requiredFieldParamName);
                 requiredParameters.add(requiredFieldNode);

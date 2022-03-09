@@ -109,6 +109,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.SELF;
+import static io.ballerina.graphql.generator.CodeGeneratorUtils.escapeIdentifier;
 
 /**
  * This class is used to generate function body's in the ballerina client file.
@@ -316,7 +317,7 @@ public class FunctionBodyGenerator {
         int count = 0;
         for (String variableName: queryDefinition.getVariableDefinitionsMap(graphQLSchema).keySet()) {
             BuiltinSimpleNameReferenceNode valueExpr = createBuiltinSimpleNameReferenceNode(null,
-                    createIdentifierToken(variableName));
+                    createIdentifierToken(escapeIdentifier(variableName)));
             SpecificFieldNode specificFieldNode = createSpecificFieldNode(null,
                     createIdentifierToken("\"" + variableName + "\""), createToken(COLON_TOKEN), valueExpr);
             specificFields.add(specificFieldNode);
