@@ -76,6 +76,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.NEW_LINE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.RESPONSE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
+import static io.ballerina.graphql.generator.CodeGeneratorUtils.escapeIdentifier;
 
 /**
  * This class is used to generate ballerina types file according to given SDL and query files.
@@ -165,6 +166,10 @@ public class TypesGenerator {
                 for (ExtendedFieldDefinition extendedFieldDefinition: definition.getExtendedFieldDefinitions()) {
                     String fieldName = extendedFieldDefinition.getName(); // countries
                     String selectionType = queryFieldsMap.get(fieldName).getName(); // Country
+                    String recordFieldName = fieldName;
+                    if (extendedFieldDefinition.getAlias() != null) {
+                        recordFieldName = extendedFieldDefinition.getAlias();
+                    }
                     Map<String, FieldType> fieldsOfSelectionType =
                             SpecReader.getObjectTypeFieldsMap(schema, selectionType);
                     List<Node> inlineRecordFieldList = new ArrayList<>();
@@ -194,7 +199,7 @@ public class TypesGenerator {
 
                     RecordFieldNode queryRecordFieldNode = createRecordFieldNode(null, null,
                             createIdentifierToken(typeDescriptorNode + queryFieldsMap.get(fieldName).getTokens()),
-                            createIdentifierToken(fieldName),
+                            createIdentifierToken(escapeIdentifier(recordFieldName)),
                             null,
                             createToken(SEMICOLON_TOKEN));
                     queryRecordFieldList.add(queryRecordFieldNode);
