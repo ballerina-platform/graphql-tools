@@ -1,0 +1,9 @@
+schema: https://countries.trevorblades.com
+documents:
+  - src/test/resources/specs/queries/country-queries.graphql
+extensions:
+  endpoints:
+    default:
+      url: https://countries.trevorblades.com
+      headers:
+        { "Header1": "Header1Value", "Header2": "Header2Value" }

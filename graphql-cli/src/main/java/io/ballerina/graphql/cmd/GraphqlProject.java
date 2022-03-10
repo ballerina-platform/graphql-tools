@@ -54,40 +54,20 @@ public class GraphqlProject {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getSchema() {
         return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
     }
 
     public List<String> getDocuments() {
         return documents;
     }
 
-    public void setDocuments(List<String> documents) {
-        this.documents = documents;
-    }
-
     public Extension getExtensions() {
         return extensions;
     }
 
-    public void setExtensions(Extension extensions) {
-        this.extensions = extensions;
-    }
-
     public String getOutputPath() {
         return outputPath;
-    }
-
-    public void setOutputPath(String outputPath) {
-        this.outputPath = outputPath;
     }
 
     public GraphQLSchema getGraphQLSchema() {
