@@ -29,7 +29,6 @@ public type StringQueryOperatorInput record {
 public type CountryResponse record {|
     map<json?> __extensions?;
     record {|
-        string? capital;
         string name;
     |}? country;
 |};
@@ -76,4 +75,21 @@ public type NeighbouringCountriesResponse record {|
             |}[] countries;
         |} continent;
     |}[] countries;
+|};
+
+# Represents AliasExample1Response
+public type AliasExample1Response record {|
+    map<json?> __extensions?;
+    record {|
+        string code;
+        string name;
+    |}? lk;
+    record {|
+        string code;
+        string native;
+    |}? au;
+    record {|
+        string code;
+        string name;
+    |}? continent;
 |};
