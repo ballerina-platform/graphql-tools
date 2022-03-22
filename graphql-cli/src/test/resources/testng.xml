@@ -32,6 +32,7 @@
             <class name="io.ballerina.graphql.generator.ballerina.AuthConfigGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.FunctionSignatureGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.FunctionBodyGeneratorTest"/>
+            <class name="io.ballerina.graphql.generator.ballerina.TypesGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.ClientGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.CodeGeneratorTest"/>
         </classes>

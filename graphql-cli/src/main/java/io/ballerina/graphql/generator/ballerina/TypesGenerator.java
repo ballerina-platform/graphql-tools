@@ -19,6 +19,8 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import graphql.language.Field;
+import graphql.language.FragmentSpread;
+import graphql.language.InlineFragment;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
 import graphql.schema.GraphQLSchema;
@@ -38,15 +40,20 @@ import io.ballerina.graphql.exception.TypesGenerationException;
 import io.ballerina.graphql.generator.graphql.QueryReader;
 import io.ballerina.graphql.generator.graphql.SpecReader;
 import io.ballerina.graphql.generator.graphql.components.ExtendedFieldDefinition;
+import io.ballerina.graphql.generator.graphql.components.ExtendedFragmentDefinition;
 import io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.graphql.components.SelectionData;
 import io.ballerina.graphql.generator.model.FieldType;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -55,11 +62,13 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyN
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createIdentifierToken;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createIncludedRecordParameterNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMetadataNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordFieldNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypeDefinitionNode;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.ASTERISK_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACE_PIPE_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACE_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
@@ -71,9 +80,11 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.RECORD_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.FRAGMENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MUTATION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.NEW_LINE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.REPRESENTS;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.RESPONSE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
 import static io.ballerina.graphql.generator.CodeGeneratorUtils.escapeIdentifier;
@@ -82,6 +93,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorUtils.escapeIdentifier
  * This class is used to generate ballerina types file according to given SDL and query files.
  */
 public class TypesGenerator {
+    private static final Log log = LogFactory.getLog(TypesGenerator.class);
     private static TypesGenerator typesGenerator = null;
 
     public static TypesGenerator getInstance() {
@@ -148,19 +160,17 @@ public class TypesGenerator {
         Map<String, FieldType> queryFieldsMap = SpecReader.getObjectTypeFieldsMap(schema, QUERY);
         Map<String, FieldType> mutationFieldsMap = SpecReader.getObjectTypeFieldsMap(schema, MUTATION);
         queryFieldsMap.putAll(mutationFieldsMap);
+        RecordFieldNode extensionsFieldNode = getExtensionsRecField();
+        Map<String, String> fragmentRecordsMap = new HashMap<>();
 
         for (String document: documents) {
             QueryReader queryReader = new QueryReader(Utils.getGraphQLQueryDocument(document));
             for (ExtendedOperationDefinition definition: queryReader.getExtendedOperationDefinitions()) {
                 String queryName = definition.getName();
+                // Record field nodes of the Query record
                 List<Node> queryRecordFieldList = new ArrayList<>();
 
-                // Create record field for __extensions
-                RecordFieldNode extensionsFieldNode = createRecordFieldNode(null, null,
-                        createIdentifierToken("map<json?>"),
-                        createIdentifierToken("__extensions"),
-                        createToken(QUESTION_MARK_TOKEN),
-                        createToken(SEMICOLON_TOKEN));
+                // Add record field for extensions - map<json?> __extensions?;
                 queryRecordFieldList.add(extensionsFieldNode);
 
                 for (ExtendedFieldDefinition extendedFieldDefinition: definition.getExtendedFieldDefinitions()) {
@@ -170,51 +180,41 @@ public class TypesGenerator {
                     if (extendedFieldDefinition.getAlias() != null) {
                         recordFieldName = extendedFieldDefinition.getAlias();
                     }
-                    Map<String, FieldType> fieldsOfSelectionType =
-                            SpecReader.getObjectTypeFieldsMap(schema, selectionType);
-                    List<Node> inlineRecordFieldList = new ArrayList<>();
+                    Map<String, FieldType> fieldsOfSelectionType = SpecReader.getObjectTypeFieldsMap(schema,
+                            selectionType);
+                    // Record field nodes of the Inline record
+                    List<Node> fieldsOfInlineRecord = new ArrayList<>();
 
+                    SelectionData selectionData = new SelectionData(selectionType, fieldsOfSelectionType, schema,
+                            queryReader, fieldsOfInlineRecord, typeDefinitionNodeList, fragmentRecordsMap);
                     for (Selection selection: extendedFieldDefinition.getSelectionSet().getSelections()) {
-                        Field field = (Field) selection;
-
-                        if (field.getSelectionSet() != null) {
-                            inlineRecordFieldList.add(
-                                    createInlineRecordField(schema, field, selectionType)
-                            );
-                        } else {
-                            String typeOfField = fieldsOfSelectionType.get(field.getName()).getFieldTypeAsString();
-                            inlineRecordFieldList.add(createRecordFieldNode(null, null,
-                                    createIdentifierToken(typeOfField + WHITESPACE),
-                                    createIdentifierToken(field.getName()),
-                                    null,
-                                    createIdentifierToken(createToken(SEMICOLON_TOKEN) + NEW_LINE)
-                            ));
-                        }
+                        handleSelection(selection, selectionData);
                     }
 
-                    NodeList<Node> inlineRecordFields = createNodeList(inlineRecordFieldList);
-                    TypeDescriptorNode typeDescriptorNode = createRecordTypeDescriptorNode(createToken(RECORD_KEYWORD),
-                            createToken(OPEN_BRACE_PIPE_TOKEN), inlineRecordFields, null,
+                    NodeList<Node> recFieldNodesOfInlineRecord = createNodeList(fieldsOfInlineRecord);
+                    RecordTypeDescriptorNode inlineRecord = createRecordTypeDescriptorNode(
+                            createToken(RECORD_KEYWORD),
+                            createToken(OPEN_BRACE_PIPE_TOKEN), recFieldNodesOfInlineRecord, null,
                             createToken(CLOSE_BRACE_PIPE_TOKEN));
 
                     RecordFieldNode queryRecordFieldNode = createRecordFieldNode(null, null,
-                            createIdentifierToken(typeDescriptorNode + queryFieldsMap.get(fieldName).getTokens()),
+                            createIdentifierToken(inlineRecord + queryFieldsMap.get(fieldName).getTokens()),
                             createIdentifierToken(escapeIdentifier(recordFieldName)),
                             null,
                             createToken(SEMICOLON_TOKEN));
                     queryRecordFieldList.add(queryRecordFieldNode);
                 }
 
-                NodeList<Node> queryResponsefields = createNodeList(queryRecordFieldList);
+                NodeList<Node> queryResponseRecFields = createNodeList(queryRecordFieldList);
 
                 RecordTypeDescriptorNode queryResponseRecord = createRecordTypeDescriptorNode(
                         createToken(RECORD_KEYWORD),
-                        createToken(OPEN_BRACE_PIPE_TOKEN), queryResponsefields, null,
+                        createToken(OPEN_BRACE_PIPE_TOKEN), queryResponseRecFields, null,
                         createToken(CLOSE_BRACE_PIPE_TOKEN));
-                MetadataNode metadataNode = createMetadataNode(createIdentifierToken("# Represents " +
-                                getQueryResponseTypeName(queryName)),
-                        createEmptyNodeList());
-                TypeDefinitionNode typeDefNode = createTypeDefinitionNode(metadataNode, null,
+                MetadataNode metadataNode = createMetadataNode(createIdentifierToken(REPRESENTS
+                                + getQueryResponseTypeName(queryName)), createEmptyNodeList());
+                TypeDefinitionNode typeDefNode = createTypeDefinitionNode(metadataNode,
+                        createToken(PUBLIC_KEYWORD),
                         createToken(TYPE_KEYWORD),
                         createIdentifierToken(getQueryResponseTypeName(queryName)),
                         queryResponseRecord,
@@ -224,38 +224,162 @@ public class TypesGenerator {
         }
     }
 
+
+    /**
+     * Handle a Selection and create record field nodes according to its type.
+     *
+     * @param selection         Selection object
+     * @param selectionData     Selection data
+     */
+    private void handleSelection(Selection selection, SelectionData selectionData) {
+        if (selection instanceof FragmentSpread) {
+            handleFragmentSpread(selection, selectionData);
+        } else if (selection instanceof InlineFragment) {
+            handleInlineFragment((InlineFragment) selection, selectionData);
+        } else {
+            handleField(selection, selectionData);
+        }
+    }
+
+    /**
+     * Handle a FragmentSpread and create record field nodes.
+     *
+     * @param selection     Selection object
+     * @param selectionData Selection data
+     */
+    private void handleFragmentSpread(Selection selection, SelectionData selectionData) {
+        String fragmentName = ((FragmentSpread) selection).getName();
+        String fragmentTypeName = getFragmentTypeName(fragmentName);
+        selectionData.getFieldsOfInlineRecord().add(
+                createIncludedRecordParameterNode(
+                        createEmptyNodeList(),
+                        createToken(ASTERISK_TOKEN),
+                        createIdentifierToken(fragmentTypeName),
+                        createIdentifierToken(createToken(SEMICOLON_TOKEN) + NEW_LINE)
+                )
+        );
+
+        // Add ballerina record for fragment if its not already available in the fragmentRecords map
+        if (!selectionData.getFragmentRecordsMap().containsKey(fragmentName)) {
+            addFragmentRecord((FragmentSpread) selection, selectionData);
+            selectionData.getFragmentRecordsMap().put(fragmentName, fragmentTypeName);
+        }
+    }
+
+    /**
+     * Handle a Field and create record field nodes.
+     *
+     * @param selection
+     * @param selectionData
+     */
+    private void handleField(Selection selection, SelectionData selectionData) {
+        Field field = (Field) selection;
+        if (field.getSelectionSet() != null) {
+            createInlineRecordField(field, selectionData);
+        } else {
+            String fieldName = field.getName();
+            String typeOfField = selectionData.getFieldsOfSelectionType().get(fieldName).getFieldTypeAsString();
+            selectionData.getFieldsOfInlineRecord().add(createRecordFieldNode(null, null,
+                    createIdentifierToken(typeOfField + WHITESPACE),
+                    createIdentifierToken(fieldName),
+                    null,
+                    createIdentifierToken(createToken(SEMICOLON_TOKEN) + NEW_LINE)
+            ));
+        }
+    }
+
+    /**
+     * Handle Fragment Fields.
+     *
+     * @param fragmentSpread    Instance of the FragmentSpread object
+     * @param selectionData     Instance of the selectionData object
+     */
+    private void addFragmentRecord(FragmentSpread fragmentSpread, SelectionData selectionData) {
+        List<Node> recordFieldList = new ArrayList<>();
+        String fragmentName = fragmentSpread.getName();
+        for (ExtendedFragmentDefinition fragmentDef: selectionData.getQueryReader().getExtendedFragmentDefinitions()) {
+            if (fragmentName.equals(fragmentDef.getName())) {
+                SelectionData fragmentSelData = new SelectionData(selectionData.getSelectionType(),
+                        selectionData.getFieldsOfSelectionType(), selectionData.getSchema(),
+                        selectionData.getQueryReader(), recordFieldList, selectionData.getTypeDefinitionNodeList(),
+                        selectionData.getFragmentRecordsMap());
+                for (Selection selection: fragmentDef.getSelectionSet().getSelections()) {
+                    if (selection instanceof Field) {
+                        Field field = (Field) selection;
+                        if (field.getSelectionSet() != null) {
+                            createInlineRecordField(field, fragmentSelData);
+                        } else {
+                            String fieldName = field.getName();
+                            String typeOfField = fragmentSelData.getFieldsOfSelectionType().get(fieldName)
+                                    .getFieldTypeAsString();
+                            recordFieldList.add(createRecordFieldNode(null, null,
+                                    createIdentifierToken(typeOfField + WHITESPACE),
+                                    createIdentifierToken(fieldName),
+                                    null,
+                                    createToken(SEMICOLON_TOKEN)
+                            ));
+                        }
+                    } else {
+                        handleSelection(selection, fragmentSelData);
+                    }
+                }
+            }
+        }
+        NodeList<Node> fragmentTypeFields = createNodeList(recordFieldList);
+
+        RecordTypeDescriptorNode fragmentRecord = createRecordTypeDescriptorNode(
+                createToken(RECORD_KEYWORD),
+                createToken(OPEN_BRACE_PIPE_TOKEN), fragmentTypeFields, null,
+                createToken(CLOSE_BRACE_PIPE_TOKEN));
+        MetadataNode metadataNode = createMetadataNode(createIdentifierToken(REPRESENTS
+                        + getFragmentTypeName(fragmentName)),
+                createEmptyNodeList());
+        TypeDefinitionNode typeDefNode = createTypeDefinitionNode(metadataNode,
+                createToken(PUBLIC_KEYWORD),
+                createToken(TYPE_KEYWORD),
+                createIdentifierToken(getFragmentTypeName(fragmentName)),
+                fragmentRecord,
+                createToken(SEMICOLON_TOKEN));
+        selectionData.getTypeDefinitionNodeList().add(typeDefNode);
+    }
+
+    /**
+     * Handle inline Fragment.
+     *
+     * @param inlineFragment    Instance of the InlineFragment object
+     * @param selectionData     Instance of the SelectionData object
+     */
+    private void handleInlineFragment(InlineFragment inlineFragment, SelectionData selectionData) {
+        for (Selection selection: inlineFragment.getSelectionSet().getSelections()) {
+            handleSelection(selection, selectionData);
+        }
+    }
+
     /**
      * Create inline record field node.
      *
-     * @param schema                the object instance of the GraphQL schema (SDL)
      * @param inlineRecordField     the object instance of the inline record field
-     * @param sourceSelectionType   type of the Selection
+     * @param selectionData         instance of Selection Data
      * @return                      generated inline record field node
      */
-    private RecordFieldNode createInlineRecordField(GraphQLSchema schema, Field inlineRecordField,
-                                                    String sourceSelectionType) {
+    private void createInlineRecordField(Field inlineRecordField, SelectionData selectionData) {
         String inlineRecordFieldName = inlineRecordField.getName(); // continent
-        Map<String, FieldType> objectFieldsMap = SpecReader.getObjectTypeFieldsMap(schema, sourceSelectionType);
+        Map<String, FieldType> objectFieldsMap = SpecReader.getObjectTypeFieldsMap(
+                selectionData.getSchema(),
+                selectionData.getSelectionType());
         String selectionType = objectFieldsMap.get(inlineRecordFieldName).getName(); // Continent
-        Map<String, FieldType> fieldsOfSelectionType = SpecReader.getObjectTypeFieldsMap(schema, selectionType);
+        Map<String, FieldType> fieldsOfSelectionType = SpecReader.getObjectTypeFieldsMap(
+                selectionData.getSchema(), selectionType);
 
         SelectionSet selectionSet = inlineRecordField.getSelectionSet();
         List<Node> fieldList = new ArrayList<>();
 
-        for (Selection selection: selectionSet.getSelections()) {
-            Field field = (Field) selection;
-            String fieldName = field.getName();
-            if (field.getSelectionSet() != null) {
-                fieldList.add(createInlineRecordField(schema, field, selectionType));
+        SelectionData inlineRecFieldData = new SelectionData(selectionType, fieldsOfSelectionType,
+                selectionData.getSchema(), selectionData.getQueryReader(),
+                fieldList, selectionData.getTypeDefinitionNodeList(), selectionData.getFragmentRecordsMap());
 
-            } else {
-                String typeOfField = fieldsOfSelectionType.get(fieldName).getFieldTypeAsString();
-                fieldList.add(createRecordFieldNode(null, null,
-                        createIdentifierToken(typeOfField + WHITESPACE),
-                        createIdentifierToken(fieldName),
-                        null,
-                        createIdentifierToken(createToken(SEMICOLON_TOKEN) + NEW_LINE)));
-            }
+        for (Selection selection: selectionSet.getSelections()) {
+            handleSelection(selection, inlineRecFieldData);
         }
 
         NodeList<Node> fields = createNodeList(fieldList);
@@ -267,11 +391,12 @@ public class TypesGenerator {
                 createToken(CLOSE_BRACE_PIPE_TOKEN)
         );
 
-        return createRecordFieldNode(null, null,
+        selectionData.getFieldsOfInlineRecord().add(createRecordFieldNode(null, null,
                 createIdentifierToken(typeDescriptorNode + objectFieldsMap.get(inlineRecordFieldName).getTokens()),
                 createIdentifierToken(inlineRecordFieldName),
                 null,
-                createToken(SEMICOLON_TOKEN));
+                createToken(SEMICOLON_TOKEN))
+        );
     }
 
     /**
@@ -305,8 +430,8 @@ public class TypesGenerator {
                     null,
                     createToken(CLOSE_BRACE_TOKEN));
 
-            MetadataNode metadataNode = createMetadataNode(createIdentifierToken("# Represents " +
-                    inputObjectType), createEmptyNodeList());
+            MetadataNode metadataNode = createMetadataNode(createIdentifierToken(REPRESENTS + inputObjectType),
+                    createEmptyNodeList());
             TypeDefinitionNode typeDefNode = createTypeDefinitionNode(metadataNode,
                     createToken(PUBLIC_KEYWORD),
                     createToken(TYPE_KEYWORD),
@@ -326,5 +451,33 @@ public class TypesGenerator {
     private String getQueryResponseTypeName(String queryName) {
         return queryName.substring(0, 1).toUpperCase() +
                 queryName.substring(1).concat(RESPONSE);
+    }
+
+    /**
+     * Get name for fragment type from the fragment name.
+     * -- ex: If the fragment name is `countryFields`, the type name will be `CountryFieldsFragment`
+     *
+     * @return  name for the fragment type
+     */
+    private String getFragmentTypeName(String fragmentName) {
+        return fragmentName.substring(0, 1).toUpperCase() +
+                fragmentName.substring(1).concat(FRAGMENT);
+    }
+
+    /**
+     * Create a record field node for extensions.
+     * <pre>
+     *     map<json?> __extensions?;
+     * </pre>
+     *
+     * @return extensionsFieldNode
+     */
+    private RecordFieldNode getExtensionsRecField() {
+        RecordFieldNode extensionsFieldNode = createRecordFieldNode(null, null,
+                createIdentifierToken("map<json?>"),
+                createIdentifierToken("__extensions"),
+                createToken(QUESTION_MARK_TOKEN),
+                createToken(SEMICOLON_TOKEN));
+        return extensionsFieldNode;
     }
 }
