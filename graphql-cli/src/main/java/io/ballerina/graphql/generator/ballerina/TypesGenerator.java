@@ -299,48 +299,28 @@ public class TypesGenerator {
         String fragmentName = fragmentSpread.getName();
         for (ExtendedFragmentDefinition fragmentDef: selectionData.getQueryReader().getExtendedFragmentDefinitions()) {
             if (fragmentName.equals(fragmentDef.getName())) {
-                for (ExtendedFieldDefinition fragmentField: fragmentDef.getExtendedFieldDefinitions()) {
-                    String fragmentFieldName = fragmentField.getName();
-                    String recordFieldName = fragmentFieldName;
-                    if (fragmentField.getAlias() != null) {
-                        recordFieldName = fragmentField.getAlias();
-                    }
-                    if (fragmentField.getSelectionSet() != null) {
-                        List<Node> inlineRecordFieldList = new ArrayList<>();
-                        Map<String, FieldType> objectFieldsMap = SpecReader.getObjectTypeFieldsMap(
-                                selectionData.getSchema(),
-                                selectionData.getSelectionType());
-                        String typeOfFragmentField = objectFieldsMap.get(fragmentFieldName).getName();
-                        Map<String, FieldType> fieldTypesMap = SpecReader.getObjectTypeFieldsMap(
-                                selectionData.getSchema(), typeOfFragmentField);
-
-                        SelectionData fragmentData = new SelectionData(typeOfFragmentField, fieldTypesMap,
-                                selectionData.getSchema(), selectionData.getQueryReader(), inlineRecordFieldList,
-                                selectionData.getTypeDefinitionNodeList(), selectionData.getFragmentRecordsMap());
-                        for (Selection selection: fragmentField.getSelectionSet().getSelections()) {
-                            handleField(selection, fragmentData);
+                SelectionData fragmentSelData = new SelectionData(selectionData.getSelectionType(),
+                        selectionData.getFieldsOfSelectionType(), selectionData.getSchema(),
+                        selectionData.getQueryReader(), recordFieldList, selectionData.getTypeDefinitionNodeList(),
+                        selectionData.getFragmentRecordsMap());
+                for (Selection selection: fragmentDef.getSelectionSet().getSelections()) {
+                    if (selection instanceof Field) {
+                        Field field = (Field) selection;
+                        if (field.getSelectionSet() != null) {
+                            createInlineRecordField(field, fragmentSelData);
+                        } else {
+                            String fieldName = field.getName();
+                            String typeOfField = fragmentSelData.getFieldsOfSelectionType().get(fieldName)
+                                    .getFieldTypeAsString();
+                            recordFieldList.add(createRecordFieldNode(null, null,
+                                    createIdentifierToken(typeOfField + WHITESPACE),
+                                    createIdentifierToken(fieldName),
+                                    null,
+                                    createToken(SEMICOLON_TOKEN)
+                            ));
                         }
-                        NodeList<Node> inlineRecordFields = createNodeList(inlineRecordFieldList);
-                        TypeDescriptorNode typeDescriptorNode = createRecordTypeDescriptorNode(
-                                createToken(RECORD_KEYWORD), createToken(OPEN_BRACE_PIPE_TOKEN), inlineRecordFields,
-                                null, createToken(CLOSE_BRACE_PIPE_TOKEN));
-
-                        RecordFieldNode queryRecordFieldNode = createRecordFieldNode(null, null,
-                                createIdentifierToken(typeDescriptorNode + selectionData.getFieldsOfSelectionType()
-                                        .get(fragmentFieldName).getTokens()),
-                                createIdentifierToken(escapeIdentifier(recordFieldName)),
-                                null,
-                                createToken(SEMICOLON_TOKEN));
-                        recordFieldList.add(queryRecordFieldNode);
                     } else {
-                        String fragmentFieldType = selectionData.getFieldsOfSelectionType().get(fragmentFieldName)
-                                .getFieldTypeAsString();
-                        recordFieldList.add(createRecordFieldNode(null, null,
-                                createIdentifierToken(fragmentFieldType + WHITESPACE),
-                                createIdentifierToken(fragmentFieldName),
-                                null,
-                                createToken(SEMICOLON_TOKEN)
-                        ));
+                        handleSelection(selection, fragmentSelData);
                     }
                 }
             }

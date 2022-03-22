@@ -21,6 +21,7 @@ package io.ballerina.graphql.generator.graphql.components;
 import graphql.language.Field;
 import graphql.language.FragmentDefinition;
 import graphql.language.Selection;
+import graphql.language.SelectionSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,10 @@ public class ExtendedFragmentDefinition {
 
     public String getOperationType() {
         return this.definition.getTypeCondition().getName();
+    }
+
+    public SelectionSet getSelectionSet() {
+        return this.definition.getSelectionSet();
     }
 
     public List<ExtendedFieldDefinition> getExtendedFieldDefinitions() {
