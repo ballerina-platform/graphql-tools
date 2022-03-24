@@ -87,6 +87,9 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    configurations {
+        ballerinaStdLibs
+    }
 }
 
 task codeCoverageReport(type: JacocoReport) {

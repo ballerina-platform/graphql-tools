@@ -34,6 +34,7 @@
             <class name="io.ballerina.graphql.generator.ballerina.FunctionBodyGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.TypesGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.ClientGeneratorTest"/>
+            <class name="io.ballerina.graphql.generator.ballerina.UtilsGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.CodeGeneratorTest"/>
         </classes>
     </test>

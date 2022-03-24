@@ -196,22 +196,9 @@ public class CodeGeneratorUtils {
      */
     public static String getRemoteFunctionBodyReturnTypeName(String operationName) {
         return "<" + operationName.substring(0, 1).toUpperCase() +
-                operationName.substring(1) + "Response> check self.graphqlClient->" +
-                "execute(" + operationName.substring(0, 1).toUpperCase() +
-                operationName.substring(1) + "Response, query, variables)";
-    }
-
-    /**
-     * Gets the remote function body return type name with Http headers.
-     *
-     * @param operationName    the name of the operation
-     * @return                 the remote function return type name
-     */
-    public static String getRemoteFunctionBodyReturnTypeNameWithHeaders(String operationName) {
-        return "<" + operationName.substring(0, 1).toUpperCase() +
-                operationName.substring(1) + "Response> check self.graphqlClient->" +
-                "execute(" + operationName.substring(0, 1).toUpperCase() +
-                operationName.substring(1) + "Response, query, variables, httpHeaders)";
+                operationName.substring(1) + "Response> check " +
+                "performDataBinding(graphqlResponse, " + operationName.substring(0, 1).toUpperCase() +
+                operationName.substring(1) + "Response)";
     }
 
     public static MetadataNode getMetadataNode(String comment) {

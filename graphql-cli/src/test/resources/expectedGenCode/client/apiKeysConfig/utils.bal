@@ -12,7 +12,7 @@ isolated function getMapForHeaders(map<any> headerParam) returns map<string|stri
         } else if value is int[] {
             string[] stringArray = [];
             foreach int intValue in value {
-               stringArray.push(intValue.toString());
+                stringArray.push(intValue.toString());
             }
             headerMap[key] = stringArray;
         } else if value is SimpleBasicType {
@@ -23,12 +23,12 @@ isolated function getMapForHeaders(map<any> headerParam) returns map<string|stri
 }
 
 isolated function performDataBinding(json graphqlResponse, typedesc<graphql:DataResponse> targetType)
-                                     returns graphql:DataResponse|graphql:ClientError {
+                                    returns graphql:DataResponse|graphql:ClientError {
     do {
-        map<json> responseMap = <map<json>> graphqlResponse;
+        map<json> responseMap = <map<json>>graphqlResponse;
         json responseData = responseMap.get("data");
         if (responseMap.hasKey("extensions")) {
-            responseData = check responseData.mergeJson({ "__extensions" : responseMap.get("extensions") });
+            responseData = check responseData.mergeJson({"__extensions": responseMap.get("extensions")});
         }
         graphql:DataResponse response = check responseData.cloneWithType(targetType);
         return response;

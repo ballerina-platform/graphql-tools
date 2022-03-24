@@ -36,6 +36,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
+import io.ballerina.compiler.syntax.tree.RemoteMethodCallActionNode;
 import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
@@ -70,6 +71,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createMappingConstru
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMethodCallExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createParenthesizedArgList;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createPositionalArgumentNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createRemoteMethodCallActionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRequiredExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createReturnStatementNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createSeparatedNodeList;
@@ -86,10 +88,12 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.COMMA_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.DOT_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EQUAL_TOKEN;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.JSON_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.NEW_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_BRACE_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RETURN_KEYWORD;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.RIGHT_ARROW_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME;
@@ -100,6 +104,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.COMMA;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_TYPE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_VAR_NAME;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_RESPONSE_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARIABLES_TYPE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARIABLES_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HEADER_VALUES_VARIABLES_TYPE_NAME;
@@ -182,22 +187,19 @@ public class FunctionBodyGenerator {
                 generateHeaderValuesVariableDeclarationNode(authConfig);
         VariableDeclarationNode httpHeadersVariableDeclarationNode = generateHttpHeadersVariableDeclarationNode();
 
-        SimpleNameReferenceNode expr = createSimpleNameReferenceNode(
-                createIdentifierToken(CodeGeneratorUtils.getRemoteFunctionBodyReturnTypeName(
-                        queryDefinition.getName())));
-        ReturnStatementNode returnStatementNode = createReturnStatementNode(createToken(
-                RETURN_KEYWORD), expr, createToken(SEMICOLON_TOKEN));
-
         assignmentNodes.add(queryVariableDeclarationNode);
         assignmentNodes.add(graphqlVariablesDeclarationNode);
 
         if (authConfig.isApiKeysConfig()) {
             assignmentNodes.add(headerValuesVariableDeclarationNode);
             assignmentNodes.add(httpHeadersVariableDeclarationNode);
-            assignmentNodes.add(generateReturnStatementNodeWithHttpHeaders(queryDefinition));
+            assignmentNodes.add(generateGraphqlResponseVariableDeclarationNodeWithHttpHeaders(queryDefinition));
         } else {
-            assignmentNodes.add(returnStatementNode);
+            assignmentNodes.add(generateGraphqlResponseVariableDeclarationNode(queryDefinition));
         }
+
+        assignmentNodes.add(generateReturnStatementNode(queryDefinition));
+
         NodeList<StatementNode> statementList = createNodeList(assignmentNodes);
 
         return createFunctionBodyBlockNode(createToken(OPEN_BRACE_TOKEN),
@@ -418,16 +420,116 @@ public class FunctionBodyGenerator {
     }
 
     /**
-     * Generate the return statement for a remote function with Http headers.
+     * Generate the return statement for a remote function.
      *
      * @param queryDefinition   the object instance of a single query definition in a query document
      * @return                  the node which represent the return statement for a remote function with Http headers
      */
-    private ReturnStatementNode generateReturnStatementNodeWithHttpHeaders(
+    private ReturnStatementNode generateReturnStatementNode(
             ExtendedOperationDefinition queryDefinition) {
         SimpleNameReferenceNode expr = createSimpleNameReferenceNode(
                 createIdentifierToken(
-                        CodeGeneratorUtils.getRemoteFunctionBodyReturnTypeNameWithHeaders(queryDefinition.getName())));
+                        CodeGeneratorUtils.getRemoteFunctionBodyReturnTypeName(queryDefinition.getName())));
         return createReturnStatementNode(createToken(RETURN_KEYWORD), expr, createToken(SEMICOLON_TOKEN));
+    }
+
+    /**
+     * Generate the {@code graphqlResponse} variable declaration node for a remote function.
+     *
+     * @param queryDefinition   the object instance of a single query definition in a query document
+     * @return                  the node which represent the {@code graphqlResponse} variable declaration
+     */
+    private VariableDeclarationNode generateGraphqlResponseVariableDeclarationNode(
+            ExtendedOperationDefinition queryDefinition) {
+        NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
+
+        // {@code json graphqlResponse} declaration
+        BuiltinSimpleNameReferenceNode typeDescriptor = createBuiltinSimpleNameReferenceNode(null,
+                createToken(JSON_KEYWORD));
+        CaptureBindingPatternNode bindingPattern = createCaptureBindingPatternNode(
+                createIdentifierToken(GRAPHQL_RESPONSE_VAR_NAME));
+        TypedBindingPatternNode typedBindingPatternNode = createTypedBindingPatternNode(typeDescriptor,
+                bindingPattern);
+
+        // {@code self.graphqlClient} declaration
+        SimpleNameReferenceNode fieldName =
+                createSimpleNameReferenceNode(createIdentifierToken("graphqlClient"));
+        FieldAccessExpressionNode graphqlClientFieldAccessExpr = createFieldAccessExpressionNode(
+                createSimpleNameReferenceNode(createIdentifierToken("self")), createToken(DOT_TOKEN), fieldName);
+
+        // {@code self.graphqlClient->executeWithType(query, variables)} declaration
+        SimpleNameReferenceNode methodName =
+                createSimpleNameReferenceNode(createIdentifierToken("executeWithType"));
+        List<Node> arguments = new ArrayList<>();
+        FunctionArgumentNode queryArgument =
+                createPositionalArgumentNode(createSimpleNameReferenceNode(createIdentifierToken("query")));
+        FunctionArgumentNode variableSArgument =
+                createPositionalArgumentNode(createSimpleNameReferenceNode(createIdentifierToken("variables")));
+        arguments.add(queryArgument);
+        arguments.add(createToken(COMMA_TOKEN));
+        arguments.add(variableSArgument);
+        SeparatedNodeList<FunctionArgumentNode> remoteFunctionArguments = createSeparatedNodeList(arguments);
+        RemoteMethodCallActionNode remoteMethodCallExpr = createRemoteMethodCallActionNode(graphqlClientFieldAccessExpr,
+                createToken(RIGHT_ARROW_TOKEN), methodName, createToken(OPEN_PAREN_TOKEN),
+                remoteFunctionArguments, createToken(CLOSE_PAREN_TOKEN));
+
+        // {@code check self.graphqlClient->executeWithType(query, variables)} declaration
+        CheckExpressionNode initializer = createCheckExpressionNode(null, createToken(CHECK_KEYWORD),
+                remoteMethodCallExpr);
+
+        return createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
+                createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN));
+    }
+
+    /**
+     * Generate the {@code graphqlResponse} variable declaration node for a remote function with Http headers.
+     *
+     * @param queryDefinition   the object instance of a single query definition in a query document
+     * @return                  the node which represent the {@code graphqlResponse} variable declaration
+     */
+    private VariableDeclarationNode generateGraphqlResponseVariableDeclarationNodeWithHttpHeaders(
+            ExtendedOperationDefinition queryDefinition) {
+        NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
+
+        // {@code json graphqlResponse} declaration
+        BuiltinSimpleNameReferenceNode typeDescriptor = createBuiltinSimpleNameReferenceNode(null,
+                createToken(JSON_KEYWORD));
+        CaptureBindingPatternNode bindingPattern = createCaptureBindingPatternNode(
+                createIdentifierToken(GRAPHQL_RESPONSE_VAR_NAME));
+        TypedBindingPatternNode typedBindingPatternNode = createTypedBindingPatternNode(typeDescriptor,
+                bindingPattern);
+
+        // {@code self.graphqlClient} declaration
+        SimpleNameReferenceNode fieldName =
+                createSimpleNameReferenceNode(createIdentifierToken("graphqlClient"));
+        FieldAccessExpressionNode graphqlClientFieldAccessExpr = createFieldAccessExpressionNode(
+                createSimpleNameReferenceNode(createIdentifierToken("self")), createToken(DOT_TOKEN), fieldName);
+
+        // {@code self.graphqlClient->executeWithType(query, variables, httpHeaders)} declaration
+        SimpleNameReferenceNode methodName =
+                createSimpleNameReferenceNode(createIdentifierToken("executeWithType"));
+        List<Node> arguments = new ArrayList<>();
+        FunctionArgumentNode queryArgument =
+                createPositionalArgumentNode(createSimpleNameReferenceNode(createIdentifierToken("query")));
+        FunctionArgumentNode variablesArgument =
+                createPositionalArgumentNode(createSimpleNameReferenceNode(createIdentifierToken("variables")));
+        FunctionArgumentNode httpHeadersArgument =
+                createPositionalArgumentNode(createSimpleNameReferenceNode(createIdentifierToken("httpHeaders")));
+        arguments.add(queryArgument);
+        arguments.add(createToken(COMMA_TOKEN));
+        arguments.add(variablesArgument);
+        arguments.add(createToken(COMMA_TOKEN));
+        arguments.add(httpHeadersArgument);
+        SeparatedNodeList<FunctionArgumentNode> remoteFunctionArguments = createSeparatedNodeList(arguments);
+        RemoteMethodCallActionNode remoteMethodCallExpr = createRemoteMethodCallActionNode(graphqlClientFieldAccessExpr,
+                createToken(RIGHT_ARROW_TOKEN), methodName, createToken(OPEN_PAREN_TOKEN),
+                remoteFunctionArguments, createToken(CLOSE_PAREN_TOKEN));
+
+        // {@code check self.graphqlClient->executeWithType(query, variables, httpHeaders)} declaration
+        CheckExpressionNode initializer = createCheckExpressionNode(null, createToken(CHECK_KEYWORD),
+                remoteMethodCallExpr);
+
+        return createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
+                createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN));
     }
 }

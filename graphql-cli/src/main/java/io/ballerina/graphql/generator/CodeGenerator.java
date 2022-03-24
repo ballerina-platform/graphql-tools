@@ -153,12 +153,9 @@ public class CodeGenerator {
      */
     private void generateUtils(String projectName, AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
             throws UtilsGenerationException {
-        // Generate utils.bal if the auth configuration is API key config
-        if (authConfig.isApiKeysConfig()) {
-            String utilSrc = UtilsGenerator.getInstance().generateSrc();
-            sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
-                    UTILS_FILE_NAME, utilSrc));
-        }
+        String utilSrc = UtilsGenerator.getInstance().generateSrc(authConfig);
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
+                UTILS_FILE_NAME, utilSrc));
     }
 
     /**

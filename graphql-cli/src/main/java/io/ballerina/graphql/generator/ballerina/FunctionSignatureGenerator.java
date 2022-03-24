@@ -215,44 +215,6 @@ public class FunctionSignatureGenerator {
         return apiKeyConfigNode;
     }
 
-//    /**
-//     * Generates the client class remote function parameters.
-//     *
-//     * @param variableDefinitionsMap    the variable definition map from the query definition
-//     * @return                          the list of nodes which represent remote function parameters
-//     */
-//    private List<Node> generateRemoteFunctionParams(Map<String, String> variableDefinitionsMap) {
-//        List<Node> parameters = new ArrayList<>();
-//        List<Node> requiredParameters = new ArrayList<>();
-//        List<Node> optionalParameters = new ArrayList<>();
-//
-//        for (String variableName :variableDefinitionsMap.keySet()) {
-//            if (variableDefinitionsMap.get(variableName).contains(QUESTION_MARK)) {
-//                BuiltinSimpleNameReferenceNode optionalFieldTypeName = createBuiltinSimpleNameReferenceNode(null,
-//                        createIdentifierToken(variableDefinitionsMap.get(variableName)));
-//                IdentifierToken optionalFieldParamName = createIdentifierToken(variableName);
-//                IdentifierToken equalToken = createIdentifierToken(CodeGeneratorConstants.EQUAL);
-//                BasicLiteralNode nullableExpression =
-//                        createBasicLiteralNode(null, createIdentifierToken(NULLABLE_EXPRESSION));
-//                DefaultableParameterNode optionalFieldNode = createDefaultableParameterNode(createEmptyNodeList(),
-//                        optionalFieldTypeName, optionalFieldParamName, equalToken, nullableExpression);
-//                optionalParameters.add(optionalFieldNode);
-//                optionalParameters.add(createToken(COMMA_TOKEN));
-//            } else {
-//                BuiltinSimpleNameReferenceNode requiredFieldTypeName = createBuiltinSimpleNameReferenceNode(null,
-//                        createIdentifierToken(variableDefinitionsMap.get(variableName)));
-//                IdentifierToken requiredFieldParamName = createIdentifierToken(variableName);
-//                RequiredParameterNode requiredFieldNode = createRequiredParameterNode(createEmptyNodeList(),
-//                        requiredFieldTypeName, requiredFieldParamName);
-//                requiredParameters.add(requiredFieldNode);
-//                requiredParameters.add(createToken(COMMA_TOKEN));
-//            }
-//        }
-//        parameters.addAll(requiredParameters);
-//        parameters.addAll(optionalParameters);
-//        return parameters;
-//    }
-
     /**
      * Generates the client class remote function parameters.
      *

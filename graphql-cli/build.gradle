@@ -18,6 +18,10 @@
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "jacoco"
 
+configurations {
+    balTools
+}
+
 dependencies {
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
@@ -34,6 +38,52 @@ dependencies {
     shadow "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
     shadow "com.google.guava:guava:${googleGuavaVersion}" // NEW
     shadow "org.json:json:${orgJsonVersion}" // NEW
+
+    balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+        transitive = false
+    }
+}
+
+def bDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")
+task jBallerinaPack {
+    doLast {
+        configurations.balTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            copy {
+                from project.zipTree(artifact.getFile())
+                into new File(project.buildDir, "extracted-distribution/")
+            }
+        }
+    }
+    outputs.dir bDistribution
+}
+
+task unpackStdLibs() {
+    dependsOn(jBallerinaPack)
+    doLast {
+        configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            copy {
+                from project.zipTree(artifact.getFile())
+                into new File("${project.buildDir}/extracted-distribution/" + artifact.name + "-zip")
+            }
+        }
+    }
+}
+
+task copyStdlibs(type: Copy) {
+    dependsOn(unpackStdLibs)
+    def ballerinaDist = "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}"
+    into ballerinaDist
+
+    /* Standard Libraries */
+    configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        def artifactExtractedPath = "${project.buildDir}/extracted-distribution/" + artifact.name + "-zip"
+        into("repo/bala") {
+            from "${artifactExtractedPath}/bala/"
+        }
+        into("repo/cache") {
+            from "${artifactExtractedPath}/cache"
+        }
+    }
 }
 
 shadowJar {
@@ -43,6 +93,11 @@ shadowJar {
 build.dependsOn(shadowJar)
 
 test {
+    dependsOn {
+        copyStdlibs
+    }
+    systemProperty "ballerina.home", bDistribution
+
     useTestNG() {
         suites "src/test/resources/testng.xml"
     }
