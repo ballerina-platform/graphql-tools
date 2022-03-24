@@ -20,27 +20,31 @@ public isolated client class CountryqueriesClient {
         map<anydata> variables = {"code": code};
         map<any> headerValues = {"Header1": self.apiKeysConfig.header1, "Header2": self.apiKeysConfig.header2};
         map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
-        return <CountryResponse> check self.graphqlClient->execute(CountryResponse, query, variables, httpHeaders);
+        json graphqlResponse = check self.graphqlClient->executeWithType(query, variables, httpHeaders);
+        return <CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);
     }
     remote isolated function countries(CountryFilterInput? filter = ()) returns CountriesResponse|graphql:Error {
         string query = string `query countries($filter:CountryFilterInput) {countries(filter:$filter) {name continent {countries {name}}}}`;
         map<anydata> variables = {"filter": filter};
         map<any> headerValues = {"Header1": self.apiKeysConfig.header1, "Header2": self.apiKeysConfig.header2};
         map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
-        return <CountriesResponse> check self.graphqlClient->execute(CountriesResponse, query, variables, httpHeaders);
+        json graphqlResponse = check self.graphqlClient->executeWithType(query, variables, httpHeaders);
+        return <CountriesResponse> check performDataBinding(graphqlResponse, CountriesResponse);
     }
     remote isolated function combinedQuery(string code, CountryFilterInput? filter = ()) returns CombinedQueryResponse|graphql:Error {
         string query = string `query combinedQuery($code:ID!,$filter:CountryFilterInput) {country(code:$code) {name} countries(filter:$filter) {name continent {countries {continent {name}}}}}`;
         map<anydata> variables = {"filter": filter, "code": code};
         map<any> headerValues = {"Header1": self.apiKeysConfig.header1, "Header2": self.apiKeysConfig.header2};
         map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
-        return <CombinedQueryResponse> check self.graphqlClient->execute(CombinedQueryResponse, query, variables, httpHeaders);
+        json graphqlResponse = check self.graphqlClient->executeWithType(query, variables, httpHeaders);
+        return <CombinedQueryResponse> check performDataBinding(graphqlResponse, CombinedQueryResponse);
     }
     remote isolated function neighbouringCountries() returns NeighbouringCountriesResponse|graphql:Error {
         string query = string `query neighbouringCountries {countries(filter:{code:{eq:"LK"}}) {name continent {countries {name}}}}`;
         map<anydata> variables = {};
         map<any> headerValues = {"Header1": self.apiKeysConfig.header1, "Header2": self.apiKeysConfig.header2};
         map<string|string[]> httpHeaders = getMapForHeaders(headerValues);
-        return <NeighbouringCountriesResponse> check self.graphqlClient->execute(NeighbouringCountriesResponse, query, variables, httpHeaders);
+        json graphqlResponse = check self.graphqlClient->executeWithType(query, variables, httpHeaders);
+        return <NeighbouringCountriesResponse> check performDataBinding(graphqlResponse, NeighbouringCountriesResponse);
     }
 }

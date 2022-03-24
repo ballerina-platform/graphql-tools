@@ -28,6 +28,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.graphql.exception.UtilsGenerationException;
+import io.ballerina.graphql.generator.model.AuthConfig;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
@@ -79,12 +80,13 @@ public class UtilsGenerator {
     /**
      * Generates the utils file content.
      *
+     * @param authConfig                        the object instance representing authentication config information
      * @return                                  the client file content
      * @throws UtilsGenerationException         when an utils code generation error occurs
      */
-    public String generateSrc() throws UtilsGenerationException {
+    public String generateSrc(AuthConfig authConfig) throws UtilsGenerationException {
         try {
-            return Formatter.format(generateSyntaxTree()).toString();
+            return Formatter.format(generateSyntaxTree(authConfig)).toString();
         } catch (FormatterException | IOException e) {
             throw new UtilsGenerationException(e.getMessage());
         }
@@ -93,15 +95,18 @@ public class UtilsGenerator {
     /**
      * Generates the utils syntax tree.
      *
+     * @param authConfig        the object instance representing authentication config information
      * @return                  Syntax tree for the Ballerina utils file code
      * @throws IOException      If an I/O error occurs
      */
-    private SyntaxTree generateSyntaxTree() throws IOException {
+    private SyntaxTree generateSyntaxTree(AuthConfig authConfig) throws IOException {
         List<ImportDeclarationNode> imports = new ArrayList<>();
         NodeList<ImportDeclarationNode> importsList = createNodeList(imports);
 
         List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
-        members.add(getSimpleBasicTypeDefinitionNode());
+        if (authConfig.isApiKeysConfig()) {
+            members.add(getSimpleBasicTypeDefinitionNode());
+        }
 
         Path path = getResourceFilePath();
         Project project = ProjectLoader.loadProject(path);
@@ -115,7 +120,12 @@ public class UtilsGenerator {
             if (node.kind().equals(SyntaxKind.FUNCTION_DEFINITION)) {
                 for (ChildNodeEntry childNodeEntry : node.childEntries()) {
                     if (childNodeEntry.name().equals("functionName")) {
-                        if (childNodeEntry.node().get().toString().equals("getMapForHeaders")) {
+                        if (authConfig.isApiKeysConfig()) {
+                            if (childNodeEntry.node().get().toString().equals("getMapForHeaders")) {
+                                members.add(node);
+                            }
+                        }
+                        if (childNodeEntry.node().get().toString().equals("performDataBinding")) {
                             members.add(node);
                         }
                     }

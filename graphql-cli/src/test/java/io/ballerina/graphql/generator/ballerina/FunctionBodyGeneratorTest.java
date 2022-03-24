@@ -181,24 +181,26 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
     public Object[][] dataProviderForRemoteFunctionBody() {
         return new Object[][]{
                 {"graphql.config.yaml", "{stringquery=string`query country($code:ID!) {country(code:$code) " +
-                        "{capital name}}`;map<anydata>variables={\"code\":code};return<CountryResponse> " +
-                        "check self.graphqlClient->execute(CountryResponse, query, variables);}"},
+                        "{capital name}}`;map<anydata>variables={\"code\":code};" +
+                        "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables);" +
+                        "return<CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);}"},
                 {"graphql-config-with-auth-apikeys-config.yaml", "{stringquery=string`query country($code:ID!) " +
                         "{country(code:$code) {capital name}}`;map<anydata>variables={\"code\":code};" +
                         "map<any>headerValues={\"Header1\":self.apiKeysConfig.header1,\"Header2\":" +
                         "self.apiKeysConfig.header2};map<string|string[]>httpHeaders=getMapForHeaders(headerValues);" +
-                        "return<CountryResponse> check self.graphqlClient->execute(CountryResponse, query, " +
-                        "variables, httpHeaders);}"},
+                        "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables,httpHeaders);" +
+                        "return<CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);}"},
                 {"graphql-config-with-auth-client-config.yaml", "{stringquery=string`query country($code:ID!) " +
                         "{country(code:$code) {capital name}}`;map<anydata>variables={\"code\":code};" +
-                        "return<CountryResponse> check self.graphqlClient->execute(CountryResponse, query, " +
-                        "variables);}"},
+                        "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables);" +
+                        "return<CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);}"},
                 {"graphql-config-with-auth-apikeys-and-client-config.yaml", "{stringquery=string`query " +
-                        "country($code:ID!) {country(code:$code) {capital name}}`;map<anydata>variables=" +
-                        "{\"code\":code};map<any>headerValues={\"Header1\":self.apiKeysConfig.header1," +
-                        "\"Header2\":self.apiKeysConfig.header2};map<string|string[]>httpHeaders=" +
-                        "getMapForHeaders(headerValues);return<CountryResponse> check self.graphqlClient->" +
-                        "execute(CountryResponse, query, variables, httpHeaders);}"}
+                        "country($code:ID!) {country(code:$code) {capital name}}`;" +
+                        "map<anydata>variables={\"code\":code};map<any>headerValues={\"Header1\":" +
+                        "self.apiKeysConfig.header1,\"Header2\":self.apiKeysConfig.header2};" +
+                        "map<string|string[]>httpHeaders=getMapForHeaders(headerValues);" +
+                        "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables,httpHeaders);" +
+                        "return<CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);}"}
         };
     }
 
@@ -214,8 +216,9 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                         "map<anydata>variables={\"argument9\":argument9,\"argument5\":argument5," +
                         "\"argument6\":argument6,\"argument7\":argument7,\"argument8\":argument8," +
                         "\"argument1\":argument1,\"argument2\":argument2,\"argument3\":argument3," +
-                        "\"argument4\":argument4};return<Operation1Response> check self.graphqlClient->" +
-                        "execute(Operation1Response, query, variables);}"}
+                        "\"argument4\":argument4};jsongraphqlResponse=checkself.graphqlClient->" +
+                        "executeWithType(query,variables);return<Operation1Response> " +
+                        "check performDataBinding(graphqlResponse, Operation1Response);}"}
         };
     }
 
@@ -225,9 +228,10 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                 {"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation2(" +
                         "$argument1:CustomInput,$argument2:[CustomInput],$argument3:[CustomInput!]) " +
                         "{operation2(argument1:$argument1,argument2:$argument2,argument3:$argument3) " +
-                        "{field1 field2}}`;map<anydata>variables={\"argument1\":argument1,\"argument2\":argument2," +
-                        "\"argument3\":argument3};return<Operation2Response> check self.graphqlClient->" +
-                        "execute(Operation2Response, query, variables);}"}
+                        "{field1 field2}}`;map<anydata>variables={\"argument1\":argument1," +
+                        "\"argument2\":argument2,\"argument3\":argument3};jsongraphqlResponse=" +
+                        "checkself.graphqlClient->executeWithType(query,variables);" +
+                        "return<Operation2Response> check performDataBinding(graphqlResponse, Operation2Response);}"}
         };
     }
 
@@ -237,8 +241,9 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                 {"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation3(" +
                         "$argument1:CustomInput!,$argument2:CustomInput) {operation3(argument1:$argument1," +
                         "argument2:$argument2) {field1 field2}}`;map<anydata>variables={\"argument1\":argument1," +
-                        "\"argument2\":argument2};return<Operation3Response> check self.graphqlClient->" +
-                        "execute(Operation3Response, query, variables);}"}
+                        "\"argument2\":argument2};jsongraphqlResponse=checkself.graphqlClient->" +
+                        "executeWithType(query,variables);return<Operation3Response> " +
+                        "check performDataBinding(graphqlResponse, Operation3Response);}"}
         };
     }
 }

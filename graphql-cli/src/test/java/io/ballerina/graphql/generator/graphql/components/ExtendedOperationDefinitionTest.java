@@ -190,7 +190,6 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
 
         for (ExtendedFieldDefinition extendedFieldDefinition: generatedExtendedFieldDefinitions) {
             String fieldName = extendedFieldDefinition.getName();
-            log.info(fieldName);
         }
     }
 

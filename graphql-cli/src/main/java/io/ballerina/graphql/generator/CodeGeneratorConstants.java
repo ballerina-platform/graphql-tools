@@ -54,6 +54,7 @@ public class CodeGeneratorConstants {
     public static final String SELF = "self";
     public static final String CLIENT_EP = "clientEp";
     public static final String QUERY_VAR_NAME = "query";
+    public static final String GRAPHQL_RESPONSE_VAR_NAME = "graphqlResponse";
     public static final String CLONE_READ_ONLY = "cloneReadOnly";
 
     public static final String FRAGMENT = "Fragment";
@@ -65,6 +66,10 @@ public class CodeGeneratorConstants {
     public static final String HTTP_CLIENT_CONFIG_PARAM_NAME = "clientConfig";
     public static final String SERVICE_URL_TYPE_NAME = "string";
     public static final String SERVICE_URL_PARAM_NAME = "serviceUrl";
+    public static final String GRAPHQL_RESPONSE_TYPE_NAME = "json";
+    public static final String GRAPHQL_RESPONSE_PARAM_NAME = "graphqlResponse";
+    public static final String TARGET_TYPE_PARAM_TYPE_NAME = "typedesc<graphql:DataResponse>";
+    public static final String TARGET_TYPE_PARAM_NAME = "targetType";
     public static final String GRAPHQL_CLIENT_TYPE_NAME = "graphql:Client";
     public static final String GRAPHQL_CLIENT_VAR_NAME = "clientEp";
     public static final String GRAPHQL_VARIABLES_TYPE_NAME = "map<anydata>";
