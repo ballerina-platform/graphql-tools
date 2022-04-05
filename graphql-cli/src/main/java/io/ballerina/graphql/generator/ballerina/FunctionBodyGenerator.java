@@ -69,6 +69,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionCallEx
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createImplicitNewExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMappingConstructorExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMethodCallExpressionNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createNamedArgumentNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createParenthesizedArgList;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createPositionalArgumentNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRemoteMethodCallActionNode;
@@ -505,7 +506,7 @@ public class FunctionBodyGenerator {
         FieldAccessExpressionNode graphqlClientFieldAccessExpr = createFieldAccessExpressionNode(
                 createSimpleNameReferenceNode(createIdentifierToken("self")), createToken(DOT_TOKEN), fieldName);
 
-        // {@code self.graphqlClient->executeWithType(query, variables, httpHeaders)} declaration
+        // {@code self.graphqlClient->executeWithType(query, variables, headers = httpHeaders)} declaration
         SimpleNameReferenceNode methodName =
                 createSimpleNameReferenceNode(createIdentifierToken("executeWithType"));
         List<Node> arguments = new ArrayList<>();
@@ -513,8 +514,9 @@ public class FunctionBodyGenerator {
                 createPositionalArgumentNode(createSimpleNameReferenceNode(createIdentifierToken("query")));
         FunctionArgumentNode variablesArgument =
                 createPositionalArgumentNode(createSimpleNameReferenceNode(createIdentifierToken("variables")));
-        FunctionArgumentNode httpHeadersArgument =
-                createPositionalArgumentNode(createSimpleNameReferenceNode(createIdentifierToken("httpHeaders")));
+        FunctionArgumentNode httpHeadersArgument = createNamedArgumentNode(
+                createSimpleNameReferenceNode(createIdentifierToken("headers")), createToken(EQUAL_TOKEN),
+                createSimpleNameReferenceNode(createIdentifierToken("httpHeaders")));
         arguments.add(queryArgument);
         arguments.add(createToken(COMMA_TOKEN));
         arguments.add(variablesArgument);

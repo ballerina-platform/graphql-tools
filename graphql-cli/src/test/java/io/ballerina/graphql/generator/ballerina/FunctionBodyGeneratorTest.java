@@ -188,7 +188,8 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                         "{country(code:$code) {capital name}}`;map<anydata>variables={\"code\":code};" +
                         "map<any>headerValues={\"Header1\":self.apiKeysConfig.header1,\"Header2\":" +
                         "self.apiKeysConfig.header2};map<string|string[]>httpHeaders=getMapForHeaders(headerValues);" +
-                        "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables,httpHeaders);" +
+                        "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables," +
+                        "headers=httpHeaders);" +
                         "return<CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);}"},
                 {"graphql-config-with-auth-client-config.yaml", "{stringquery=string`query country($code:ID!) " +
                         "{country(code:$code) {capital name}}`;map<anydata>variables={\"code\":code};" +
@@ -199,7 +200,8 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                         "map<anydata>variables={\"code\":code};map<any>headerValues={\"Header1\":" +
                         "self.apiKeysConfig.header1,\"Header2\":self.apiKeysConfig.header2};" +
                         "map<string|string[]>httpHeaders=getMapForHeaders(headerValues);" +
-                        "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables,httpHeaders);" +
+                        "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables," +
+                        "headers=httpHeaders);" +
                         "return<CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);}"}
         };
     }
