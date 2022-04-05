@@ -28,6 +28,8 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.graphql.exception.UtilsGenerationException;
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
+import io.ballerina.graphql.generator.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.model.AuthConfig;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Package;
@@ -100,13 +102,14 @@ public class UtilsGenerator {
      * @throws IOException      If an I/O error occurs
      */
     private SyntaxTree generateSyntaxTree(AuthConfig authConfig) throws IOException {
-        List<ImportDeclarationNode> imports = new ArrayList<>();
-        NodeList<ImportDeclarationNode> importsList = createNodeList(imports);
+        NodeList<ImportDeclarationNode> importsList = generateImports();
 
         List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
         if (authConfig.isApiKeysConfig()) {
             members.add(getSimpleBasicTypeDefinitionNode());
         }
+        members.add(getOperationResponseTypeDefinitionNode());
+        members.add(getDataResponseTypeDefinitionNode());
 
         Path path = getResourceFilePath();
         Project project = ProjectLoader.loadProject(path);
@@ -142,6 +145,19 @@ public class UtilsGenerator {
     }
 
     /**
+     * Generates the imports in the utils file.
+     *
+     * @return                          the node list which represent imports in the utils file
+     */
+    private NodeList<ImportDeclarationNode> generateImports() {
+        List<ImportDeclarationNode> imports = new ArrayList<>();
+        ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
+                CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.GRAPHQL);
+        imports.add(importForGraphql);
+        return createNodeList(imports);
+    }
+
+    /**
      * Generates `SimpleBasicType` type.
      * <pre>
      *     type SimpleBasicType string|boolean|int|float|decimal;
@@ -155,6 +171,47 @@ public class UtilsGenerator {
 
         return createTypeDefinitionNode(null, null,
                 createToken(TYPE_KEYWORD), createIdentifierToken("SimpleBasicType"), typeDescriptorNode,
+                createToken(SEMICOLON_TOKEN));
+    }
+
+    /**
+     * Generates `OperationResponse` type.
+     * <pre>
+     *     type OperationResponse record {| anydata...; |}|record {| anydata...; |}[]|boolean|string|int|float|();
+     * </pre>
+     *
+     * @return          the `OperationResponse` type definition node
+     */
+    private TypeDefinitionNode getOperationResponseTypeDefinitionNode() {
+        TypeDescriptorNode typeDescriptorNode = createSingletonTypeDescriptorNode(
+                createSimpleNameReferenceNode(createIdentifierToken("record {| anydata...; |}|" +
+                        "record {| anydata...; |}[]|boolean|string|int|float|()")));
+
+        return createTypeDefinitionNode(null, null,
+                createToken(TYPE_KEYWORD), createIdentifierToken("OperationResponse"), typeDescriptorNode,
+                createToken(SEMICOLON_TOKEN));
+    }
+
+    /**
+     * Generates `DataResponse` type.
+     * <pre>
+     *      type DataResponse record {|
+     *          map<json?> __extensions?;
+     *          OperationResponse ...;
+     *      |};
+     * </pre>
+     *
+     * @return          the `DataResponse` type definition node
+     */
+    private TypeDefinitionNode getDataResponseTypeDefinitionNode() {
+        TypeDescriptorNode typeDescriptorNode = createSingletonTypeDescriptorNode(
+                createSimpleNameReferenceNode(createIdentifierToken("record {|\n" +
+                        "   map<json?> __extensions?;\n" +
+                        "   OperationResponse ...;\n" +
+                        "|}")));
+
+        return createTypeDefinitionNode(null, null,
+                createToken(TYPE_KEYWORD), createIdentifierToken("DataResponse"), typeDescriptorNode,
                 createToken(SEMICOLON_TOKEN));
     }
 

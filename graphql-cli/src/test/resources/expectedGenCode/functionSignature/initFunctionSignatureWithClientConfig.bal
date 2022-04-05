@@ -1,1 +1,1 @@
-(ClientConfig clientConfig, string serviceUrl) returns graphql:Error?
+(ClientConfig clientConfig, string serviceUrl) returns graphql:ClientError?

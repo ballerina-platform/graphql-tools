@@ -185,7 +185,7 @@ public class CodeGeneratorUtils {
      */
     public static String getRemoteFunctionSignatureReturnTypeName(String operationName) {
         return operationName.substring(0, 1).toUpperCase() +
-                operationName.substring(1).concat("Response|graphql:Error");
+                operationName.substring(1).concat("Response|graphql:ClientError");
     }
 
     /**

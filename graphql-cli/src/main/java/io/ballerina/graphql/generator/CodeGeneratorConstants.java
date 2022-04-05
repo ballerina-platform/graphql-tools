@@ -50,7 +50,7 @@ public class CodeGeneratorConstants {
     public static final String CLIENT = "Client";
     public static final String GRAPHQL_CLIENT = "graphqlClient";
     public static final String INIT = "init";
-    public static final String INIT_RETURN_TYPE = "graphql:Error";
+    public static final String INIT_RETURN_TYPE = "graphql:ClientError";
     public static final String SELF = "self";
     public static final String CLIENT_EP = "clientEp";
     public static final String QUERY_VAR_NAME = "query";
