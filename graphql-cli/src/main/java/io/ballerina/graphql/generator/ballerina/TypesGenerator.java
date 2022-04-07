@@ -157,8 +157,16 @@ public class TypesGenerator {
      */
     private void addQueryResponseRecords(GraphQLSchema schema, List<String> documents, List<TypeDefinitionNode>
             typeDefinitionNodeList) throws IOException {
-        Map<String, FieldType> queryFieldsMap = SpecReader.getObjectTypeFieldsMap(schema, QUERY);
-        Map<String, FieldType> mutationFieldsMap = SpecReader.getObjectTypeFieldsMap(schema, MUTATION);
+        String queryObjectTypeName = QUERY;
+        String mutationObjectTypeName = MUTATION;
+        if (schema.getQueryType() != null) {
+            queryObjectTypeName = schema.getQueryType().getName();
+        }
+        if (schema.getMutationType() != null) {
+            mutationObjectTypeName = schema.getMutationType().getName();
+        }
+        Map<String, FieldType> queryFieldsMap = SpecReader.getObjectTypeFieldsMap(schema, queryObjectTypeName);
+        Map<String, FieldType> mutationFieldsMap = SpecReader.getObjectTypeFieldsMap(schema, mutationObjectTypeName);
         queryFieldsMap.putAll(mutationFieldsMap);
         RecordFieldNode extensionsFieldNode = getExtensionsRecField();
         Map<String, String> fragmentRecordsMap = new HashMap<>();
