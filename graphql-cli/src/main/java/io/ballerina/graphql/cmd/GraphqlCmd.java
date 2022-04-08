@@ -150,11 +150,8 @@ public class GraphqlCmd implements BLauncherCmd {
     private void validateInputFlags() throws CmdException {
         // Check if CLI help flag argument is present
         if (helpFlag) {
-            // TODO: Send a PR with cli-help/ballerina-graphql.help file to
-            //  https://github.com/ballerina-platform/ballerina-lang/tree/master/cli/ballerina-cli/src/main/resources/
-//            String commandUsageInfo = BLauncherCmd.getCommandUsageInfo(getName());
-//            outStream.println(commandUsageInfo);
-            Runtime.getRuntime().exit(0);
+            String commandUsageInfo = BLauncherCmd.getCommandUsageInfo(getName());
+            outStream.println(commandUsageInfo);
             return;
         }
 
@@ -165,10 +162,8 @@ public class GraphqlCmd implements BLauncherCmd {
                 throw new CmdException(MESSAGE_FOR_MISSING_INPUT_ARGUMENT);
             }
         } else {
-            // TODO: Send a PR with cli-help/ballerina-graphql.help file to
-            //  https://github.com/ballerina-platform/ballerina-lang/tree/master/cli/ballerina-cli/src/main/resources/
-//            String commandUsageInfo = BLauncherCmd.getCommandUsageInfo(getName());
-//            outStream.println(commandUsageInfo);
+            String commandUsageInfo = BLauncherCmd.getCommandUsageInfo(getName());
+            outStream.println(commandUsageInfo);
             exitError(this.exitWhenFinish);
         }
     }
