@@ -224,7 +224,7 @@ public class UtilsGenerator {
     private Path getResourceFilePath() throws IOException {
         Path path = null;
         ClassLoader classLoader = getClass().getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("templates/utils.bal");
+        InputStream inputStream = classLoader.getResourceAsStream("templates/utils_graphql.bal");
         if (inputStream != null) {
             String clientSyntaxTreeString = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             Path tmpDir = Files.createTempDirectory(".util-tmp" + System.nanoTime());
