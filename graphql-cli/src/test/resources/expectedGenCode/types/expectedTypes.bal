@@ -1,21 +1,17 @@
-# Represents ContinentFilterInput
 public type ContinentFilterInput record {
     StringQueryOperatorInput? code?;
 };
 
-# Represents CountryFilterInput
 public type CountryFilterInput record {
     StringQueryOperatorInput? continent?;
     StringQueryOperatorInput? code?;
     StringQueryOperatorInput? currency?;
 };
 
-# Represents LanguageFilterInput
 public type LanguageFilterInput record {
     StringQueryOperatorInput? code?;
 };
 
-# Represents StringQueryOperatorInput
 public type StringQueryOperatorInput record {
     string?[]? nin?;
     string? regex?;
@@ -25,7 +21,6 @@ public type StringQueryOperatorInput record {
     string?[]? 'in?;
 };
 
-# Represents CountryResponse
 public type CountryResponse record {|
     map<json?> __extensions?;
     record {|
@@ -33,7 +28,6 @@ public type CountryResponse record {|
     |}? country;
 |};
 
-# Represents CountriesResponse
 public type CountriesResponse record {|
     map<json?> __extensions?;
     record {|
@@ -46,7 +40,6 @@ public type CountriesResponse record {|
     |}[] countries;
 |};
 
-# Represents CombinedQueryResponse
 public type CombinedQueryResponse record {|
     map<json?> __extensions?;
     record {|
@@ -64,7 +57,6 @@ public type CombinedQueryResponse record {|
     |}[] countries;
 |};
 
-# Represents NeighbouringCountriesResponse
 public type NeighbouringCountriesResponse record {|
     map<json?> __extensions?;
     record {|
@@ -77,7 +69,6 @@ public type NeighbouringCountriesResponse record {|
     |}[] countries;
 |};
 
-# Represents AliasExample1Response
 public type AliasExample1Response record {|
     map<json?> __extensions?;
     record {|

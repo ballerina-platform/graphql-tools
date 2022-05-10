@@ -84,7 +84,6 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.FRAGMENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MUTATION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.NEW_LINE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.REPRESENTS;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.RESPONSE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
 import static io.ballerina.graphql.generator.CodeGeneratorUtils.escapeIdentifier;
@@ -219,8 +218,7 @@ public class TypesGenerator {
                         createToken(RECORD_KEYWORD),
                         createToken(OPEN_BRACE_PIPE_TOKEN), queryResponseRecFields, null,
                         createToken(CLOSE_BRACE_PIPE_TOKEN));
-                MetadataNode metadataNode = createMetadataNode(createIdentifierToken(REPRESENTS
-                                + getQueryResponseTypeName(queryName)), createEmptyNodeList());
+                MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
                 TypeDefinitionNode typeDefNode = createTypeDefinitionNode(metadataNode,
                         createToken(PUBLIC_KEYWORD),
                         createToken(TYPE_KEYWORD),
@@ -339,9 +337,7 @@ public class TypesGenerator {
                 createToken(RECORD_KEYWORD),
                 createToken(OPEN_BRACE_PIPE_TOKEN), fragmentTypeFields, null,
                 createToken(CLOSE_BRACE_PIPE_TOKEN));
-        MetadataNode metadataNode = createMetadataNode(createIdentifierToken(REPRESENTS
-                        + getFragmentTypeName(fragmentName)),
-                createEmptyNodeList());
+        MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
         TypeDefinitionNode typeDefNode = createTypeDefinitionNode(metadataNode,
                 createToken(PUBLIC_KEYWORD),
                 createToken(TYPE_KEYWORD),
@@ -438,8 +434,7 @@ public class TypesGenerator {
                     null,
                     createToken(CLOSE_BRACE_TOKEN));
 
-            MetadataNode metadataNode = createMetadataNode(createIdentifierToken(REPRESENTS + inputObjectType),
-                    createEmptyNodeList());
+            MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
             TypeDefinitionNode typeDefNode = createTypeDefinitionNode(metadataNode,
                     createToken(PUBLIC_KEYWORD),
                     createToken(TYPE_KEYWORD),

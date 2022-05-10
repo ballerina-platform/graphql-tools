@@ -1,4 +1,3 @@
-# Represents CountryResponse
 public type CountryResponse record {|
     map<json?> __extensions?;
     record {|
@@ -6,7 +5,6 @@ public type CountryResponse record {|
     |}? country;
 |};
 
-# Represents CountriesResponse
 public type CountriesResponse record {|
     map<json?> __extensions?;
     record {|
@@ -19,7 +17,6 @@ public type CountriesResponse record {|
     |}[] countries;
 |};
 
-# Represents CombinedQueryResponse
 public type CombinedQueryResponse record {|
     map<json?> __extensions?;
     record {|
@@ -37,7 +34,6 @@ public type CombinedQueryResponse record {|
     |}[] countries;
 |};
 
-# Represents NeighbouringCountriesResponse
 public type NeighbouringCountriesResponse record {|
     map<json?> __extensions?;
     record {|
