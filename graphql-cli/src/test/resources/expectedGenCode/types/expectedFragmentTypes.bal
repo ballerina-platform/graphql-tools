@@ -1,10 +1,8 @@
-# Represents CountryFieldsFragment
 public type CountryFieldsFragment record {|
     string code;
     string name;
 |};
 
-# Represents FragmentExample1Response
 public type FragmentExample1Response record {|
     map<json?> __extensions?;
     record {|
@@ -20,7 +18,6 @@ public type FragmentExample1Response record {|
     |}? continent;
 |};
 
-# Represents CountryFields2Fragment
 public type CountryFields2Fragment record {|
     string code;
     string name;
@@ -35,7 +32,6 @@ public type CountryFields2Fragment record {|
     |}[] languages;
 |};
 
-# Represents FragmentExample2Response
 public type FragmentExample2Response record {|
     map<json?> __extensions?;
     record {|
@@ -51,7 +47,6 @@ public type FragmentExample2Response record {|
     |}? continent;
 |};
 
-# Represents CountryFields3Fragment
 public type CountryFields3Fragment record {|
     string code;
     string name;
@@ -63,7 +58,6 @@ public type CountryFields3Fragment record {|
     |} continent;
 |};
 
-# Represents FragmentExample3Response
 public type FragmentExample3Response record {|
     map<json?> __extensions?;
     record {|
@@ -79,7 +73,6 @@ public type FragmentExample3Response record {|
     |}? continent;
 |};
 
-# Represents InlineFragmentExample1Response
 public type InlineFragmentExample1Response record {|
     map<json?> __extensions?;
     record {|
@@ -104,7 +97,6 @@ public type InlineFragmentExample1Response record {|
     |}? continent;
 |};
 
-# Represents InlineFragmentExample2Response
 public type InlineFragmentExample2Response record {|
     map<json?> __extensions?;
     record {|
