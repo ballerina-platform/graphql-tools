@@ -69,6 +69,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.QUESTION_MARK_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RECORD_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_KEYWORD;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.TRUE_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
 
 /**
@@ -195,7 +196,7 @@ public class AuthConfigGenerator {
      *     # Configurations related to client authentication
      *     http:BearerTokenConfig|http:OAuth2RefreshTokenGrantConfig auth;
      *     # The HTTP version understood by the client
-     *     string httpVersion = "1.1";
+     *     http:HttpVersion httpVersion = http:HTTP_1_1;
      *     # Configurations related to HTTP/1.x protocol
      *     http:ClientHttp1Settings http1Settings = {};
      *     # Configurations related to HTTP/2 protocol
@@ -220,8 +221,13 @@ public class AuthConfigGenerator {
      *     http:CookieConfig? cookieConfig = ();
      *     # Configurations associated with inbound response size limits
      *     http:ResponseLimitConfigs responseLimits = {};
-     *     #SSL/TLS-related options
+     *     # SSL/TLS-related options
      *     http:ClientSecureSocket? secureSocket = ();
+     *     # Proxy server related options
+     *     http:ProxyConfig? proxy = ();
+     *     # Enables the inbound payload validation functionalty which provided by the constraint package.
+     *     Enabled by default
+     *     boolean validation = true;
      * </pre>
      *
      * @param authConfig                the object instance representing authentication configuration information
@@ -250,10 +256,11 @@ public class AuthConfigGenerator {
         // Add httpVersion field
         MetadataNode httpVersionMetadata =
                 CodeGeneratorUtils.getMetadataNode("The HTTP version understood by the client");
-        TypeDescriptorNode httpVersionFieldType = createSimpleNameReferenceNode(createToken(STRING_KEYWORD));
+        TypeDescriptorNode httpVersionFieldType =
+                createSimpleNameReferenceNode(createIdentifierToken("http:HttpVersion"));
         IdentifierToken httpVersionFieldName = createIdentifierToken("httpVersion");
         RequiredExpressionNode httpVersionExpression =
-                createRequiredExpressionNode(createIdentifierToken("\"1.1\""));
+                createRequiredExpressionNode(createIdentifierToken("http:HTTP_1_1"));
         RecordFieldWithDefaultValueNode httpVersionFieldNode = NodeFactory.createRecordFieldWithDefaultValueNode(
                 httpVersionMetadata, null, httpVersionFieldType, httpVersionFieldName,
                 equalToken, httpVersionExpression, semicolonToken);
@@ -402,6 +409,26 @@ public class AuthConfigGenerator {
                 secureSocketMetadata, null, secureSocketfieldType, secureSocketFieldName,
                 equalToken, nilLiteralNode, semicolonToken);
         recordFieldNodes.add(secureSocketFieldNode);
+
+        // Add proxy server field
+        MetadataNode proxyConfigMetadata = CodeGeneratorUtils.getMetadataNode("Proxy server related options");
+        IdentifierToken proxyConfigFieldName = AbstractNodeFactory.createIdentifierToken("proxy");
+        TypeDescriptorNode proxyConfigFieldType = createOptionalTypeDescriptorNode(
+                createIdentifierToken("http:ProxyConfig"), createToken(QUESTION_MARK_TOKEN));
+        RecordFieldWithDefaultValueNode proxyConfigFieldNode = NodeFactory.createRecordFieldWithDefaultValueNode(
+                proxyConfigMetadata, null, proxyConfigFieldType, proxyConfigFieldName,
+                equalToken, nilLiteralNode, semicolonToken);
+        recordFieldNodes.add(proxyConfigFieldNode);
+
+        // Add validation for constraint
+        MetadataNode validationMetadata = CodeGeneratorUtils.getMetadataNode("Enables the inbound payload " +
+                "validation functionality which provided by the constraint package. Enabled by default");
+        IdentifierToken validationFieldName = AbstractNodeFactory.createIdentifierToken("validation");
+        TypeDescriptorNode validationFieldType = createSimpleNameReferenceNode(createIdentifierToken("boolean"));
+        RecordFieldWithDefaultValueNode validateFieldNode = NodeFactory.createRecordFieldWithDefaultValueNode(
+                validationMetadata, null, validationFieldType, validationFieldName,
+                equalToken, createRequiredExpressionNode(createToken(TRUE_KEYWORD)), semicolonToken);
+        recordFieldNodes.add(validateFieldNode);
 
         return recordFieldNodes;
     }
