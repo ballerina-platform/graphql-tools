@@ -152,7 +152,7 @@ public class GraphqlCmd implements BLauncherCmd {
         if (helpFlag) {
             String commandUsageInfo = BLauncherCmd.getCommandUsageInfo(getName());
             outStream.println(commandUsageInfo);
-            return;
+            exitError(this.exitWhenFinish);
         }
 
         // Check if CLI input path flag argument is present
