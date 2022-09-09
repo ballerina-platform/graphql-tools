@@ -29,12 +29,9 @@ import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.ballerina.AuthConfigGenerator;
-import io.ballerina.graphql.generator.ballerina.AuthConfigGeneratorTest;
 import io.ballerina.graphql.generator.graphql.QueryReader;
 import io.ballerina.graphql.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.model.FieldType;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -50,7 +47,6 @@ import static org.testng.Assert.assertTrue;
  * This class is used to test the functionality of the GraphQL query reader ExtendedOperationDefinition class.
  */
 public class ExtendedOperationDefinitionTest extends GraphqlTest {
-    private static final Log log = LogFactory.getLog(AuthConfigGeneratorTest.class);
 
     @Test
     public void testGetOperationType() throws ValidationException, CmdException, IOException, ParseException {

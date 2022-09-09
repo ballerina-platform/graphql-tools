@@ -29,12 +29,12 @@
             <class name="io.ballerina.graphql.generator.graphql.SpecReaderTest"/>
             <class name="io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinitionTest"/>
             <class name="io.ballerina.graphql.generator.graphql.QueryReaderTest"/>
-            <class name="io.ballerina.graphql.generator.ballerina.AuthConfigGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.FunctionSignatureGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.FunctionBodyGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.TypesGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.ClientGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.UtilsGeneratorTest"/>
+            <class name="io.ballerina.graphql.generator.ballerina.ConfigTypesGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.CodeGeneratorTest"/>
         </classes>
     </test>

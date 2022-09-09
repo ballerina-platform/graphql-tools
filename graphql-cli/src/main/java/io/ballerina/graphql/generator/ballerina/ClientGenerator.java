@@ -169,32 +169,9 @@ public class ClientGenerator {
     private NodeList<ModuleMemberDeclarationNode> generateMembers(Document queryDocument, String queryDocumentName,
                                                                   GraphQLSchema graphQLSchema, AuthConfig authConfig) {
         List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
-        // Generate auth config records
-        if (authConfig.getAuthConfigTypes().size() != 0) {
-            members.addAll(generateAuthConfigRecords(authConfig));
-        }
         // Generate client class
         members.add(generateClientClass(queryDocument, queryDocumentName, graphQLSchema, authConfig));
         return createNodeList(members);
-    }
-
-    /**
-     * Generates the auth config records in the client file.
-     *
-     * @param authConfig                the object instance representing authentication configuration information
-     * @return                          the node list which represent the auth config records in the client file
-     */
-    private List<ModuleMemberDeclarationNode> generateAuthConfigRecords(AuthConfig authConfig) {
-        List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
-        if (authConfig.isApiKeysConfig()) {
-            members.add(AuthConfigGenerator.getInstance().
-                    generateAuthConfigRecord("ApiKeysConfig", authConfig));
-        }
-        if (authConfig.isClientConfig()) {
-            members.add(AuthConfigGenerator.getInstance().
-                    generateAuthConfigRecord("ClientConfig", authConfig));
-        }
-        return members;
     }
 
     /**

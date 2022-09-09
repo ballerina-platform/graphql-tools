@@ -164,16 +164,38 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
     @DataProvider(name = "dataProviderForInitFunctionBody")
     public Object[][] dataProviderForInitFunctionBody() {
         return new Object[][]{
-                {"graphql.config.yaml", "{graphql:ClientclientEp=checknew(serviceUrl,clientConfig);" +
-                        "self.graphqlClient=clientEp;return;}"},
-                {"graphql-config-with-auth-apikeys-config.yaml", "{graphql:ClientclientEp=checknew(serviceUrl," +
-                        "clientConfig);self.graphqlClient=clientEp;self.apiKeysConfig=apiKeysConfig.cloneReadOnly();" +
-                        "return;}"},
-                {"graphql-config-with-auth-client-config.yaml", "{graphql:ClientclientEp=checknew(serviceUrl," +
-                        "clientConfig);self.graphqlClient=clientEp;return;}"},
-                {"graphql-config-with-auth-apikeys-and-client-config.yaml", "{graphql:ClientclientEp=" +
-                        "checknew(serviceUrl,clientConfig);self.graphqlClient=clientEp;" +
-                        "self.apiKeysConfig=apiKeysConfig.cloneReadOnly();return;}"}
+                {"graphql.config.yaml", "{http:ClientConfiguration httpClientConfig = {httpVersion: " +
+                        "config.httpVersion,http1Settings: {...config.http1Settings},http2Settings: " +
+                        "config.http2Settings,timeout: config.timeout,forwarded: config.forwarded,poolConfig: " +
+                        "config.poolConfig,cache: config.cache,compression: config.compression,circuitBreaker: " +
+                        "config.circuitBreaker,retryConfig: config.retryConfig,responseLimits: config.responseLimits," +
+                        "secureSocket: config.secureSocket,proxy: config.proxy,validation: config.validation};" +
+                        "graphql:ClientclientEp=checknew(serviceUrl,httpClientConfig);self.graphqlClient=clientEp;}"},
+                {"graphql-config-with-auth-apikeys-config.yaml", "{http:ClientConfiguration httpClientConfig = {" +
+                        "httpVersion: config.httpVersion,http1Settings: {...config.http1Settings}," +
+                        "http2Settings: config.http2Settings,timeout: config.timeout,forwarded: config.forwarded," +
+                        "poolConfig: config.poolConfig,cache: config.cache,compression: config.compression," +
+                        "circuitBreaker: config.circuitBreaker,retryConfig: config.retryConfig," +
+                        "responseLimits: config.responseLimits,secureSocket: config.secureSocket,proxy: config.proxy," +
+                        "validation: config.validation};graphql:ClientclientEp=checknew(serviceUrl,httpClientConfig);" +
+                        "self.graphqlClient=clientEp;self.apiKeysConfig=apiKeysConfig.cloneReadOnly();}"},
+                {"graphql-config-with-auth-client-config.yaml", "{http:ClientConfiguration httpClientConfig = {" +
+                        "auth: config.auth,httpVersion: config.httpVersion,http1Settings: {...config.http1Settings}," +
+                        "http2Settings: config.http2Settings,timeout: config.timeout,forwarded: config.forwarded," +
+                        "poolConfig: config.poolConfig,cache: config.cache," +
+                        "compression: config.compression,circuitBreaker: config.circuitBreaker," +
+                        "retryConfig: config.retryConfig,responseLimits: config.responseLimits," +
+                        "secureSocket: config.secureSocket,proxy: config.proxy,validation: config.validation};" +
+                        "graphql:ClientclientEp=checknew(serviceUrl,httpClientConfig);self.graphqlClient=clientEp;}"},
+                {"graphql-config-with-auth-apikeys-and-client-config.yaml", "{http:ClientConfiguration " +
+                        "httpClientConfig = {auth: config.auth,httpVersion: config.httpVersion," +
+                        "http1Settings: {...config.http1Settings},http2Settings: config.http2Settings," +
+                        "timeout: config.timeout,forwarded: config.forwarded,poolConfig: config.poolConfig," +
+                        "cache: config.cache,compression: config.compression,circuitBreaker: config.circuitBreaker," +
+                        "retryConfig: config.retryConfig,responseLimits: config.responseLimits,secureSocket: " +
+                        "config.secureSocket,proxy: config.proxy,validation: config.validation};graphql:Client" +
+                        "clientEp=checknew(serviceUrl,httpClientConfig);self.graphqlClient=clientEp;" +
+                        "self.apiKeysConfig=apiKeysConfig.cloneReadOnly();}"}
         };
     }
 
