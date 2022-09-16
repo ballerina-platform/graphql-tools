@@ -3,10 +3,25 @@ import ballerina/graphql;
 
 public isolated client class CountryqueriesClient {
     final graphql:Client graphqlClient;
-    public isolated function init(string serviceUrl, http:ClientConfiguration clientConfig = {}) returns graphql:ClientError? {
-        graphql:Client clientEp = check new (serviceUrl, clientConfig);
+    public isolated function init(string serviceUrl, ConnectionConfig config) returns graphql:ClientError? {
+        http:ClientConfiguration httpClientConfig = {
+            httpVersion: config.httpVersion,
+            http1Settings: {...config.http1Settings},
+            http2Settings: config.http2Settings,
+            timeout: config.timeout,
+            forwarded: config.forwarded,
+            poolConfig: config.poolConfig,
+            cache: config.cache,
+            compression: config.compression,
+            circuitBreaker: config.circuitBreaker,
+            retryConfig: config.retryConfig,
+            responseLimits: config.responseLimits,
+            secureSocket: config.secureSocket,
+            proxy: config.proxy,
+            validation: config.validation
+        };
+        graphql:Client clientEp = check new (serviceUrl, httpClientConfig);
         self.graphqlClient = clientEp;
-        return;
     }
     remote isolated function country(string code) returns CountryResponse|graphql:ClientError {
         string query = string `query country($code:ID!) {country(code:$code) {capital name}}`;

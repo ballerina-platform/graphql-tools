@@ -34,6 +34,7 @@ import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.RemoteMethodCallActionNode;
@@ -110,7 +111,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARI
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARIABLES_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HEADER_VALUES_VARIABLES_TYPE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HEADER_VALUES_VARIABLES_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_CLIENT_CONFIG_PARAM_NAME;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_CLIENT_CONFIGURATION_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_TYPE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY_VAR_NAME;
@@ -133,11 +134,12 @@ public class FunctionBodyGenerator {
     /**
      * Generates the client class init function body.
      *
-     * @param authConfig        the object instance representing authentication configuration information
-     * @return                  the node which represent the init function body
+     * @param authConfig the object instance representing authentication configuration information
+     * @return the node which represent the init function body
      */
     public FunctionBodyNode generateInitFunctionBody(AuthConfig authConfig) {
         List<StatementNode> assignmentNodes = new ArrayList<>();
+        StatementNode httpConfigNode = createHttpClientConfig(authConfig);
 
         // Generate initialization statement of {@code graphql:Client} class instance
         VariableDeclarationNode clientInitializationNode = generateClientInitializationNode();
@@ -153,15 +155,12 @@ public class FunctionBodyGenerator {
         // Generate {@code self.apiKeyConfig = apiKeyConfig.cloneReadOnly();} assignment node
         AssignmentStatementNode apiKeyConfigAssignmentStatementNode = generateApiKeyConfigAssignmentStatementNode();
 
-        ReturnStatementNode returnStatementNode = createReturnStatementNode(createToken(
-                RETURN_KEYWORD), null, createToken(SEMICOLON_TOKEN));
-
+        assignmentNodes.add(httpConfigNode);
         assignmentNodes.add(clientInitializationNode);
         assignmentNodes.add(httpClientAssignmentStatementNode);
         if (authConfig.isApiKeysConfig()) {
             assignmentNodes.add(apiKeyConfigAssignmentStatementNode);
         }
-        assignmentNodes.add(returnStatementNode);
         NodeList<StatementNode> statementList = createNodeList(assignmentNodes);
 
         return createFunctionBodyBlockNode(createToken(OPEN_BRACE_TOKEN),
@@ -169,12 +168,32 @@ public class FunctionBodyGenerator {
     }
 
     /**
+     * Generates http client config record.
+     *
+     * @param authConfig the object instance representing authentication configuration information
+     * @return           the object instance representing http client config
+     */
+    private StatementNode createHttpClientConfig(AuthConfig authConfig) {
+        String auth = "";
+        if (authConfig.isClientConfig()) {
+            auth = "auth: config.auth,";
+        }
+        String node = String.format("http:ClientConfiguration httpClientConfig = {%shttpVersion: config.httpVersion," +
+                "http1Settings: {...config.http1Settings},http2Settings: config.http2Settings,timeout: " +
+                "config.timeout,forwarded: config.forwarded,poolConfig: config.poolConfig,cache: config.cache," +
+                "compression: config.compression,circuitBreaker: config.circuitBreaker," +
+                "retryConfig: config.retryConfig,responseLimits: config.responseLimits," +
+                "secureSocket: config.secureSocket,proxy: config.proxy,validation: config.validation};", auth);
+        return NodeParser.parseStatement(node);
+    }
+
+    /**
      * Generates the client class remote function body.
      *
-     * @param queryDefinition       the object instance of a single query definition in a query document
-     * @param graphQLSchema         the object instance of the GraphQL schema (SDL)
-     * @param authConfig            the object instance representing authentication configuration information
-     * @return                      the node which represent the remote function body
+     * @param queryDefinition the object instance of a single query definition in a query document
+     * @param graphQLSchema   the object instance of the GraphQL schema (SDL)
+     * @param authConfig      the object instance representing authentication configuration information
+     * @return the node which represent the remote function body
      */
     public FunctionBodyNode generateRemoteFunctionBody(ExtendedOperationDefinition queryDefinition,
                                                        GraphQLSchema graphQLSchema, AuthConfig authConfig) {
@@ -210,7 +229,7 @@ public class FunctionBodyGenerator {
     /**
      * Generates the initialization statement of {@code graphql:Client} class instance in the init function.
      *
-     * @return                  the node which represent the client initialization
+     * @return the node which represent the client initialization
      */
     private VariableDeclarationNode generateClientInitializationNode() {
         NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
@@ -231,7 +250,7 @@ public class FunctionBodyGenerator {
         Token comma1 = createIdentifierToken(COMMA);
 
         PositionalArgumentNode positionalArgumentNode02 = createPositionalArgumentNode(createSimpleNameReferenceNode(
-                createIdentifierToken(HTTP_CLIENT_CONFIG_PARAM_NAME)));
+                createIdentifierToken(HTTP_CLIENT_CONFIGURATION_VAR_NAME)));
         argumentsList.add(comma1);
         argumentsList.add(positionalArgumentNode02);
 
@@ -251,7 +270,7 @@ public class FunctionBodyGenerator {
     /**
      * Generates the {@code self.apiKeyConfig = apiKeyConfig.cloneReadOnly();} assignment node in the init function.
      *
-     * @return                  the node which represent the API key config assignment statement
+     * @return the node which represent the API key config assignment statement
      */
     private AssignmentStatementNode generateApiKeyConfigAssignmentStatementNode() {
         FieldAccessExpressionNode varRefApiKey = createFieldAccessExpressionNode(
@@ -272,8 +291,8 @@ public class FunctionBodyGenerator {
     /**
      * Generates the {@code query} variable declaration node in the remote function.
      *
-     * @param queryDefinition       the object instance of a single query definition in a query document
-     * @return                      the node which represent the {@code query} variable declaration
+     * @param queryDefinition the object instance of a single query definition in a query document
+     * @return the node which represent the {@code query} variable declaration
      */
     private VariableDeclarationNode generateQueryVariableDeclarationNode(ExtendedOperationDefinition queryDefinition) {
         NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
@@ -298,9 +317,9 @@ public class FunctionBodyGenerator {
     /**
      * Generates the GraphQL {@code variables} variable declaration node in the remote function.
      *
-     * @param queryDefinition       the object instance of a single query definition in a query document
-     * @param graphQLSchema         the object instance of the GraphQL schema (SDL)
-     * @return                      the node which represent the GraphQL {@code variables} declaration
+     * @param queryDefinition the object instance of a single query definition in a query document
+     * @param graphQLSchema   the object instance of the GraphQL schema (SDL)
+     * @return the node which represent the GraphQL {@code variables} declaration
      */
     private VariableDeclarationNode getGraphqlVariablesDeclarationNode(ExtendedOperationDefinition queryDefinition,
                                                                        GraphQLSchema graphQLSchema) {
@@ -318,7 +337,7 @@ public class FunctionBodyGenerator {
         List<Node> specificFields = new ArrayList<>();
 
         int count = 0;
-        for (String variableName: queryDefinition.getVariableDefinitionsMap(graphQLSchema).keySet()) {
+        for (String variableName : queryDefinition.getVariableDefinitionsMap(graphQLSchema).keySet()) {
             BuiltinSimpleNameReferenceNode valueExpr = createBuiltinSimpleNameReferenceNode(null,
                     createIdentifierToken(escapeIdentifier(variableName)));
             SpecificFieldNode specificFieldNode = createSpecificFieldNode(null,
@@ -341,8 +360,8 @@ public class FunctionBodyGenerator {
     /**
      * Generates the {@code headerValues} variable declaration node in the remote function.
      *
-     * @param authConfig            the object instance representing authentication configuration information
-     * @return                      the node which represent the {@code headerValues} variable declaration
+     * @param authConfig the object instance representing authentication configuration information
+     * @return the node which represent the {@code headerValues} variable declaration
      */
     private VariableDeclarationNode generateHeaderValuesVariableDeclarationNode(AuthConfig authConfig) {
         NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
@@ -361,7 +380,7 @@ public class FunctionBodyGenerator {
         List<Node> specificFields = new ArrayList<>();
 
         int count = 0;
-        for (String apiHeaderName: apiHeaders) {
+        for (String apiHeaderName : apiHeaders) {
             IdentifierToken apiKeyConfigIdentifierToken = createIdentifierToken(API_KEYS_CONFIG_PARAM_NAME);
             SimpleNameReferenceNode apiKeyConfigParamNode = createSimpleNameReferenceNode(
                     apiKeyConfigIdentifierToken);
@@ -393,7 +412,7 @@ public class FunctionBodyGenerator {
     /**
      * Generates the {@code httpHeaders} variable declaration node in the remote function.
      *
-     * @return                  the node which represent the {@code httpHeaders} variable declaration
+     * @return the node which represent the {@code httpHeaders} variable declaration
      */
     private VariableDeclarationNode generateHttpHeadersVariableDeclarationNode() {
         NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
@@ -423,8 +442,8 @@ public class FunctionBodyGenerator {
     /**
      * Generate the return statement for a remote function.
      *
-     * @param queryDefinition   the object instance of a single query definition in a query document
-     * @return                  the node which represent the return statement for a remote function with Http headers
+     * @param queryDefinition the object instance of a single query definition in a query document
+     * @return the node which represent the return statement for a remote function with Http headers
      */
     private ReturnStatementNode generateReturnStatementNode(
             ExtendedOperationDefinition queryDefinition) {
@@ -437,8 +456,8 @@ public class FunctionBodyGenerator {
     /**
      * Generate the {@code graphqlResponse} variable declaration node for a remote function.
      *
-     * @param queryDefinition   the object instance of a single query definition in a query document
-     * @return                  the node which represent the {@code graphqlResponse} variable declaration
+     * @param queryDefinition the object instance of a single query definition in a query document
+     * @return the node which represent the {@code graphqlResponse} variable declaration
      */
     private VariableDeclarationNode generateGraphqlResponseVariableDeclarationNode(
             ExtendedOperationDefinition queryDefinition) {
@@ -485,8 +504,8 @@ public class FunctionBodyGenerator {
     /**
      * Generate the {@code graphqlResponse} variable declaration node for a remote function with Http headers.
      *
-     * @param queryDefinition   the object instance of a single query definition in a query document
-     * @return                  the node which represent the {@code graphqlResponse} variable declaration
+     * @param queryDefinition the object instance of a single query definition in a query document
+     * @return the node which represent the {@code graphqlResponse} variable declaration
      */
     private VariableDeclarationNode generateGraphqlResponseVariableDeclarationNodeWithHttpHeaders(
             ExtendedOperationDefinition queryDefinition) {

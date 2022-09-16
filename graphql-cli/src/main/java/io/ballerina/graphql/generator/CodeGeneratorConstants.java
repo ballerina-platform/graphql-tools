@@ -31,6 +31,7 @@ public class CodeGeneratorConstants {
     public static final String CLIENT_FILE_NAME = "client.bal";
     public static final String TYPES_FILE_NAME = "types.bal";
     public static final String UTILS_FILE_NAME = "utils.bal";
+    public static final String CONFIG_TYPES_FILE_NAME = "config_types.bal";
 
     public static final String SLASH = "/";
     public static final String SEMICOLON = ";";
@@ -63,7 +64,7 @@ public class CodeGeneratorConstants {
     public static final String REPRESENTS = "# Represents ";
     public static final String RESPONSE = "Response";
     public static final String HTTP_CLIENT_CONFIG_TYPE_NAME = "http:ClientConfiguration";
-    public static final String HTTP_CLIENT_CONFIG_PARAM_NAME = "clientConfig";
+    public static final String CONNECTION_CONFIG_PARAM_NAME = "connectionConfig";
     public static final String SERVICE_URL_TYPE_NAME = "string";
     public static final String SERVICE_URL_PARAM_NAME = "serviceUrl";
     public static final String GRAPHQL_RESPONSE_TYPE_NAME = "json";
@@ -72,6 +73,7 @@ public class CodeGeneratorConstants {
     public static final String TARGET_TYPE_PARAM_NAME = "targetType";
     public static final String GRAPHQL_CLIENT_TYPE_NAME = "graphql:Client";
     public static final String GRAPHQL_CLIENT_VAR_NAME = "clientEp";
+    public static final String HTTP_CLIENT_CONFIGURATION_VAR_NAME = "httpClientConfig";
     public static final String GRAPHQL_VARIABLES_TYPE_NAME = "map<anydata>";
     public static final String GRAPHQL_VARIABLES_VAR_NAME = "variables";
     public static final String HEADER_VALUES_VARIABLES_TYPE_NAME = "map<any>";
@@ -79,8 +81,9 @@ public class CodeGeneratorConstants {
     public static final String HTTP_HEADERS_VARIABLES_TYPE_NAME = "map<string|string[]>";
     public static final String HTTP_HEADERS_VARIABLES_VAR_NAME = "httpHeaders";
     public static final String API_KEY_CONFIG_PARAM = "apiKeysConfig";
-    public static final String CLIENT_CONFIG_TYPE_NAME = "ClientConfig";
-    public static final String CLIENT_CONFIG_PARAM_NAME = "clientConfig";
+    public static final String CONNECTION_CONFIG_TYPE_NAME = "ConnectionConfig";
+    public static final String CONFIG_PARAM_NAME = "config";
+
     public static final String API_KEYS_CONFIG_TYPE_NAME = "ApiKeysConfig";
     public static final String API_KEYS_CONFIG_PARAM_NAME = "apiKeysConfig";
 
@@ -120,14 +123,14 @@ public class CodeGeneratorConstants {
      */
     public enum AuthConfigType {
         NONE("None"),
-        API_KEY("ApiKeyConfig"),
-        BASIC("http:CredentialsConfig"),
-        BEARER("http:BearerTokenConfig"),
-        JWT_ISSUER("http:JwtIssuerConfig"),
-        OAUTH2_CLIENT_CREDENTIAL("http:OAuth2ClientCredentialsGrantConfig"),
-        OAUTH2_PASSWORD("http:OAuth2PasswordGrantConfig"),
-        OAUTH2_REFRESH_TOKEN("http:OAuth2RefreshTokenGrantConfig"),
-        OAUTH2_JWT_BEARER("http:OAuth2JwtBearerGrantConfig");
+        API_KEY("ApiKeysConfig"),
+        BASIC("CredentialsConfig"),
+        BEARER("BearerTokenConfig"),
+        JWT_ISSUER("JwtIssuerConfig"),
+        OAUTH2_CLIENT_CREDENTIAL("OAuth2ClientCredentialsGrantConfig"),
+        OAUTH2_PASSWORD("OAuth2PasswordGrantConfig"),
+        OAUTH2_REFRESH_TOKEN("OAuth2RefreshTokenGrantConfig"),
+        OAUTH2_JWT_BEARER("OAuth2JwtBearerGrantConfig");
 
         private final String authType;
 
