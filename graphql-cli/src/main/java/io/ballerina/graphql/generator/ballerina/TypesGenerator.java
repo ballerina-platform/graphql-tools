@@ -127,7 +127,7 @@ public class TypesGenerator {
      * @return                  Syntax tree for the types.bal
      * @throws IOException      If an I/O error occurs
      */
-    private SyntaxTree generateSyntaxTree(GraphQLSchema schema, List<String> documents) throws IOException {
+    public SyntaxTree generateSyntaxTree(GraphQLSchema schema, List<String> documents) throws IOException {
         List<TypeDefinitionNode> typeDefinitionNodeList = new LinkedList<>();
         NodeList<ImportDeclarationNode> importsList = createEmptyNodeList();
 

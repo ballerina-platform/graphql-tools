@@ -114,7 +114,7 @@ public class CodeGenerator {
      * @throws ClientGenerationException            when a client code generation error occurs
      * @throws IOException                          If an I/O error occurs
      */
-    private void generateClients(String projectName, List<String> documents, GraphQLSchema schema,
+    public void generateClients(String projectName, List<String> documents, GraphQLSchema schema,
                                  AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
             throws ClientGenerationException, IOException {
         String clientSrc = ClientGenerator.getInstance().
@@ -132,10 +132,10 @@ public class CodeGenerator {
      * @param sourceFiles                           the list of generated Ballerina source file pojo
      * @throws TypesGenerationException             when a types code generation error occurs
      */
-    private void generateTypes(String projectName, List<String> documents, GraphQLSchema schema,
+    public void generateTypes(String projectName, List<String> documents, GraphQLSchema schema,
                                List<SrcFilePojo> sourceFiles) throws TypesGenerationException {
         String typesFileContent = TypesGenerator.getInstance().generateSrc(schema, documents);
-        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName,
                 TYPES_FILE_NAME, typesFileContent));
     }
 
@@ -147,10 +147,10 @@ public class CodeGenerator {
      * @param sourceFiles                           the list of generated Ballerina source file pojo
      * @throws UtilsGenerationException             when an utils code generation error occurs
      */
-    private void generateUtils(String projectName, AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
+    public void generateUtils(String projectName, AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
             throws UtilsGenerationException {
         String utilSrc = UtilsGenerator.getInstance().generateSrc(authConfig);
-        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.UTIL_SRC, projectName,
                 UTILS_FILE_NAME, utilSrc));
     }
 

@@ -101,7 +101,7 @@ public class UtilsGenerator {
      * @return                  Syntax tree for the Ballerina utils file code
      * @throws IOException      If an I/O error occurs
      */
-    private SyntaxTree generateSyntaxTree(AuthConfig authConfig) throws IOException {
+    public SyntaxTree generateSyntaxTree(AuthConfig authConfig) throws IOException {
         NodeList<ImportDeclarationNode> importsList = generateImports();
 
         List<ModuleMemberDeclarationNode> members =  new ArrayList<>();

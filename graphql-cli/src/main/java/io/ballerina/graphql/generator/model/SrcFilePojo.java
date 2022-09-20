@@ -31,12 +31,13 @@ public class SrcFilePojo {
     public enum GenFileType {
         GEN_SRC,
         MODEL_SRC,
+        UTIL_SRC,
         IMPL_SRC,
         TEST_SRC,
         RES;
 
         public boolean isOverwritable() {
-            if (this == GEN_SRC || this == RES || this == MODEL_SRC) {
+            if (this == GEN_SRC || this == RES || this == MODEL_SRC || this == UTIL_SRC) {
                 return true;
             }
 
