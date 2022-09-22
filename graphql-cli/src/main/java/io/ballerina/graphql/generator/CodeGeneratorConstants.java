@@ -48,6 +48,7 @@ public class CodeGeneratorConstants {
     public static final String BALLERINAX = "ballerinax";
     public static final String HTTP = "http";
     public static final String GRAPHQL = "graphql";
+    public static final String CLIENT_CLASS_PREFIX = "Graphql";
     public static final String CLIENT = "Client";
     public static final String GRAPHQL_CLIENT = "graphqlClient";
     public static final String INIT = "init";

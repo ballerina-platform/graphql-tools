@@ -18,10 +18,8 @@
 
 package io.ballerina.graphql.generator;
 
-import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.exception.ConfigTypesGernerationException;
@@ -36,7 +34,6 @@ import io.ballerina.graphql.generator.ballerina.UtilsGenerator;
 import io.ballerina.graphql.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.model.SrcFilePojo;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -119,16 +116,10 @@ public class CodeGenerator {
     private void generateClients(String projectName, List<String> documents, GraphQLSchema schema,
                                  AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
             throws ClientGenerationException, IOException {
-        for (String document : documents) {
-            File documentFile = new File(document);
-            Document queryDocument = Utils.getGraphQLQueryDocument(document);
-            String queryDocumentName = CodeGeneratorUtils.getDocumentName(documentFile);
-
-            String clientSrc = ClientGenerator.getInstance().
-                    generateSrc(queryDocument, queryDocumentName, schema, authConfig);
-            sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
-                    CodeGeneratorUtils.getClientFileName(documentFile), clientSrc));
-        }
+        String clientSrc = ClientGenerator.getInstance().
+                generateSrc(documents, schema, authConfig);
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
+                "client.bal", clientSrc));
     }
 
     /**

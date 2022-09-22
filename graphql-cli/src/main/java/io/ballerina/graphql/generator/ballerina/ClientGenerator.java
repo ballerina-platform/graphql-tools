@@ -36,6 +36,7 @@ import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
+import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.CodeGeneratorUtils;
@@ -47,6 +48,7 @@ import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,6 +81,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.REMOTE_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_TYPE_NAME;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_CLASS_PREFIX;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT;
@@ -100,19 +103,16 @@ public class ClientGenerator {
     /**
      * Generates the client file content.
      *
-     * @param queryDocument                     the object instance of the queries document
-     * @param queryDocumentName                 the name of the queries document
      * @param graphQLSchema                     the object instance of the GraphQL schema (SDL)
      * @param authConfig                        the object instance representing authentication config information
      * @return                                  the client file content
      * @throws ClientGenerationException        when a client code generation error occurs
      */
-    public String generateSrc(Document queryDocument, String queryDocumentName, GraphQLSchema graphQLSchema,
+    public String generateSrc(List<String> queryDocuments, GraphQLSchema graphQLSchema,
                               AuthConfig authConfig) throws ClientGenerationException {
         try {
-            return Formatter.format(generateSyntaxTree(queryDocument, queryDocumentName,
-                    graphQLSchema, authConfig)).toString();
-        } catch (FormatterException e) {
+            return Formatter.format(generateSyntaxTree(queryDocuments, graphQLSchema, authConfig)).toString();
+        } catch (FormatterException | IOException e) {
             throw new ClientGenerationException(e.getMessage());
         }
     }
@@ -126,13 +126,13 @@ public class ClientGenerator {
      * @param authConfig                the object instance representing authentication configuration information
      * @return                          Syntax tree for the ballerina client code
      */
-    private SyntaxTree generateSyntaxTree(Document queryDocument, String queryDocumentName,
-                                          GraphQLSchema graphQLSchema, AuthConfig authConfig) {
+    private SyntaxTree generateSyntaxTree(List<String> queryDocuments,
+                                          GraphQLSchema graphQLSchema, AuthConfig authConfig) throws IOException {
         // Generate imports
         NodeList<ImportDeclarationNode> imports = generateImports();
         // Generate auth config records & client class
         NodeList<ModuleMemberDeclarationNode> members =
-                generateMembers(queryDocument, queryDocumentName, graphQLSchema, authConfig);
+                generateMembers(queryDocuments, graphQLSchema, authConfig);
 
         ModulePartNode modulePartNode = createModulePartNode(imports, members, createToken(EOF_TOKEN));
 
@@ -166,11 +166,11 @@ public class ClientGenerator {
      * @param authConfig                the object instance representing authentication configuration information
      * @return                          the node list which represent members in the client file
      */
-    private NodeList<ModuleMemberDeclarationNode> generateMembers(Document queryDocument, String queryDocumentName,
-                                                                  GraphQLSchema graphQLSchema, AuthConfig authConfig) {
+    private NodeList<ModuleMemberDeclarationNode> generateMembers(List<String> queryDocuments,
+                                              GraphQLSchema graphQLSchema, AuthConfig authConfig) throws IOException {
         List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
         // Generate client class
-        members.add(generateClientClass(queryDocument, queryDocumentName, graphQLSchema, authConfig));
+        members.add(generateClientClass(queryDocuments, graphQLSchema, authConfig));
         return createNodeList(members);
     }
 
@@ -183,12 +183,12 @@ public class ClientGenerator {
      * @param authConfig                the object instance representing authentication configuration information
      * @return                          the node which represent the client class in the client file
      */
-    private ClassDefinitionNode generateClientClass(Document queryDocument, String queryDocumentName,
-                                                    GraphQLSchema graphQLSchema, AuthConfig authConfig) {
+    private ClassDefinitionNode generateClientClass(List<String> queryDocuments,
+                                                GraphQLSchema graphQLSchema, AuthConfig authConfig) throws IOException {
         MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
         NodeList<Token> classTypeQualifiers = createNodeList(
                 createToken(ISOLATED_KEYWORD), createToken(CLIENT_KEYWORD));
-        IdentifierToken className = createIdentifierToken(CodeGeneratorUtils.getClientClassName(queryDocumentName));
+        IdentifierToken className = createIdentifierToken(CodeGeneratorUtils.getClientClassName(CLIENT_CLASS_PREFIX));
 
         // Collect members for class definition node
         List<Node> members =  new ArrayList<>();
@@ -197,7 +197,7 @@ public class ClientGenerator {
         // Generate init function
         members.add(generateInitFunction(authConfig));
         // Generate remote functions
-        members.addAll(generateRemoteFunctions(queryDocument, graphQLSchema, authConfig));
+        members.addAll(generateRemoteFunctions(queryDocuments, graphQLSchema, authConfig));
 
         return createClassDefinitionNode(metadataNode, createToken(PUBLIC_KEYWORD), classTypeQualifiers,
                 createToken(CLASS_KEYWORD), className, createToken(OPEN_BRACE_TOKEN),
@@ -249,17 +249,20 @@ public class ClientGenerator {
      * @param authConfig        the object instance representing authentication configuration information
      * @return                  the list of nodes which represent the remote functions
      */
-    private List<FunctionDefinitionNode> generateRemoteFunctions(Document queryDocument, GraphQLSchema graphQLSchema,
-                                                                 AuthConfig authConfig) {
+    private List<FunctionDefinitionNode> generateRemoteFunctions(List<String> queryDocuments,
+                                             GraphQLSchema graphQLSchema, AuthConfig authConfig) throws IOException {
         List<FunctionDefinitionNode> functionDefinitionNodeList = new ArrayList<>();
 
-        QueryReader queryReader = new QueryReader(queryDocument);
+        for (String document : queryDocuments) {
+            Document queryDocument = Utils.getGraphQLQueryDocument(document);
+            QueryReader queryReader = new QueryReader(queryDocument);
 
-        for (ExtendedOperationDefinition queryDefinition: queryReader.getExtendedOperationDefinitions()) {
-            // Generate remote function
-            FunctionDefinitionNode functionDefinitionNode =
-                    generateRemoteFunction(queryDefinition, graphQLSchema, authConfig);
-            functionDefinitionNodeList.add(functionDefinitionNode);
+            for (ExtendedOperationDefinition queryDefinition: queryReader.getExtendedOperationDefinitions()) {
+                // Generate remote function
+                FunctionDefinitionNode functionDefinitionNode =
+                        generateRemoteFunction(queryDefinition, graphQLSchema, authConfig);
+                functionDefinitionNodeList.add(functionDefinitionNode);
+            }
         }
         return functionDefinitionNodeList;
     }
