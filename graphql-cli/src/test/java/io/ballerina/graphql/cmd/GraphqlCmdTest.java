@@ -53,16 +53,16 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
 
             Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "country_queries_client.bal"));
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
             Path expectedTypesFile =
                     resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("country_queries_client.bal")) &&
+            if (Files.exists(this.tmpDir.resolve("client.bal")) &&
                     Files.exists(this.tmpDir.resolve("types.bal"))) {
                 String generatedClientContent =
-                        readContent(this.tmpDir.resolve("country_queries_client.bal"));
+                        readContent(this.tmpDir.resolve("client.bal"));
                 String generatedTypesContent =
                         readContent(this.tmpDir.resolve("types.bal"));
 
@@ -156,17 +156,17 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
 
             Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "country_queries_client.bal"));
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
             Path expectedTypesFile =
                     resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
             if (Files.exists(this.tmpDir.resolve(Paths.get("modules", "country",
-                    "country_queries_client.bal"))) && Files.exists(this.tmpDir.resolve(Paths.get("modules",
+                    "client.bal"))) && Files.exists(this.tmpDir.resolve(Paths.get("modules",
                     "country", "types.bal")))) {
                 String generatedClientContent = readContent(this.tmpDir.resolve(Paths.get("modules",
-                        "country", "country_queries_client.bal")));
+                        "country", "client.bal")));
                 String generatedTypesContent =
                         readContent(this.tmpDir.resolve(Paths.get("modules", "country", "types.bal")));
 
@@ -193,16 +193,16 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
 
             Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "country_queries_client.bal"));
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
             Path expectedTypesFile =
                     resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("country_queries_client.bal")) &&
+            if (Files.exists(this.tmpDir.resolve("client.bal")) &&
                     Files.exists(this.tmpDir.resolve("types.bal"))) {
                 String generatedClientContent =
-                        readContent(this.tmpDir.resolve("country_queries_client.bal"));
+                        readContent(this.tmpDir.resolve("client.bal"));
                 String generatedTypesContent =
                         readContent(this.tmpDir.resolve("types.bal"));
 

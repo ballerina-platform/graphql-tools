@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/graphql;
 
-public isolated client class CountryqueriesClient {
+public isolated client class GraphqlClient {
     final graphql:Client graphqlClient;
     public isolated function init(string serviceUrl, ConnectionConfig config) returns graphql:ClientError? {
         http:ClientConfiguration httpClientConfig = {
