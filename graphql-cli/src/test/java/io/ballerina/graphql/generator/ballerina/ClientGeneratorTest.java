@@ -18,10 +18,8 @@
 
 package io.ballerina.graphql.generator.ballerina;
 
-import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
@@ -29,12 +27,10 @@ import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.model.AuthConfig;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,15 +56,12 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-            Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
-            String queryDocumentName = CodeGeneratorUtils.getDocumentName(new File(documents.get(0)));
-
             String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(queryDocument, queryDocumentName, schema, authConfig)
+                    generateSrc(documents, schema, authConfig)
                     .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "country_queries_client.bal"));
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
             String expectedClientContent = readContent(expectedClientFile);
 
             Assert.assertEquals(expectedClientContent, generatedClientContent);
@@ -95,16 +88,13 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-            Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
-            String queryDocumentName = CodeGeneratorUtils.getDocumentName(new File(documents.get(0)));
-
             String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(queryDocument, queryDocumentName, schema, authConfig)
+                    generateSrc(documents, schema, authConfig)
                     .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
                     resourceDir.resolve(Paths.get("expectedGenCode", "client", "apiKeysConfig",
-                            "country_queries_client.bal"));
+                            "client.bal"));
             String expectedClientContent = readContent(expectedClientFile);
 
             Assert.assertEquals(expectedClientContent, generatedClientContent);
@@ -131,16 +121,13 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-            Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
-            String queryDocumentName = CodeGeneratorUtils.getDocumentName(new File(documents.get(0)));
-
             String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(queryDocument, queryDocumentName, schema, authConfig)
+                    generateSrc(documents, schema, authConfig)
                     .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
                     resourceDir.resolve(Paths.get("expectedGenCode", "client", "clientConfig",
-                            "country_queries_client.bal"));
+                            "client.bal"));
             String expectedClientContent = readContent(expectedClientFile);
 
             Assert.assertEquals(expectedClientContent, generatedClientContent);
@@ -167,16 +154,13 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-            Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
-            String queryDocumentName = CodeGeneratorUtils.getDocumentName(new File(documents.get(0)));
-
             String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(queryDocument, queryDocumentName, schema, authConfig)
+                    generateSrc(documents, schema, authConfig)
                     .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
                     resourceDir.resolve(Paths.get("expectedGenCode", "client", "clientAndAPIKeysConfig",
-                            "country_queries_client.bal"));
+                            "client.bal"));
             String expectedClientContent = readContent(expectedClientFile);
 
             Assert.assertEquals(expectedClientContent, generatedClientContent);
