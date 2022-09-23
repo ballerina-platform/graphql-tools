@@ -103,6 +103,7 @@ public class ClientGenerator {
     /**
      * Generates the client file content.
      *
+     * @param queryDocuments                    the list of names of the query documents
      * @param graphQLSchema                     the object instance of the GraphQL schema (SDL)
      * @param authConfig                        the object instance representing authentication config information
      * @return                                  the client file content
@@ -120,8 +121,7 @@ public class ClientGenerator {
     /**
      * Generates the client syntax tree.
      *
-     * @param queryDocument             the object instance of the queries document
-     * @param queryDocumentName         the name of the queries document
+     * @param queryDocuments            the list of names of the query documents
      * @param graphQLSchema             the object instance of the GraphQL schema (SDL)
      * @param authConfig                the object instance representing authentication configuration information
      * @return                          Syntax tree for the ballerina client code
@@ -160,14 +160,14 @@ public class ClientGenerator {
     /**
      * Generates the members in the client file. The members include auth config record types & client class nodes.
      *
-     * @param queryDocument             the object instance of the queries document
-     * @param queryDocumentName         the name of the queries document
+     * @param queryDocuments            the list of names of the query documents
      * @param graphQLSchema             the object instance of the GraphQL schema (SDL)
      * @param authConfig                the object instance representing authentication configuration information
      * @return                          the node list which represent members in the client file
      */
     private NodeList<ModuleMemberDeclarationNode> generateMembers(List<String> queryDocuments,
-                                              GraphQLSchema graphQLSchema, AuthConfig authConfig) throws IOException {
+                                                                  GraphQLSchema graphQLSchema, AuthConfig authConfig)
+            throws IOException {
         List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
         // Generate client class
         members.add(generateClientClass(queryDocuments, graphQLSchema, authConfig));
@@ -177,14 +177,14 @@ public class ClientGenerator {
     /**
      * Generates the client class in the client file.
      *
-     * @param queryDocument             the object instance of the queries document
-     * @param queryDocumentName         the name of the queries document
+     * @param queryDocuments            the list of names of the query documents
      * @param graphQLSchema             the object instance of the GraphQL schema (SDL)
      * @param authConfig                the object instance representing authentication configuration information
      * @return                          the node which represent the client class in the client file
      */
     private ClassDefinitionNode generateClientClass(List<String> queryDocuments,
-                                                GraphQLSchema graphQLSchema, AuthConfig authConfig) throws IOException {
+                                                    GraphQLSchema graphQLSchema, AuthConfig authConfig)
+            throws IOException {
         MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
         NodeList<Token> classTypeQualifiers = createNodeList(
                 createToken(ISOLATED_KEYWORD), createToken(CLIENT_KEYWORD));
@@ -244,13 +244,14 @@ public class ClientGenerator {
     /**
      * Generates the client class remote functions.
      *
-     * @param queryDocument     the object instance of the queries document
+     * @param queryDocuments    the list of names of the query documents
      * @param graphQLSchema     the object instance of the GraphQL schema (SDL)
      * @param authConfig        the object instance representing authentication configuration information
      * @return                  the list of nodes which represent the remote functions
      */
     private List<FunctionDefinitionNode> generateRemoteFunctions(List<String> queryDocuments,
-                                             GraphQLSchema graphQLSchema, AuthConfig authConfig) throws IOException {
+                                                                 GraphQLSchema graphQLSchema, AuthConfig authConfig)
+            throws IOException {
         List<FunctionDefinitionNode> functionDefinitionNodeList = new ArrayList<>();
 
         for (String document : queryDocuments) {

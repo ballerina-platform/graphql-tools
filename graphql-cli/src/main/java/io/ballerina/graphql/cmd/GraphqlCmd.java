@@ -121,9 +121,6 @@ public class GraphqlCmd implements BLauncherCmd {
             Config config = readConfig();
             ConfigValidator.getInstance().validate(config);
             List<GraphqlProject> projects = populateProjects(config);
-//            if (projects.size() > 1) {
-//                AnnotationsValidator.getInstance().validate(config);
-//            }
             for (GraphqlProject project : projects) {
                 SDLValidator.getInstance().validate(project);
                 QueryValidator.getInstance().validate(project);

@@ -39,6 +39,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_FILE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONFIG_TYPES_FILE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.UTILS_FILE_NAME;
@@ -119,7 +120,7 @@ public class CodeGenerator {
         String clientSrc = ClientGenerator.getInstance().
                 generateSrc(documents, schema, authConfig);
         sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
-                "client.bal", clientSrc));
+                CLIENT_FILE_NAME, clientSrc));
     }
 
     /**
