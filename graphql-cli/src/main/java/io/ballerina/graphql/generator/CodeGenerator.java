@@ -83,7 +83,7 @@ public class CodeGenerator {
      * @throws TypesGenerationException             when a types code generation error occurs
      * @throws IOException                          If an I/O error occurs
      */
-    private List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ClientGenerationException,
+    public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ClientGenerationException,
             UtilsGenerationException, TypesGenerationException, IOException, ConfigTypesGernerationException {
         String projectName = project.getName();
         Extension extensions = project.getExtensions();
@@ -165,7 +165,7 @@ public class CodeGenerator {
     private void generateConfigTypes(String projectName, AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
             throws ConfigTypesGernerationException {
         String configTypesSrc = ConfigTypesGenerator.getInstance().generateSrc(authConfig);
-        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.CONFIG_SRC, projectName,
                 CONFIG_TYPES_FILE_NAME, configTypesSrc));
     }
 

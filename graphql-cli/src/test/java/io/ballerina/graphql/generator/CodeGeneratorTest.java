@@ -44,7 +44,7 @@ public class CodeGeneratorTest extends GraphqlTest {
                     this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                     this.tmpDir);
             for (GraphqlProject project : projects) {
-                CodeGenerator.getInstance(projects.get(0)).generate(project);
+                CodeGenerator.getInstance().generate(project);
             }
             Assert.assertTrue(true);
         } catch (GenerationException e) {

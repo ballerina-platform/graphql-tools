@@ -26,12 +26,15 @@ configurations {
 }
 
 dependencies {
-    implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
+    implementation ("org.ballerinalang:ballerina-lang:${ballerinaLangVersion}") {
+        exclude group: 'org.ballerinalang', module: 'ballerina-core'
+    }
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
     implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
     implementation "info.picocli:picocli:${picocliVersion}"
+    implementation 'org.wso2.ballerina-integrator:ballerina-integrator-snippet-generator:1.0.0'
     testImplementation "org.testng:testng:${testngVersion}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
     implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
@@ -122,3 +125,13 @@ jacocoTestReport {
         xml.required = true
     }
 }
+
+compileJava {
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+        ]
+        classpath = files()
+    }
+}
+
