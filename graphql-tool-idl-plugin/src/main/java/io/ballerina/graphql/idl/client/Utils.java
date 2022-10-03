@@ -1,9 +1,18 @@
 package io.ballerina.graphql.idl.client;
 
 import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.pojo.*;
+import io.ballerina.graphql.cmd.pojo.Config;
+import io.ballerina.graphql.cmd.pojo.Default;
+import io.ballerina.graphql.cmd.pojo.Endpoints;
+import io.ballerina.graphql.cmd.pojo.Extension;
+import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
+import io.ballerina.projects.plugins.IDLSourceGeneratorContext;
+import io.ballerina.tools.diagnostics.Diagnostic;
+import io.ballerina.tools.diagnostics.DiagnosticFactory;
+import io.ballerina.tools.diagnostics.DiagnosticInfo;
+import io.ballerina.tools.diagnostics.Location;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -17,9 +26,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.graphql.cmd.Constants.*;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
+/**
+ * This class is used to generate utility functions in the IDL client generation file.
+ */
 public class Utils {
     public static Constructor getProcessedConstructor() {
         Constructor constructor = new Constructor(Config.class);
@@ -73,5 +89,13 @@ public class Utils {
         } catch (YAMLException e) {
             throw new ParseException(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT + e.getMessage());
         }
+    }
+
+    public static void reportDiagnostic(IDLSourceGeneratorContext context, Constants.DiagnosticMessages error,
+                                         Location location) {
+        DiagnosticInfo diagnosticInfo = new DiagnosticInfo(error.getCode(), error.getDescription(),
+                error.getSeverity());
+        Diagnostic diagnostic = DiagnosticFactory.createDiagnostic(diagnosticInfo, location);
+        context.reportDiagnostic(diagnostic);
     }
 }

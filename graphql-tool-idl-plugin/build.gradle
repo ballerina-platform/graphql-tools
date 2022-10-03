@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: "jacoco"
+
+configurations {
+    balTools
+    dist {
+        transitive true
+    }
+}
+
+dependencies {
+    implementation project(':graphql-cli')
+    implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
+    implementation "info.picocli:picocli:${picocliVersion}"
+    testImplementation "org.testng:testng:${testngVersion}"
+    implementation "commons-io:commons-io:${commonsIoVersion}"
+    implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
+    implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
+    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    implementation "org.json:json:${orgJsonVersion}" // NEW
+    dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    dist "com.google.guava:guava:${googleGuavaVersion}" // NEW
+    dist "org.json:json:${orgJsonVersion}" // NEW
+
+    balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+        transitive = false
+    }
+}
+
+def bDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")
+task jBallerinaPack {
+    doLast {
+        configurations.balTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            copy {
+                from project.zipTree(artifact.getFile())
+                into new File(project.buildDir, "extracted-distribution/")
+            }
+        }
+    }
+    outputs.dir bDistribution
+}
+
+task unpackStdLibs() {
+    dependsOn(jBallerinaPack)
+    doLast {
+        configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+            copy {
+                from project.zipTree(artifact.getFile())
+                into new File("${project.buildDir}/extracted-distribution/" + artifact.name + "-zip")
+            }
+        }
+    }
+}
+
+task copyStdlibs(type: Copy) {
+    dependsOn(unpackStdLibs)
+    def ballerinaDist = "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}"
+    into ballerinaDist
+
+    /* Standard Libraries */
+    configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        def artifactExtractedPath = "${project.buildDir}/extracted-distribution/" + artifact.name + "-zip"
+        into("repo/bala") {
+            from "${artifactExtractedPath}/bala/"
+        }
+        into("repo/cache") {
+            from "${artifactExtractedPath}/cache"
+        }
+    }
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn configurations.dist
+    from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
+        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    }
+}
+
+build.dependsOn(shadowJar)
+
+test {
+    dependsOn {
+        copyStdlibs
+    }
+    systemProperty "ballerina.home", bDistribution
+
+    useTestNG() {
+        suites "src/test/resources/testng.xml"
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = "0.8.7"
+    reportsDirectory = file("$rootProject.projectDir/build/reports/jacoco")
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.required = true
+    }
+}
+
+compileJava {
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+        ]
+        classpath = files()
+    }
+}
