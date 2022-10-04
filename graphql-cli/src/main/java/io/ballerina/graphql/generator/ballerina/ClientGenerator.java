@@ -201,7 +201,7 @@ public class ClientGenerator {
 
         return createClassDefinitionNode(metadataNode, createToken(PUBLIC_KEYWORD), classTypeQualifiers,
                 createToken(CLASS_KEYWORD), className, createToken(OPEN_BRACE_TOKEN),
-                createNodeList(members), createToken(CLOSE_BRACE_TOKEN));
+                createNodeList(members), createToken(CLOSE_BRACE_TOKEN), null);
     }
 
     /**
