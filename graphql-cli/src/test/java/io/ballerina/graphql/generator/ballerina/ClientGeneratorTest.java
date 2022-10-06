@@ -149,4 +149,40 @@ public class ClientGeneratorTest extends GraphqlTest {
             Assert.fail("Error while generating the client code. " + e.getMessage());
         }
     }
+
+    @Test(description = "Test the successful generation of client code with client config")
+    public void testGenerateSrcWithClientConfigAndAPIKeysConfig()
+            throws CmdException, IOException, ParseException, ValidationException {
+        try {
+            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+                    this.resourceDir.resolve(Paths.get("specs",
+                            "graphql-config-with-auth-apikeys-and-client-config.yaml")).toString(),
+                    this.tmpDir);
+
+            Extension extensions = projects.get(0).getExtensions();
+            List<String> documents = projects.get(0).getDocuments();
+            GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+
+            AuthConfig authConfig = new AuthConfig();
+            AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
+            AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
+
+            Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
+            String queryDocumentName = CodeGeneratorUtils.getDocumentName(new File(documents.get(0)));
+
+            String generatedClientContent = ClientGenerator.getInstance().
+                    generateSrc(queryDocument, queryDocumentName, schema, authConfig)
+                    .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
+
+            Path expectedClientFile =
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client", "clientAndAPIKeysConfig",
+                            "country_queries_client.bal"));
+            String expectedClientContent = readContent(expectedClientFile);
+
+            Assert.assertEquals(expectedClientContent, generatedClientContent);
+
+        } catch (ClientGenerationException e) {
+            Assert.fail("Error while generating the client code. " + e.getMessage());
+        }
+    }
 }

@@ -24,11 +24,13 @@ import io.ballerina.graphql.cmd.GraphqlProject;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.exception.ClientGenerationException;
+import io.ballerina.graphql.exception.ConfigTypesGernerationException;
 import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.TypesGenerationException;
 import io.ballerina.graphql.exception.UtilsGenerationException;
 import io.ballerina.graphql.generator.ballerina.AuthConfigGenerator;
 import io.ballerina.graphql.generator.ballerina.ClientGenerator;
+import io.ballerina.graphql.generator.ballerina.ConfigTypesGenerator;
 import io.ballerina.graphql.generator.ballerina.TypesGenerator;
 import io.ballerina.graphql.generator.ballerina.UtilsGenerator;
 import io.ballerina.graphql.generator.model.AuthConfig;
@@ -40,6 +42,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONFIG_TYPES_FILE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.UTILS_FILE_NAME;
 
@@ -82,8 +85,8 @@ public class CodeGenerator {
      * @throws TypesGenerationException             when a types code generation error occurs
      * @throws IOException                          If an I/O error occurs
      */
-    private List<SrcFilePojo> generateBalSources(GraphqlProject project)
-            throws ClientGenerationException, UtilsGenerationException, TypesGenerationException, IOException {
+    private List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ClientGenerationException,
+            UtilsGenerationException, TypesGenerationException, IOException, ConfigTypesGernerationException {
         String projectName = project.getName();
         Extension extensions = project.getExtensions();
         List<String> documents = project.getDocuments();
@@ -97,6 +100,7 @@ public class CodeGenerator {
         generateClients(projectName, documents, schema, authConfig, sourceFiles);
         generateUtils(projectName, authConfig, sourceFiles);
         generateTypes(projectName, documents, schema, sourceFiles);
+        generateConfigTypes(projectName, authConfig, sourceFiles);
 
         return sourceFiles;
     }
@@ -156,6 +160,21 @@ public class CodeGenerator {
         String utilSrc = UtilsGenerator.getInstance().generateSrc(authConfig);
         sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
                 UTILS_FILE_NAME, utilSrc));
+    }
+
+    /**
+     * Generates the Ballerina config types source codes for a given GraphQL project.
+     *
+     * @param projectName                           the name of the GraphQL project
+     * @param authConfig                            the object instance representing authentication config information
+     * @param sourceFiles                           the list of generated Ballerina source file pojo
+     * @throws ConfigTypesGernerationException      when a config types code generation error occurs
+     */
+    private void generateConfigTypes(String projectName, AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
+            throws ConfigTypesGernerationException {
+        String configTypesSrc = ConfigTypesGenerator.getInstance().generateSrc(authConfig);
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
+                CONFIG_TYPES_FILE_NAME, configTypesSrc));
     }
 
     /**

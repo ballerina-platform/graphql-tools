@@ -46,7 +46,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
         FunctionBodyNode initFunctionBodyNode =
                 FunctionBodyGenerator.getInstance().generateInitFunctionBody(authConfig);
-        String generatedInitFunctionBody = initFunctionBodyNode.toString();
+        String generatedInitFunctionBody = initFunctionBodyNode.toString().replaceAll("\\s+", "");
         Assert.assertEquals(expectedInitFunctionBody, generatedInitFunctionBody);
     }
 
@@ -164,16 +164,73 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
     @DataProvider(name = "dataProviderForInitFunctionBody")
     public Object[][] dataProviderForInitFunctionBody() {
         return new Object[][]{
-                {"graphql.config.yaml", "{graphql:ClientclientEp=checknew(serviceUrl,clientConfig);" +
-                        "self.graphqlClient=clientEp;return;}"},
-                {"graphql-config-with-auth-apikeys-config.yaml", "{graphql:ClientclientEp=checknew(serviceUrl," +
-                        "clientConfig);self.graphqlClient=clientEp;self.apiKeysConfig=apiKeysConfig.cloneReadOnly();" +
-                        "return;}"},
-                {"graphql-config-with-auth-client-config.yaml", "{graphql:ClientclientEp=checknew(serviceUrl," +
-                        "clientConfig);self.graphqlClient=clientEp;return;}"},
-                {"graphql-config-with-auth-apikeys-and-client-config.yaml", "{graphql:ClientclientEp=" +
-                        "checknew(serviceUrl,clientConfig);self.graphqlClient=clientEp;" +
-                        "self.apiKeysConfig=apiKeysConfig.cloneReadOnly();return;}"}
+                {"graphql.config.yaml", "{http:ClientConfigurationhttpClientConfig={httpVersion:config.httpVersion," +
+                        "timeout:config.timeout,forwarded:config.forwarded,poolConfig:config.poolConfig,compression:" +
+                        "config.compression,circuitBreaker:config.circuitBreaker,retryConfig:config.retryConfig," +
+                        "validation:config.validation};do{ifconfig.http1SettingsisClientHttp1Settings{" +
+                        "ClientHttp1Settingssettings=checkconfig.http1Settings.ensureType(ClientHttp1Settings);" +
+                        "httpClientConfig.http1Settings={...settings};}ifconfig.http2Settingsishttp:" +
+                        "ClientHttp2Settings{httpClientConfig.http2Settings=checkconfig.http2Settings.ensureType" +
+                        "(http:ClientHttp2Settings);}ifconfig.cacheishttp:CacheConfig{httpClientConfig.cache=" +
+                        "checkconfig.cache.ensureType(http:CacheConfig);}ifconfig.responseLimitsishttp:" +
+                        "ResponseLimitConfigs{httpClientConfig.responseLimits=checkconfig.responseLimits.ensureType(" +
+                        "http:ResponseLimitConfigs);}ifconfig.secureSocketishttp:ClientSecureSocket{" +
+                        "httpClientConfig.secureSocket=checkconfig.secureSocket.ensureType(http:ClientSecureSocket);}" +
+                        "ifconfig.proxyishttp:ProxyConfig{httpClientConfig.proxy=checkconfig.proxy.ensureType" +
+                        "(http:ProxyConfig);}}onfailvare{returnerrorgraphql:RequestError" +
+                        "(\"GraphQLClientError\",e);}graphql:ClientclientEp=checknew(serviceUrl," +
+                        "httpClientConfig);self.graphqlClient=clientEp;}"},
+                {"graphql-config-with-auth-apikeys-config.yaml", "{http:ClientConfigurationhttpClientConfig={" +
+                        "httpVersion:config.httpVersion,timeout:config.timeout,forwarded:config.forwarded," +
+                        "poolConfig:config.poolConfig,compression:config.compression,circuitBreaker:" +
+                        "config.circuitBreaker,retryConfig:config.retryConfig,validation:config.validation};" +
+                        "do{ifconfig.http1SettingsisClientHttp1Settings{ClientHttp1Settingssettings=checkconfig." +
+                        "http1Settings.ensureType(ClientHttp1Settings);httpClientConfig.http1Settings={...settings};}" +
+                        "ifconfig.http2Settingsishttp:ClientHttp2Settings{httpClientConfig.http2Settings=checkconfig." +
+                        "http2Settings.ensureType(http:ClientHttp2Settings);}ifconfig.cache" +
+                        "ishttp:CacheConfig{httpClientConfig.cache=checkconfig.cache.ensureType(http:CacheConfig);}" +
+                        "ifconfig.responseLimitsishttp:ResponseLimitConfigs{httpClientConfig.responseLimits=check" +
+                        "config.responseLimits.ensureType(http:ResponseLimitConfigs);}ifconfig.secureSocketis" +
+                        "http:ClientSecureSocket{httpClientConfig.secureSocket=checkconfig.secureSocket.ensureType" +
+                        "(http:ClientSecureSocket);}ifconfig.proxyishttp:ProxyConfig{httpClientConfig.proxy=" +
+                        "checkconfig.proxy.ensureType(http:ProxyConfig);}}onfailvare{returnerrorgraphql:RequestError" +
+                        "(\"GraphQLClientError\",e);}graphql:ClientclientEp=checknew(serviceUrl," +
+                        "httpClientConfig);self.graphqlClient=clientEp;self.apiKeysConfig=" +
+                        "apiKeysConfig.cloneReadOnly();}"},
+                {"graphql-config-with-auth-client-config.yaml", "{http:ClientConfigurationhttpClientConfig={" +
+                        "auth:config.auth,httpVersion:config.httpVersion,timeout:config.timeout,forwarded:" +
+                        "config.forwarded,poolConfig:config.poolConfig,compression:config.compression,circuitBreaker:" +
+                        "config.circuitBreaker,retryConfig:config.retryConfig,validation:config.validation};do" +
+                        "{ifconfig.http1SettingsisClientHttp1Settings{ClientHttp1Settingssettings=checkconfig." +
+                        "http1Settings.ensureType(ClientHttp1Settings);httpClientConfig.http1Settings={...settings};}" +
+                        "ifconfig.http2Settingsishttp:ClientHttp2Settings{httpClientConfig.http2Settings=checkconfig." +
+                        "http2Settings.ensureType(http:ClientHttp2Settings);}ifconfig.cache" +
+                        "ishttp:CacheConfig{httpClientConfig.cache=checkconfig.cache.ensureType(http:CacheConfig);}" +
+                        "ifconfig.responseLimitsishttp:ResponseLimitConfigs{httpClientConfig.responseLimits=check" +
+                        "config.responseLimits.ensureType(http:ResponseLimitConfigs);}ifconfig.secureSocketis" +
+                        "http:ClientSecureSocket{httpClientConfig.secureSocket=checkconfig.secureSocket.ensureType" +
+                        "(http:ClientSecureSocket);}ifconfig.proxyishttp:ProxyConfig{httpClientConfig.proxy=" +
+                        "checkconfig.proxy.ensureType(http:ProxyConfig);}}onfailvare{returnerrorgraphql:RequestError" +
+                        "(\"GraphQLClientError\",e);}graphql:ClientclientEp=checknew(serviceUrl," +
+                        "httpClientConfig);self.graphqlClient=clientEp;}"},
+                {"graphql-config-with-auth-apikeys-and-client-config.yaml", "{http:ClientConfiguration" +
+                        "httpClientConfig={auth:config.auth,httpVersion:config.httpVersion,timeout:config.timeout," +
+                        "forwarded:config.forwarded,poolConfig:config.poolConfig,compression:config.compression," +
+                        "circuitBreaker:config.circuitBreaker,retryConfig:config.retryConfig,validation:" +
+                        "config.validation};do{ifconfig.http1SettingsisClientHttp1Settings{ClientHttp1Settings" +
+                        "settings=checkconfig.http1Settings.ensureType(ClientHttp1Settings);httpClientConfig." +
+                        "http1Settings={...settings};}ifconfig.http2Settingsishttp:ClientHttp2Settings{" +
+                        "httpClientConfig.http2Settings=checkconfig.http2Settings.ensureType(" +
+                        "http:ClientHttp2Settings);}ifconfig.cacheishttp:CacheConfig{httpClientConfig.cache=" +
+                        "checkconfig.cache.ensureType(http:CacheConfig);}ifconfig.responseLimitsishttp:" +
+                        "ResponseLimitConfigs{httpClientConfig.responseLimits=checkconfig.responseLimits.ensureType" +
+                        "(http:ResponseLimitConfigs);}ifconfig.secureSocketishttp:ClientSecureSocket{" +
+                        "httpClientConfig.secureSocket=checkconfig.secureSocket.ensureType(http:ClientSecureSocket);}" +
+                        "ifconfig.proxyishttp:ProxyConfig{httpClientConfig.proxy=" +
+                        "checkconfig.proxy.ensureType(http:ProxyConfig);}}onfailvare{returnerrorgraphql:RequestError(" +
+                        "\"GraphQLClientError\",e);}graphql:ClientclientEp=checknew(serviceUrl," +
+                        "httpClientConfig);self.graphqlClient=clientEp;self.apiKeysConfig=apiKeysConfig." +
+                        "cloneReadOnly();}"}
         };
     }
 
