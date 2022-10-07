@@ -88,6 +88,11 @@ public class CodeGeneratorConstants {
     public static final String API_KEYS_CONFIG_TYPE_NAME = "ApiKeysConfig";
     public static final String API_KEYS_CONFIG_PARAM_NAME = "apiKeysConfig";
 
+    public static final String DISPLAY_ANNOTATION_NAME = "display";
+    public static final String DISPLAY_ANNOTATION_LABEL_NAME = "label";
+    public static final String DISPLAY_ANNOTATION_KIND_FIELD = "kind";
+    public static final String DISPLAY_ANNOTATION_KIND_PASSWORD = "password";
+
     // OS specific line separator
     public static final String LINE_SEPARATOR = System.lineSeparator();
 
@@ -125,8 +130,8 @@ public class CodeGeneratorConstants {
     public enum AuthConfigType {
         NONE("None"),
         API_KEY("ApiKeysConfig"),
-        BASIC("CredentialsConfig"),
-        BEARER("BearerTokenConfig"),
+        BASIC("http:CredentialsConfig"),
+        BEARER("http:BearerTokenConfig"),
         JWT_ISSUER("JwtIssuerConfig"),
         OAUTH2_CLIENT_CREDENTIAL("OAuth2ClientCredentialsGrantConfig"),
         OAUTH2_PASSWORD("OAuth2PasswordGrantConfig"),
