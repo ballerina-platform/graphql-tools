@@ -95,18 +95,18 @@ task copyStdlibs(type: Copy) {
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     dependsOn configurations.dist
-//    dependsOn (shadowJar { classifier = null })
     from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
         exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
     }
 }
 
 build.dependsOn(shadowJar)
-test {
-    useTestNG() {
-        suites "src/test/resources/testng.xml"
-    }
-}
+
+//test {
+//    useTestNG() {
+//        suites "src/test/resources/testng.xml"
+//    }
+//}
 
 //jar {
 //    enabled = false

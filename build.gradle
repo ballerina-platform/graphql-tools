@@ -194,11 +194,13 @@ publishing {
     }
 }
 
-//packagePATdependencies {
-//    implementation 'org.wso2.ballerina-integrator:ballerina-integrator-snippet-generator:1.0.0'
-//}
-
 directoryBuild.dependsOn ":${packageName}-cli:build"
+directoryBuild.dependsOn(checkstyleMain)
+directoryBuild.dependsOn(checkstyleTest)
+directoryBuild.dependsOn(compileTestJava)
+directoryBuild.dependsOn(jar)
+directoryBuild.dependsOn ":${packageName}-cli:jacocoTestReport"
+directoryBuild.dependsOn(test)
 directoryBuild.dependsOn ":${packageName}-tool-idl-plugin:build"
 build.dependsOn directoryBuild
 

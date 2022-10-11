@@ -1,0 +1,62 @@
+# ## The GraphQL schema. Ex: https://countries.trevorblades.com or ./schemas/country.graphql
+schema: ../client-generation-resources/schemas/country.graphql
+# ## The GraphQL documents that have queries/mutations
+documents:
+  - ../client-generation-resources/queries/query-countries.graphql
+
+## If the GraphQL API is secured, add the extensions section with the relevant tokens/headers. The schema must be Web URL in this case.
+# extensions:
+#   endpoints:
+#     default:
+#       headers:
+#         { "HeaderKey1": "HeaderValue1", "HeaderKey2": "HeaderValue2" }
+
+## The GraphQL schema. E.g., https://countries.trevorblades.com or ./schemas/country.graphql
+# schema: https://countries.trevorblades.com
+## The GraphQL documents that have queries/mutations
+# documents:
+#    - ./queries/query-country.graphql
+
+# schema: ./schemas/choreo.graphql
+# documents:
+#     - ./queries/query-choreo.graphql
+
+# schema: ./schemas/country.graphql
+# documents:
+#     - ./queries/query-country.graphql
+#     - ./queries/query-country-new.graphql
+
+# schema: https://api.github.com/graphql
+# documents:
+#     - ./queries/query-github.graphql
+# extensions:
+#      endpoints:
+#          default:
+#               headers: { "Authorization": "Bearer token", "HeaderKey1": "HeaderValue1", "HeaderKey2": "HeaderValue2" }
+
+# schema: https://api.spacex.land/graphql
+# documents:
+#     - ./queries/query-spacex.graphql
+#     - ./queries/query-space.graphql
+
+# projects:
+#    github:
+#       schema: https://api.github.com/graphql
+#       documents:
+#          - ./queries/query-github.graphql
+#       extensions:
+#          endpoints:
+#             default:
+#                url: https://api.github.com/graphql
+#                headers:
+#                   { "Authorization": "Bearer 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" }
+#    country:
+#       schema: ./schemas/country.graphql
+#       documents:
+#          - ./queries/query-country.graphql
+#          - ./queries/query-country-new.graphql
+#    spacex:
+#       schema: https://api.spacex.land/graphql
+#       documents:
+#          - ./queries/query-spacex.graphql
+#          - ./queries/query-space.graphql

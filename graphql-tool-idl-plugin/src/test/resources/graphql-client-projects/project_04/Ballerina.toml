@@ -1,0 +1,8 @@
+[package]
+org = "tharinduu"
+name = "project_04"
+version = "0.1.0"
+distribution = "2201.2.0-rc1.2"
+
+[build-options]
+observabilityIncluded = true

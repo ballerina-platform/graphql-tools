@@ -34,6 +34,7 @@ dependencies {
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
     implementation "info.picocli:picocli:${picocliVersion}"
     testImplementation "org.testng:testng:${testngVersion}"
+    testImplementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
     implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
     implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
@@ -90,21 +91,53 @@ task copyStdlibs(type: Copy) {
     }
 }
 
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    dependsOn configurations.dist
-    from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
-        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+//jar {
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//    dependsOn configurations.dist
+//    from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
+//        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+//    }
+//}
+
+shadowJar {
+    configurations = [project.configurations.runtimeClasspath]
+    dependencies {
+        include(dependency("commons-logging:commons-logging:${commonsLoggingVersion}"))
+        include(dependency("com.graphql-java:graphql-java:${graphqlJavaVersion}"))
+        exclude('META-INF/*.SF')
+        exclude('META-INF/*.DSA')
+        exclude('META-INF/*.RSA')
     }
 }
 
+task copyJar(type: Copy) {
+    dependsOn {
+        shadowJar
+        copyStdlibs
+//        jar
+//        ':graphql-tool-idl-plugin:jar'
+    }
+    copy {
+        from "$project.buildDir/libs/graphql-tool-idl-plugin-${version}.jar"
+        into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
+    }
+    copy {
+        from "$project.rootDir/graphql-cli/build/libs/graphql-cli-${version}.jar"
+        into"$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
+    }
+}
 build.dependsOn(shadowJar)
 
 test {
+    systemProperties = [ "target.dir": "$project.buildDir",
+                         "distributions.dir": bDistribution,
+                         "ballerina.home": bDistribution,
+                         "ballerina.version": "jballerina-tools-${ballerinaLangVersion}"
+    ]
     dependsOn {
         copyStdlibs
+        copyJar
     }
-    systemProperty "ballerina.home", bDistribution
 
     useTestNG() {
         suites "src/test/resources/testng.xml"
