@@ -27,4 +27,5 @@ module io.ballerina.graphql.idl.client {
     requires org.slf4j;
     requires io.ballerina.graphql;
     requires org.yaml.snakeyaml;
+    requires com.graphqljava;
 }

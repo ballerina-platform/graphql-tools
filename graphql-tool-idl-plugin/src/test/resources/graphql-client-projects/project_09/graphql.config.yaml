@@ -1,0 +1,8 @@
+schema: https://api.github.com/graphql
+documents:
+   - ../client-generation-resources/queries/query-github.graphql
+extensions:
+    endpoints:
+        default:
+             headers: { "Authorization": "Bearer token", "HeaderKey1": "HeaderValue1", "HeaderKey2": "HeaderValue2" }
+

@@ -23,13 +23,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-//import java.nio.file.Path;
-//import java.nio.file.Paths;
-//import java.util.ArrayList;
-//import java.util.LinkedList;
-//import java.util.List;
 
-//import static io.ballerina.graphql.idl.client.TestUtils.DISTRIBUTIONS_DIR;
 import static io.ballerina.graphql.idl.client.TestUtils.getMatchingFiles;
 
 /**
@@ -53,43 +47,20 @@ public class IDLClientGenPluginTests extends GraphqlIDLTest {
     public void multiClientDeclaration() throws IOException, InterruptedException {
         File[] matchingFiles = getMatchingFiles("project_02");
         assert matchingFiles != null;
-        Assert.assertEquals(matchingFiles.length, 2); // this should be 4 after the plugin fix
+        Assert.assertEquals(matchingFiles.length, 2);
     }
 
-    @Test(description = "Project structured configuration")
-    public void projectStructuredConfiguration() throws IOException, InterruptedException {
-        File[] matchingFiles = getMatchingFiles("project_03");
-        assert matchingFiles == null;
-    }
+//    @Test(description = "config file contains in a subdirectory of bal script level")
+//    public void relativePathTest() throws IOException, InterruptedException {
+//        File[] matchingFiles = getMatchingFiles("project_07");
+//        assert matchingFiles != null;
+//        Assert.assertEquals(matchingFiles.length, 1); // this should be 4 after the plugin fix
+//    }
 
-    @Test(description = "URL for config file")
-    public void urlConfigDefinition() throws IOException, InterruptedException {
-        File[] matchingFiles = getMatchingFiles("project_04");
-        assert matchingFiles == null;
-    }
-
-    @Test(description = "invalid query file name")  // todo: Add a test for invalid schema content
-    public void invalidQueryDefinition() throws IOException, InterruptedException {
-        File[] matchingFiles = getMatchingFiles("project_05");
-        assert matchingFiles == null;
-    }
-
-    @Test(description = "invalid schema file name") // todo: Add a test for invalid schema content
-    public void invalidSchemaDefinition() throws IOException, InterruptedException {
-        File[] matchingFiles = getMatchingFiles("project_06");
-        assert matchingFiles == null;
-    }
-
-    @Test(description = "config file contains in a subdirectory of bal script level")
-    public void relativePathTest() throws IOException, InterruptedException {
-        File[] matchingFiles = getMatchingFiles("project_07");
-        assert matchingFiles != null;
-        Assert.assertEquals(matchingFiles.length, 1);
-    }
-
-    @Test(description = "invalid config file name")
-    public void invalidConfigName() throws IOException, InterruptedException {
-        File[] matchingFiles = getMatchingFiles("project_08");
-        assert matchingFiles == null;
-    }
+//    @Test(description = "config with extensions")
+//    public void configWithExtensions() throws IOException, InterruptedException {
+//        File[] matchingFiles = getMatchingFiles("project_09");
+//        assert matchingFiles != null;
+//        Assert.assertEquals(matchingFiles.length, 1);
+//    }
 }
