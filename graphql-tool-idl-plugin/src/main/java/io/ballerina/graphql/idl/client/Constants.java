@@ -28,7 +28,11 @@ public class Constants {
      */
     public enum DiagnosticMessages {
         ERROR_WHILE_GENERATING_CLIENT("GraphQL_IDL_CLIENT", "unexpected error occurred while generating the client",
-                DiagnosticSeverity.ERROR);
+                DiagnosticSeverity.ERROR),
+        ERROR_WHILE_VALIDATING("GraphQL_IDL_CLIENT", "unexpected error occurred while validating the configurations",
+                DiagnosticSeverity.ERROR),
+        ERROR_MULTIPLE_PROJECT_AVAILABILITY("GraphQL_IDL_CLIENT",
+                "multiple projects are found while generating the client", DiagnosticSeverity.ERROR);
         private final String code;
         private final String description;
         private final DiagnosticSeverity severity;

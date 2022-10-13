@@ -25,7 +25,7 @@ public class GraphqlIDLTest {
         File[] matchingGeneratedDirs = RESOURCE.toFile().listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
-                return pathname.getName().contains("generated");
+                return pathname.getName().contains("generated") || pathname.getName().contains("target");
             }
         });
         if (matchingGeneratedDirs != null) {

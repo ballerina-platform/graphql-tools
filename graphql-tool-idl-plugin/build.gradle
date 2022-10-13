@@ -91,14 +91,6 @@ task copyStdlibs(type: Copy) {
     }
 }
 
-//jar {
-//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//    dependsOn configurations.dist
-//    from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
-//        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
-//    }
-//}
-
 shadowJar {
     configurations = [project.configurations.runtimeClasspath]
     dependencies {
@@ -114,8 +106,6 @@ task copyJar(type: Copy) {
     dependsOn {
         shadowJar
         copyStdlibs
-//        jar
-//        ':graphql-tool-idl-plugin:jar'
     }
     copy {
         from "$project.buildDir/libs/graphql-tool-idl-plugin-${version}.jar"
