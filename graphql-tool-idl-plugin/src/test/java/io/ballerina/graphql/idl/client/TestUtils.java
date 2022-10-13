@@ -67,11 +67,11 @@ public class TestUtils {
             balFile = "bal.bat";
         }
         args.add(0, TEST_DISTRIBUTION_PATH.resolve(distributionName).resolve("bin").resolve(balFile).toString());
-//        args.add(sourceDirectory.toString());
         OUT.println("Executing: " + StringUtils.join(args, ' '));
         ProcessBuilder pb = new ProcessBuilder(args);
         pb.directory(sourceDirectory.toFile());
         Process process = pb.start();
+        process.getErrorStream();
         return process;
     }
 

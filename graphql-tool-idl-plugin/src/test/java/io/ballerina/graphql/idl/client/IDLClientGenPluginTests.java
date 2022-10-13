@@ -19,6 +19,8 @@
 package io.ballerina.graphql.idl.client;
 
 import org.testng.Assert;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -31,36 +33,33 @@ import static io.ballerina.graphql.idl.client.TestUtils.getMatchingFiles;
  */
 public class IDLClientGenPluginTests extends GraphqlIDLTest {
 
-//    @BeforeClass
-//    public void setupDistributions() throws IOException {
-//        TestUtil.cleanDistribution();
-//    }
-
     @Test(description = "Single client declaration in module level")
-    public void singleClientDeclaration() throws IOException, InterruptedException {
+    public void testSingleClientDeclaration() throws IOException, InterruptedException {
         File[] matchingFiles = getMatchingFiles("project_01");
-        assert matchingFiles != null;
+        Assert.assertNotNull(matchingFiles);
         Assert.assertEquals(matchingFiles.length, 1);
     }
 
     @Test(description = "two declarations in module and class level")
-    public void multiClientDeclaration() throws IOException, InterruptedException {
+    public void testMultiClientDeclaration() throws IOException, InterruptedException {
         File[] matchingFiles = getMatchingFiles("project_02");
-        assert matchingFiles != null;
+        Assert.assertNotNull(matchingFiles);
         Assert.assertEquals(matchingFiles.length, 2);
     }
 
-//    @Test(description = "config file contains in a subdirectory of bal script level")
-//    public void relativePathTest() throws IOException, InterruptedException {
-//        File[] matchingFiles = getMatchingFiles("project_07");
-//        assert matchingFiles != null;
-//        Assert.assertEquals(matchingFiles.length, 1); // this should be 4 after the plugin fix
-//    }
+    @Ignore
+    @Test(description = "config file contains in a subdirectory of bal script level")
+    public void relativePathTest() throws IOException, InterruptedException {
+        File[] matchingFiles = getMatchingFiles("project_07");
+        assert matchingFiles != null;
+        Assert.assertEquals(matchingFiles.length, 1);
+    }
 
-//    @Test(description = "config with extensions")
-//    public void configWithExtensions() throws IOException, InterruptedException {
-//        File[] matchingFiles = getMatchingFiles("project_09");
-//        assert matchingFiles != null;
-//        Assert.assertEquals(matchingFiles.length, 1);
-//    }
+    //todo: Add absolute config path test case
+
+    @AfterTest
+    @Override
+    public void removeGeneratedFile() throws IOException {
+        super.removeGeneratedFile();
+    }
 }
