@@ -66,7 +66,7 @@ public class CodeGenerator {
     public void generate(GraphqlProject project) throws GenerationException {
         String outputPath = project.getOutputPath();
         try {
-            List<SrcFilePojo> genSources = generateBalSources(project);
+            List<SrcFilePojo> genSources = generateBalSources(project, GeneratedContext.CLI);
             writeGeneratedSources(genSources, Path.of(outputPath));
         } catch (ClientGenerationException | UtilsGenerationException | TypesGenerationException | IOException e) {
             throw new GenerationException(e.getMessage(), project.getName());
@@ -83,8 +83,9 @@ public class CodeGenerator {
      * @throws TypesGenerationException             when a types code generation error occurs
      * @throws IOException                          If an I/O error occurs
      */
-    public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ClientGenerationException,
-            UtilsGenerationException, TypesGenerationException, IOException, ConfigTypesGernerationException {
+    public List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratedContext generatedContext)
+            throws ClientGenerationException, UtilsGenerationException, TypesGenerationException, IOException,
+            ConfigTypesGernerationException {
         String projectName = project.getName();
         Extension extensions = project.getExtensions();
         List<String> documents = project.getDocuments();
@@ -95,7 +96,7 @@ public class CodeGenerator {
         AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
-        generateClients(projectName, documents, schema, authConfig, sourceFiles);
+        generateClients(projectName, documents, schema, authConfig, sourceFiles, generatedContext);
         generateUtils(projectName, authConfig, sourceFiles);
         generateTypes(projectName, documents, schema, sourceFiles);
         generateConfigTypes(projectName, authConfig, sourceFiles);
@@ -115,10 +116,10 @@ public class CodeGenerator {
      * @throws IOException                          If an I/O error occurs
      */
     public void generateClients(String projectName, List<String> documents, GraphQLSchema schema,
-                                 AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
+                                AuthConfig authConfig, List<SrcFilePojo> sourceFiles, GeneratedContext generatedContext)
             throws ClientGenerationException, IOException {
         String clientSrc = ClientGenerator.getInstance().
-                generateSrc(documents, schema, authConfig);
+                generateSrc(documents, schema, authConfig, generatedContext);
         sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
                 CLIENT_FILE_NAME, clientSrc));
     }

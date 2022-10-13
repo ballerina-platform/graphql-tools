@@ -27,6 +27,7 @@ import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.GeneratedContext;
 import io.ballerina.graphql.generator.model.AuthConfig;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -57,7 +58,7 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
             String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(documents, schema, authConfig)
+                    generateSrc(documents, schema, authConfig, GeneratedContext.CLI)
                     .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
@@ -89,7 +90,7 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
             String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(documents, schema, authConfig)
+                    generateSrc(documents, schema, authConfig, GeneratedContext.CLI)
                     .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
@@ -122,7 +123,7 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
             String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(documents, schema, authConfig)
+                    generateSrc(documents, schema, authConfig, GeneratedContext.CLI)
                     .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
@@ -155,7 +156,7 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
             String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(documents, schema, authConfig)
+                    generateSrc(documents, schema, authConfig, GeneratedContext.CLI)
                     .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =

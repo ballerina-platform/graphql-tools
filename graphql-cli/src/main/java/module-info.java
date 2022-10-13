@@ -29,6 +29,7 @@ module io.ballerina.graphql {
     requires org.apache.commons.io;
     requires commons.logging;
     requires io.ballerina.lang;
+    requires org.slf4j;
     exports io.ballerina.graphql.cmd;
     exports io.ballerina.graphql.cmd.pojo;
     exports io.ballerina.graphql.exception;
