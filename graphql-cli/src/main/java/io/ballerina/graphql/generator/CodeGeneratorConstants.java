@@ -32,6 +32,8 @@ public class CodeGeneratorConstants {
     public static final String TYPES_FILE_NAME = "types.bal";
     public static final String UTILS_FILE_NAME = "utils.bal";
     public static final String CONFIG_TYPES_FILE_NAME = "config_types.bal";
+    public static final String SCHEMA_PATTERN = "schema";
+    public static final String DOCUMENTS_PATTERN = "documents";
 
     public static final String SLASH = "/";
     public static final String SEMICOLON = ";";

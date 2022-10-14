@@ -1,4 +1,4 @@
-client "./sub_dir/graphql.config.yaml" as foo;
+client "./graphql.config.yaml" as foo;
 
 public function main() {
     foo:client x;

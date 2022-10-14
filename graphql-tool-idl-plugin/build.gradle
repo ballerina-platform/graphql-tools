@@ -63,7 +63,6 @@ task jBallerinaPack {
 }
 
 task unpackStdLibs() {
-    dependsOn(jBallerinaPack)
     doLast {
         configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
@@ -75,7 +74,6 @@ task unpackStdLibs() {
 }
 
 task copyStdlibs(type: Copy) {
-    dependsOn(unpackStdLibs)
     def ballerinaDist = "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}"
     into ballerinaDist
 
@@ -103,20 +101,10 @@ shadowJar {
 }
 
 task copyJar(type: Copy) {
-    dependsOn {
-        shadowJar
-        copyStdlibs
-    }
-    copy {
-        from "$project.buildDir/libs/graphql-tool-idl-plugin-${version}.jar"
-        into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
-    }
-    copy {
-        from "$project.rootDir/graphql-cli/build/libs/graphql-cli-${version}.jar"
-        into"$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
-    }
+    from "$project.buildDir/libs/graphql-tool-idl-plugin-${version}.jar"
+    from "$project.rootDir/graphql-cli/build/libs/graphql-cli-${version}.jar"
+    into"$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
 }
-build.dependsOn(shadowJar)
 
 test {
     systemProperties = [ "target.dir": "$project.buildDir",
@@ -124,11 +112,6 @@ test {
                          "ballerina.home": bDistribution,
                          "ballerina.version": "jballerina-tools-${ballerinaLangVersion}"
     ]
-    dependsOn {
-        copyStdlibs
-        copyJar
-    }
-
     useTestNG() {
         suites "src/test/resources/testng.xml"
     }
@@ -155,3 +138,12 @@ compileJava {
         classpath = files()
     }
 }
+unpackStdLibs.dependsOn jBallerinaPack
+copyStdlibs.dependsOn unpackStdLibs
+shadowJar.dependsOn copyStdlibs
+copyJar.dependsOn shadowJar
+copyJar.dependsOn jar
+test.dependsOn copyJar
+jacocoTestReport.dependsOn test
+
+build.dependsOn(jacocoTestReport)

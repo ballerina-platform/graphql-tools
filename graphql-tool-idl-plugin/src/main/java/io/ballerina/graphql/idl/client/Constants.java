@@ -15,23 +15,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package io.ballerina.graphql.idl.client;
 
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 /**
  * Storing constant for client IDL generator.
+ *
+ * @since 0.3.0
  */
 public class Constants {
     /**
      * Enum class for contain diagnostic messages.
      */
     public enum DiagnosticMessages {
-        ERROR_WHILE_GENERATING_CLIENT("GraphQL_IDL_CLIENT", "unexpected error occurred while generating the client",
-                DiagnosticSeverity.ERROR),
-        ERROR_WHILE_VALIDATING("GraphQL_IDL_CLIENT", "unexpected error occurred while validating the configurations",
-                DiagnosticSeverity.ERROR),
-        ERROR_MULTIPLE_PROJECT_AVAILABILITY("GraphQL_IDL_CLIENT",
+        ERROR_WHILE_GENERATING_CLIENT("GraphQL_IDL_CLIENT_100",
+                "unexpected error occurred while generating the client", DiagnosticSeverity.ERROR),
+        ERROR_WHILE_VALIDATING("GraphQL_IDL_CLIENT_101",
+                "unexpected error occurred while validating the configurations", DiagnosticSeverity.ERROR),
+        ERROR_MULTIPLE_PROJECT_AVAILABILITY("GraphQL_IDL_CLIENT_102",
                 "multiple projects are found while generating the client", DiagnosticSeverity.ERROR);
         private final String code;
         private final String description;

@@ -172,11 +172,11 @@ public class CodeGeneratorUtils {
     /**
      * Gets the client class name for a given document.
      *
-     * @param generatedContext   cause of trigger of source generation
+     * @param generatorContext   cause of trigger of source generation
      * @return                 the client class name
      */
-    public static String getClientClassName(GeneratedContext generatedContext) {
-        if (generatedContext == GeneratedContext.IDL_PLUGIN) {
+    public static String getClientClassName(GeneratorContext generatorContext) {
+        if (generatorContext == GeneratorContext.IDL_PLUGIN) {
             return CodeGeneratorConstants.IDL_PLUGIN_CLIENT;
         } else {
             return CLIENT_CLASS_PREFIX + CLIENT;

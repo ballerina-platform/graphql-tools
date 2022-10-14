@@ -20,7 +20,6 @@ package io.ballerina.graphql.idl.client;
 
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -30,6 +29,8 @@ import static io.ballerina.graphql.idl.client.TestUtils.getMatchingFiles;
 
 /**
  * Client IDL import integration tests.
+ *
+ * @since 0.3.0
  */
 public class IDLClientGenPluginTests extends GraphqlIDLTest {
 
@@ -44,12 +45,11 @@ public class IDLClientGenPluginTests extends GraphqlIDLTest {
     public void testMultiClientDeclaration() throws IOException, InterruptedException {
         File[] matchingFiles = getMatchingFiles("project_02");
         Assert.assertNotNull(matchingFiles);
-        Assert.assertEquals(matchingFiles.length, 2);
+        Assert.assertEquals(matchingFiles.length, 1);
     }
 
-    @Ignore
     @Test(description = "config file contains in a subdirectory of bal script level")
-    public void relativePathTest() throws IOException, InterruptedException {
+    public void testRemoteSchema() throws IOException, InterruptedException {
         File[] matchingFiles = getMatchingFiles("project_07");
         assert matchingFiles != null;
         Assert.assertEquals(matchingFiles.length, 1);

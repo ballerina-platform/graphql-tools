@@ -1,23 +1,5 @@
 ## Add the queries and mutations here.
 
-# query countryByCode($code: ID!) {
-#     country(code: $code) {
-#         name
-#     }
-# }
-
-# query countriesWithContinent($filter: CountryFilterInput) { 
-#     countries(filter: $filter) {   
-#         name
-#         continent {
-#             countries {
-#                 name
-#             }
-#         }
-#     }
-# }
-
-
 query countryByCode($code: ID!) {
     country(code: $code) {
         name

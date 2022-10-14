@@ -34,7 +34,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
-import io.ballerina.graphql.exception.ConfigTypesGernerationException;
+import io.ballerina.graphql.exception.ConfigTypesGenerationException;
 import io.ballerina.graphql.generator.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.model.AuthConfig;
 import io.ballerina.projects.DocumentId;
@@ -138,13 +138,13 @@ public class ConfigTypesGenerator {
      *
      * @param authConfig the object instance representing authentication config information
      * @return the config types file content
-     * @throws ConfigTypesGernerationException when a config types code generation error occurs
+     * @throws ConfigTypesGenerationException when a config types code generation error occurs
      */
-    public String generateSrc(AuthConfig authConfig) throws ConfigTypesGernerationException {
+    public String generateSrc(AuthConfig authConfig) throws ConfigTypesGenerationException {
         try {
             return Formatter.format(generateSyntaxTree(authConfig)).toString();
         } catch (FormatterException | IOException e) {
-            throw new ConfigTypesGernerationException(e.getMessage());
+            throw new ConfigTypesGenerationException(e.getMessage());
         }
     }
 

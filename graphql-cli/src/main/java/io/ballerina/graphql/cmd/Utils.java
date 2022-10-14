@@ -175,8 +175,6 @@ public class Utils {
         return new GraphqlDiagnostic(diagnosticInfo, location, Collections.emptyList(), args);
     }
 
-
-
     /**
      * This {@code NullLocation} represents the null location allocation for scenarios which has no location.
      */
