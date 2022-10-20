@@ -37,6 +37,11 @@ ext.puppycrawlCheckstyleVersion = "8.18"
 
 def packageName = "graphql"
 
+dependencies {
+    implementation project(':graphql-tool-idl-plugin')
+    implementation project(':graphql-cli')
+}
+
 allprojects {
     group = project.group
     version = project.version
@@ -143,6 +148,8 @@ task codeCoverageReport(type: JacocoReport) {
 def artifactCacheParent = file("$project.projectDir/build/cache_parent/")
 def artifactLibParent = file("$project.projectDir/build/lib_parent/")
 def targetGraphqlCliJar = file("$project.rootDir/graphql-cli/build/libs/graphql-cli-${project.version}.jar")
+def targetGraphqlIDLPluginJar = file("$project.rootDir/graphql-tool-idl-plugin/build/libs/" +
+        "graphql-tool-idl-plugin-${project.version}.jar")
 
 jar {
     manifest {
@@ -156,6 +163,10 @@ task directoryBuild {
     doLast {
         copy {
             from targetGraphqlCliJar
+            into file("$artifactLibParent/libs")
+        }
+        copy {
+            from targetGraphqlIDLPluginJar
             into file("$artifactLibParent/libs")
         }
     }
@@ -189,6 +200,13 @@ publishing {
 }
 
 directoryBuild.dependsOn ":${packageName}-cli:build"
+directoryBuild.dependsOn ":${packageName}-tool-idl-plugin:build"
+directoryBuild.dependsOn(checkstyleMain)
+directoryBuild.dependsOn(checkstyleTest)
+directoryBuild.dependsOn(compileTestJava)
+directoryBuild.dependsOn(jar)
+directoryBuild.dependsOn ":${packageName}-cli:jacocoTestReport"
+directoryBuild.dependsOn(test)
 build.dependsOn directoryBuild
 
 publish.dependsOn build

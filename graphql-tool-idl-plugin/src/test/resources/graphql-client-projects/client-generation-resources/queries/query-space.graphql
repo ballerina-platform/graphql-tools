@@ -1,0 +1,8 @@
+query getInfo {
+  company {
+    ceo
+  }
+  roadster {
+    apoapsis_au
+  }
+}

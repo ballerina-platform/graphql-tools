@@ -40,6 +40,7 @@ import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.GeneratorContext;
 import io.ballerina.graphql.generator.graphql.QueryReader;
 import io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinition;
 import io.ballerina.graphql.generator.model.AuthConfig;
@@ -81,7 +82,6 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.REMOTE_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_CLASS_PREFIX;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT;
@@ -109,10 +109,11 @@ public class ClientGenerator {
      * @return                                  the client file content
      * @throws ClientGenerationException        when a client code generation error occurs
      */
-    public String generateSrc(List<String> queryDocuments, GraphQLSchema graphQLSchema,
-                              AuthConfig authConfig) throws ClientGenerationException {
+    public String generateSrc(List<String> queryDocuments, GraphQLSchema graphQLSchema, AuthConfig authConfig,
+                              GeneratorContext generatorContext) throws ClientGenerationException {
         try {
-            return Formatter.format(generateSyntaxTree(queryDocuments, graphQLSchema, authConfig)).toString();
+            return Formatter.format(generateSyntaxTree(
+                    queryDocuments, graphQLSchema, authConfig, generatorContext)).toString();
         } catch (FormatterException | IOException e) {
             throw new ClientGenerationException(e.getMessage());
         }
@@ -126,13 +127,13 @@ public class ClientGenerator {
      * @param authConfig                the object instance representing authentication configuration information
      * @return                          Syntax tree for the ballerina client code
      */
-    private SyntaxTree generateSyntaxTree(List<String> queryDocuments,
-                                          GraphQLSchema graphQLSchema, AuthConfig authConfig) throws IOException {
+    private SyntaxTree generateSyntaxTree(List<String> queryDocuments, GraphQLSchema graphQLSchema,
+                                          AuthConfig authConfig, GeneratorContext generatorContext) throws IOException {
         // Generate imports
         NodeList<ImportDeclarationNode> imports = generateImports();
         // Generate auth config records & client class
         NodeList<ModuleMemberDeclarationNode> members =
-                generateMembers(queryDocuments, graphQLSchema, authConfig);
+                generateMembers(queryDocuments, graphQLSchema, authConfig, generatorContext);
 
         ModulePartNode modulePartNode = createModulePartNode(imports, members, createToken(EOF_TOKEN));
 
@@ -166,11 +167,12 @@ public class ClientGenerator {
      * @return                          the node list which represent members in the client file
      */
     private NodeList<ModuleMemberDeclarationNode> generateMembers(List<String> queryDocuments,
-                                                                  GraphQLSchema graphQLSchema, AuthConfig authConfig)
+                                                                  GraphQLSchema graphQLSchema, AuthConfig authConfig,
+                                                                  GeneratorContext generatorContext)
             throws IOException {
         List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
         // Generate client class
-        members.add(generateClientClass(queryDocuments, graphQLSchema, authConfig));
+        members.add(generateClientClass(queryDocuments, graphQLSchema, authConfig, generatorContext));
         return createNodeList(members);
     }
 
@@ -182,13 +184,13 @@ public class ClientGenerator {
      * @param authConfig                the object instance representing authentication configuration information
      * @return                          the node which represent the client class in the client file
      */
-    private ClassDefinitionNode generateClientClass(List<String> queryDocuments,
-                                                    GraphQLSchema graphQLSchema, AuthConfig authConfig)
+    private ClassDefinitionNode generateClientClass(List<String> queryDocuments, GraphQLSchema graphQLSchema,
+                                                    AuthConfig authConfig, GeneratorContext generatorContext)
             throws IOException {
         MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
         NodeList<Token> classTypeQualifiers = createNodeList(
                 createToken(ISOLATED_KEYWORD), createToken(CLIENT_KEYWORD));
-        IdentifierToken className = createIdentifierToken(CodeGeneratorUtils.getClientClassName(CLIENT_CLASS_PREFIX));
+        IdentifierToken className = createIdentifierToken(CodeGeneratorUtils.getClientClassName(generatorContext));
 
         // Collect members for class definition node
         List<Node> members =  new ArrayList<>();

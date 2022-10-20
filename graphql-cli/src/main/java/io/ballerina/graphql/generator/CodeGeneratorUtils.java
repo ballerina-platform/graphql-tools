@@ -56,6 +56,8 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.DOCUMENTATION_DESCRIP
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.HASH_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.MARKDOWN_DOCUMENTATION_LINE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.BAL_KEYWORDS;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_CLASS_PREFIX;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_FILE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ESCAPE_PATTERN;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.IMPORT;
@@ -170,11 +172,15 @@ public class CodeGeneratorUtils {
     /**
      * Gets the client class name for a given document.
      *
-     * @param documentName     the name of the document
+     * @param generatorContext   cause of trigger of source generation
      * @return                 the client class name
      */
-    public static String getClientClassName(String documentName) {
-        return documentName + CodeGeneratorConstants.CLIENT;
+    public static String getClientClassName(GeneratorContext generatorContext) {
+        if (generatorContext == GeneratorContext.IDL_PLUGIN) {
+            return CodeGeneratorConstants.IDL_PLUGIN_CLIENT;
+        } else {
+            return CLIENT_CLASS_PREFIX + CLIENT;
+        }
     }
 
     /**

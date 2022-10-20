@@ -1,0 +1,5 @@
+## The GraphQL schema. Ex: https://countries.trevorblades.com or ./schemas/country.graphql
+schema: https://countries.trevorblades.com
+## The GraphQL documents that have queries/mutations
+documents:
+  - ../client-generation-resources/queries/query-country.graphql
