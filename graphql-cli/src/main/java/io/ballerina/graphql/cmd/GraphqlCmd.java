@@ -47,9 +47,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.graphql.cmd.Constants.BAL_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
@@ -57,11 +58,12 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
 
 /**
  * Main class to implement "graphql" command for Ballerina.
- * Commands for Client generation from GraphQL queries & GraphQL SDL.
+ * Commands for Client and SDL Schema file generation.
  */
 @CommandLine.Command(
         name = "graphql",
-        description = "Generates Ballerina clients from GraphQL queries and GraphQL SDL."
+        description = "Generates Ballerina clients for GraphQL queries with GraphQL SDL and " +
+                "SDL schema for the given Ballerina GraphQL service."
 )
 public class GraphqlCmd implements BLauncherCmd {
     private static final String CMD_NAME = "graphql";
@@ -72,13 +74,19 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = {"-h", "--help"}, hidden = true)
     private boolean helpFlag;
 
-    @CommandLine.Option(names = {"-i", "--input"}, description = "File path to the GraphQL configuration file.")
+    @CommandLine.Option(names = {"-i", "--input"},
+            description = "File path to the GraphQL configuration file or Ballerina service file.")
     private boolean inputPathFlag;
 
     @CommandLine.Option(names = {"-o", "--output"},
-            description = "Directory to store the generated Ballerina clients. " +
+            description = "Directory to store the generated Ballerina clients or SDL schema file. " +
                     "If this is not provided, the generated files will be stored in the current execution directory.")
     private String outputPath;
+
+    @CommandLine.Option(names = {"-s", "--service"},
+            description = "Service name that the SDL schema is needed to be generated. " +
+                    "If this is not provided, generate the SDL schema for each GraphQL service in the source file.")
+    private String serviceName;
 
     @CommandLine.Parameters
     private List<String> argList;
@@ -118,16 +126,7 @@ public class GraphqlCmd implements BLauncherCmd {
     public void execute() {
         try {
             validateInputFlags();
-            Config config = readConfig();
-            ConfigValidator.getInstance().validate(config);
-            List<GraphqlProject> projects = populateProjects(config);
-            for (GraphqlProject project : projects) {
-                SDLValidator.getInstance().validate(project);
-                QueryValidator.getInstance().validate(project);
-            }
-            for (GraphqlProject project : projects) {
-                CodeGenerator.getInstance().generate(project);
-            }
+            executeOperation();
         } catch (CmdException | ParseException | ValidationException | GenerationException | IOException e) {
             outStream.println(e.getMessage());
             exitError(this.exitWhenFinish);
@@ -169,28 +168,69 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     /**
+     * Execute the correct operation according to the given inputs.
+     *
+     * @throws CmdException               when a graphql command related error occurs
+     * @throws ParseException             when a parsing related error occurs
+     * @throws IOException                If an I/O error occurs
+     * @throws GenerationException        when a graphql client generation related error occurs
+     * @throws ValidationException        when validation related error occurs
+     */
+    private void executeOperation()
+            throws CmdException, ParseException, IOException, ValidationException, GenerationException {
+        String filePath = argList.get(0);
+        if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
+            generateClient(filePath);
+        } else if (filePath.endsWith(BAL_EXTENSION)) {
+            generateSchema();
+        } else {
+            throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+        }
+    }
+
+    /**
+     * Generate the client according to the given configurations.
+     *
+     * @throws ParseException             when a parsing related error occurs
+     * @throws IOException                If an I/O error occurs
+     * @throws ValidationException        when validation related error occurs
+     * @throws GenerationException        when a code generation error occurs
+     */
+    private void generateClient(String filePath)
+            throws ParseException, IOException, ValidationException, GenerationException {
+        Config config = readConfig(filePath);
+        ConfigValidator.getInstance().validate(config);
+        List<GraphqlProject> projects = populateProjects(config);
+        for (GraphqlProject project : projects) {
+            SDLValidator.getInstance().validate(project);
+            QueryValidator.getInstance().validate(project);
+        }
+        for (GraphqlProject project : projects) {
+            CodeGenerator.getInstance().generate(project);
+        }
+    }
+
+    private void generateSchema() {
+        return;
+    }
+
+    /**
      * Constructs an instance of the `Config` reading the given GraphQL config file.
      *
      * @return                              the instance of the Graphql config file
      * @throws FileNotFoundException        when the GraphQL config file doesn't exist
      * @throws ParseException               when a parsing related error occurs
-     * @throws CmdException                 when a graphql command related error occurs
      */
-    private Config readConfig() throws FileNotFoundException, ParseException, CmdException {
+    private Config readConfig(String filePath) throws FileNotFoundException, ParseException {
         try {
-            String filePath = argList.get(0);
-            if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
-                InputStream inputStream = new FileInputStream(new File(filePath));
-                Constructor constructor = Utils.getProcessedConstructor();
-                Yaml yaml = new Yaml(constructor);
-                Config config = yaml.load(inputStream);
-                if (config == null) {
-                    throw new ParseException(MESSAGE_FOR_EMPTY_CONFIGURATION_FILE);
-                }
-                return config;
-            } else {
-                throw new CmdException(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_EXTENSION);
+            InputStream inputStream = new FileInputStream(new File(filePath));
+            Constructor constructor = Utils.getProcessedConstructor();
+            Yaml yaml = new Yaml(constructor);
+            Config config = yaml.load(inputStream);
+            if (config == null) {
+                throw new ParseException(MESSAGE_FOR_EMPTY_CONFIGURATION_FILE);
             }
+            return config;
         } catch (YAMLException e) {
             throw new ParseException(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT + e.getMessage());
         }
