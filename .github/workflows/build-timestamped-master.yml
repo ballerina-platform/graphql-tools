@@ -1,8 +1,8 @@
-name: Build
+name: Publish timestamp build
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs:
