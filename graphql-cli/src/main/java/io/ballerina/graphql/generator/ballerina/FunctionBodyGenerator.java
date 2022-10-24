@@ -93,6 +93,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_EP;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLONE_READ_ONLY;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.COMMA;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_TYPE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_RESPONSE_VAR_NAME;
@@ -100,7 +101,6 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARI
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARIABLES_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HEADER_VALUES_VARIABLES_TYPE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HEADER_VALUES_VARIABLES_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_CLIENT_CONFIGURATION_VAR_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_CLIENT_CONFIG_TYPE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_TYPE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_VAR_NAME;
@@ -188,10 +188,10 @@ public class FunctionBodyGenerator {
      *         httpClientConfig.proxy = check config.proxy.ensureType(http:ProxyConfig);
      *     }
      * } on fail var e {
-     *     return error graphql:HttpError("GraphQL Client Error", e, body = ());
+     *    return <graphql:ClientError>error("GraphQL Client Error", e, body = ());
      * }
      */
-    private List<StatementNode> generateHttpClientConfigurationNode(AuthConfig authConfig) {
+    private List<StatementNode>  generateHttpClientConfigurationNode(AuthConfig authConfig) {
         List<StatementNode> assignmentNodes = new ArrayList<>();
         NodeList<AnnotationNode> annotationNodes = NodeFactory.createEmptyNodeList();
 
@@ -199,7 +199,7 @@ public class FunctionBodyGenerator {
         BuiltinSimpleNameReferenceNode typeBindingPattern = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
                 createIdentifierToken(HTTP_CLIENT_CONFIG_TYPE_NAME));
         CaptureBindingPatternNode bindingPattern = NodeFactory.createCaptureBindingPatternNode(
-                createIdentifierToken("httpClientConfig"));
+                createIdentifierToken("graphqlClientConfig"));
         TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(typeBindingPattern,
                 bindingPattern);
 
@@ -211,7 +211,6 @@ public class FunctionBodyGenerator {
         if (authConfig.isClientConfig()) {
             map.put("auth", "config.auth");
         }
-        map.put("httpVersion", "config.httpVersion");
         map.put("timeout", "config.timeout");
         map.put("forwarded", "config.forwarded");
         map.put("poolConfig", "config.poolConfig");
@@ -249,7 +248,6 @@ public class FunctionBodyGenerator {
     private DoStatementNode generateHttpClientConfigOptionalFieldsAssignment() {
         List<StatementNode> nodes = new ArrayList<>();
         Map<String, String> map = new LinkedHashMap<>();
-        map.put("http2Settings", "ClientHttp2Settings");
         map.put("cache", "CacheConfig");
         map.put("responseLimits", "ResponseLimitConfigs");
         map.put("secureSocket", "ClientSecureSocket");
@@ -257,12 +255,12 @@ public class FunctionBodyGenerator {
 
         String http1SettingsStatement = "if config.http1Settings is ClientHttp1Settings {\n" +
                 "        ClientHttp1Settings settings = check config.http1Settings.ensureType(ClientHttp1Settings);\n" +
-                "        httpClientConfig.http1Settings = {...settings};" +
+                "        graphqlClientConfig.http1Settings = {...settings};" +
                 "    }";
         nodes.add(NodeParser.parseStatement(http1SettingsStatement));
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            String node = String.format("if config.%s is http:%s {\n" +
-                    "        httpClientConfig.%s = check config.%s.ensureType(http:%s);\n" +
+            String node = String.format("if config.%s is graphql:%s {\n" +
+                    "        graphqlClientConfig.%s = check config.%s.ensureType(graphql:%s);\n" +
                     "    }\n", entry.getKey(), entry.getValue(), entry.getKey(), entry.getKey(), entry.getValue());
             nodes.add(NodeParser.parseStatement(node));
         }
@@ -272,7 +270,8 @@ public class FunctionBodyGenerator {
         TypeDescriptorNode varNode = NodeFactory.createTypeReferenceTypeDescNode(NodeFactory.
                 createSimpleNameReferenceNode(createToken(VAR_KEYWORD)));
         IdentifierToken errorParamName = createIdentifierToken("e");
-        ExpressionNode errorNode = NodeParser.parseExpression("error graphql:HttpError(\"GraphQL Client " +
+        // TODO : Revert this change after issue in graphql:HttpError is fixed
+        ExpressionNode errorNode = NodeParser.parseExpression("<graphql:ClientError> error(\"GraphQL Client " +
                 "Error\", e, body = ())");
         ReturnStatementNode returnStatementNode = NodeFactory.createReturnStatementNode(createToken(RETURN_KEYWORD),
                 errorNode, createToken(SEMICOLON_TOKEN));
@@ -348,7 +347,7 @@ public class FunctionBodyGenerator {
         Token comma1 = createIdentifierToken(COMMA);
 
         PositionalArgumentNode positionalArgumentNode02 = NodeFactory.createPositionalArgumentNode(NodeFactory.
-                createSimpleNameReferenceNode(createIdentifierToken(HTTP_CLIENT_CONFIGURATION_VAR_NAME)));
+                createSimpleNameReferenceNode(createIdentifierToken(GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME)));
         argumentsList.add(comma1);
         argumentsList.add(positionalArgumentNode02);
 

@@ -1,13 +1,11 @@
-import ballerina/http;
 import ballerina/graphql;
 
 public isolated client class GraphqlClient {
     final graphql:Client graphqlClient;
     final readonly & ApiKeysConfig apiKeysConfig;
     public isolated function init(ConnectionConfig config, ApiKeysConfig apiKeysConfig, string serviceUrl) returns graphql:ClientError? {
-        http:ClientConfiguration httpClientConfig = {
+        graphql:ClientConfiguration graphqlClientConfig = {
             auth: config.auth,
-            httpVersion: config.httpVersion,
             timeout: config.timeout,
             forwarded: config.forwarded,
             poolConfig: config.poolConfig,
@@ -19,27 +17,24 @@ public isolated client class GraphqlClient {
         do {
             if config.http1Settings is ClientHttp1Settings {
                 ClientHttp1Settings settings = check config.http1Settings.ensureType(ClientHttp1Settings);
-                httpClientConfig.http1Settings = {...settings};
+                graphqlClientConfig.http1Settings = {...settings};
             }
-            if config.http2Settings is http:ClientHttp2Settings {
-                httpClientConfig.http2Settings = check config.http2Settings.ensureType(http:ClientHttp2Settings);
+            if config.cache is graphql:CacheConfig {
+                graphqlClientConfig.cache = check config.cache.ensureType(graphql:CacheConfig);
             }
-            if config.cache is http:CacheConfig {
-                httpClientConfig.cache = check config.cache.ensureType(http:CacheConfig);
+            if config.responseLimits is graphql:ResponseLimitConfigs {
+                graphqlClientConfig.responseLimits = check config.responseLimits.ensureType(graphql:ResponseLimitConfigs);
             }
-            if config.responseLimits is http:ResponseLimitConfigs {
-                httpClientConfig.responseLimits = check config.responseLimits.ensureType(http:ResponseLimitConfigs);
+            if config.secureSocket is graphql:ClientSecureSocket {
+                graphqlClientConfig.secureSocket = check config.secureSocket.ensureType(graphql:ClientSecureSocket);
             }
-            if config.secureSocket is http:ClientSecureSocket {
-                httpClientConfig.secureSocket = check config.secureSocket.ensureType(http:ClientSecureSocket);
-            }
-            if config.proxy is http:ProxyConfig {
-                httpClientConfig.proxy = check config.proxy.ensureType(http:ProxyConfig);
+            if config.proxy is graphql:ProxyConfig {
+                graphqlClientConfig.proxy = check config.proxy.ensureType(graphql:ProxyConfig);
             }
         } on fail var e {
-            return error graphql:HttpError("GraphQL Client Error", e, body = ());
+            return <graphql:ClientError> error("GraphQL Client Error", e, body = ());
         }
-        graphql:Client clientEp = check new (serviceUrl, httpClientConfig);
+        graphql:Client clientEp = check new (serviceUrl, graphqlClientConfig);
         self.graphqlClient = clientEp;
         self.apiKeysConfig = apiKeysConfig.cloneReadOnly();
     }
