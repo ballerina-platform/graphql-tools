@@ -1,1 +1,1 @@
-(ApiKeysConfig apiKeysConfig, string serviceUrl, ConnectionConfig config) returns graphql:ClientError?
+(ApiKeysConfig apiKeysConfig, string serviceUrl, ConnectionConfig config = {}) returns graphql:ClientError?

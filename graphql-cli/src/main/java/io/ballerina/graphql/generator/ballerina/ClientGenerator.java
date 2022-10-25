@@ -149,11 +149,8 @@ public class ClientGenerator {
      */
     private NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();
-        ImportDeclarationNode importForHttp = CodeGeneratorUtils.getImportDeclarationNode(
-                CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.HTTP);
         ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
                 CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.GRAPHQL);
-        imports.add(importForHttp);
         imports.add(importForGraphql);
         return createNodeList(imports);
     }

@@ -68,7 +68,7 @@ public class CodeGeneratorConstants {
     public static final String QUERY = "Query";
     public static final String REPRESENTS = "# Represents ";
     public static final String RESPONSE = "Response";
-    public static final String HTTP_CLIENT_CONFIG_TYPE_NAME = "http:ClientConfiguration";
+    public static final String HTTP_CLIENT_CONFIG_TYPE_NAME = "graphql:ClientConfiguration";
     public static final String CONNECTION_CONFIG_PARAM_NAME = "connectionConfig";
     public static final String SERVICE_URL_TYPE_NAME = "string";
     public static final String SERVICE_URL_PARAM_NAME = "serviceUrl";
@@ -78,7 +78,7 @@ public class CodeGeneratorConstants {
     public static final String TARGET_TYPE_PARAM_NAME = "targetType";
     public static final String GRAPHQL_CLIENT_TYPE_NAME = "graphql:Client";
     public static final String GRAPHQL_CLIENT_VAR_NAME = "clientEp";
-    public static final String HTTP_CLIENT_CONFIGURATION_VAR_NAME = "httpClientConfig";
+    public static final String GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME = "graphqlClientConfig";
     public static final String GRAPHQL_VARIABLES_TYPE_NAME = "map<anydata>";
     public static final String GRAPHQL_VARIABLES_VAR_NAME = "variables";
     public static final String HEADER_VALUES_VARIABLES_TYPE_NAME = "map<any>";
@@ -91,6 +91,11 @@ public class CodeGeneratorConstants {
 
     public static final String API_KEYS_CONFIG_TYPE_NAME = "ApiKeysConfig";
     public static final String API_KEYS_CONFIG_PARAM_NAME = "apiKeysConfig";
+
+    public static final String DISPLAY_ANNOTATION_NAME = "display";
+    public static final String DISPLAY_ANNOTATION_LABEL_NAME = "label";
+    public static final String DISPLAY_ANNOTATION_KIND_FIELD = "kind";
+    public static final String DISPLAY_ANNOTATION_KIND_PASSWORD = "password";
 
     // OS specific line separator
     public static final String LINE_SEPARATOR = System.lineSeparator();
@@ -129,8 +134,8 @@ public class CodeGeneratorConstants {
     public enum AuthConfigType {
         NONE("None"),
         API_KEY("ApiKeysConfig"),
-        BASIC("CredentialsConfig"),
-        BEARER("BearerTokenConfig"),
+        BASIC("graphql:CredentialsConfig"),
+        BEARER("graphql:BearerTokenConfig"),
         JWT_ISSUER("JwtIssuerConfig"),
         OAUTH2_CLIENT_CREDENTIAL("OAuth2ClientCredentialsGrantConfig"),
         OAUTH2_PASSWORD("OAuth2PasswordGrantConfig"),

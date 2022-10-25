@@ -19,9 +19,11 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import io.ballerina.compiler.syntax.tree.AbstractNodeFactory;
-import io.ballerina.compiler.syntax.tree.ConstantDeclarationNode;
-import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
+import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -29,6 +31,8 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -57,31 +61,45 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createIdentifierToken;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createAnnotationNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createBasicLiteralNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createEmptyMinutiaeList;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createLiteralValueToken;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createMappingConstructorExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMetadataNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordFieldNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createSeparatedNodeList;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createSimpleNameReferenceNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createSpecificFieldNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypeDefinitionNode;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.AT_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACE_PIPE_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CONST_DECLARATION;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.ENUM_DECLARATION;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACE_TOKEN;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.COMMA_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_BRACE_PIPE_TOKEN;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_BRACE_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.PUBLIC_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RECORD_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_KEYWORD;
+import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.AuthConfigType;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_KIND_FIELD;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_KIND_PASSWORD;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_LABEL_NAME;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 import static io.ballerina.graphql.generator.CodeGeneratorUtils.getMetadataNode;
 
@@ -91,39 +109,6 @@ import static io.ballerina.graphql.generator.CodeGeneratorUtils.getMetadataNode;
 public class ConfigTypesGenerator {
     private static ConfigTypesGenerator configTypesGenerator = null;
     private static final String CONNECTION_CONFIG = "ConnectionConfig";
-    private static final String CLIENT_HTTP1_SETTINGS = "ClientHttp1Settings";
-    private static final String PROXY_CONFIG = "ProxyConfig";
-    private static final String KEEP_ALIVE = "KeepAlive";
-    private static final String CHUNKING = "Chunking";
-    private static final String KEEPALIVE_AUTO = "KEEPALIVE_AUTO";
-    private static final String KEEPALIVE_ALWAYS = "KEEPALIVE_ALWAYS";
-    private static final String KEEPALIVE_NEVER = "KEEPALIVE_NEVER";
-    private static final String CHUNKING_AUTO = "CHUNKING_AUTO";
-    private static final String CHUNKING_ALWAYS = "CHUNKING_ALWAYS";
-    private static final String CHUNKING_NEVER = "CHUNKING_NEVER";
-    private static final String CLIENT_HTTP2_SETTINGS = "ClientHttp2Settings";
-    private static final String CACHE_CONFIG = "CacheConfig";
-    private static final String CACHING_POLICY = "CachingPolicy";
-    private static final String CACHE_CONTROL_AND_VALIDATORS = "CACHE_CONTROL_AND_VALIDATORS";
-    private static final String RFC_7234 = "RFC_7234";
-    private static final String COMPRESSION = "Compression";
-    private static final String COMPRESSION_AUTO = "COMPRESSION_AUTO";
-    private static final String COMPRESSION_ALWAYS = "COMPRESSION_ALWAYS";
-    private static final String COMPRESSION_NEVER = "COMPRESSION_NEVER";
-    private static final String CIRCUIT_BREAKER_CONFIG = "CircuitBreakerConfig";
-    private static final String ROLLING_WINDOW = "RollingWindow";
-    private static final String RETRY_CONFIG = "RetryConfig";
-    private static final String RESPONSE_LIMIT_CONFIGS = "ResponseLimitConfigs";
-    private static final String CLIENT_SECURE_SOCKET = "ClientSecureSocket";
-    private static final String TRUST_STORE = "TrustStore";
-    private static final String KEY_STORE = "KeyStore";
-    private static final String CERT_KEY = "CertKey";
-    private static final String CERT_VALIDATION_TYPE = "CertValidationType";
-    private static final String PROTOCOL = "Protocol";
-    private static final String POOL_CONFIGURATION = "PoolConfiguration";
-    private static final String HTTP_VERSION = "HttpVersion";
-    private static final String BEARER_TOKEN_CONFIG = "BearerTokenConfig";
-    private static final String CREDENTIALS_CONFIG = "CredentialsConfig";
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigTypesGenerator.class);
 
     public static ConfigTypesGenerator getInstance() {
@@ -156,21 +141,6 @@ public class ConfigTypesGenerator {
      * @throws IOException if an I/O error occurs
      */
     private SyntaxTree generateSyntaxTree(AuthConfig authConfig) throws IOException {
-        Set<String> commonTypesList = new LinkedHashSet<>(Arrays.asList(CONNECTION_CONFIG, CLIENT_HTTP1_SETTINGS,
-                PROXY_CONFIG, KEEP_ALIVE, CHUNKING, KEEPALIVE_AUTO, KEEPALIVE_ALWAYS, KEEPALIVE_NEVER, CHUNKING_AUTO,
-                CHUNKING_ALWAYS, CHUNKING_NEVER, CLIENT_HTTP2_SETTINGS, CACHE_CONFIG, CACHING_POLICY,
-                CACHE_CONTROL_AND_VALIDATORS, RFC_7234, COMPRESSION, COMPRESSION_AUTO, COMPRESSION_ALWAYS,
-                COMPRESSION_NEVER, CIRCUIT_BREAKER_CONFIG, ROLLING_WINDOW, RETRY_CONFIG, RESPONSE_LIMIT_CONFIGS,
-                CLIENT_SECURE_SOCKET, TRUST_STORE, KEY_STORE, CERT_KEY, CERT_VALIDATION_TYPE, PROTOCOL,
-                POOL_CONFIGURATION, HTTP_VERSION));
-
-        Set<String> clientConfigTypesList = new LinkedHashSet<>();
-        if (authConfig.getAuthConfigTypes().contains(AuthConfigType.BEARER)) {
-            clientConfigTypesList.add(BEARER_TOKEN_CONFIG);
-        }
-        if (authConfig.getAuthConfigTypes().contains(AuthConfigType.BASIC)) {
-            clientConfigTypesList.add(CREDENTIALS_CONFIG);
-        }
 
         List<ModuleMemberDeclarationNode> memberDeclarationNodes = new ArrayList<>();
         Path path = getResourceFilePath();
@@ -181,25 +151,19 @@ public class ConfigTypesGenerator {
         SyntaxTree syntaxTree = currentPackage.getDefaultModule().document(docId).syntaxTree();
 
         ModulePartNode modulePartNode = syntaxTree.rootNode();
+        NodeList<ImportDeclarationNode> imports = modulePartNode.imports();
         NodeList<ModuleMemberDeclarationNode> members = modulePartNode.members();
 
         MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
 
         for (ModuleMemberDeclarationNode node : members) {
-            if (node.kind().equals(SyntaxKind.TYPE_DEFINITION)) {
-                if (commonTypesList.contains(((TypeDefinitionNode) node).typeName().text()) ||
-                        clientConfigTypesList.contains(((TypeDefinitionNode) node).typeName().text())) {
-                    if (authConfig.isClientConfig() && ((TypeDefinitionNode) node).typeName().text()
-                            .equals(CONNECTION_CONFIG)) {
-                        node = constructConnectionConfig(node, authConfig);
-                    }
-                    memberDeclarationNodes.add(node);
+            if (authConfig.isClientConfig()) {
+                if (node.kind().equals(SyntaxKind.TYPE_DEFINITION) && ((TypeDefinitionNode) node).typeName().text()
+                        .equals(CONNECTION_CONFIG)) {
+                    node = constructConnectionConfig(node, authConfig);
                 }
-            } else if (node.kind().equals(CONST_DECLARATION) && commonTypesList.contains(((ConstantDeclarationNode)
-                    node).variableName().text())) {
                 memberDeclarationNodes.add(node);
-            } else if (node.kind().equals(ENUM_DECLARATION) && commonTypesList.contains(((EnumDeclarationNode)
-                    node).identifier().text())) {
+            } else {
                 memberDeclarationNodes.add(node);
             }
         }
@@ -217,8 +181,8 @@ public class ConfigTypesGenerator {
             memberDeclarationNodes.add(typeDefinitionNode);
         }
 
-        ModulePartNode moduleNode = createModulePartNode(createEmptyNodeList(),
-                createNodeList(memberDeclarationNodes), createToken(EOF_TOKEN));
+        ModulePartNode moduleNode = createModulePartNode(imports, createNodeList(memberDeclarationNodes),
+                createToken(EOF_TOKEN));
         TextDocument textDocument = TextDocuments.from(EMPTY_STRING);
         SyntaxTree configTypeSyntaxTree = SyntaxTree.from(textDocument);
         return configTypeSyntaxTree.modifyWith(moduleNode);
@@ -299,7 +263,7 @@ public class ConfigTypesGenerator {
     private List<Node> generateApiKeysConfigRecordFields(AuthConfig authConfig) {
         List<Node> ballerinaApiKeysConfigRecords = new ArrayList<>();
         for (String headerName : authConfig.getApiHeaders()) {
-            MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
+            MetadataNode metadataNode = createMetadataNode(null, generateSensitiveFieldsAnnotation());
             TypeDescriptorNode typeName = createSimpleNameReferenceNode(createToken(STRING_KEYWORD));
             IdentifierToken apiKeyFieldName =
                     createIdentifierToken(CodeGeneratorUtils.getValidName(headerName));
@@ -308,5 +272,34 @@ public class ConfigTypesGenerator {
                             apiKeyFieldName, null, createToken(SEMICOLON_TOKEN)));
         }
         return ballerinaApiKeysConfigRecords;
+    }
+
+    /**
+     * Generates annotations for sensitive fields.
+     *
+     * @return list of annotations
+     */
+    private NodeList<AnnotationNode> generateSensitiveFieldsAnnotation() {
+        List<Node> annotFields = new ArrayList<>();
+        Map<String, String> extFields = new LinkedHashMap<>();
+        extFields.put(DISPLAY_ANNOTATION_LABEL_NAME, EMPTY_STRING);
+        extFields.put(DISPLAY_ANNOTATION_KIND_FIELD, DISPLAY_ANNOTATION_KIND_PASSWORD);
+        for (Map.Entry<String, String> field : extFields.entrySet()) {
+            BasicLiteralNode valueExpr = createBasicLiteralNode(STRING_LITERAL,
+                    createLiteralValueToken(SyntaxKind.STRING_LITERAL_TOKEN, '"' + field.getValue().trim() + '"',
+                            createEmptyMinutiaeList(), createEmptyMinutiaeList()));
+            SpecificFieldNode fields = createSpecificFieldNode(null,
+                    createIdentifierToken(field.getKey().trim()), createToken(COLON_TOKEN), valueExpr);
+            annotFields.add(fields);
+            annotFields.add(createToken(COMMA_TOKEN));
+        }
+        MappingConstructorExpressionNode annotValue = createMappingConstructorExpressionNode(
+                createToken(OPEN_BRACE_TOKEN), createSeparatedNodeList(annotFields),
+                createToken(CLOSE_BRACE_TOKEN));
+
+        SimpleNameReferenceNode annotateReference =
+                createSimpleNameReferenceNode(createIdentifierToken(DISPLAY_ANNOTATION_NAME));
+        AnnotationNode annotationNode = createAnnotationNode(createToken(AT_TOKEN), annotateReference, annotValue);
+        return createNodeList(annotationNode);
     }
 }

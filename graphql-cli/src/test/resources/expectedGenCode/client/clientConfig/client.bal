@@ -1,27 +1,39 @@
-import ballerina/http;
 import ballerina/graphql;
 
 public isolated client class GraphqlClient {
     final graphql:Client graphqlClient;
     public isolated function init(ConnectionConfig config, string serviceUrl) returns graphql:ClientError? {
-        http:ClientConfiguration httpClientConfig = {
+        graphql:ClientConfiguration graphqlClientConfig = {
             auth: config.auth,
-            httpVersion: config.httpVersion,
-            http1Settings: {...config.http1Settings},
-            http2Settings: config.http2Settings,
             timeout: config.timeout,
             forwarded: config.forwarded,
             poolConfig: config.poolConfig,
-            cache: config.cache,
             compression: config.compression,
             circuitBreaker: config.circuitBreaker,
             retryConfig: config.retryConfig,
-            responseLimits: config.responseLimits,
-            secureSocket: config.secureSocket,
-            proxy: config.proxy,
             validation: config.validation
         };
-        graphql:Client clientEp = check new (serviceUrl, httpClientConfig);
+        do {
+            if config.http1Settings is ClientHttp1Settings {
+                ClientHttp1Settings settings = check config.http1Settings.ensureType(ClientHttp1Settings);
+                graphqlClientConfig.http1Settings = {...settings};
+            }
+            if config.cache is graphql:CacheConfig {
+                graphqlClientConfig.cache = check config.cache.ensureType(graphql:CacheConfig);
+            }
+            if config.responseLimits is graphql:ResponseLimitConfigs {
+                graphqlClientConfig.responseLimits = check config.responseLimits.ensureType(graphql:ResponseLimitConfigs);
+            }
+            if config.secureSocket is graphql:ClientSecureSocket {
+                graphqlClientConfig.secureSocket = check config.secureSocket.ensureType(graphql:ClientSecureSocket);
+            }
+            if config.proxy is graphql:ProxyConfig {
+                graphqlClientConfig.proxy = check config.proxy.ensureType(graphql:ProxyConfig);
+            }
+        } on fail var e {
+            return <graphql:ClientError> error("GraphQL Client Error", e, body = ());
+        }
+        graphql:Client clientEp = check new (serviceUrl, graphqlClientConfig);
         self.graphqlClient = clientEp;
     }
     remote isolated function country(string code) returns CountryResponse|graphql:ClientError {
