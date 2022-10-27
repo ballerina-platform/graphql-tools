@@ -55,7 +55,7 @@ For example,
 bal graphql -i graphql.config.yaml
 ```
 
-This will generate a Ballerina client stub (client.bal), an util file (utils.bal) for the relevant utils methods related to the client stub, a schema file (types.bal) for the configured GraphQL schema, and a config file (config_types.bal) for all the Ballerina data types related to connector configuration. The above command can be run from anywhere on the execution path. It is not mandatory to run it from within a Ballerina project.
+This will generate a Ballerina client stub (client.bal), a util file (utils.bal) for the relevant utils methods related to the client stub, a schema file (types.bal) for the configured GraphQL schema, and a config file (config_types.bal) for all the Ballerina data types related to connector configuration. The above command can be run from anywhere on the execution path. It is not mandatory to run it from within a Ballerina project.
 
 > **_NOTE:_** If the GraphQL API contains an authentication mechanism, make sure to add the extensions section in the GraphQL config file with the relevant tokens and headers. In this scenario it’s mandatory to configure the schema section with the web URL of the GraphQL schema.
 ```
@@ -84,7 +84,7 @@ documents:
 
 The client generated from the GraphQL config file can be used in your applications to call the queries/mutations in each GraphQL document against the GraphQL API corresponding to the GraphQL schema defined in the GraphQL config file.
 
-If you want to generate a single Ballerina clients for a given set of GraphQL documents you can use the following command.
+If you want to generate a single Ballerina client for a given set of GraphQL documents you can use the following command.
 
 ```
 bal graphql [-i | --input] <graphql-configuration-file-path> [-o | --output] <output-location> 
@@ -97,7 +97,7 @@ For example,
 bal graphql -i graphql.config.yaml
 ```
 
-This will generate a Ballerina client stub (client.bal) with all the remote operations, an util file (utils.bal) for the relevant utils methods related to the client stub, a schema file (types.bal) for the configured GraphQL schema, and a config file (config_types.bal) for all the Ballerina data types related to connector configuration. The above command can be run from anywhere on the execution path. It is not mandatory to run it from within a Ballerina project.
+This will generate a Ballerina client stub (client.bal) with all the remote operations, a util file (utils.bal) for the relevant utils methods related to the client stub, a schema file (types.bal) for the configured GraphQL schema, and a config file (config_types.bal) for all the Ballerina data types related to connector configuration. The above command can be run from anywhere on the execution path. It is not mandatory to run it from within a Ballerina project.
 
 ### Generate multiple Ballerina modules from a GraphQL config file configured with multiple GraphQL projects
 
