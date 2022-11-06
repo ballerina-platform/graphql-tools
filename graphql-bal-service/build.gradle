@@ -26,22 +26,11 @@ configurations {
 }
 
 dependencies {
-    implementation project(':graphql-bal-service')
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
-    implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
-    implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
-    implementation "info.picocli:picocli:${picocliVersion}"
-    testImplementation "org.testng:testng:${testngVersion}"
-    implementation "commons-io:commons-io:${commonsIoVersion}"
-    implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
-    implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
-    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
-    implementation "org.json:json:${orgJsonVersion}" // NEW
-    dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
-    dist "com.google.guava:guava:${googleGuavaVersion}" // NEW
-    dist "org.json:json:${orgJsonVersion}" // NEW
+    implementation "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
+    implementation 'commons-io:commons-io:2.11.0'
 
     balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
@@ -62,7 +51,6 @@ task jBallerinaPack {
 }
 
 task unpackStdLibs() {
-    dependsOn(jBallerinaPack)
     doLast {
         configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
@@ -74,7 +62,6 @@ task unpackStdLibs() {
 }
 
 task copyStdlibs(type: Copy) {
-    dependsOn(unpackStdLibs)
     def ballerinaDist = "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}"
     into ballerinaDist
 
@@ -90,22 +77,29 @@ task copyStdlibs(type: Copy) {
     }
 }
 
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    dependsOn configurations.dist
-    from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
-        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+shadowJar {
+    configurations = [project.configurations.runtimeClasspath]
+    dependencies {
+        include(dependency("commons-logging:commons-logging:${commonsLoggingVersion}"))
+        include(dependency("com.graphql-java:graphql-java:${graphqlJavaVersion}"))
+        exclude('META-INF/*.SF')
+        exclude('META-INF/*.DSA')
+        exclude('META-INF/*.RSA')
     }
 }
 
-build.dependsOn(shadowJar)
+task copyJar(type: Copy) {
+    from "$project.buildDir/libs/graphql-bal-service-${version}.jar"
+    from "$project.rootDir/graphql-cli/build/libs/graphql-cli-${version}.jar"
+    into"$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
+}
 
 test {
-    dependsOn {
-        copyStdlibs
-    }
-    systemProperty "ballerina.home", bDistribution
-
+    systemProperties = [ "target.dir": "$project.buildDir",
+                         "distributions.dir": bDistribution,
+                         "ballerina.home": bDistribution,
+                         "ballerina.version": "jballerina-tools-${ballerinaLangVersion}"
+    ]
     useTestNG() {
         suites "src/test/resources/testng.xml"
     }
@@ -123,3 +117,21 @@ jacocoTestReport {
         xml.required = true
     }
 }
+
+compileJava {
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+        ]
+        classpath = files()
+    }
+}
+unpackStdLibs.dependsOn jBallerinaPack
+copyStdlibs.dependsOn unpackStdLibs
+shadowJar.dependsOn copyStdlibs
+copyJar.dependsOn shadowJar
+copyJar.dependsOn jar
+test.dependsOn copyJar
+jacocoTestReport.dependsOn test
+
+build.dependsOn(jacocoTestReport)

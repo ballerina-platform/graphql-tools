@@ -37,6 +37,11 @@ ext.puppycrawlCheckstyleVersion = "8.18"
 
 def packageName = "graphql"
 
+dependencies {
+    implementation project(':graphql-bal-service')
+    implementation project(':graphql-cli')
+}
+
 allprojects {
     group = project.group
     version = project.version
@@ -98,6 +103,28 @@ subprojects {
     configurations {
         ballerinaStdLibs
     }
+    dependencies {
+        /* Standard libraries */
+        ballerinaStdLibs "io.ballerina.stdlib:constraint-ballerina:${stdlibConstraintVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:io-ballerina:${stdlibIoVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:regex-ballerina:${stdlibRegexVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:time-ballerina:${stdlibTimeVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:url-ballerina:${stdlibUrlVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:crypto-ballerina:${stdlibCryptoVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:log-ballerina:${stdlibLogVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:os-ballerina:${stdlibOsVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:task-ballerina:${stdlibTaskVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:cache-ballerina:${stdlibCacheVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:file-ballerina:${stdlibFileVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:mime-ballerina:${stdlibMimeVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:uuid-ballerina:${stdlibUuidVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:auth-ballerina:${stdlibAuthVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:jwt-ballerina:${stdlibJwtVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:oauth2-ballerina:${stdlibOAuth2Version}"
+        ballerinaStdLibs "io.ballerina.stdlib:http-ballerina:${stdlibHttpVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:websocket-ballerina:${stdlibWebsocketVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:graphql-ballerina:${stdlibGraphqlVersion}"
+    }
 }
 
 def moduleVersion = project.version.replace("-SNAPSHOT", "")
@@ -143,6 +170,8 @@ task codeCoverageReport(type: JacocoReport) {
 def artifactCacheParent = file("$project.projectDir/build/cache_parent/")
 def artifactLibParent = file("$project.projectDir/build/lib_parent/")
 def targetGraphqlCliJar = file("$project.rootDir/graphql-cli/build/libs/graphql-cli-${project.version}.jar")
+def targetGraphqlBalServiceJar = file("$project.rootDir/graphql-bal-service/build/libs/" +
+        "graphql-bal-service-${project.version}.jar")
 
 jar {
     manifest {
@@ -156,6 +185,10 @@ task directoryBuild {
     doLast {
         copy {
             from targetGraphqlCliJar
+            into file("$artifactLibParent/libs")
+        }
+        copy {
+            from targetGraphqlBalServiceJar
             into file("$artifactLibParent/libs")
         }
     }
@@ -188,6 +221,7 @@ publishing {
     }
 }
 
+directoryBuild.dependsOn ":${packageName}-bal-service:build"
 directoryBuild.dependsOn ":${packageName}-cli:build"
 build.dependsOn directoryBuild
 

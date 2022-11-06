@@ -27,6 +27,9 @@ import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.CodeGenerator;
+import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
+import io.ballerina.graphql.schema.exception.SchemaGenerationException;
+import io.ballerina.graphql.schema.generator.SdlSchemaGenerator;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
 import io.ballerina.graphql.validator.SDLValidator;
@@ -55,6 +58,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUM
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+import static io.ballerina.graphql.schema.Constants.MSG_MISSING_BAL_FILE;
 
 /**
  * Main class to implement "graphql" command for Ballerina.
@@ -127,11 +131,9 @@ public class GraphqlCmd implements BLauncherCmd {
         try {
             validateInputFlags();
             executeOperation();
-        } catch (CmdException | ParseException | ValidationException | GenerationException | IOException e) {
+        } catch (CmdException | ParseException | ValidationException | GenerationException | IOException |
+                 SchemaGenerationException e) {
             outStream.println(e.getMessage());
-            exitError(this.exitWhenFinish);
-        } catch (Exception e) {
-            outStream.println(e);
             exitError(this.exitWhenFinish);
         }
 
@@ -177,12 +179,13 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws ValidationException        when validation related error occurs
      */
     private void executeOperation()
-            throws CmdException, ParseException, IOException, ValidationException, GenerationException {
+            throws CmdException, ParseException, IOException, ValidationException, GenerationException,
+            SchemaGenerationException {
         String filePath = argList.get(0);
         if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
             generateClient(filePath);
         } else if (filePath.endsWith(BAL_EXTENSION)) {
-            generateSchema();
+            generateSchema(filePath);
         } else {
             throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
         }
@@ -210,8 +213,19 @@ public class GraphqlCmd implements BLauncherCmd {
         }
     }
 
-    private void generateSchema() {
-        return;
+    private void generateSchema(String fileName) throws SchemaGenerationException {
+        final File balFile = new File(fileName);
+        if (!balFile.exists()) {
+            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MSG_MISSING_BAL_FILE);
+        }
+        Path balFilePath = null;
+        try {
+            balFilePath = Paths.get(balFile.getCanonicalPath());
+        } catch (IOException e) {
+            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
+        }
+        //getTargetOutputPath(); - file path validation can be done with existing methods
+        SdlSchemaGenerator.generate(balFilePath, getTargetOutputPath(), serviceName);
     }
 
     /**

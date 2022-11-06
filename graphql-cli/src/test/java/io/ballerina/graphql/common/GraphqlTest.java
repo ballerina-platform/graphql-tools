@@ -94,4 +94,11 @@ public class GraphqlTest {
         lines.close();
         return output.trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
     }
+
+    protected String readContentWithFormat(Path filePath) throws IOException {
+        Stream<String> schemaLines = Files.lines(filePath);
+        String schemaContent = schemaLines.collect(Collectors.joining(System.getProperty("line.separator")));
+        schemaLines.close();
+        return schemaContent;
+    }
 }
