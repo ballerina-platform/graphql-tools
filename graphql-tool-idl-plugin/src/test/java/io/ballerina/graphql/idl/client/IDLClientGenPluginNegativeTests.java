@@ -64,6 +64,12 @@ public class IDLClientGenPluginNegativeTests extends GraphqlIDLTest {
         Assert.assertNull(matchingFiles);
     }
 
+    @Test(description = "function level client declaration")
+    public void testFunctionLevelClientDeclaration() throws IOException, InterruptedException {
+        File[] matchingFiles = getMatchingFiles("project_09");
+        Assert.assertNull(matchingFiles);
+    }
+
     @AfterTest
     @Override
     public void removeGeneratedFile() throws IOException {
