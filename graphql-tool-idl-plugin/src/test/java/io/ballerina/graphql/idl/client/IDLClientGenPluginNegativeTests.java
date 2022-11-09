@@ -25,7 +25,10 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 
+import static io.ballerina.graphql.idl.client.TestUtils.DISTRIBUTION_FILE_NAME;
+import static io.ballerina.graphql.idl.client.TestUtils.executeRun;
 import static io.ballerina.graphql.idl.client.TestUtils.getMatchingFiles;
+import static io.ballerina.graphql.idl.client.TestUtils.logOutput;
 
 /**
  * Client IDL import integration tests.
@@ -68,6 +71,10 @@ public class IDLClientGenPluginNegativeTests extends GraphqlIDLTest {
     public void testFunctionLevelClientDeclaration() throws IOException, InterruptedException {
         File[] matchingFiles = getMatchingFiles("project_09");
         Assert.assertNull(matchingFiles);
+        Process process = executeRun(DISTRIBUTION_FILE_NAME, RESOURCE.resolve("project_09"));
+        String logOutput = logOutput(process.getErrorStream());
+        String errorMsg = "ERROR [main.bal:(2:5,2:11)] 'client' qualifier not allowed";
+        Assert.assertTrue(logOutput.contains(errorMsg));
     }
 
     @AfterTest

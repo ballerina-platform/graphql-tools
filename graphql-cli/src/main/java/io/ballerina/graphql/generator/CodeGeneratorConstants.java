@@ -52,7 +52,6 @@ public class CodeGeneratorConstants {
     public static final String GRAPHQL = "graphql";
     public static final String CLIENT_CLASS_PREFIX = "Graphql";
     public static final String IDL_PLUGIN_CLIENT = "'client";
-    public static final String IDL_MODULE_NAME = "graphql_client";
     public static final String CLIENT = "Client";
     public static final String GRAPHQL_CLIENT = "graphqlClient";
     public static final String INIT = "init";
