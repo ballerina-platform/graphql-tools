@@ -26,7 +26,7 @@ import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.Location;
 
 /**
- *
+ * Exception type definition for GraphQL SDL schema generation related errors.
  */
 public class SchemaGenerationException extends Exception {
     private final Diagnostic diagnostic;

@@ -53,4 +53,3 @@ public enum DiagnosticMessages {
         return severity;
     }
 }
-

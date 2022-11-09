@@ -16,8 +16,18 @@
 
 import ballerina/graphql;
 
-service /hello on new graphql:Listener(9000) {
-    resource function put name() returns string {
-        return "Ballerina GraphQL";
+service /'service on new graphql:Listener(9000) {
+    resource function get name() returns string {
+        return "Ballerina";
+    }
+
+    resource function get age() returns int {
+       return 27;
+    }
+}
+
+service class School {
+    resource function get name(string name) returns string {
+        return name;
     }
 }

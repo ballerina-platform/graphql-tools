@@ -25,7 +25,7 @@ public class Constants {
 
     // GraphQL command line tool messages
     public static final String MESSAGE_FOR_MISSING_INPUT_ARGUMENT = "The input file path argument is missing. " +
-            "Please provide the path of the GraphQL config file or ballerina service file " +
+            "Please provide the path of the GraphQL config file or Ballerina service file " +
             "with -i or --input flag. \ne.g: bal graphql --input <GraphQL configuration file>";
     public static final String MESSAGE_FOR_INVALID_FILE_EXTENSION = "A GraphQL configuration file " +
             "with .yaml/.yml extension or a Ballerina service file with .bal is required to generate the artifacts. " +

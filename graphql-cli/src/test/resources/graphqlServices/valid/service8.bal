@@ -16,8 +16,16 @@
 
 import ballerina/graphql;
 
-service /hello on new graphql:Listener(9000) {
-    resource function put name() returns string {
-        return "Ballerina GraphQL";
+service /gql on new graphql:Listener(4000) {
+    resource function get height(decimal height) returns decimal {
+        return 4.5;
+    }
+
+    remote function singleFileUpload(graphql:Upload file) returns string|error {
+        return "Single File";
+    }
+
+    remote function multipleFileUpload(graphql:Upload[] files) returns string {
+        return "Multiple File";
     }
 }

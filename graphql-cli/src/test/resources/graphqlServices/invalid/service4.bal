@@ -16,8 +16,8 @@
 
 import ballerina/graphql;
 
-service /hello on new graphql:Listener(9000) {
-    resource function put name() returns string {
-        return "Ballerina GraphQL";
+service on new graphql:Listener(9000) {
+    isolated resource function get greet() returns string {
+        return "Hello";
     }
 }

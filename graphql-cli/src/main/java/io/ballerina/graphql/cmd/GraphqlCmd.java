@@ -58,6 +58,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUM
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+import static io.ballerina.graphql.schema.Constants.MSG_CANNOT_READ_BAL_FILE;
 import static io.ballerina.graphql.schema.Constants.MSG_MISSING_BAL_FILE;
 
 /**
@@ -88,7 +89,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private String outputPath;
 
     @CommandLine.Option(names = {"-s", "--service"},
-            description = "Service name that the SDL schema is needed to be generated. " +
+            description = "Base path of the service that the SDL schema is needed to be generated. " +
                     "If this is not provided, generate the SDL schema for each GraphQL service in the source file.")
     private String serviceName;
 
@@ -218,13 +219,15 @@ public class GraphqlCmd implements BLauncherCmd {
         if (!balFile.exists()) {
             throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MSG_MISSING_BAL_FILE);
         }
+        if (!balFile.canRead()) {
+            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MSG_CANNOT_READ_BAL_FILE);
+        }
         Path balFilePath = null;
         try {
             balFilePath = Paths.get(balFile.getCanonicalPath());
         } catch (IOException e) {
             throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
         }
-        //getTargetOutputPath(); - file path validation can be done with existing methods
         SdlSchemaGenerator.generate(balFilePath, getTargetOutputPath(), serviceName);
     }
 

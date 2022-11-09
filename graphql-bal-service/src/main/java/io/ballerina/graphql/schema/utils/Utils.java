@@ -21,9 +21,6 @@ package io.ballerina.graphql.schema.utils;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
-import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
@@ -57,27 +54,31 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static io.ballerina.graphql.schema.Constants.EMPTY_STRING;
 import static io.ballerina.graphql.schema.Constants.GRAPHQL_EXTENSION;
-import static io.ballerina.graphql.schema.Constants.HYPHEN;
 import static io.ballerina.graphql.schema.Constants.MSG_CANNOT_READ_SCHEMA_STR;
 import static io.ballerina.graphql.schema.Constants.MSG_INVALID_SCHEMA_STR;
 import static io.ballerina.graphql.schema.Constants.MSG_MISSING_ANNOT;
 import static io.ballerina.graphql.schema.Constants.MSG_MISSING_FIELD_SCHEMA_STR;
 import static io.ballerina.graphql.schema.Constants.MSG_MISSING_SERVICE_CONFIG;
+import static io.ballerina.graphql.schema.Constants.PERIOD;
 import static io.ballerina.graphql.schema.Constants.SCHEMA_PREFIX;
 import static io.ballerina.graphql.schema.Constants.SCHEMA_STRING_FIELD;
 import static io.ballerina.graphql.schema.Constants.SERVICE_CONFIG_IDENTIFIER;
 import static io.ballerina.graphql.schema.Constants.SLASH;
 import static io.ballerina.graphql.schema.Constants.UNDERSCORE;
 import static io.ballerina.stdlib.graphql.commons.utils.Utils.PACKAGE_NAME;
-import static io.ballerina.stdlib.graphql.commons.utils.Utils.isGraphqlModuleSymbol;
+import static io.ballerina.stdlib.graphql.commons.utils.Utils.hasGraphqlListener;
 import static io.ballerina.stdlib.graphql.commons.utils.Utils.removeEscapeCharacter;
 
 /**
- * Utility class for Ballerina GraphQL schema types.
+ * Utility class for Ballerina GraphQL SDL schema generation.
  */
 public class Utils {
 
+    /**
+     * Check whether the given service declaration node is related to a GraphQL service.
+     */
     public static boolean isGraphqlService(ServiceDeclarationNode node, SemanticModel semanticModel) {
         if (semanticModel.symbol(node).isEmpty()) {
             return false;
@@ -89,38 +90,21 @@ public class Utils {
         return hasGraphqlListener(symbol);
     }
 
-    private static boolean hasGraphqlListener(ServiceDeclarationSymbol symbol) {
-        for (TypeSymbol listener : symbol.listenerTypes()) {
-            if (isGraphqlListener(listener)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isGraphqlListener(TypeSymbol typeSymbol) {
-        if (typeSymbol.typeKind() == TypeDescKind.UNION) {
-            UnionTypeSymbol unionTypeSymbol = (UnionTypeSymbol) typeSymbol;
-            for (TypeSymbol member : unionTypeSymbol.memberTypeDescriptors()) {
-                if (isGraphqlModuleSymbol(member)) {
-                    return true;
-                }
-            }
-        } else {
-            return isGraphqlModuleSymbol(typeSymbol);
-        }
-        return false;
-    }
-
+    /**
+     * Get service base path from the given service declaration node.
+     */
     public static String getServiceBasePath(ServiceDeclarationNode serviceDefinition) {
         StringBuilder currentServiceName = new StringBuilder();
         NodeList<Node> serviceNameNodes = serviceDefinition.absoluteResourcePath();
         for (Node serviceBasedPathNode : serviceNameNodes) {
             currentServiceName.append(removeEscapeCharacter(serviceBasedPathNode.toString()));
         }
-        return currentServiceName.toString().trim();
+        return formatBasePath(currentServiceName.toString().trim());
     }
 
+    /**
+     * Get encoded schema string from the given node.
+     */
     public static String getSchemaString(ServiceDeclarationNode node) throws SchemaGenerationException {
         if (node.metadata().isPresent()) {
             if (!node.metadata().get().annotations().isEmpty()) {
@@ -131,6 +115,9 @@ public class Utils {
         throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_MISSING_ANNOT);
     }
 
+    /**
+     * Get encoded schema string from the given node.
+     */
     public static String getSchemaString(ObjectConstructorExpressionNode node) throws SchemaGenerationException {
         if (!node.annotations().isEmpty()) {
             for (AnnotationNode annotationNode: node.annotations()) {
@@ -142,6 +129,9 @@ public class Utils {
         throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_MISSING_ANNOT);
     }
 
+    /**
+     * Get annotation value string from the given metadata node.
+     */
     private static MappingConstructorExpressionNode getAnnotationValue(MetadataNode metadataNode)
             throws SchemaGenerationException {
         for (AnnotationNode annotationNode: metadataNode.annotations()) {
@@ -152,6 +142,9 @@ public class Utils {
         throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_MISSING_SERVICE_CONFIG);
     }
 
+    /**
+     * Get schema string field from the given node.
+     */
     private static String getSchemaStringFieldFromValue(MappingConstructorExpressionNode annotationValue)
             throws SchemaGenerationException {
         SeparatedNodeList<MappingFieldNode> existingFields = annotationValue.fields();
@@ -164,6 +157,11 @@ public class Utils {
         throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_MISSING_FIELD_SCHEMA_STR);
     }
 
+    /**
+     * Check whether the given annotation is a GraphQL service config.
+     *
+     * @param annotationNode     annotation node
+     */
     private static boolean isGraphqlServiceConfig(AnnotationNode annotationNode) {
         QualifiedNameReferenceNode referenceNode = ((QualifiedNameReferenceNode) annotationNode.annotReference());
         if (!PACKAGE_NAME.equals(referenceNode.modulePrefix().text())) {
@@ -177,24 +175,14 @@ public class Utils {
      */
     public static String getSdlFileName(String servicePath, String serviceName) {
         String sdlFileName;
-        //Can be use method used in http path validation
-        if (serviceName.isBlank() || serviceName.equals(SLASH) || serviceName.startsWith(SLASH + HYPHEN)) {
-            String[] fileName = serviceName.split(SLASH);
-            // This condition is to handle `service on ep1 {} ` multiple scenarios
-            if (fileName.length > 0 && !serviceName.isBlank()) {
-                sdlFileName = FilenameUtils.removeExtension(servicePath) + fileName[1];
-            } else {
-                sdlFileName = FilenameUtils.removeExtension(servicePath);
-            }
-        } else if (serviceName.startsWith(HYPHEN)) {
-            // serviceName -> service on ep1 {} has multiple service ex: "-33456"
+        if (serviceName.isBlank()) {
+            sdlFileName = FilenameUtils.removeExtension(servicePath);
+        } else if (serviceName.startsWith(PERIOD)) {
             sdlFileName = FilenameUtils.removeExtension(servicePath) + serviceName;
         } else {
-            // Remove starting path separate if exists
             if (serviceName.startsWith(SLASH)) {
                 serviceName = serviceName.substring(1);
             }
-            // Replace rest of the path separators with underscore
             sdlFileName = serviceName.replaceAll(SLASH, "_");
         }
         sdlFileName =  getNormalizedFileName(sdlFileName);
@@ -215,6 +203,25 @@ public class Utils {
         return sdlFileName;
     }
 
+    /**
+     * This method use for format the base path.
+     *
+     * @param basePath     service base path
+     * @return formatted base path
+     */
+    public static String formatBasePath(String basePath) {
+        if (basePath.equals(SLASH)) {
+            return EMPTY_STRING;
+        }
+        return basePath;
+    }
+
+    /**
+     * This method use for decode the encoded schema string.
+     *
+     * @param schemaString     encoded schema string
+     * @return GraphQL schema object
+     */
     public static Schema getDecodedSchema(String schemaString) throws SchemaGenerationException {
         if (schemaString == null || schemaString.isBlank() || schemaString.isEmpty()) {
             throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_INVALID_SCHEMA_STR);
@@ -233,7 +240,7 @@ public class Utils {
      * This method use for checking the duplicate files.
      *
      * @param outPath     output path for file generated
-     * @param schemaName given file name
+     * @param schemaName  given file name
      * @return file name with duplicate number tag
      */
     public static String resolveSchemaFileName(Path outPath, String schemaName) {
@@ -246,6 +253,13 @@ public class Utils {
         return schemaName;
     }
 
+    /**
+     * This method for check the availability of the given file name in the output directory.
+     *
+     * @param schemaName     schema file name
+     * @param listFiles      generated files
+     *@return file name with duplicate number tag
+     */
     private static String checkAvailabilityOfGivenName(String schemaName, File[] listFiles) {
         for (File file : listFiles) {
             if (System.console() != null && file.getName().equals(schemaName)) {
@@ -275,14 +289,20 @@ public class Utils {
                 duplicateCount++;
             }
         }
-        return fileName.split("\\.")[0] + "_" + duplicateCount + GRAPHQL_EXTENSION;
+        return fileName.split("\\.")[0] + PERIOD + duplicateCount + fileName.split("\\.")[1];
     }
 
+    /**
+     * This method use for write the generated SDL schema string.
+     *
+     * @param filePath     output file path
+     * @param content      SDL schema string
+     */
     public static void writeFile(Path filePath, String content) throws SchemaGenerationException {
         try (FileWriter writer = new FileWriter(filePath.toString(), StandardCharsets.UTF_8)) {
             writer.write(content);
         } catch (IOException e) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
+            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage());
         }
     }
 

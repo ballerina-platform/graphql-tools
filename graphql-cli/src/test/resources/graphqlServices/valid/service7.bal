@@ -14,10 +14,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/http;
 import ballerina/graphql;
 
-service /hello on new graphql:Listener(9000) {
-    resource function put name() returns string {
-        return "Ballerina GraphQL";
+service /greeting on new http:Listener(9090) {
+    resource function get greeting() returns string {
+        return "Hello, World!";
     }
+}
+
+service graphql:Service /query on new graphql:Listener(8080) {
+   resource function get name() returns string {
+       return "Jack";
+   }
 }
