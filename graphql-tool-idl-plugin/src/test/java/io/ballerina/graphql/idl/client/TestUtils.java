@@ -47,13 +47,22 @@ public class TestUtils {
     public static final String DISTRIBUTION_FILE_NAME = System.getProperty("ballerina.version");
     private static String balFile = "bal";
 
-    public static File[] getMatchingFiles(String project) throws IOException, InterruptedException {
+    public static boolean checkModuleAvailability(String project) throws IOException, InterruptedException {
         Process process = executeRun(DISTRIBUTION_FILE_NAME, RESOURCE.resolve(project));
         File dir = new File(new File(String.valueOf(RESOURCE.resolve(project).resolve("generated"))).toString());
-        final String id = "graphql_client";
+        return dir.exists();
+    }
+
+    public static File[] getMatchingFiles(String project, List<String> ids) {
+        File dir = new File(RESOURCE.resolve(project + "/generated/").toString());
         File[] matchingFiles = dir.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
-                return pathname.getName().contains(id);
+                for (String id : ids) {
+                    if (pathname.getName().contains(id)) {
+                        return true;
+                    }
+                }
+                return false;
             }
         });
         return matchingFiles;
