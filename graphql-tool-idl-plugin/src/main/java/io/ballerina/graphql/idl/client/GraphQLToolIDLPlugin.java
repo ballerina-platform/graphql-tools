@@ -56,7 +56,6 @@ import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.DOCUMENTS_PATTERN;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.IDL_MODULE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.SCHEMA_PATTERN;
 
 /**
@@ -94,7 +93,6 @@ public class GraphQLToolIDLPlugin extends IDLGeneratorPlugin {
 
         @Override
         public void perform(IDLSourceGeneratorContext idlSourceGeneratorContext) {
-            String moduleName = IDL_MODULE_NAME;
             try {
                 Config config = Utils.readConfig(idlSourceGeneratorContext.resourcePath().toString());
                 ConfigValidator.getInstance().validate(config);
@@ -103,6 +101,7 @@ public class GraphQLToolIDLPlugin extends IDLGeneratorPlugin {
                     throw new IDLMultipleProjectException(
                             Constants.DiagnosticMessages.ERROR_MULTIPLE_PROJECT_AVAILABILITY.getDescription());
                 }
+                String moduleName = idlSourceGeneratorContext.clientNode().clientPrefix().text();
                 SDLValidator.getInstance().validate(projects.get(0));
                 QueryValidator.getInstance().validate(projects.get(0));
                 List<SrcFilePojo> genSrcFiles = CodeGenerator.getInstance().generateBalSources(projects.get(0),
