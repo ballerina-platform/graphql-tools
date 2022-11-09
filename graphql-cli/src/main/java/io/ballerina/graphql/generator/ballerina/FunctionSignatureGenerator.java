@@ -62,6 +62,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CON
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_TYPE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONFIG_PARAM_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONNECTION_CONFIG_TYPE_NAME;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_EXPRESSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.INIT_RETURN_TYPE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.NULLABLE_EXPRESSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUESTION_MARK;
@@ -136,8 +137,10 @@ public class FunctionSignatureGenerator {
         BuiltinSimpleNameReferenceNode httpClientConfigTypeName = createBuiltinSimpleNameReferenceNode(null,
                 createIdentifierToken(CONNECTION_CONFIG_TYPE_NAME));
         IdentifierToken httpClientConfigParamName = createIdentifierToken(CONFIG_PARAM_NAME);
-        RequiredParameterNode defaultConnectionConfig = createRequiredParameterNode(annotationNodes,
-                httpClientConfigTypeName, httpClientConfigParamName);
+        IdentifierToken equalToken = createIdentifierToken(CodeGeneratorConstants.EQUAL);
+        BasicLiteralNode emptyExpression = createBasicLiteralNode(null, createIdentifierToken(EMPTY_EXPRESSION));
+        DefaultableParameterNode defaultConnectionConfig = createDefaultableParameterNode(annotationNodes,
+                httpClientConfigTypeName, httpClientConfigParamName, equalToken, emptyExpression);
 
         Node serviceURLNode = generateServiceURLNode();
 

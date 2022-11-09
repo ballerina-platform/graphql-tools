@@ -1,0 +1,23 @@
+type Query {
+  country(code: ID!): Country
+}
+
+type Mutation {
+    promote(orgHandler: String, componentId: String!, promoteSchema: Promote!): PromoteOutput
+}
+
+input Promote {
+  apiVersionId: String!
+  sourceReleaseId: String!
+  targetReleaseId: String
+  targetEnvironmentId: String
+  cronFrequency: String
+}
+
+type PromoteOutput {
+    promoteStatus: String!
+}
+
+type Country {
+  capital: String
+}

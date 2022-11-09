@@ -1,0 +1,3 @@
+schema: ../client-generation-resources/schemas/countries.graphql
+documents:
+  - ../client-generation-resources/queries/query-country.graphql

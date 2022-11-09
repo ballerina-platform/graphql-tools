@@ -31,6 +31,7 @@ import io.ballerina.compiler.syntax.tree.ObjectConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 import io.ballerina.stdlib.graphql.commons.types.Schema;
@@ -163,6 +164,9 @@ public class Utils {
      * @param annotationNode     annotation node
      */
     private static boolean isGraphqlServiceConfig(AnnotationNode annotationNode) {
+        if (annotationNode.annotReference().kind() != SyntaxKind.QUALIFIED_NAME_REFERENCE) {
+            return false;
+        }
         QualifiedNameReferenceNode referenceNode = ((QualifiedNameReferenceNode) annotationNode.annotReference());
         if (!PACKAGE_NAME.equals(referenceNode.modulePrefix().text())) {
             return false;
@@ -289,7 +293,7 @@ public class Utils {
                 duplicateCount++;
             }
         }
-        return fileName.split("\\.")[0] + PERIOD + duplicateCount + fileName.split("\\.")[1];
+        return fileName.split("\\.")[0] + PERIOD + duplicateCount + PERIOD + fileName.split("\\.")[1];
     }
 
     /**

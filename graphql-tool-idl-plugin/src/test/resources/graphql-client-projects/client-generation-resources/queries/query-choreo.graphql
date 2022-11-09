@@ -1,0 +1,5 @@
+mutation promoteComponent($orgHandler: String, $componentId: String!, $promoteSchema: Promote!){
+    promote(orgHandler: $orgHandler, componentId: $componentId, promoteSchema: $promoteSchema) {
+        promoteStatus
+    }
+}

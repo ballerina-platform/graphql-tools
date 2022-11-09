@@ -1,0 +1,17 @@
+ projects:
+    github:
+       schema: https://api.github.com/graphql
+       documents:
+          - ./queries/query-github.graphql
+       extensions:
+          endpoints:
+             default:
+                url: https://api.github.com/graphql
+                headers:
+                   { "Authorization": "Bearer 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" }
+    country:
+       schema: ./schemas/country.graphql
+       documents:
+          - ./queries/query-country.graphql
+          - ./queries/query-country-new.graphql
+

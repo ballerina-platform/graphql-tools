@@ -23,7 +23,7 @@ import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
-import io.ballerina.graphql.exception.ConfigTypesGernerationException;
+import io.ballerina.graphql.exception.ConfigTypesGenerationException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.model.AuthConfig;
@@ -66,7 +66,7 @@ public class ConfigTypesGeneratorTest extends GraphqlTest {
 
             Assert.assertEquals(expectedConfigTypesContent, generatedConfigTypesContent);
 
-        } catch (ConfigTypesGernerationException e) {
+        } catch (ConfigTypesGenerationException e) {
             Assert.fail("Error while generating the config types code. " + e.getMessage());
         }
     }
@@ -97,7 +97,7 @@ public class ConfigTypesGeneratorTest extends GraphqlTest {
 
             Assert.assertEquals(expectedConfigTypesContent, generatedConfigTypesContent);
 
-        } catch (ConfigTypesGernerationException e) {
+        } catch (ConfigTypesGenerationException e) {
             Assert.fail("Error while generating the config types code. " + e.getMessage());
         }
     }
@@ -128,7 +128,7 @@ public class ConfigTypesGeneratorTest extends GraphqlTest {
 
             Assert.assertEquals(expectedConfigTypesContent, generatedConfigTypesContent);
 
-        } catch (ConfigTypesGernerationException e) {
+        } catch (ConfigTypesGenerationException e) {
             Assert.fail("Error while generating the config types code. " + e.getMessage());
         }
     }
@@ -159,7 +159,7 @@ public class ConfigTypesGeneratorTest extends GraphqlTest {
 
             Assert.assertEquals(expectedConfigTypesContent, generatedConfigTypesContent);
 
-        } catch (ConfigTypesGernerationException e) {
+        } catch (ConfigTypesGenerationException e) {
             Assert.fail("Error while generating the config types code. " + e.getMessage());
         }
     }
@@ -192,7 +192,7 @@ public class ConfigTypesGeneratorTest extends GraphqlTest {
 
             Assert.assertEquals(expectedConfigTypesContent, generatedConfigTypesContent);
 
-        } catch (ConfigTypesGernerationException e) {
+        } catch (ConfigTypesGenerationException e) {
             Assert.fail("Error while generating the config types code. " + e.getMessage());
         }
     }

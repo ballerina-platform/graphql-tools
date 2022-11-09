@@ -22,5 +22,8 @@ module graphql.tools.graphql.bal.service.main {
     requires io.ballerina.tools.api;
     requires org.apache.commons.io;
     requires io.ballerina.stdlib.graphql.commons;
+    exports io.ballerina.graphql.schema.diagnostic;
+    exports io.ballerina.graphql.schema.exception;
+    exports io.ballerina.graphql.schema.generator;
     exports io.ballerina.graphql.schema;
 }

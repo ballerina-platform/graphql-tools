@@ -26,15 +26,15 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 /**
  * Exception type definition for Ballerina config types code generation related errors.
  */
-public class ConfigTypesGernerationException extends GenerationException {
+public class ConfigTypesGenerationException extends GenerationException {
     private String message;
 
-    public ConfigTypesGernerationException(String message, Throwable e) {
+    public ConfigTypesGenerationException(String message, Throwable e) {
         super(message, e);
         this.message = message;
     }
 
-    public ConfigTypesGernerationException(String message) {
+    public ConfigTypesGenerationException(String message) {
         super(message);
         this.message = message;
     }

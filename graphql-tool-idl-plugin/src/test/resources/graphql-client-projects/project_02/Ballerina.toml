@@ -1,0 +1,6 @@
+[package]
+name = "project_02"
+version = "0.1.0"
+
+[build-options]
+observabilityIncluded = true

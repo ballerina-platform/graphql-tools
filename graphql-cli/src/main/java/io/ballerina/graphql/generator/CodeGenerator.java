@@ -22,7 +22,7 @@ import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.cmd.GraphqlProject;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.exception.ClientGenerationException;
-import io.ballerina.graphql.exception.ConfigTypesGernerationException;
+import io.ballerina.graphql.exception.ConfigTypesGenerationException;
 import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.TypesGenerationException;
 import io.ballerina.graphql.exception.UtilsGenerationException;
@@ -66,7 +66,7 @@ public class CodeGenerator {
     public void generate(GraphqlProject project) throws GenerationException {
         String outputPath = project.getOutputPath();
         try {
-            List<SrcFilePojo> genSources = generateBalSources(project);
+            List<SrcFilePojo> genSources = generateBalSources(project, GeneratorContext.CLI);
             writeGeneratedSources(genSources, Path.of(outputPath));
         } catch (ClientGenerationException | UtilsGenerationException | TypesGenerationException | IOException e) {
             throw new GenerationException(e.getMessage(), project.getName());
@@ -83,8 +83,9 @@ public class CodeGenerator {
      * @throws TypesGenerationException             when a types code generation error occurs
      * @throws IOException                          If an I/O error occurs
      */
-    private List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ClientGenerationException,
-            UtilsGenerationException, TypesGenerationException, IOException, ConfigTypesGernerationException {
+    public List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratorContext generatorContext)
+            throws ClientGenerationException, UtilsGenerationException, TypesGenerationException, IOException,
+            ConfigTypesGenerationException {
         String projectName = project.getName();
         Extension extensions = project.getExtensions();
         List<String> documents = project.getDocuments();
@@ -95,7 +96,7 @@ public class CodeGenerator {
         AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
-        generateClients(projectName, documents, schema, authConfig, sourceFiles);
+        generateClients(projectName, documents, schema, authConfig, sourceFiles, generatorContext);
         generateUtils(projectName, authConfig, sourceFiles);
         generateTypes(projectName, documents, schema, sourceFiles);
         generateConfigTypes(projectName, authConfig, sourceFiles);
@@ -111,14 +112,15 @@ public class CodeGenerator {
      * @param schema                                the object instance of the GraphQL schema (SDL)
      * @param authConfig                            the object instance representing authentication config information
      * @param sourceFiles                           the list of generated Ballerina source file pojo
+     * @param generatorContext                      the context which triggered the source generation
      * @throws ClientGenerationException            when a client code generation error occurs
      * @throws IOException                          If an I/O error occurs
      */
-    private void generateClients(String projectName, List<String> documents, GraphQLSchema schema,
-                                 AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
+    public void generateClients(String projectName, List<String> documents, GraphQLSchema schema,
+                                AuthConfig authConfig, List<SrcFilePojo> sourceFiles, GeneratorContext generatorContext)
             throws ClientGenerationException, IOException {
         String clientSrc = ClientGenerator.getInstance().
-                generateSrc(documents, schema, authConfig);
+                generateSrc(documents, schema, authConfig, generatorContext);
         sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
                 CLIENT_FILE_NAME, clientSrc));
     }
@@ -132,10 +134,10 @@ public class CodeGenerator {
      * @param sourceFiles                           the list of generated Ballerina source file pojo
      * @throws TypesGenerationException             when a types code generation error occurs
      */
-    private void generateTypes(String projectName, List<String> documents, GraphQLSchema schema,
+    public void generateTypes(String projectName, List<String> documents, GraphQLSchema schema,
                                List<SrcFilePojo> sourceFiles) throws TypesGenerationException {
         String typesFileContent = TypesGenerator.getInstance().generateSrc(schema, documents);
-        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName,
                 TYPES_FILE_NAME, typesFileContent));
     }
 
@@ -147,10 +149,10 @@ public class CodeGenerator {
      * @param sourceFiles                           the list of generated Ballerina source file pojo
      * @throws UtilsGenerationException             when an utils code generation error occurs
      */
-    private void generateUtils(String projectName, AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
+    public void generateUtils(String projectName, AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
             throws UtilsGenerationException {
         String utilSrc = UtilsGenerator.getInstance().generateSrc(authConfig);
-        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.UTIL_SRC, projectName,
                 UTILS_FILE_NAME, utilSrc));
     }
 
@@ -160,12 +162,12 @@ public class CodeGenerator {
      * @param projectName                           the name of the GraphQL project
      * @param authConfig                            the object instance representing authentication config information
      * @param sourceFiles                           the list of generated Ballerina source file pojo
-     * @throws ConfigTypesGernerationException      when a config types code generation error occurs
+     * @throws ConfigTypesGenerationException       when a config types code generation error occurs
      */
     private void generateConfigTypes(String projectName, AuthConfig authConfig, List<SrcFilePojo> sourceFiles)
-            throws ConfigTypesGernerationException {
+            throws ConfigTypesGenerationException {
         String configTypesSrc = ConfigTypesGenerator.getInstance().generateSrc(authConfig);
-        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName,
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.CONFIG_SRC, projectName,
                 CONFIG_TYPES_FILE_NAME, configTypesSrc));
     }
 

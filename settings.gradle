@@ -5,6 +5,7 @@ plugins {
 rootProject.name = 'graphql-tools'
 include(':config:checkstyle')
 include(':graphql-cli')
+include(':graphql-tool-idl-plugin')
 include(':graphql-bal-service')
 
 gradleEnterprise {
