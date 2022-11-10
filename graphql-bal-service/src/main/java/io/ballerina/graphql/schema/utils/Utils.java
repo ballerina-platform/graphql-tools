@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import static io.ballerina.graphql.schema.Constants.EMPTY_STRING;
 import static io.ballerina.graphql.schema.Constants.GRAPHQL_EXTENSION;
 import static io.ballerina.graphql.schema.Constants.MSG_CANNOT_READ_SCHEMA_STR;
+import static io.ballerina.graphql.schema.Constants.MSG_INVALID_OUTPUT_DIR;
 import static io.ballerina.graphql.schema.Constants.MSG_INVALID_SCHEMA_STR;
 import static io.ballerina.graphql.schema.Constants.MSG_MISSING_ANNOT;
 import static io.ballerina.graphql.schema.Constants.MSG_MISSING_FIELD_SCHEMA_STR;
@@ -307,6 +308,18 @@ public class Utils {
             writer.write(content);
         } catch (IOException e) {
             throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage());
+        }
+    }
+
+    /**
+     * This method validate the given path.
+     *
+     * @param outputPath     output file path
+     */
+    public static void validateOutputPath(Path outputPath) throws SchemaGenerationException {
+        if (!outputPath.toFile().exists()) {
+            String err = String.join(" ", outputPath.toString(), MSG_INVALID_OUTPUT_DIR);
+            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, err);
         }
     }
 

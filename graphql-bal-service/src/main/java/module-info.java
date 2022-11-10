@@ -16,7 +16,7 @@
  * under the License.
  */
 
-module graphql.tools.graphql.bal.service.main {
+module io.ballerina.graphql.schema {
     requires io.ballerina.lang;
     requires io.ballerina.parser;
     requires io.ballerina.tools.api;

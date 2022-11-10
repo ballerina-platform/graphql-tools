@@ -38,5 +38,6 @@ public class Constants {
     public static final String MSG_INVALID_SCHEMA_STR = "Invalid schema string found";
     public static final String MSG_MISSING_BAL_FILE = "Provided Ballerina file path does not exist";
     public static final String MSG_CANNOT_READ_BAL_FILE = "Cannot read provided Ballerina file (Permission denied)";
+    public static final String MSG_INVALID_OUTPUT_DIR = "Provided output path does not exist";
 
 }

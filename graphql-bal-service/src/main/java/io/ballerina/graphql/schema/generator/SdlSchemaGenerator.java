@@ -60,6 +60,7 @@ import static io.ballerina.graphql.schema.utils.Utils.getSdlFileName;
 import static io.ballerina.graphql.schema.utils.Utils.getServiceBasePath;
 import static io.ballerina.graphql.schema.utils.Utils.isGraphqlService;
 import static io.ballerina.graphql.schema.utils.Utils.resolveSchemaFileName;
+import static io.ballerina.graphql.schema.utils.Utils.validateOutputPath;
 import static io.ballerina.graphql.schema.utils.Utils.writeFile;
 import static io.ballerina.stdlib.graphql.commons.utils.Utils.isGraphQLServiceObjectDeclaration;
 
@@ -93,7 +94,7 @@ public class SdlSchemaGenerator {
         }
         SyntaxTree syntaxTree = doc.syntaxTree();
         SemanticModel semanticModel = compilation.getSemanticModel(docId.moduleId());
-
+        validateOutputPath(outPath);
         List<SdlSchema> schemaDefinitions = generateSdlSchema(syntaxTree, semanticModel, serviceName);
         List<String> fileNames = new ArrayList<>();
         for (SdlSchema definition : schemaDefinitions) {

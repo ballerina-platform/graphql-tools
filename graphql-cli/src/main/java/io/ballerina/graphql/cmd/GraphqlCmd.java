@@ -214,6 +214,11 @@ public class GraphqlCmd implements BLauncherCmd {
         }
     }
 
+    /**
+     * Generate the SDL schema according to the given input file.
+     *
+     * @throws SchemaGenerationException      when a SDL schema generation related error occurs
+     */
     private void generateSchema(String fileName) throws SchemaGenerationException {
         final File balFile = new File(fileName);
         if (!balFile.exists()) {

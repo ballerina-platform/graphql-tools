@@ -1,3 +1,21 @@
+/*
+ *  Copyright (c) 2022, WSO2 LLC. (http://www.wso2.org). All Rights Reserved.
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
 package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.launcher.BLauncherException;
@@ -14,7 +32,7 @@ import java.nio.file.Paths;
 /**
  * This class is used to test the functionality of the GraphQL command.
  */
-public class SdlSchemaGenTest extends GraphqlTest {
+public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution")
     public void testSdlGeneration() {
@@ -166,8 +184,6 @@ public class SdlSchemaGenTest extends GraphqlTest {
         }
     }
 
-    // **************** Negative test cases ****************
-
     @Test(description = "Test GraphQL command execution with service includes compilation errors")
     public void testExecuteWithBalFileIncludeCompilationErrors() {
         Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service1.bal"));
@@ -247,6 +263,23 @@ public class SdlSchemaGenTest extends GraphqlTest {
             String expectedMessage = "SDL schema generation failed: " +
                     "Cannot read provided Ballerina file (Permission denied)";
             graphqlService.toFile().setReadable(true);
+            Assert.assertTrue(output.contains(expectedMessage));
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.toString());
+        }
+    }
+
+    @Test(description = "Test GraphQL command execution with invalid output path")
+    public void testExecuteWithInvalidOutputPath() {
+        Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service3.bal"));
+        String[] args = {"-i", graphqlService.toString(), "-o", "invalid/directory"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        try {
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            String expectedMessage = "SDL schema generation failed: " + this.tmpDir +
+                    "/invalid/directory Provided output path does not exist";
             Assert.assertTrue(output.contains(expectedMessage));
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.toString());
