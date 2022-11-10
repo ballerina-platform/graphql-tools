@@ -90,8 +90,7 @@ shadowJar {
 
 task copyJar(type: Copy) {
     from "$project.buildDir/libs/graphql-bal-service-${version}.jar"
-    from "$project.rootDir/graphql-cli/build/libs/graphql-cli-${version}.jar"
-    into"$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
+    into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
 }
 
 test {
@@ -126,6 +125,7 @@ compileJava {
         classpath = files()
     }
 }
+
 unpackStdLibs.dependsOn jBallerinaPack
 copyStdlibs.dependsOn unpackStdLibs
 shadowJar.dependsOn copyStdlibs

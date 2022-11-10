@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Integration tests for IDL support.
@@ -46,15 +47,22 @@ public class TestUtils {
     public static final String DISTRIBUTION_FILE_NAME = System.getProperty("ballerina.version");
     private static String balFile = "bal";
 
-    public static File[] getMatchingFiles(String project) throws IOException, InterruptedException {
-        List<String> buildArgs = new LinkedList<>();
-
-        boolean successful = executeRun(DISTRIBUTION_FILE_NAME, RESOURCE.resolve(project), buildArgs);
+    public static boolean checkModuleAvailability(String project) throws IOException, InterruptedException {
+        Process process = executeRun(DISTRIBUTION_FILE_NAME, RESOURCE.resolve(project));
         File dir = new File(new File(String.valueOf(RESOURCE.resolve(project).resolve("generated"))).toString());
-        final String id = "graphql_client";
+        return dir.exists();
+    }
+
+    public static File[] getMatchingFiles(String project, List<String> ids) {
+        File dir = new File(RESOURCE.resolve(project + "/generated/").toString());
         File[] matchingFiles = dir.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
-                return pathname.getName().contains(id);
+                for (String id : ids) {
+                    if (pathname.getName().contains(id)) {
+                        return true;
+                    }
+                }
+                return false;
             }
         });
         return matchingFiles;
@@ -63,14 +71,13 @@ public class TestUtils {
     /**
      * Execute Ballerina run command.
      */
-    public static boolean executeRun(String distributionName, Path sourceDirectory,
-                                     List<String> args) throws IOException, InterruptedException {
+    public static Process executeRun(String distributionName, Path sourceDirectory)
+            throws IOException, InterruptedException {
+        List<String> args = new LinkedList<>();
         args.add(0, "run");
         Process process = getProcessBuilderResults(distributionName, sourceDirectory, args);
-        int exitCode = process.waitFor();
-        logOutput(process.getInputStream());
-        logOutput(process.getErrorStream());
-        return exitCode == 0;
+        process.waitFor();
+        return process;
     }
 
     /**
@@ -101,9 +108,9 @@ public class TestUtils {
      * @param inputStream The stream.
      * @throws IOException Error reading the stream.
      */
-    private static void logOutput(InputStream inputStream) throws IOException {
+    public static String logOutput(InputStream inputStream) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-            br.lines().forEach(OUT::println);
+            return br.lines().collect(Collectors.joining("\n"));
         }
     }
 }

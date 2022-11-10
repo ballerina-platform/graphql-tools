@@ -268,7 +268,7 @@ public class Utils {
     private static String checkAvailabilityOfGivenName(String schemaName, File[] listFiles) {
         for (File file : listFiles) {
             if (System.console() != null && file.getName().equals(schemaName)) {
-                String userInput = System.console().readLine("There is already a file named ' " + file.getName() +
+                String userInput = System.console().readLine("There is already a file named '" + file.getName() +
                         "' in the target location. Do you want to overwrite the file? [y/N] ");
                 if (!Objects.equals(userInput.toLowerCase(Locale.ENGLISH), "y")) {
                     schemaName = setGeneratedFileName(listFiles, schemaName);
@@ -289,8 +289,7 @@ public class Utils {
         for (File listFile : listFiles) {
             String listFileName = listFile.getName();
             if (listFileName.contains(".") && ((listFileName.split("\\.")).length >= 2)
-                    && (listFileName.split("\\.")[0]
-                    .equals(fileName.split("\\.")[0]))) {
+                    && (listFileName.split("\\.")[0].equals(fileName.split("\\.")[0]))) {
                 duplicateCount++;
             }
         }
