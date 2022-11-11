@@ -24,8 +24,12 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.ballerina.graphql.idl.client.TestUtils.checkModuleAvailability;
 import static io.ballerina.graphql.idl.client.TestUtils.getMatchingFiles;
@@ -62,6 +66,18 @@ public class IDLClientGenPluginTests extends GraphqlIDLTest {
         ids.add("foo");
         File[] matchingFiles = getMatchingFiles("project_07", ids);
         Assert.assertNotNull(matchingFiles);
+    }
+
+    @Test(description = "Validate client class signature")
+    public void testClientClassSignature() throws IOException, InterruptedException {
+        String clientClassSignature = "public isolated client class Client {";
+        Assert.assertTrue(checkModuleAvailability("project_10"));
+        Path clientFile =
+                Path.of(RESOURCE.resolve("project_10/generated/foo/client.bal").toString());
+        Stream<String> generatedServiceLines = Files.lines(clientFile);
+        String generatedContent = generatedServiceLines.collect(Collectors.joining(System.lineSeparator()));
+        generatedServiceLines.close();
+        Assert.assertTrue(generatedContent.contains(clientClassSignature));
     }
 
     //todo: Add absolute config path test case
