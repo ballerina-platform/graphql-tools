@@ -31,13 +31,12 @@ public class Constants {
     public static final String PERIOD = ".";
     public static final String EMPTY_STRING = "";
 
-    public static final String MSG_MISSING_ANNOT = "Annotation is missing in GraphQL service";
-    public static final String MSG_MISSING_SERVICE_CONFIG = "GraphQL SchemaConfig annotation is missing";
-    public static final String MSG_MISSING_FIELD_SCHEMA_STR = "SchemaString field is missing in GraphQL ServiceConfig";
-    public static final String MSG_CANNOT_READ_SCHEMA_STR = "Cannot read decoded schema string";
-    public static final String MSG_INVALID_SCHEMA_STR = "Invalid schema string found";
-    public static final String MSG_MISSING_BAL_FILE = "Provided Ballerina file path does not exist";
-    public static final String MSG_CANNOT_READ_BAL_FILE = "Cannot read provided Ballerina file (Permission denied)";
-    public static final String MSG_INVALID_OUTPUT_DIR = "Provided output path does not exist";
-
+    public static final String MESSAGE_MISSING_ANNOTATION = "Annotation is missing in GraphQL service";
+    public static final String MESSAGE_MISSING_SERVICE_CONFIG = "GraphQL SchemaConfig annotation is missing";
+    public static final String MESSAGE_MISSING_FIELD_SCHEMA_STRING =
+            "'schemaString' field is missing in GraphQL ServiceConfig";
+    public static final String MESSAGE_CANNOT_READ_SCHEMA_STRING = "Cannot read decoded schema string";
+    public static final String MESSAGE_INVALID_SCHEMA_STRING = "Invalid schema string found";
+    public static final String MESSAGE_MISSING_BAL_FILE = "Provided Ballerina file path does not exist";
+    public static final String MESSAGE_CANNOT_READ_BAL_FILE = "Cannot read provided Ballerina file (Permission denied)";
 }

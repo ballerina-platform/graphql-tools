@@ -57,12 +57,11 @@ import java.util.stream.Collectors;
 
 import static io.ballerina.graphql.schema.Constants.EMPTY_STRING;
 import static io.ballerina.graphql.schema.Constants.GRAPHQL_EXTENSION;
-import static io.ballerina.graphql.schema.Constants.MSG_CANNOT_READ_SCHEMA_STR;
-import static io.ballerina.graphql.schema.Constants.MSG_INVALID_OUTPUT_DIR;
-import static io.ballerina.graphql.schema.Constants.MSG_INVALID_SCHEMA_STR;
-import static io.ballerina.graphql.schema.Constants.MSG_MISSING_ANNOT;
-import static io.ballerina.graphql.schema.Constants.MSG_MISSING_FIELD_SCHEMA_STR;
-import static io.ballerina.graphql.schema.Constants.MSG_MISSING_SERVICE_CONFIG;
+import static io.ballerina.graphql.schema.Constants.MESSAGE_CANNOT_READ_SCHEMA_STRING;
+import static io.ballerina.graphql.schema.Constants.MESSAGE_INVALID_SCHEMA_STRING;
+import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_ANNOTATION;
+import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_FIELD_SCHEMA_STRING;
+import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_SERVICE_CONFIG;
 import static io.ballerina.graphql.schema.Constants.PERIOD;
 import static io.ballerina.graphql.schema.Constants.SCHEMA_PREFIX;
 import static io.ballerina.graphql.schema.Constants.SCHEMA_STRING_FIELD;
@@ -114,7 +113,7 @@ public class Utils {
                 return getSchemaStringFieldFromValue(annotationValue);
             }
         }
-        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_MISSING_ANNOT);
+        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
     }
 
     /**
@@ -128,7 +127,7 @@ public class Utils {
                 }
             }
         }
-        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_MISSING_ANNOT);
+        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
     }
 
     /**
@@ -141,7 +140,7 @@ public class Utils {
                 return annotationNode.annotValue().get();
             }
         }
-        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_MISSING_SERVICE_CONFIG);
+        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_SERVICE_CONFIG);
     }
 
     /**
@@ -156,7 +155,8 @@ public class Utils {
                 return schemaString.substring(1, schemaString.length() - 1);
             }
         }
-        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_MISSING_FIELD_SCHEMA_STR);
+        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+                MESSAGE_MISSING_FIELD_SCHEMA_STRING);
     }
 
     /**
@@ -198,7 +198,6 @@ public class Utils {
      * Remove special characters from the given file name.
      */
     public static String getNormalizedFileName(String sdlFileName) {
-
         String[] splitNames = sdlFileName.split("[^a-zA-Z0-9]");
         if (splitNames.length > 0) {
             return Arrays.stream(splitNames)
@@ -229,7 +228,7 @@ public class Utils {
      */
     public static Schema getDecodedSchema(String schemaString) throws SchemaGenerationException {
         if (schemaString == null || schemaString.isBlank() || schemaString.isEmpty()) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_INVALID_SCHEMA_STR);
+            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_INVALID_SCHEMA_STRING);
         }
         byte[] decodedString = Base64.getDecoder().decode(schemaString.getBytes(StandardCharsets.UTF_8));
         try {
@@ -237,7 +236,8 @@ public class Utils {
             ObjectInputStream inputStream = new ObjectInputStream(byteStream);
             return (Schema) inputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MSG_CANNOT_READ_SCHEMA_STR);
+            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+                    MESSAGE_CANNOT_READ_SCHEMA_STRING);
         }
     }
 
@@ -311,14 +311,14 @@ public class Utils {
     }
 
     /**
-     * This method validate the given path.
+     * This method create the given output directory if not exist.
      *
      * @param outputPath     output file path
      */
-    public static void validateOutputPath(Path outputPath) throws SchemaGenerationException {
-        if (!outputPath.toFile().exists()) {
-            String err = String.join(" ", outputPath.toString(), MSG_INVALID_OUTPUT_DIR);
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, err);
+    public static void createOutputDirectory(Path outputPath) {
+        File outputDir = new File(outputPath.toString());
+        if (!outputDir.exists()) {
+            outputDir.mkdirs();
         }
     }
 

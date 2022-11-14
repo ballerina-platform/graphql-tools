@@ -24,6 +24,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -184,6 +185,36 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test successful GraphQL command execution with multiple services in same listener")
+    public void testSdlGenerationWithMultipleServicesInSameListener() {
+        Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/valid", "service9.bal"));
+        String[] args = {"-i", graphqlService.toString(), "-o", this.tmpDir.toString()};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        try {
+            graphqlCmd.execute();
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_person.graphql")));
+            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_person.graphql"));
+            String expectedSchema = readContentWithFormat(expectedSchemaFile);
+            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_person.graphql"));
+            Assert.assertEquals(expectedSchema, generatedSchema);
+
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_inputs.graphql")));
+            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_inputs.graphql"));
+            expectedSchema = readContentWithFormat(expectedSchemaFile);
+            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_inputs.graphql"));
+            Assert.assertEquals(expectedSchema, generatedSchema);
+
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service9.graphql")));
+            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service9.graphql"));
+            expectedSchema = readContentWithFormat(expectedSchemaFile);
+            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service9.graphql"));
+            Assert.assertEquals(expectedSchema, generatedSchema);
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.toString());
+        }
+    }
+
     @Test(description = "Test GraphQL command execution with service includes compilation errors")
     public void testExecuteWithBalFileIncludeCompilationErrors() {
         Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service1.bal"));
@@ -233,18 +264,27 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test GraphQL command execution with readonly output path")
     public void testExecuteWithReadonlyOutputPath() {
-        Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service3.bal"));
-        String[] args = {"-i", graphqlService.toString(), "-o", this.tmpDir.toString()};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
-        this.tmpDir.toFile().setWritable(false);
-        new CommandLine(graphqlCmd).parseArgs(args);
+        Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service2.bal"));
         try {
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            Path outputPath = this.tmpDir.resolve("schema_service.graphql");
-            String expectedMessage = "SDL schema generation failed: " + outputPath + " (Permission denied)";
-            this.tmpDir.toFile().setWritable(true);
-            Assert.assertTrue(output.contains(expectedMessage));
+            Path outPath = Paths.get(tmpDir.toString(), "new");
+            Files.createDirectories(outPath);
+            File file = new File(outPath.toString());
+            boolean setReadonly = file.setReadOnly();
+            if (setReadonly) {
+                // The `setReadOnly()` method doesn't work as expected in 'windows' environments. Hence,
+                // added an 'if' block to skip this test in 'windows' until find a workaround
+                String[] args = {"-i", graphqlService.toString(), "-o", outPath.toString()};
+                GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+                new CommandLine(graphqlCmd).parseArgs(args);
+                graphqlCmd.execute();
+                String output = readOutput(true);
+                String expectedMessage = "SDL schema generation failed: " + outPath +
+                        "/schema_graphql_new.graphql (Permission denied)";
+                file.setWritable(true);
+                Assert.assertTrue(output.contains(expectedMessage));
+            } else {
+                Assert.assertTrue(true);
+            }
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.toString());
         }
@@ -252,35 +292,26 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test GraphQL command execution with bal file without read permission")
     public void testSdlGenerationWithBalFileWithoutReadPermission() {
-        Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service4.bal"));
-        String[] args = {"-i", graphqlService.toString(), "-o", this.tmpDir.toString()};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
-        graphqlService.toFile().setReadable(false);
-        new CommandLine(graphqlCmd).parseArgs(args);
+        Path graphqlService = Paths.get(tmpDir.toString(), "service4.bal");
         try {
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            String expectedMessage = "SDL schema generation failed: " +
-                    "Cannot read provided Ballerina file (Permission denied)";
-            graphqlService.toFile().setReadable(true);
-            Assert.assertTrue(output.contains(expectedMessage));
-        } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test GraphQL command execution with invalid output path")
-    public void testExecuteWithInvalidOutputPath() {
-        Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service3.bal"));
-        String[] args = {"-i", graphqlService.toString(), "-o", "invalid/directory"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-        try {
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            String expectedMessage = "SDL schema generation failed: " + this.tmpDir +
-                    "/invalid/directory Provided output path does not exist";
-            Assert.assertTrue(output.contains(expectedMessage));
+            Files.createFile(graphqlService);
+            File file = new File(graphqlService.toString());
+            boolean setWritable = file.setReadable(false);
+            if (setWritable) {
+                // The `setReadable()` method doesn't work as expected in 'windows' environments. Hence,
+                // added an 'if' block to skip this test in `windows` until find a workaround
+                String[] args = {"-i", file.getPath(), "-o", this.tmpDir.toString()};
+                GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+                new CommandLine(graphqlCmd).parseArgs(args);
+                graphqlCmd.execute();
+                String output = readOutput(true);
+                String expectedMessage = "SDL schema generation failed: " +
+                        "Cannot read provided Ballerina file (Permission denied)";
+                file.setReadable(true);
+                Assert.assertTrue(output.contains(expectedMessage));
+            } else {
+                Assert.assertTrue(true);
+            }
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.toString());
         }

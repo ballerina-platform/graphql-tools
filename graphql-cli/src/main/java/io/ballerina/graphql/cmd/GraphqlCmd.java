@@ -58,8 +58,8 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUM
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
-import static io.ballerina.graphql.schema.Constants.MSG_CANNOT_READ_BAL_FILE;
-import static io.ballerina.graphql.schema.Constants.MSG_MISSING_BAL_FILE;
+import static io.ballerina.graphql.schema.Constants.MESSAGE_CANNOT_READ_BAL_FILE;
+import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
 
 /**
  * Main class to implement "graphql" command for Ballerina.
@@ -178,6 +178,7 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws IOException                If an I/O error occurs
      * @throws GenerationException        when a graphql client generation related error occurs
      * @throws ValidationException        when validation related error occurs
+     * @throws SchemaGenerationException  when a SDL schema generation related error occurs
      */
     private void executeOperation()
             throws CmdException, ParseException, IOException, ValidationException, GenerationException,
@@ -222,10 +223,10 @@ public class GraphqlCmd implements BLauncherCmd {
     private void generateSchema(String fileName) throws SchemaGenerationException {
         final File balFile = new File(fileName);
         if (!balFile.exists()) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MSG_MISSING_BAL_FILE);
+            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_MISSING_BAL_FILE);
         }
         if (!balFile.canRead()) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MSG_CANNOT_READ_BAL_FILE);
+            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_CANNOT_READ_BAL_FILE);
         }
         Path balFilePath = null;
         try {

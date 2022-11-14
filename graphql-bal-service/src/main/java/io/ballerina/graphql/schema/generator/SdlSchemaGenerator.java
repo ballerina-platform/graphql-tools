@@ -53,6 +53,7 @@ import java.util.Map;
 
 import static io.ballerina.graphql.schema.Constants.EMPTY_STRING;
 import static io.ballerina.graphql.schema.Constants.PERIOD;
+import static io.ballerina.graphql.schema.utils.Utils.createOutputDirectory;
 import static io.ballerina.graphql.schema.utils.Utils.formatBasePath;
 import static io.ballerina.graphql.schema.utils.Utils.getDecodedSchema;
 import static io.ballerina.graphql.schema.utils.Utils.getSchemaString;
@@ -60,7 +61,6 @@ import static io.ballerina.graphql.schema.utils.Utils.getSdlFileName;
 import static io.ballerina.graphql.schema.utils.Utils.getServiceBasePath;
 import static io.ballerina.graphql.schema.utils.Utils.isGraphqlService;
 import static io.ballerina.graphql.schema.utils.Utils.resolveSchemaFileName;
-import static io.ballerina.graphql.schema.utils.Utils.validateOutputPath;
 import static io.ballerina.graphql.schema.utils.Utils.writeFile;
 import static io.ballerina.stdlib.graphql.commons.utils.Utils.isGraphQLServiceObjectDeclaration;
 
@@ -76,7 +76,6 @@ public class SdlSchemaGenerator {
      */
     public static void generate(Path filePath, Path outPath, String serviceName)
             throws SchemaGenerationException {
-
         Project project = ProjectLoader.loadProject(filePath);
         PackageCompilation compilation = getPackageCompilation(project);
         Package packageName = project.currentPackage();
@@ -92,13 +91,14 @@ public class SdlSchemaGenerator {
             docId = documentIterator.next();
             doc = currentModule.document(docId);
         }
+
         SyntaxTree syntaxTree = doc.syntaxTree();
         SemanticModel semanticModel = compilation.getSemanticModel(docId.moduleId());
-        validateOutputPath(outPath);
         List<SdlSchema> schemaDefinitions = generateSdlSchema(syntaxTree, semanticModel, serviceName);
         List<String> fileNames = new ArrayList<>();
         for (SdlSchema definition : schemaDefinitions) {
             String fileName = resolveSchemaFileName(outPath, definition.getName());
+            createOutputDirectory(outPath);
             writeFile(outPath.resolve(fileName), definition.getSchema());
             fileNames.add(fileName);
         }
@@ -117,7 +117,6 @@ public class SdlSchemaGenerator {
      */
     private static List<SdlSchema> generateSdlSchema(SyntaxTree syntaxTree, SemanticModel semanticModel,
                                                      String serviceName) throws SchemaGenerationException {
-
         Map<String, String> servicesToGenerate = new HashMap<>();
         List<String> availableServices = new ArrayList<>();
         List<SdlSchema> outputs = new ArrayList<>();
@@ -221,7 +220,6 @@ public class SdlSchemaGenerator {
      * Get the compilation of given Ballerina source.
      */
     private static PackageCompilation getPackageCompilation(Project project) throws SchemaGenerationException {
-
         DiagnosticResult diagnosticResult = project.currentPackage().runCodeGenAndModifyPlugins();
         boolean hasErrors = diagnosticResult
                 .diagnostics().stream()

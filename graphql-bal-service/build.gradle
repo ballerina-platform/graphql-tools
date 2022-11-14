@@ -16,7 +16,6 @@
  */
 
 apply plugin: "com.github.johnrengelman.shadow"
-apply plugin: "jacoco"
 
 configurations {
     balTools
@@ -93,30 +92,6 @@ task copyJar(type: Copy) {
     into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
 }
 
-test {
-    systemProperties = [ "target.dir": "$project.buildDir",
-                         "distributions.dir": bDistribution,
-                         "ballerina.home": bDistribution,
-                         "ballerina.version": "jballerina-tools-${ballerinaLangVersion}"
-    ]
-    useTestNG() {
-        suites "src/test/resources/testng.xml"
-    }
-    finalizedBy jacocoTestReport
-}
-
-jacoco {
-    toolVersion = "0.8.7"
-    reportsDirectory = file("$rootProject.projectDir/build/reports/jacoco")
-}
-
-jacocoTestReport {
-    dependsOn test // tests are required to run before generating the report
-    reports {
-        xml.required = true
-    }
-}
-
 compileJava {
     doFirst {
         options.compilerArgs = [
@@ -131,7 +106,5 @@ copyStdlibs.dependsOn unpackStdLibs
 shadowJar.dependsOn copyStdlibs
 copyJar.dependsOn shadowJar
 copyJar.dependsOn jar
-test.dependsOn copyJar
-jacocoTestReport.dependsOn test
 
-build.dependsOn(jacocoTestReport)
+build.dependsOn(copyJar)

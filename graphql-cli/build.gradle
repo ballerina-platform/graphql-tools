@@ -42,7 +42,7 @@ dependencies {
     dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
     dist "com.google.guava:guava:${googleGuavaVersion}" // NEW
     dist "org.json:json:${orgJsonVersion}" // NEW
-//    dist "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
+    dist "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
 
     balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
@@ -93,6 +93,7 @@ task copyStdlibs(type: Copy) {
 
 task copyJar(type: Copy) {
     from "$project.rootDir/graphql-bal-service/build/libs/graphql-bal-service-${version}.jar"
+    from "$project.buildDir/libs/graphql-cli-${version}.jar"
     into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
 }
 
@@ -123,6 +124,8 @@ jacoco {
 
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
+    def classFiles = new File("${rootDir}/graphql-bal-service/build/classes/java/main/io/ballerina/graphql/schema")
+    additionalClassDirs(classFiles)
     reports {
         xml.required = true
     }
@@ -137,3 +140,10 @@ compileJava {
     }
 }
 
+unpackStdLibs.dependsOn jBallerinaPack
+copyStdlibs.dependsOn unpackStdLibs
+shadowJar.dependsOn copyStdlibs
+copyJar.dependsOn shadowJar
+copyJar.dependsOn jar
+test.dependsOn copyJar
+jacocoTestReport.dependsOn test

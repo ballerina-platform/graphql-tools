@@ -75,13 +75,13 @@ distinct service class Human {
     # Height in meters, or null if unknown
     # + return - The height
     resource function get height() returns float? {
-        return ;
+        return;
     }
 
     # Mass in kilograms, or null if unknown
     # + return - The mass
     resource function get mass() returns int? {
-        return ;
+        return;
     }
 
     # The episodes this human appears in

@@ -39,7 +39,6 @@ def packageName = "graphql"
 
 dependencies {
     implementation project(':graphql-bal-service')
-    implementation project(':graphql-tool-idl-plugin')
     implementation project(':graphql-cli')
 }
 
@@ -230,7 +229,6 @@ publishing {
 
 directoryBuild.dependsOn ":${packageName}-bal-service:build"
 directoryBuild.dependsOn ":${packageName}-cli:build"
-directoryBuild.dependsOn ":${packageName}-tool-idl-plugin:build"
 directoryBuild.dependsOn(checkstyleMain)
 directoryBuild.dependsOn(checkstyleTest)
 directoryBuild.dependsOn(compileTestJava)
