@@ -21,7 +21,9 @@ package io.ballerina.graphql.schema;
 /**
  * This class represents GraphQL SDL schema generation related constants.
  */
-public class Constants {
+public final class Constants {
+    private Constants() {}
+
     public static final String SCHEMA_STRING_FIELD = "schemaString";
     public static final String SERVICE_CONFIG_IDENTIFIER = "ServiceConfig";
     public static final String SCHEMA_PREFIX = "schema";

@@ -29,7 +29,7 @@ dependencies {
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
     implementation "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
-    implementation 'commons-io:commons-io:2.11.0'
+    implementation "commons-io:commons-io:${commonsIoVersion}"
 
     balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
@@ -88,7 +88,7 @@ shadowJar {
 }
 
 task copyJar(type: Copy) {
-    from "$project.buildDir/libs/graphql-bal-service-${version}.jar"
+    from "$project.buildDir/libs/graphql-schema-file-generator-${version}.jar"
     into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
 }
 

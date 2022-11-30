@@ -38,7 +38,7 @@ ext.puppycrawlCheckstyleVersion = "8.18"
 def packageName = "graphql"
 
 dependencies {
-    implementation project(':graphql-bal-service')
+    implementation project(':graphql-schema-file-generator')
     implementation project(':graphql-cli')
 }
 
@@ -172,8 +172,8 @@ def artifactLibParent = file("$project.projectDir/build/lib_parent/")
 def targetGraphqlCliJar = file("$project.rootDir/graphql-cli/build/libs/graphql-cli-${project.version}.jar")
 def targetGraphqlIDLPluginJar = file("$project.rootDir/graphql-tool-idl-plugin/build/libs/" +
         "graphql-tool-idl-plugin-${project.version}.jar")
-def targetGraphqlBalServiceJar = file("$project.rootDir/graphql-bal-service/build/libs/" +
-        "graphql-bal-service-${project.version}.jar")
+def targetGraphqlBalServiceJar = file("$project.rootDir/graphql-schema-file-generator/build/libs/" +
+        "graphql-schema-file-generator-${project.version}.jar")
 
 jar {
     manifest {
@@ -227,7 +227,7 @@ publishing {
     }
 }
 
-directoryBuild.dependsOn ":${packageName}-bal-service:build"
+directoryBuild.dependsOn ":${packageName}-schema-file-generator:build"
 directoryBuild.dependsOn ":${packageName}-cli:build"
 directoryBuild.dependsOn(checkstyleMain)
 directoryBuild.dependsOn(checkstyleTest)

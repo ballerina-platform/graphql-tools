@@ -75,7 +75,9 @@ import static io.ballerina.stdlib.graphql.commons.utils.Utils.removeEscapeCharac
 /**
  * Utility class for Ballerina GraphQL SDL schema generation.
  */
-public class Utils {
+public final class Utils {
+
+    private Utils() {}
 
     /**
      * Check whether the given service declaration node is related to a GraphQL service.

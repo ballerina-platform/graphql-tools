@@ -37,12 +37,4 @@ public class SdlSchema {
     public String getSchema() {
         return schema;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
 }

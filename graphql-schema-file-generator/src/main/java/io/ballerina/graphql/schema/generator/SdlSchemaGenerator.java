@@ -69,6 +69,8 @@ import static io.ballerina.stdlib.graphql.commons.utils.Utils.isGraphQLServiceOb
  */
 public class SdlSchemaGenerator {
 
+    private SdlSchemaGenerator() {}
+
     private static PrintStream outStream = System.out;
 
     /**
@@ -87,8 +89,7 @@ public class SdlSchemaGenerator {
             doc = project.currentPackage().module(moduleId).document(docId);
         } else {
             Module currentModule = packageName.getDefaultModule();
-            Iterator<DocumentId> documentIterator = currentModule.documentIds().iterator();
-            docId = documentIterator.next();
+            docId = currentModule.documentIds().iterator().next();
             doc = currentModule.document(docId);
         }
 
@@ -150,11 +151,10 @@ public class SdlSchemaGenerator {
                                                         SemanticModel semanticModel, List<String> availableServices,
                                                         Map<String, String> schemasToGenerate)
                                                         throws SchemaGenerationException {
-
         int duplicateCount = 0;
         for (Node node : modulePartNode.members()) {
             SyntaxKind syntaxKind = node.kind();
-            if (syntaxKind.equals(SyntaxKind.SERVICE_DECLARATION)) {
+            if (syntaxKind == SyntaxKind.SERVICE_DECLARATION) {
                 ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
                 if (isGraphqlService(serviceNode, semanticModel)) {
                     String service = getServiceBasePath(serviceNode);
@@ -166,7 +166,7 @@ public class SdlSchemaGenerator {
                     }
                     addToList(serviceName, service, updatedServiceName, schema, availableServices, schemasToGenerate);
                 }
-            } else if (syntaxKind.equals(SyntaxKind.MODULE_VAR_DECL)) {
+            } else if (syntaxKind == SyntaxKind.MODULE_VAR_DECL) {
                 ModuleVariableDeclarationNode moduleVariableNode = (ModuleVariableDeclarationNode) node;
                 if (!isGraphQLServiceObjectDeclaration(moduleVariableNode)) {
                     continue;

@@ -26,7 +26,7 @@ configurations {
 }
 
 dependencies {
-    implementation project(':graphql-bal-service')
+    implementation project(':graphql-schema-file-generator')
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
@@ -92,7 +92,7 @@ task copyStdlibs(type: Copy) {
 }
 
 task copyJar(type: Copy) {
-    from "$project.rootDir/graphql-bal-service/build/libs/graphql-bal-service-${version}.jar"
+    from "$project.rootDir/graphql-schema-file-generator/build/libs/graphql-schema-file-generator-${version}.jar"
     from "$project.buildDir/libs/graphql-cli-${version}.jar"
     into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
 }
@@ -124,7 +124,7 @@ jacoco {
 
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
-    def classFiles = new File("${rootDir}/graphql-bal-service/build/classes/java/main/io/ballerina/graphql/schema")
+    def classFiles = new File("${rootDir}/graphql-schema-file-generator/build/classes/java/main/io/ballerina/graphql/schema")
     additionalClassDirs(classFiles)
     reports {
         xml.required = true
