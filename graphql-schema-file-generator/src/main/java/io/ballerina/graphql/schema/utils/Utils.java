@@ -33,12 +33,8 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
-import io.ballerina.graphql.schema.exception.SchemaGenerationException;
+import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
 import io.ballerina.stdlib.graphql.commons.types.Schema;
-import io.ballerina.tools.diagnostics.Location;
-import io.ballerina.tools.text.LinePosition;
-import io.ballerina.tools.text.LineRange;
-import io.ballerina.tools.text.TextRange;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.ByteArrayInputStream;
@@ -108,20 +104,20 @@ public final class Utils {
     /**
      * Get encoded schema string from the given node.
      */
-    public static String getSchemaString(ServiceDeclarationNode node) throws SchemaGenerationException {
+    public static String getSchemaString(ServiceDeclarationNode node) throws SchemaFileGenerationException {
         if (node.metadata().isPresent()) {
             if (!node.metadata().get().annotations().isEmpty()) {
                 MappingConstructorExpressionNode annotationValue = getAnnotationValue(node.metadata().get());
                 return getSchemaStringFieldFromValue(annotationValue);
             }
         }
-        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
+        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
     }
 
     /**
      * Get encoded schema string from the given node.
      */
-    public static String getSchemaString(ObjectConstructorExpressionNode node) throws SchemaGenerationException {
+    public static String getSchemaString(ObjectConstructorExpressionNode node) throws SchemaFileGenerationException {
         if (!node.annotations().isEmpty()) {
             for (AnnotationNode annotationNode: node.annotations()) {
                 if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
@@ -129,27 +125,28 @@ public final class Utils {
                 }
             }
         }
-        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
+        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
     }
 
     /**
      * Get annotation value string from the given metadata node.
      */
     private static MappingConstructorExpressionNode getAnnotationValue(MetadataNode metadataNode)
-            throws SchemaGenerationException {
+            throws SchemaFileGenerationException {
         for (AnnotationNode annotationNode: metadataNode.annotations()) {
             if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
                 return annotationNode.annotValue().get();
             }
         }
-        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_SERVICE_CONFIG);
+        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+                MESSAGE_MISSING_SERVICE_CONFIG);
     }
 
     /**
      * Get schema string field from the given node.
      */
     private static String getSchemaStringFieldFromValue(MappingConstructorExpressionNode annotationValue)
-            throws SchemaGenerationException {
+            throws SchemaFileGenerationException {
         SeparatedNodeList<MappingFieldNode> existingFields = annotationValue.fields();
         for (MappingFieldNode field : existingFields) {
             if (field.children().get(0).toString().contains(SCHEMA_STRING_FIELD)) {
@@ -157,7 +154,7 @@ public final class Utils {
                 return schemaString.substring(1, schemaString.length() - 1);
             }
         }
-        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
                 MESSAGE_MISSING_FIELD_SCHEMA_STRING);
     }
 
@@ -228,9 +225,10 @@ public final class Utils {
      * @param schemaString     encoded schema string
      * @return GraphQL schema object
      */
-    public static Schema getDecodedSchema(String schemaString) throws SchemaGenerationException {
+    public static Schema getDecodedSchema(String schemaString) throws SchemaFileGenerationException {
         if (schemaString == null || schemaString.isBlank() || schemaString.isEmpty()) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_INVALID_SCHEMA_STRING);
+            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+                    MESSAGE_INVALID_SCHEMA_STRING);
         }
         byte[] decodedString = Base64.getDecoder().decode(schemaString.getBytes(StandardCharsets.UTF_8));
         try {
@@ -238,7 +236,7 @@ public final class Utils {
             ObjectInputStream inputStream = new ObjectInputStream(byteStream);
             return (Schema) inputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
                     MESSAGE_CANNOT_READ_SCHEMA_STRING);
         }
     }
@@ -304,11 +302,11 @@ public final class Utils {
      * @param filePath     output file path
      * @param content      SDL schema string
      */
-    public static void writeFile(Path filePath, String content) throws SchemaGenerationException {
+    public static void writeFile(Path filePath, String content) throws SchemaFileGenerationException {
         try (FileWriter writer = new FileWriter(filePath.toString(), StandardCharsets.UTF_8)) {
             writer.write(content);
         } catch (IOException e) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage());
+            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage());
         }
     }
 
@@ -321,22 +319,6 @@ public final class Utils {
         File outputDir = new File(outputPath.toString());
         if (!outputDir.exists()) {
             outputDir.mkdirs();
-        }
-    }
-
-    /**
-     * This {@code NullLocation} represents the null location allocation for scenarios which has no location.
-     */
-    public static class NullLocation implements Location {
-        @Override
-        public LineRange lineRange() {
-            LinePosition from = LinePosition.from(0, 0);
-            return LineRange.from("", from, from);
-        }
-
-        @Override
-        public TextRange textRange() {
-            return TextRange.from(0, 0);
         }
     }
 }

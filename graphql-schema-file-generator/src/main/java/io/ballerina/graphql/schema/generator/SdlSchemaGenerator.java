@@ -28,7 +28,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
-import io.ballerina.graphql.schema.exception.SchemaGenerationException;
+import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
@@ -71,13 +71,11 @@ public class SdlSchemaGenerator {
 
     private SdlSchemaGenerator() {}
 
-    private static PrintStream outStream = System.out;
-
     /**
      * Export the SDL schema for given Ballerina GraphQL services.
      */
-    public static void generate(Path filePath, Path outPath, String serviceName)
-            throws SchemaGenerationException {
+    public static void generate(Path filePath, Path outPath, String serviceBasePath, PrintStream outStream)
+            throws SchemaFileGenerationException {
         Project project = ProjectLoader.loadProject(filePath);
         PackageCompilation compilation = getPackageCompilation(project);
         Package packageName = project.currentPackage();
@@ -95,7 +93,7 @@ public class SdlSchemaGenerator {
 
         SyntaxTree syntaxTree = doc.syntaxTree();
         SemanticModel semanticModel = compilation.getSemanticModel(docId.moduleId());
-        List<SdlSchema> schemaDefinitions = generateSdlSchema(syntaxTree, semanticModel, serviceName);
+        List<SdlSchema> schemaDefinitions = generateSdlSchema(syntaxTree, semanticModel, serviceBasePath);
         List<String> fileNames = new ArrayList<>();
         for (SdlSchema definition : schemaDefinitions) {
             String fileName = resolveSchemaFileName(outPath, definition.getName());
@@ -104,6 +102,7 @@ public class SdlSchemaGenerator {
             fileNames.add(fileName);
         }
         if (fileNames.isEmpty()) {
+            outStream.println("Given Ballerina file does not contain any GraphQL services");
             return;
         }
         outStream.println("SDL Schema(s) generated successfully and copy to :");
@@ -117,17 +116,17 @@ public class SdlSchemaGenerator {
      * Generate a List of SdlSchema objects for given GraphQL services.
      */
     private static List<SdlSchema> generateSdlSchema(SyntaxTree syntaxTree, SemanticModel semanticModel,
-                                                     String serviceName) throws SchemaGenerationException {
+                                                     String serviceBasePath) throws SchemaFileGenerationException {
         Map<String, String> servicesToGenerate = new HashMap<>();
         List<String> availableServices = new ArrayList<>();
         List<SdlSchema> outputs = new ArrayList<>();
 
         ModulePartNode modulePartNode = syntaxTree.rootNode();
-        extractSchemaStringsFromServices(serviceName, modulePartNode, semanticModel, availableServices,
+        extractSchemaStringsFromServices(serviceBasePath, modulePartNode, semanticModel, availableServices,
                 servicesToGenerate);
         // If there are no services found for a given service name.
-        if (serviceName != null && servicesToGenerate.isEmpty()) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_101, null, serviceName,
+        if (serviceBasePath != null && servicesToGenerate.isEmpty()) {
+            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_101, null, serviceBasePath,
                     availableServices.toString());
         }
         // Generating schema for selected services
@@ -147,24 +146,25 @@ public class SdlSchemaGenerator {
      * since the service base path info is not included in node.
      * Hence, extract schemas for all the GraphQL services with variable declaration.
      */
-    public static void extractSchemaStringsFromServices(String serviceName, ModulePartNode modulePartNode,
+    public static void extractSchemaStringsFromServices(String serviceBasePath, ModulePartNode modulePartNode,
                                                         SemanticModel semanticModel, List<String> availableServices,
                                                         Map<String, String> schemasToGenerate)
-                                                        throws SchemaGenerationException {
+                                                        throws SchemaFileGenerationException {
         int duplicateCount = 0;
         for (Node node : modulePartNode.members()) {
             SyntaxKind syntaxKind = node.kind();
             if (syntaxKind == SyntaxKind.SERVICE_DECLARATION) {
                 ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
                 if (isGraphqlService(serviceNode, semanticModel)) {
-                    String service = getServiceBasePath(serviceNode);
+                    String actualBasePath = getServiceBasePath(serviceNode);
                     String schema = getSchemaString(serviceNode);
-                    String updatedServiceName = service;
-                    if (schemasToGenerate.containsKey(service)) {
+                    String updatedServiceName = actualBasePath;
+                    if (schemasToGenerate.containsKey(actualBasePath)) {
                         duplicateCount += 1;
-                        updatedServiceName = getUpdatedServiceName(service, duplicateCount);
+                        updatedServiceName = getUpdatedServiceName(actualBasePath, duplicateCount);
                     }
-                    addToList(serviceName, service, updatedServiceName, schema, availableServices, schemasToGenerate);
+                    addToList(serviceBasePath, actualBasePath, updatedServiceName, schema, availableServices,
+                            schemasToGenerate);
                 }
             } else if (syntaxKind == SyntaxKind.MODULE_VAR_DECL) {
                 ModuleVariableDeclarationNode moduleVariableNode = (ModuleVariableDeclarationNode) node;
@@ -193,11 +193,11 @@ public class SdlSchemaGenerator {
     /**
      * Filter schemas by given base path.
      */
-    private static void addToList(String serviceName, String service, String updateServiceName, String schema,
+    private static void addToList(String serviceBasePath, String actualPath, String updateServiceName, String schema,
                                   List<String> availableServices, Map<String, String> schemasToGenerate) {
-        if (serviceName != null) {
-            availableServices.add(service);
-            if (formatBasePath(serviceName).equals(service)) {
+        if (serviceBasePath != null) {
+            availableServices.add(actualPath);
+            if (formatBasePath(serviceBasePath).equals(actualPath)) {
                 schemasToGenerate.put(updateServiceName, schema);
             }
         } else {
@@ -219,7 +219,7 @@ public class SdlSchemaGenerator {
     /**
      * Get the compilation of given Ballerina source.
      */
-    private static PackageCompilation getPackageCompilation(Project project) throws SchemaGenerationException {
+    private static PackageCompilation getPackageCompilation(Project project) throws SchemaFileGenerationException {
         DiagnosticResult diagnosticResult = project.currentPackage().runCodeGenAndModifyPlugins();
         boolean hasErrors = diagnosticResult
                 .diagnostics().stream()
@@ -233,6 +233,6 @@ public class SdlSchemaGenerator {
                 return compilation;
             }
         }
-        throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_100, null);
+        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_100, null);
     }
 }

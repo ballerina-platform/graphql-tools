@@ -19,7 +19,7 @@
 package io.ballerina.graphql.schema.exception;
 
 import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
-import io.ballerina.graphql.schema.utils.Utils;
+import io.ballerina.graphql.schema.utils.NullLocation;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
@@ -28,15 +28,15 @@ import io.ballerina.tools.diagnostics.Location;
 /**
  * Exception type definition for GraphQL SDL schema generation related errors.
  */
-public class SchemaGenerationException extends Exception {
+public class SchemaFileGenerationException extends Exception {
     private final Diagnostic diagnostic;
 
-    public SchemaGenerationException(DiagnosticMessages diagnosticMessage, Location location) {
+    public SchemaFileGenerationException(DiagnosticMessages diagnosticMessage, Location location) {
         super(diagnosticMessage.getDescription());
         this.diagnostic = createDiagnostic(diagnosticMessage, location);
     }
 
-    public SchemaGenerationException(DiagnosticMessages diagnosticMessage, Location location, String... args) {
+    public SchemaFileGenerationException(DiagnosticMessages diagnosticMessage, Location location, String... args) {
         super(generateDescription(diagnosticMessage, args));
         this.diagnostic = createDiagnostic(diagnosticMessage, location, args);
     }
@@ -54,7 +54,7 @@ public class SchemaGenerationException extends Exception {
         DiagnosticInfo diagnosticInfo = new DiagnosticInfo(diagnosticMessage.getCode(),
                 generateDescription(diagnosticMessage, args), diagnosticMessage.getSeverity());
         if (location == null) {
-            location = new Utils.NullLocation();
+            location = NullLocation.getInstance();
         }
         Diagnostic diagnostic = DiagnosticFactory.createDiagnostic(diagnosticInfo, location);
         return diagnostic;

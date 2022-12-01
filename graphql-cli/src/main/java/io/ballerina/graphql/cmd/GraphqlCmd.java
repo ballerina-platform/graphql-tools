@@ -28,7 +28,7 @@ import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
-import io.ballerina.graphql.schema.exception.SchemaGenerationException;
+import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
 import io.ballerina.graphql.schema.generator.SdlSchemaGenerator;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
@@ -91,7 +91,7 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = {"-s", "--service"},
             description = "Base path of the service that the SDL schema is needed to be generated. " +
                     "If this is not provided, generate the SDL schema for each GraphQL service in the source file.")
-    private String serviceName;
+    private String serviceBasePath;
 
     @CommandLine.Parameters
     private List<String> argList;
@@ -133,7 +133,7 @@ public class GraphqlCmd implements BLauncherCmd {
             validateInputFlags();
             executeOperation();
         } catch (CmdException | ParseException | ValidationException | GenerationException | IOException |
-                 SchemaGenerationException e) {
+                 SchemaFileGenerationException e) {
             outStream.println(e.getMessage());
             exitError(this.exitWhenFinish);
         }
@@ -178,11 +178,11 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws IOException                If an I/O error occurs
      * @throws GenerationException        when a graphql client generation related error occurs
      * @throws ValidationException        when validation related error occurs
-     * @throws SchemaGenerationException  when a SDL schema generation related error occurs
+     * @throws SchemaFileGenerationException  when a SDL schema generation related error occurs
      */
     private void executeOperation()
             throws CmdException, ParseException, IOException, ValidationException, GenerationException,
-            SchemaGenerationException {
+            SchemaFileGenerationException {
         String filePath = argList.get(0);
         if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
             generateClient(filePath);
@@ -218,23 +218,24 @@ public class GraphqlCmd implements BLauncherCmd {
     /**
      * Generate the SDL schema according to the given input file.
      *
-     * @throws SchemaGenerationException      when a SDL schema generation related error occurs
+     * @throws SchemaFileGenerationException      when a SDL schema generation related error occurs
      */
-    private void generateSchema(String fileName) throws SchemaGenerationException {
+    private void generateSchema(String fileName) throws SchemaFileGenerationException {
         final File balFile = new File(fileName);
         if (!balFile.exists()) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_MISSING_BAL_FILE);
+            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_MISSING_BAL_FILE);
         }
         if (!balFile.canRead()) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_CANNOT_READ_BAL_FILE);
+            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null,
+                    MESSAGE_CANNOT_READ_BAL_FILE);
         }
         Path balFilePath = null;
         try {
             balFilePath = Paths.get(balFile.getCanonicalPath());
         } catch (IOException e) {
-            throw new SchemaGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
+            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
         }
-        SdlSchemaGenerator.generate(balFilePath, getTargetOutputPath(), serviceName);
+        SdlSchemaGenerator.generate(balFilePath, getTargetOutputPath(), serviceBasePath, outStream);
     }
 
     /**
