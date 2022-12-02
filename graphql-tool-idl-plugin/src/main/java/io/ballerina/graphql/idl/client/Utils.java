@@ -46,7 +46,7 @@ import java.util.Map;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
@@ -104,7 +104,7 @@ public class Utils {
                 }
                 return config;
             } else {
-                throw new CmdException(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_EXTENSION);
+                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
             }
         } catch (YAMLException e) {
             throw new ParseException(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT + e.getMessage());

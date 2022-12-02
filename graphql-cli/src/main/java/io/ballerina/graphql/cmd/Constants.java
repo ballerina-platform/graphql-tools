@@ -25,10 +25,10 @@ public class Constants {
 
     // GraphQL command line tool messages
     public static final String MESSAGE_FOR_MISSING_INPUT_ARGUMENT = "The input file path argument is missing. " +
-            "Please provide the path of the GraphQL config file with -i or --input flag. " +
-            "\ne.g: bal graphql --input <GraphQL configuration file>";
-    public static final String MESSAGE_FOR_INVALID_CONFIGURATION_FILE_EXTENSION = "A GraphQL configuration file " +
-            "with .yaml or .yml extension is required to generate the clients. " +
+            "Please provide the path of the GraphQL config file or Ballerina service file " +
+            "with -i or --input flag. \ne.g: bal graphql --input <GraphQL configuration file>";
+    public static final String MESSAGE_FOR_INVALID_FILE_EXTENSION = "A GraphQL configuration file " +
+            "with .yaml/.yml extension or a Ballerina service file with .bal is required to generate the artifacts. " +
             "\nPlease provide the path of the GraphQL config file with -i or --input flag." +
             "\ne.g: bal graphql --input <GraphQL configuration file>";
     public static final String MESSAGE_FOR_EMPTY_CONFIGURATION_FILE = "The GraphQL " +
@@ -56,6 +56,7 @@ public class Constants {
     // GraphQL config file extensions supported
     public static final String YAML_EXTENSION = ".yaml";
     public static final String YML_EXTENSION = ".yml";
+    public static final String BAL_EXTENSION = ".bal";
 
     // GraphQL Introspection query
     public static final String INTROSPECTION_QUERY =

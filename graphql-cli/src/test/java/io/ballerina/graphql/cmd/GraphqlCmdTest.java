@@ -33,7 +33,7 @@ import java.nio.file.Paths;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
 
 /**
@@ -103,7 +103,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
             output = readOutput(true);
-            Assert.assertTrue(output.contains(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_EXTENSION));
+            Assert.assertTrue(output.contains(MESSAGE_FOR_INVALID_FILE_EXTENSION));
         } catch (BLauncherException | IOException e) {
             output = e.toString();
             Assert.fail(output);

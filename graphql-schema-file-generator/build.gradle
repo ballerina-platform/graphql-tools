@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.org). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  */
 
 apply plugin: "com.github.johnrengelman.shadow"
-apply plugin: "jacoco"
 
 configurations {
     balTools
@@ -26,23 +25,11 @@ configurations {
 }
 
 dependencies {
-    implementation project(':graphql-schema-file-generator')
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
-    implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
-    implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
-    implementation "info.picocli:picocli:${picocliVersion}"
-    testImplementation "org.testng:testng:${testngVersion}"
+    implementation "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
-    implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
-    implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
-    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
-    implementation "org.json:json:${orgJsonVersion}" // NEW
-    dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
-    dist "com.google.guava:guava:${googleGuavaVersion}" // NEW
-    dist "org.json:json:${orgJsonVersion}" // NEW
-    dist "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
 
     balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
@@ -63,7 +50,6 @@ task jBallerinaPack {
 }
 
 task unpackStdLibs() {
-    dependsOn(jBallerinaPack)
     doLast {
         configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
@@ -75,7 +61,6 @@ task unpackStdLibs() {
 }
 
 task copyStdlibs(type: Copy) {
-    dependsOn(unpackStdLibs)
     def ballerinaDist = "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}"
     into ballerinaDist
 
@@ -91,44 +76,20 @@ task copyStdlibs(type: Copy) {
     }
 }
 
+shadowJar {
+    configurations = [project.configurations.runtimeClasspath]
+    dependencies {
+        include(dependency("commons-logging:commons-logging:${commonsLoggingVersion}"))
+        include(dependency("com.graphql-java:graphql-java:${graphqlJavaVersion}"))
+        exclude('META-INF/*.SF')
+        exclude('META-INF/*.DSA')
+        exclude('META-INF/*.RSA')
+    }
+}
+
 task copyJar(type: Copy) {
-    from "$project.rootDir/graphql-schema-file-generator/build/libs/graphql-schema-file-generator-${version}.jar"
-    from "$project.buildDir/libs/graphql-cli-${version}.jar"
+    from "$project.buildDir/libs/graphql-schema-file-generator-${version}.jar"
     into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
-}
-
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    dependsOn configurations.dist
-    from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
-        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
-    }
-}
-
-test {
-    dependsOn {
-        copyStdlibs
-    }
-    systemProperty "ballerina.home", bDistribution
-
-    useTestNG() {
-        suites "src/test/resources/testng.xml"
-    }
-    finalizedBy jacocoTestReport
-}
-
-jacoco {
-    toolVersion = "0.8.7"
-    reportsDirectory = file("$rootProject.projectDir/build/reports/jacoco")
-}
-
-jacocoTestReport {
-    dependsOn test // tests are required to run before generating the report
-    def classFiles = new File("${rootDir}/graphql-schema-file-generator/build/classes/java/main/io/ballerina/graphql/schema")
-    additionalClassDirs(classFiles)
-    reports {
-        xml.required = true
-    }
 }
 
 compileJava {
@@ -145,5 +106,5 @@ copyStdlibs.dependsOn unpackStdLibs
 shadowJar.dependsOn copyStdlibs
 copyJar.dependsOn shadowJar
 copyJar.dependsOn jar
-test.dependsOn copyJar
-jacocoTestReport.dependsOn test
+
+build.dependsOn(copyJar)
