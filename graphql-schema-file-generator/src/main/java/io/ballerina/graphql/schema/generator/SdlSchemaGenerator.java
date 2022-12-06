@@ -166,7 +166,9 @@ public class SdlSchemaGenerator {
                     addToList(serviceBasePath, actualBasePath, updatedServiceName, schema, availableServices,
                             schemasToGenerate);
                 }
-            } else if (syntaxKind == SyntaxKind.MODULE_VAR_DECL) {
+            } else if (syntaxKind == SyntaxKind.MODULE_VAR_DECL && serviceBasePath == null) {
+                // if the service base path is given, the schema is not generated for the services with
+                // module level variable declarations since base path is unknown.
                 ModuleVariableDeclarationNode moduleVariableNode = (ModuleVariableDeclarationNode) node;
                 if (!isGraphQLServiceObjectDeclaration(moduleVariableNode)) {
                     continue;

@@ -122,7 +122,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     @Test(description = "Test successful GraphQL command execution with multiple services")
     public void testSdlGenerationWithMultipleServices2() {
         Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/valid", "service4.bal"));
-        String[] args = {"-i", graphqlService.toString(), "-o", this.tmpDir.toString(), "-s", "/"};
+        String[] args = {"-i", graphqlService.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
         try {
@@ -152,7 +152,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     @Test(description = "Test successful GraphQL command execution with multiple services in a bal project")
     public void testSdlGenerationWithMultipleServicesInProject() {
         Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/valid/project_2", "main.bal"));
-        String[] args = {"-i", graphqlService.toString(), "-o", this.tmpDir.toString(), "-s", "/"};
+        String[] args = {"-i", graphqlService.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
         try {
