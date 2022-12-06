@@ -6,21 +6,21 @@ Maintain the source code for GraphQL related tools.
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![codecov](https://codecov.io/gh/ballerina-platform/graphql-tools/branch/main/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/graphql-tools)
 
-Every GraphQL service defines a set of types that completely describe the set of possible data you can query on that service. Then, when queries come in, they are validated and executed against that schema. GraphQL schemas for a service are now most often specified using what’s known as the `GraphQL SDL` (schema definition language), also sometimes referred to as just GraphQL schema language. Ballerina GraphQL tooling will make it easy for you to start the development of a client in Ballerina for a given GraphQL SDL and a GraphQL document configured in a GraphQL config file by generating Ballerina client skeletons. You can generate a single client in Ballerina for multiple GraphQL documents for a given GraphQL SDL. It also enables you to generate multiple Ballerina modules for multiple GraphQL projects to work with different GraphQL APIs. In addition, the GraphQL tooling supports GraphQL SDL schema generation for a given Ballerina GraphQL service. The user will be able to generate the SDL schema and export it to a specific directory for a selected set of services in the given bal file.
+Every GraphQL service defines a set of types that completely describe the set of possible data you can query on that service. Then, when queries come in, they are validated and executed against that schema. GraphQL schemas for a service are now most often specified using what’s known as the `GraphQL SDL` (schema definition language), also sometimes referred to as just GraphQL schema language. Ballerina GraphQL tooling will make it easy for you to start the development of a client in Ballerina for a given GraphQL SDL and a GraphQL document configured in a GraphQL config file by generating Ballerina client skeletons. You can generate a single client in Ballerina for multiple GraphQL documents for a given GraphQL SDL. It also enables you to generate multiple Ballerina modules for multiple GraphQL projects to work with different GraphQL APIs. In addition, the GraphQL tooling supports generating the GraphQL schema specified by Schema Definition Language for a given Ballerina GraphQL service. The user will be able to generate the schema and export it to a specific directory for a selected set of services in the given bal file.
 
 The Ballerina GraphQL tooling support provides the following capabilities.
 
-1. Generating a Ballerina client from a given GraphQL config file configured with a GraphQL schema (SDL) and a GraphQL document using the CLI tool.
+1. Generating a Ballerina client from a given GraphQL config file configured with a GraphQL schema specified by Schema Definition Language and a GraphQL document.
 
-2. Generating a Ballerina client from a given GraphQL config file configured with a GraphQL SDL and multiple GraphQL documents using the CLI tool.
+2. Generating a Ballerina client from a given GraphQL config file configured with a GraphQL schema specified by Schema Definition Language and multiple GraphQL documents.
 
 3. Generating multiple Ballerina modules from a given GraphQL config file configured with multiple GraphQL projects. Each project will generate a separate Ballerina module. This enables you to work with multiple GraphQL APIs by configuring each GraphQL API under a separate project.
 
-4. Generate the GraphQl SDL schema for a given Ballerina GraphQL service(s).
+4. Generate the GraphQL schema specified by Schema Definition Language for a given Ballerina GraphQL service(s).
 
 ### Command for Ballerina GraphQL client generation
 
-The `graphql` command in Ballerina is used for GraphQL to Ballerina code generations. It supports several usages in the Ballerina GraphQL tool as follows.
+The `graphql` command in Ballerina can be used for GraphQL to Ballerina code generation and Ballerina to GraphQL schema generation. The command usages for GraphQL to Ballerina code generation are as follows.
 
 ```
 bal graphql [-i | --input] <graphql-configuration-file-path> [-o | --output] <output-location>
@@ -29,12 +29,12 @@ bal graphql [-i | --input] <graphql-configuration-file-path> [-o | --output] <ou
 The command line arguments below can be used with the command for each particular purpose as described below.
 | Argument      | Description   |
 | ------------- | ------------- |
-| -i, --input   | The graphql-configuration-file-path parameter specifies the path of the GraphQL config file (e.g., graphql.config.yaml) configured with GraphQL schemas (SDL) and GraphQL documents. This parameter is mandatory. You can point to the GraphQL config file by using the mandatory flag (-i,   --input).  |
-| -o, --output  | The output-location parameter specifies the path of the output location of the generated files.This parameter is optional. If this parameter is not specified, the Ballerina files will be generated at the same location from which the GraphQL command is executed. Optionally, you can point to another directory location by using the optional flag (-o, --output).  |
+| -i, --input   | The `input` parameter specifies the path of the GraphQL config file (e.g., graphql.config.yaml) configured with GraphQL schemas specified by Schema Definition Language and GraphQL documents. This parameter is mandatory.  |
+| -o, --output  | The `output` parameter specifies the path of the output location of the generated files. This parameter is optional. If this parameter is not specified, the Ballerina files will be generated at the same location from which the GraphQL command is executed.  |
 
-### Command for GraphQL SDL schema generation
+### Command for GraphQL schema generation
 
-The `graphql` command for GraphQL SDL schema generation and the usages are as follows.
+The `graphql` command for GraphQL schema generation and the usages are as follows.
 
 ```
 bal graphql [-i | --input] <graphql-service-file-path> [-o | --output] <output-location> [-s | --service] <service-base-path>
@@ -42,9 +42,9 @@ bal graphql [-i | --input] <graphql-service-file-path> [-o | --output] <output-l
 
 | Argument      | Description   |
 | ------------- | ------------- |
-| -i, --input   | The graphql-service-file-path parameter specifies the path of the Ballerina GraphQL service file (e.g., service.bal). This parameter is mandatory. You can point to the Ballerina GraphQL service file by using the mandatory flag (-i,   --input).  |
-| -o, --output  | The output-location parameter specifies the path of the output location of the generated GraphQL SDL schema files. This parameter is optional. If this parameter is not specified, the SDL schema files will be generated at the same location from which the GraphQL command is executed. Optionally, you can point to another directory location by using the optional flag (-o, --output).  |
-| -s, --service  | The service-base-path parameter specifies the base path of the Ballerina GraphQL service which the SDL schema is needed to be generated. This parameter is optional. If this parameter is not specified, the SDL schema files will be generated for all the Ballerina GraphQL services declared in the input file. Optionally, you can point a specific GraphQL service by service base path using the optional flag (-s, --service).  |
+| -i, --input   | The `input` parameter specifies the path of the Ballerina GraphQL service file (e.g., service.bal). This parameter is mandatory. This parameter is mandatory. |
+| -o, --output  | The `output` parameter specifies the path of the output location of the generated GraphQL schema files. This parameter is optional. If this parameter is not specified, the schema files will be generated at the same location from which the GraphQL command is executed. |
+| -s, --service  | The `service` parameter specifies the base path of the Ballerina GraphQL service which the schema is needed to be generated. This parameter is optional. If this parameter is not specified, the schema files will be generated for all the Ballerina GraphQL services declared in the input file. |
 
 ### Generate a Ballerina client from a GraphQL config file configured with a GraphQL schema (SDL) and GraphQL document
 
