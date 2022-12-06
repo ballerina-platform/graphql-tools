@@ -17,6 +17,7 @@
 
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "jacoco"
+import org.apache.tools.ant.taskdefs.condition.Os
 
 configurations {
     balTools
@@ -112,6 +113,9 @@ test {
     systemProperty "ballerina.home", bDistribution
 
     useTestNG() {
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            excludeGroups('invalid_permission')
+        }
         suites "src/test/resources/testng.xml"
     }
     finalizedBy jacocoTestReport
