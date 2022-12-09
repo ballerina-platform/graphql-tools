@@ -106,15 +106,24 @@ jar {
     }
 }
 
+def disableGroups = ""
+
+task initializeVariables {
+    if (project.hasProperty("disable")) {
+        disableGroups = project.findProperty("disable")
+    }
+}
+
 test {
     dependsOn {
         copyStdlibs
+        initializeVariables
     }
     systemProperty "ballerina.home", bDistribution
 
     useTestNG() {
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            excludeGroups('invalid_permission')
+            excludeGroups(disableGroups)
         }
         suites "src/test/resources/testng.xml"
     }
