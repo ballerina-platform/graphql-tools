@@ -17,6 +17,7 @@
 
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "jacoco"
+import org.apache.tools.ant.taskdefs.condition.Os
 
 configurations {
     balTools
@@ -105,13 +106,23 @@ jar {
     }
 }
 
+def disableGroups = ""
+
+task initializeVariables {
+    if (project.hasProperty("disable")) {
+        disableGroups = project.findProperty("disable")
+    }
+}
+
 test {
     dependsOn {
         copyStdlibs
+        initializeVariables
     }
     systemProperty "ballerina.home", bDistribution
 
     useTestNG() {
+        excludeGroups(disableGroups)
         suites "src/test/resources/testng.xml"
     }
     finalizedBy jacocoTestReport
