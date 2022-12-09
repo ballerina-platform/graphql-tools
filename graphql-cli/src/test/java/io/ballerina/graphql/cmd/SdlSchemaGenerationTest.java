@@ -272,7 +272,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains("Given Ballerina file contains compilation error(s)."));
+            Assert.assertTrue(
+                    output.contains("ERROR [:(-1:-1,-1:-1)] Given Ballerina file contains compilation error(s)."));
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.toString());
         }
@@ -303,7 +304,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
             String output = readOutput(true);
-            String expectedMessage = "SDL schema generation failed: Provided Ballerina file path does not exist";
+            String expectedMessage = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " +
+                    "Provided Ballerina file path does not exist";
             Assert.assertTrue(output.contains(expectedMessage));
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.toString());
@@ -326,7 +328,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             String output = readOutput(true);
-            String expectedMessage = "SDL schema generation failed: " + outPath +
+            String expectedMessage = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " + outPath +
                     "/schema_graphql_new.graphql (Permission denied)";
             file.setWritable(true);
             Assert.assertTrue(output.contains(expectedMessage));
@@ -350,7 +352,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             String output = readOutput(true);
-            String expectedMessage = "SDL schema generation failed: " +
+            String expectedMessage = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " +
                     "Cannot read provided Ballerina file (Permission denied)";
             file.setReadable(true);
             Assert.assertTrue(output.contains(expectedMessage));
