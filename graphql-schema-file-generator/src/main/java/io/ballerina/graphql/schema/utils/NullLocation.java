@@ -24,12 +24,12 @@ public final class NullLocation implements Location {
 
     @Override
     public LineRange lineRange() {
-        LinePosition from = LinePosition.from(0, 0);
+        LinePosition from = LinePosition.from(-2, -2);
         return LineRange.from("", from, from);
     }
 
     @Override
     public TextRange textRange() {
-        return TextRange.from(0, 0);
+        return TextRange.from(-2, -2);
     }
 }
