@@ -122,9 +122,7 @@ test {
     systemProperty "ballerina.home", bDistribution
 
     useTestNG() {
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            excludeGroups(disableGroups)
-        }
+        excludeGroups(disableGroups)
         suites "src/test/resources/testng.xml"
     }
     finalizedBy jacocoTestReport
