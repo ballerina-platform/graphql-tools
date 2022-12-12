@@ -5,6 +5,7 @@ plugins {
 rootProject.name = 'graphql-tools'
 include(':config:checkstyle')
 include(':graphql-cli')
+include(':graphql-schema-file-generator')
 
 gradleEnterprise {
     buildScan {

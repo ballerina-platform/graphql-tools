@@ -24,6 +24,7 @@
         <classes>
             <class name="io.ballerina.graphql.cmd.GraphqlCmdTest"/>
             <class name="io.ballerina.graphql.cmd.IntrospectorTest"/>
+            <class name="io.ballerina.graphql.cmd.SdlSchemaGenerationTest"/>
             <class name="io.ballerina.graphql.validator.SDLValidatorTest"/>
             <class name="io.ballerina.graphql.validator.QueryValidatorTest"/>
             <class name="io.ballerina.graphql.generator.graphql.SpecReaderTest"/>
