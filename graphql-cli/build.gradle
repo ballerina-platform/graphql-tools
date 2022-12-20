@@ -17,7 +17,6 @@
 
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "jacoco"
-import org.apache.tools.ant.taskdefs.condition.Os
 
 configurations {
     balTools
@@ -151,6 +150,8 @@ compileJava {
     }
 }
 
+def packageName = "graphql"
+
 unpackStdLibs.dependsOn jBallerinaPack
 copyStdlibs.dependsOn unpackStdLibs
 shadowJar.dependsOn copyStdlibs
@@ -158,3 +159,6 @@ copyJar.dependsOn shadowJar
 copyJar.dependsOn jar
 test.dependsOn copyJar
 jacocoTestReport.dependsOn test
+test.dependsOn ":${packageName}-schema-file-generator:build"
+
+build.dependsOn(jacocoTestReport)
