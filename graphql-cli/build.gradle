@@ -161,4 +161,4 @@ test.dependsOn copyJar
 jacocoTestReport.dependsOn test
 test.dependsOn ":${packageName}-schema-file-generator:build"
 
-build.dependsOn(jacocoTestReport)
+build.dependsOn ":${packageName}-schema-file-generator:build"

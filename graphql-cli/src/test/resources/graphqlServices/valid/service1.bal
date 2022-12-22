@@ -18,8 +18,11 @@ import ballerina/graphql;
 
 # Episodes of Starwars Series
 public enum Episode {
+    # The episode new hope
     NEWHOPE,
+    # The episode empire
     EMPIRE,
+    # The episode jedi
     JEDI
 }
 

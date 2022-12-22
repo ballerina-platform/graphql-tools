@@ -37,8 +37,11 @@ type Human implements Character {
 
 # Episodes of Starwars Series
 enum Episode {
+  # The episode jedi
   JEDI
+  # The episode empire
   EMPIRE
+  # The episode new hope
   NEWHOPE
 }
 
