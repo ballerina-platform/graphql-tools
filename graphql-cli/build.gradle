@@ -152,6 +152,7 @@ compileJava {
 
 def packageName = "graphql"
 
+jBallerinaPack.dependsOn ":${packageName}-schema-file-generator:build"
 unpackStdLibs.dependsOn jBallerinaPack
 copyStdlibs.dependsOn unpackStdLibs
 shadowJar.dependsOn copyStdlibs
@@ -159,6 +160,5 @@ copyJar.dependsOn shadowJar
 copyJar.dependsOn jar
 test.dependsOn copyJar
 jacocoTestReport.dependsOn test
-test.dependsOn ":${packageName}-schema-file-generator:build"
 
 build.dependsOn ":${packageName}-schema-file-generator:build"
