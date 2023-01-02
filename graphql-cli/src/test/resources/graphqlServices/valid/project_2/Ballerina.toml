@@ -3,5 +3,10 @@ org = "ballerina_sdl_file_generator_test"
 name = "project_2"
 version = "0.1.0"
 
+[[dependency]]
+org = "ballerina"
+name = "graphql"
+version = "1.5.0"
+
 [build-options]
 observabilityIncluded = true
