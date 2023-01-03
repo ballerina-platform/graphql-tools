@@ -263,6 +263,24 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test successful GraphQL command execution with documentation")
+    public void testSdlGenerationWithDocumentation() {
+        Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/valid", "service10.bal"));
+        String[] args = {"-i", graphqlService.toString(), "-o", this.tmpDir.toString(), "-s", "/graphql_docs"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        try {
+            graphqlCmd.execute();
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_graphql_docs.graphql")));
+            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_graphql_docs.graphql"));
+            String expectedSchema = readContentWithFormat(expectedSchemaFile);
+            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_graphql_docs.graphql"));
+            Assert.assertEquals(expectedSchema, generatedSchema);
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.toString());
+        }
+    }
+
     @Test(description = "Test GraphQL command execution with service includes compilation errors")
     public void testExecuteWithBalFileIncludeCompilationErrors() {
         Path graphqlService = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service1.bal"));

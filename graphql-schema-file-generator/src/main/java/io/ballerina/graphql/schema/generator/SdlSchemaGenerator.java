@@ -105,7 +105,7 @@ public class SdlSchemaGenerator {
             outStream.println("Given Ballerina file does not contain any GraphQL services");
             return;
         }
-        outStream.println("SDL Schema(s) generated successfully and copy to :");
+        outStream.println("SDL Schema(s) generated successfully and copied to :");
         Iterator<String> iterator = fileNames.iterator();
         while (iterator.hasNext()) {
             outStream.println("-- " + iterator.next());
