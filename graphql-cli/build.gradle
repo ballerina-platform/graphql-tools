@@ -119,6 +119,7 @@ test {
         initializeVariables
     }
     systemProperty "ballerina.home", bDistribution
+    systemProperty "ballerina.offline.flag", "true"
 
     useTestNG() {
         excludeGroups(disableGroups)
