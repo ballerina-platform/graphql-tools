@@ -271,10 +271,11 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         new CommandLine(graphqlCmd).parseArgs(args);
         try {
             graphqlCmd.execute();
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_graphql_docs.graphql")));
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_graphql_docs.graphql"));
+            String fileName = "schema_graphql_docs.graphql";
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve(fileName)));
+            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", fileName));
             String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_graphql_docs.graphql"));
+            String generatedSchema = readContentWithFormat(this.tmpDir.resolve(fileName));
             Assert.assertEquals(expectedSchema, generatedSchema);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.toString());
