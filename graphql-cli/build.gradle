@@ -18,6 +18,10 @@
 apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "jacoco"
 
+configurations.all {
+    resolutionStrategy.preferProjectModules()
+}
+
 configurations {
     balTools
     dist {
@@ -116,8 +120,7 @@ task initializeVariables {
 test {
     systemProperties = [ "target.dir": "$project.buildDir",
                          "distributions.dir": bDistribution,
-                         "ballerina.home": bDistribution,
-                         "ballerina.version": "jballerina-tools-${ballerinaLangVersion}"
+                         "ballerina.home": bDistribution
     ]
 
     dependsOn {
@@ -166,4 +169,4 @@ copyJar.dependsOn jar
 test.dependsOn copyJar
 jacocoTestReport.dependsOn test
 
-build.dependsOn ":${packageName}-schema-file-generator:build"
+build.dependsOn(jacocoTestReport)

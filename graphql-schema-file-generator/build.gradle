@@ -17,6 +17,10 @@
 
 apply plugin: "com.github.johnrengelman.shadow"
 
+configurations.all {
+    resolutionStrategy.preferProjectModules()
+}
+
 configurations {
     balTools
     dist {
