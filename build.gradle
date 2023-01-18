@@ -101,16 +101,10 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     configurations {
-        balTools
         ballerinaStdLibs
     }
 
     dependencies {
-        /* JBallerina Tools */
-        balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
-            transitive = false
-        }
-
         /* Standard libraries */
         ballerinaStdLibs "io.ballerina.stdlib:constraint-ballerina:${stdlibConstraintVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:io-ballerina:${stdlibIoVersion}"
