@@ -26,13 +26,21 @@ import org.testng.annotations.BeforeTest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static io.ballerina.graphql.common.TestUtils.DISTRIBUTION_FILE_NAME;
+import static io.ballerina.graphql.common.TestUtils.executeGraphql;
+import static io.ballerina.graphql.common.TestUtils.executeGraphqlWithErrors;
 
 /**
  * Utility class for Graphql tests.
@@ -100,5 +108,32 @@ public class GraphqlTest {
         String schemaContent = schemaLines.collect(Collectors.joining(System.getProperty("line.separator")));
         schemaLines.close();
         return schemaContent;
+    }
+
+    protected void executeCommand(String[] args) throws IOException, InterruptedException {
+        Path graphqlService = resourceDir.resolve("graphqlServices");
+        List<String> buildArgs = new LinkedList<>();
+        buildArgs.add(0, "graphql");
+        List<String> argList = Arrays.asList(args);
+        buildArgs.addAll(argList);
+        boolean successful = executeGraphql(DISTRIBUTION_FILE_NAME, graphqlService, buildArgs);
+    }
+
+    protected InputStream executeCommandWithErrors(String[] args) throws IOException, InterruptedException {
+        Path graphqlService = resourceDir.resolve("graphqlServices");
+        List<String> buildArgs = new LinkedList<>();
+        buildArgs.add(0, "graphql");
+        List<String> argList = Arrays.asList(args);
+        buildArgs.addAll(argList);
+        return executeGraphqlWithErrors(DISTRIBUTION_FILE_NAME, graphqlService, buildArgs);
+    }
+
+    protected InputStream executeCommandWithErrors(Path resourcePath, String[] args)
+            throws IOException, InterruptedException {
+        List<String> buildArgs = new LinkedList<>();
+        buildArgs.add(0, "graphql");
+        List<String> argList = Arrays.asList(args);
+        buildArgs.addAll(argList);
+        return executeGraphqlWithErrors(DISTRIBUTION_FILE_NAME, resourcePath, buildArgs);
     }
 }

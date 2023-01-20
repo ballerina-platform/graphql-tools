@@ -29,18 +29,23 @@ import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
 import io.ballerina.graphql.validator.SDLValidator;
+import org.apache.commons.lang3.StringUtils;
 import org.testng.Assert;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +64,12 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  */
 public class TestUtils {
     private static final String LINE_SEPARATOR = System.lineSeparator();
+    public static final PrintStream OUT = System.out;
+    public static final Path TARGET_DIR = Paths.get(System.getProperty("target.dir"));
+    public static final Path TEST_DISTRIBUTION_PATH = TARGET_DIR.resolve("extracted-distribution");
+    public static final String DISTRIBUTION_FILE_NAME = System.getProperty("ballerina.version");
+    private static String balFile = "bal";
+    public static final String WHITESPACE_REGEX = "\\s+";
 
     /**
      * Constructs an instance of the `Config` reading the given GraphQL config file.
@@ -151,5 +162,72 @@ public class TestUtils {
         generatedFile = (generatedFile.trim()).replaceAll("\\s+", "");
         expectedFile = (expectedFile.trim()).replaceAll("\\s+", "");
         Assert.assertTrue(generatedFile.contains(expectedFile));
+    }
+
+    /**
+     * Execute ballerina graphql command.
+     *
+     * @param distributionName The name of the distribution.
+     * @param sourceDirectory  The directory where the sources files are location.
+     * @param args             The arguments to be passed to the build command.
+     * @return True if build is successful, else false.
+     * @throws IOException          Error executing build command.
+     * @throws InterruptedException Interrupted error executing build command.
+     */
+    public static boolean executeGraphql(String distributionName, Path sourceDirectory, List<String> args) throws
+            IOException, InterruptedException {
+        Process process = getProcessBuilderResults(distributionName, sourceDirectory, args);
+        int exitCode = process.waitFor();
+        logOutput(process.getInputStream());
+        logOutput(process.getErrorStream());
+        return exitCode == 0;
+    }
+
+    /**
+     * Execute ballerina graphql command with bal file that consist errors.
+     *
+     * @param distributionName The name of the distribution.
+     * @param sourceDirectory  The directory where the sources files are location.
+     * @param args             The arguments to be passed to the build command.
+     * @return InputStream that include the error message.
+     * @throws IOException          Error executing build command.
+     */
+    public static InputStream executeGraphqlWithErrors(String distributionName, Path sourceDirectory, List<String> args)
+            throws IOException {
+        Process process = getProcessBuilderResults(distributionName, sourceDirectory, args);
+        return process.getErrorStream();
+    }
+
+    /**
+     *  Get Process from given arguments.
+     * @param distributionName The name of the distribution.
+     * @param sourceDirectory  The directory where the sources files are location.
+     * @param args             The arguments to be passed to the build command.
+     * @return process
+     * @throws IOException          Error executing build command.
+     */
+    public static Process getProcessBuilderResults(String distributionName, Path sourceDirectory, List<String> args)
+            throws IOException {
+
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            balFile = "bal.bat";
+        }
+        args.add(0, TEST_DISTRIBUTION_PATH.resolve(distributionName).resolve("bin").resolve(balFile).toString());
+        OUT.println("Executing: " + StringUtils.join(args, ' '));
+        ProcessBuilder pb = new ProcessBuilder(args);
+        pb.directory(sourceDirectory.toFile());
+        return pb.start();
+    }
+
+    /**
+     * Log the output of an input stream.
+     *
+     * @param inputStream The stream.
+     * @throws IOException Error reading the stream.
+     */
+    private static void logOutput(InputStream inputStream) throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            br.lines().forEach(OUT::println);
+        }
     }
 }
