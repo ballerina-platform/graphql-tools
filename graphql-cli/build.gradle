@@ -38,6 +38,7 @@ dependencies {
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
     implementation "info.picocli:picocli:${picocliVersion}"
     testImplementation "org.testng:testng:${testngVersion}"
+    testImplementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
     implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
     implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
@@ -120,7 +121,8 @@ task initializeVariables {
 test {
     systemProperties = [ "target.dir": "$project.buildDir",
                          "distributions.dir": bDistribution,
-                         "ballerina.home": bDistribution
+                         "ballerina.home": bDistribution,
+                         "ballerina.version": "jballerina-tools-${ballerinaLangVersion}"
     ]
 
     dependsOn {
