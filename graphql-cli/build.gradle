@@ -125,6 +125,11 @@ test {
                          "ballerina.version": "jballerina-tools-${ballerinaLangVersion}"
     ]
 
+    testLogging {
+        showStackTraces = true
+        showStandardStreams = true
+    }
+
     dependsOn {
         copyStdlibs
         initializeVariables
