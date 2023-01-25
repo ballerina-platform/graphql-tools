@@ -1,4 +1,0 @@
-type Mutation {
-  "Add new reviews and return the review values"
-  createReview(episode: Episode!, reviewInput: ReviewInput!): Review!
-}

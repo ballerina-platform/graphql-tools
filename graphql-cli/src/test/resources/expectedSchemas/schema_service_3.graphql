@@ -11,16 +11,12 @@ type Query {
   version(name: String!): String!
 }
 
-"This enum represents weekdays"
 enum Weekday {
-  "Saturday is a holiday"
   SATURDAY
-  "Friday is not a holiday"
   FRIDAY
   THURSDAY
   WEDNESDAY
   TUESDAY
   MONDAY
-  "Sunday is a holiday"
   SUNDAY
 }
