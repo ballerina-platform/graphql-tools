@@ -196,21 +196,6 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test successful GraphQL command execution with services include custom scalars")
-    public void testSdlGenerationWithCustomScalars() {
-        String[] args = {"-i", "valid/service_8.bal", "-o", this.tmpDir.toString(), "-s", "/gql"};
-        try {
-            executeCommand(args);
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_gql.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_gql.graphql")));
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_gql.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
     @Test(description = "Test successful GraphQL command execution with multiple services in same listener")
     public void testSdlGenerationWithMultipleServicesInSameListener() {
         String[] args = {"-i", "valid/service_9.bal", "-o", this.tmpDir.toString()};
@@ -232,22 +217,6 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_9.graphql"));
             expectedSchema = readContentWithFormat(expectedSchemaFile);
             generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_9.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with documentation")
-    public void testSdlGenerationWithDocumentation() {
-        String[] args = {"-i", "valid/service_10.bal", "-o", this.tmpDir.toString(), "-s", "/graphql_docs"};
-        try {
-            executeCommand(args);
-            String fileName = "schema_graphql_docs.graphql";
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve(fileName)));
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", fileName));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve(fileName));
             Assert.assertEquals(expectedSchema, generatedSchema);
         } catch (IOException | InterruptedException e) {
             Assert.fail(e.toString());

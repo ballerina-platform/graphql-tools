@@ -21,17 +21,13 @@ const string quote2 = "I am the one who knocks!";
 const string quote3 = "I can make them hurt if I want to!";
 const float CONVERSION_KG_TO_LBS = 2.205;
 
-# This enum represents weekdays
 public enum Weekday {
-    # Sunday is a holiday
     SUNDAY,
     MONDAY,
     TUESDAY,
     WEDNESDAY,
     THURSDAY,
-    # Friday is not a holiday
     FRIDAY,
-    # Saturday is a holiday
     SATURDAY
 }
 
