@@ -64,6 +64,7 @@ task copyStdlibs(type: Copy) {
     def ballerinaDist = "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}"
     into ballerinaDist
 
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     /* Standard Libraries */
     configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
         def artifactExtractedPath = "${project.buildDir}/extracted-distribution/" + artifact.name + "-zip"
