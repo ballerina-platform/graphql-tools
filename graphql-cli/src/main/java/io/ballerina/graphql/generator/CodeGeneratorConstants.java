@@ -26,6 +26,7 @@ import java.util.List;
  * This class represents GraphQL client code generation related constants.
  */
 public class CodeGeneratorConstants {
+    public static final String GRAPHQL_API = "GraphqlApi";
     public static final String ROOT_PROJECT_NAME = "root";
     public static final String MODULES_PATH = "/modules/";
     public static final String CLIENT_FILE_NAME = "client.bal";
@@ -34,6 +35,8 @@ public class CodeGeneratorConstants {
     public static final String CONFIG_TYPES_FILE_NAME = "config_types.bal";
     public static final String SCHEMA_PATTERN = "schema";
     public static final String DOCUMENTS_PATTERN = "documents";
+    public static final String GET = "get";
+    public static final String ID = "id";
 
     public static final String SLASH = "/";
     public static final String SEMICOLON = ";";
@@ -53,6 +56,8 @@ public class CodeGeneratorConstants {
     public static final String CLIENT_CLASS_PREFIX = "Graphql";
     public static final String IDL_PLUGIN_CLIENT = "'client";
     public static final String CLIENT = "Client";
+    public static final String SCHEMA = "schema";
+    public static final String LISTENER = "Listener";
     public static final String GRAPHQL_CLIENT = "graphqlClient";
     public static final String INIT = "init";
     public static final String INIT_RETURN_TYPE = "graphql:ClientError";
@@ -76,6 +81,8 @@ public class CodeGeneratorConstants {
     public static final String TARGET_TYPE_PARAM_TYPE_NAME = "typedesc<graphql:DataResponse>";
     public static final String TARGET_TYPE_PARAM_NAME = "targetType";
     public static final String GRAPHQL_CLIENT_TYPE_NAME = "graphql:Client";
+    public static final String GRAPHQL_SERVICE_TYPE_NAME = "graphql:Service";
+    public static final String GRAPHQL_LISTENER_TYPE_NAME = "graphql:Listener";
     public static final String GRAPHQL_CLIENT_VAR_NAME = "clientEp";
     public static final String GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME = "graphqlClientConfig";
     public static final String GRAPHQL_VARIABLES_TYPE_NAME = "map<anydata>";

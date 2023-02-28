@@ -51,13 +51,17 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.graphql.cmd.Constants.BAL_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
+import static io.ballerina.graphql.cmd.Constants.SERVICE;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.SCHEMA;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_CANNOT_READ_BAL_FILE;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
 
@@ -93,6 +97,10 @@ public class GraphqlCmd implements BLauncherCmd {
                     "If this is not provided, generate the SDL schema for each GraphQL service in the source file.")
     private String serviceBasePath;
 
+    @CommandLine.Option(names = {"-m", "--mode"},
+            description = "Ballerina source [service]")
+    private String mode;
+
     @CommandLine.Parameters
     private List<String> argList;
 
@@ -107,8 +115,8 @@ public class GraphqlCmd implements BLauncherCmd {
     /**
      * Constructor override, which takes output stream and execution dir as inputs.
      *
-     * @param outStream      output stream from ballerina
-     * @param executionDir   defines the directory location of  execution of ballerina command
+     * @param outStream    output stream from ballerina
+     * @param executionDir defines the directory location of  execution of ballerina command
      */
     public GraphqlCmd(PrintStream outStream, Path executionDir) {
         new GraphqlCmd(outStream, executionDir, true);
@@ -117,9 +125,9 @@ public class GraphqlCmd implements BLauncherCmd {
     /**
      * Constructor override, which takes output stream and execution dir and exits when finish as inputs.
      *
-     * @param outStream         output stream from ballerina
-     * @param executionDir      defines the directory location of  execution of ballerina command
-     * @param exitWhenFinish    exit when finish the execution
+     * @param outStream      output stream from ballerina
+     * @param executionDir   defines the directory location of  execution of ballerina command
+     * @param exitWhenFinish exit when finish the execution
      */
     public GraphqlCmd(PrintStream outStream, Path executionDir, boolean exitWhenFinish) {
         this.outStream = outStream;
@@ -147,7 +155,7 @@ public class GraphqlCmd implements BLauncherCmd {
     /**
      * Validates the input flags in the GraphQL command line tool.
      *
-     * @throws CmdException               when a graphql command related error occurs
+     * @throws CmdException when a graphql command related error occurs
      */
     private void validateInputFlags() throws CmdException {
         // Check if CLI help flag argument is present
@@ -173,40 +181,71 @@ public class GraphqlCmd implements BLauncherCmd {
     /**
      * Execute the correct operation according to the given inputs.
      *
-     * @throws CmdException               when a graphql command related error occurs
-     * @throws ParseException             when a parsing related error occurs
-     * @throws IOException                If an I/O error occurs
-     * @throws GenerationException        when a graphql client generation related error occurs
-     * @throws ValidationException        when validation related error occurs
-     * @throws SchemaFileGenerationException  when a SDL schema generation related error occurs
+     * @throws CmdException                  when a graphql command related error occurs
+     * @throws ParseException                when a parsing related error occurs
+     * if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
+     *             generateClient(filePath);
+     *         } else if (filePath.endsWith(BAL_EXTENSION)) {
+     *             generateSchema(filePath);
+     *         } else if (filePath.endsWith(GRAPHQL_EXTENSION)) {
+     *             generateService(filePath);
+     *         } else {
+     *             throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+     *         }@throws IOException                   If an I/O error occurs
+     * @throws GenerationException           when a graphql client generation related error occurs
+     * @throws ValidationException           when validation related error occurs
+     * @throws SchemaFileGenerationException when a SDL schema generation related error occurs
      */
     private void executeOperation()
             throws CmdException, ParseException, IOException, ValidationException, GenerationException,
             SchemaFileGenerationException {
         String filePath = argList.get(0);
-        if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
-            generateClient(filePath);
-        } else if (filePath.endsWith(BAL_EXTENSION)) {
-            generateSchema(filePath);
+
+        if (CLIENT.toLowerCase().equals(mode)) {
+            if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
+                generateClient(filePath);
+            } else {
+                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+            }
+        } else if (SCHEMA.equals(mode)) {
+            if (filePath.endsWith(BAL_EXTENSION)) {
+                generateSchema(filePath);
+            } else {
+                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+            }
+        } else if (SERVICE.equals(mode)) {
+            if (filePath.endsWith(GRAPHQL_EXTENSION)) {
+                generateService(filePath);
+            } else {
+                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+            }
         } else {
-            throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+            if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
+                generateClient(filePath);
+            } else if (filePath.endsWith(BAL_EXTENSION)) {
+                generateSchema(filePath);
+            } else if (filePath.endsWith(GRAPHQL_EXTENSION)) {
+                generateService(filePath);
+            } else {
+                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+            }
         }
     }
 
     /**
      * Generate the client according to the given configurations.
      *
-     * @throws ParseException             when a parsing related error occurs
-     * @throws IOException                If an I/O error occurs
-     * @throws ValidationException        when validation related error occurs
-     * @throws GenerationException        when a code generation error occurs
+     * @throws ParseException      when a parsing related error occurs
+     * @throws IOException         If an I/O error occurs
+     * @throws ValidationException when validation related error occurs
+     * @throws GenerationException when a code generation error occurs
      */
     private void generateClient(String filePath)
             throws ParseException, IOException, ValidationException, GenerationException {
         Config config = readConfig(filePath);
         ConfigValidator.getInstance().validate(config);
-        List<GraphqlProject> projects = populateProjects(config);
-        for (GraphqlProject project : projects) {
+        List<GraphqlClientProject> projects = populateProjects(config);
+        for (GraphqlClientProject project : projects) {
             SDLValidator.getInstance().validate(project);
             QueryValidator.getInstance().validate(project);
         }
@@ -215,10 +254,20 @@ public class GraphqlCmd implements BLauncherCmd {
         }
     }
 
+    private void generateService(String filePath)
+            throws IOException, ValidationException, GenerationException {
+        GraphqlServiceProject graphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, "./");
+
+        SDLValidator.getInstance().validate(graphqlProject);
+
+        CodeGenerator.getInstance().generate(graphqlProject);
+    }
+
     /**
      * Generate the SDL schema according to the given input file.
      *
-     * @throws SchemaFileGenerationException      when a SDL schema generation related error occurs
+     * @throws SchemaFileGenerationException when a SDL schema generation related error occurs
      */
     private void generateSchema(String fileName) throws SchemaFileGenerationException {
         final File balFile = new File(fileName);
@@ -241,9 +290,9 @@ public class GraphqlCmd implements BLauncherCmd {
     /**
      * Constructs an instance of the `Config` reading the given GraphQL config file.
      *
-     * @return                              the instance of the Graphql config file
-     * @throws FileNotFoundException        when the GraphQL config file doesn't exist
-     * @throws ParseException               when a parsing related error occurs
+     * @return the instance of the Graphql config file
+     * @throws FileNotFoundException when the GraphQL config file doesn't exist
+     * @throws ParseException        when a parsing related error occurs
      */
     private Config readConfig(String filePath) throws FileNotFoundException, ParseException {
         try {
@@ -263,37 +312,37 @@ public class GraphqlCmd implements BLauncherCmd {
     /**
      * Populate the projects with information given in the GraphQL config file.
      *
-     * @param config         the instance of the Graphql config file
-     * @return               the list of instances of the GraphQL projects
+     * @param config the instance of the Graphql config file
+     * @return the list of instances of the GraphQL projects
      */
-    private List<GraphqlProject> populateProjects(Config config) {
-        List<GraphqlProject> graphqlProjects = new ArrayList<>();
+    private List<GraphqlClientProject> populateProjects(Config config) {
+        List<GraphqlClientProject> graphqlClientProjects = new ArrayList<>();
         String schema = config.getSchema();
         List<String> documents = config.getDocuments();
         Extension extensions = config.getExtensions();
         Map<String, Project> projects = config.getProjects();
 
         if (schema != null || documents != null || extensions != null) {
-            graphqlProjects.add(new GraphqlProject(ROOT_PROJECT_NAME, schema, documents, extensions,
+            graphqlClientProjects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, extensions,
                     getTargetOutputPath().toString()));
         }
 
         if (projects != null) {
             for (String projectName : projects.keySet()) {
-                graphqlProjects.add(new GraphqlProject(projectName,
+                graphqlClientProjects.add(new GraphqlClientProject(projectName,
                         projects.get(projectName).getSchema(),
                         projects.get(projectName).getDocuments(),
                         projects.get(projectName).getExtensions(),
                         getTargetOutputPath().toString()));
             }
         }
-        return graphqlProjects;
+        return graphqlClientProjects;
     }
 
     /**
      * Gets the target output path for the code generation.
      *
-     * @return      the target output path for the code generation
+     * @return the target output path for the code generation
      */
     private Path getTargetOutputPath() {
         Path targetOutputPath = executionPath;
@@ -313,13 +362,16 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     @Override
-    public void printLongDesc(StringBuilder stringBuilder) {}
+    public void printLongDesc(StringBuilder stringBuilder) {
+    }
 
     @Override
-    public void printUsage(StringBuilder stringBuilder) {}
+    public void printUsage(StringBuilder stringBuilder) {
+    }
 
     @Override
-    public void setParentCmdParser(picocli.CommandLine commandLine) {}
+    public void setParentCmdParser(picocli.CommandLine commandLine) {
+    }
 
     /**
      * Exit with error code 1.

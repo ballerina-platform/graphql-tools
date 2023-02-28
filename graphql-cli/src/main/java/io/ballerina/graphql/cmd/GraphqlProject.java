@@ -19,35 +19,26 @@
 package io.ballerina.graphql.cmd;
 
 import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.cmd.pojo.Extension;
-
-import java.util.List;
 
 /**
  * Represents a GraphQL project in GraphQL config file.
  */
-public class GraphqlProject {
+public abstract class GraphqlProject {
 
     private String name;
     private String schema; // Web URL or File URL
-    private List<String> documents;
-    private Extension extensions;
     private String outputPath;
     private GraphQLSchema graphQLSchema; // Populated while validating
 
-    public GraphqlProject(String name, String schema, List<String> documents, Extension extensions, String outputPath) {
+    public GraphqlProject(String name, String schema, String outputPath) {
         this.name = name;
         this.schema = schema;
-        this.documents = documents;
-        this.extensions = extensions;
         this.outputPath = outputPath;
     }
 
-    public GraphqlProject(String name, String schema, List<String> documents, Extension extensions) {
+    public GraphqlProject(String name, String schema) {
         this.name = name;
         this.schema = schema;
-        this.documents = documents;
-        this.extensions = extensions;
     }
 
     public String getName() {
@@ -56,14 +47,6 @@ public class GraphqlProject {
 
     public String getSchema() {
         return schema;
-    }
-
-    public List<String> getDocuments() {
-        return documents;
-    }
-
-    public Extension getExtensions() {
-        return extensions;
     }
 
     public String getOutputPath() {

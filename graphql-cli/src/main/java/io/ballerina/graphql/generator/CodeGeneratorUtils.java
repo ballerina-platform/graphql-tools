@@ -184,6 +184,13 @@ public class CodeGeneratorUtils {
     }
 
     /**
+     * Gets the service declaration name for a given document.
+     */
+    public static String getServiceDeclarationType(GeneratorContext generatorContext) {
+        return "CustomerApi";
+    }
+
+    /**
      * Gets the remote function signature return type name.
      *
      * @param operationName    the name of the operation

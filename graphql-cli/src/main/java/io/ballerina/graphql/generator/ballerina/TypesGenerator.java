@@ -24,19 +24,14 @@ import graphql.language.InlineFragment;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
 import graphql.schema.GraphQLSchema;
-import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
-import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.graphql.exception.TypesGenerationException;
 import io.ballerina.graphql.generator.graphql.QueryReader;
 import io.ballerina.graphql.generator.graphql.SpecReader;
 import io.ballerina.graphql.generator.graphql.components.ExtendedFieldDefinition;
@@ -44,17 +39,12 @@ import io.ballerina.graphql.generator.graphql.components.ExtendedFragmentDefinit
 import io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinition;
 import io.ballerina.graphql.generator.graphql.components.SelectionData;
 import io.ballerina.graphql.generator.model.FieldType;
-import io.ballerina.tools.text.TextDocument;
-import io.ballerina.tools.text.TextDocuments;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ballerinalang.formatter.core.Formatter;
-import org.ballerinalang.formatter.core.FormatterException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -64,14 +54,12 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createIdentifierToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createIncludedRecordParameterNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMetadataNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordFieldNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypeDefinitionNode;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.ASTERISK_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACE_PIPE_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACE_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_BRACE_PIPE_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_BRACE_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.PUBLIC_KEYWORD;
@@ -79,7 +67,6 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.QUESTION_MARK_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RECORD_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.FRAGMENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MUTATION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.NEW_LINE;
@@ -103,50 +90,6 @@ public class TypesGenerator {
     }
 
     /**
-     * Generates the types file content.
-     *
-     * @param schema                        the object instance of the GraphQL schema (SDL)
-     * @param documents                     the list of documents of a given GraphQL project
-     * @return                              the types file content
-     * @throws TypesGenerationException     when an error occurs during type generation
-     */
-    public String generateSrc(GraphQLSchema schema, List<String> documents) throws TypesGenerationException {
-        try {
-            String generatedSyntaxTree = Formatter.format(generateSyntaxTree(schema, documents)).toString();
-            return Formatter.format(generatedSyntaxTree);
-        } catch (FormatterException | IOException e) {
-            throw new TypesGenerationException(e.getMessage());
-        }
-    }
-
-    /**
-     * Generates the types syntax tree.
-     *
-     * @param schema            the object instance of the GraphQL schema (SDL)
-     * @param documents         the list of documents of a given GraphQL project
-     * @return                  Syntax tree for the types.bal
-     * @throws IOException      If an I/O error occurs
-     */
-    public SyntaxTree generateSyntaxTree(GraphQLSchema schema, List<String> documents) throws IOException {
-        List<TypeDefinitionNode> typeDefinitionNodeList = new LinkedList<>();
-        NodeList<ImportDeclarationNode> importsList = createEmptyNodeList();
-
-        addInputRecords(schema, typeDefinitionNodeList);
-        addQueryResponseRecords(schema, documents, typeDefinitionNodeList);
-
-        NodeList<ModuleMemberDeclarationNode> members =  createNodeList(typeDefinitionNodeList.toArray(
-                new TypeDefinitionNode[typeDefinitionNodeList.size()]));
-        ModulePartNode modulePartNode = createModulePartNode(
-                importsList,
-                members,
-                createToken(EOF_TOKEN));
-
-        TextDocument textDocument = TextDocuments.from(EMPTY_STRING);
-        SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
-        return syntaxTree.modifyWith(modulePartNode);
-    }
-
-    /**
      * Create query response records.
      *
      * @param schema                    the object instance of the GraphQL schema (SDL)
@@ -154,7 +97,7 @@ public class TypesGenerator {
      * @param typeDefinitionNodeList    the list of TypeDefinitionNodes
      * @throws IOException              If an I/O error occurs
      */
-    private void addQueryResponseRecords(GraphQLSchema schema, List<String> documents, List<TypeDefinitionNode>
+    protected void addQueryResponseRecords(GraphQLSchema schema, List<String> documents, List<TypeDefinitionNode>
             typeDefinitionNodeList) throws IOException {
         String queryObjectTypeName = QUERY;
         String mutationObjectTypeName = MUTATION;
@@ -409,7 +352,7 @@ public class TypesGenerator {
      * @param schema                        the object instance of the GraphQL schema (SDL)
      * @param typeDefinitionNodeList        the list of typeDefinitionNodes
      */
-    private void addInputRecords(GraphQLSchema schema, List<TypeDefinitionNode> typeDefinitionNodeList) {
+    protected void addInputRecords(GraphQLSchema schema, List<TypeDefinitionNode> typeDefinitionNodeList) {
         List<String> inputObjectTypes = SpecReader.getInputObjectTypeNames(schema);
         for (String inputObjectType: inputObjectTypes) {
             List<Node> recordFieldList = new ArrayList<>();

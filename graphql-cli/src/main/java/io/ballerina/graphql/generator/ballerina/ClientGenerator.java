@@ -169,7 +169,9 @@ public class ClientGenerator {
             throws IOException {
         List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
         // Generate client class
-        members.add(generateClientClass(queryDocuments, graphQLSchema, authConfig, generatorContext));
+        ClassDefinitionNode classDefinitionNode =
+                generateClientClass(queryDocuments, graphQLSchema, authConfig, generatorContext);
+        members.add(classDefinitionNode);
         return createNodeList(members);
     }
 

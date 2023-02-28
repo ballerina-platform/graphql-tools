@@ -52,11 +52,13 @@ public class Constants {
             "project is configured with a file path for queries file location which does not exist. " +
             "\nPlease provide a valid file path for the schema section " +
             "under each project in the YAML file. \nInvalid file path ";
+    public static final String MESSAGE_FOR_INVALID_MODE = "The mode flag value should be 'client' or 'service'";
 
     // GraphQL config file extensions supported
     public static final String YAML_EXTENSION = ".yaml";
     public static final String YML_EXTENSION = ".yml";
     public static final String BAL_EXTENSION = ".bal";
+    public static final String GRAPHQL_EXTENSION = ".graphql";
 
     // GraphQL Introspection query
     public static final String INTROSPECTION_QUERY =
@@ -157,4 +159,5 @@ public class Constants {
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_JSON = "application/json";
     public static final String URL_RECOGNIZER = "http";
+    public static final String SERVICE = "service";
 }
