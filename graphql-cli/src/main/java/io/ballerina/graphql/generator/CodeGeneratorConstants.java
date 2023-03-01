@@ -30,6 +30,7 @@ public class CodeGeneratorConstants {
     public static final String ROOT_PROJECT_NAME = "root";
     public static final String MODULES_PATH = "/modules/";
     public static final String CLIENT_FILE_NAME = "client.bal";
+    public static final String SERVICE_FILE_NAME = "service.bal";
     public static final String TYPES_FILE_NAME = "types.bal";
     public static final String UTILS_FILE_NAME = "utils.bal";
     public static final String CONFIG_TYPES_FILE_NAME = "config_types.bal";
@@ -103,6 +104,9 @@ public class CodeGeneratorConstants {
     public static final String DISPLAY_ANNOTATION_LABEL_NAME = "label";
     public static final String DISPLAY_ANNOTATION_KIND_FIELD = "kind";
     public static final String DISPLAY_ANNOTATION_KIND_PASSWORD = "password";
+
+    public static final String PORT = "port";
+    public static final String PORT_NUMBER_DEFAULT = "9090";
 
     // OS specific line separator
     public static final String LINE_SEPARATOR = System.lineSeparator();

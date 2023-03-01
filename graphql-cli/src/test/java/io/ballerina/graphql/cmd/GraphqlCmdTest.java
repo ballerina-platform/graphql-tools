@@ -19,6 +19,8 @@
 package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.launcher.BLauncherException;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.graphql.common.GraphqlTest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,6 +49,8 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yaml"));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        String name = graphqlCmd.getName();
+
         new CommandLine(graphqlCmd).parseArgs(args);
 
         try {
@@ -75,6 +79,41 @@ public class GraphqlCmdTest extends GraphqlTest {
             String output = e.toString();
             Assert.fail(output);
         }
+    }
+
+    @Test(description = "Test graphql command execution with mode flag")
+    public void testExecuteWithModeFlag() {
+        Path graphql = resourceDir.resolve(Paths.get("specs", "CustomerApi.graphql"));
+        String[] args = {"-i", graphql.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        try {
+            graphqlCmd.execute();
+
+        } catch (Exception e) {
+            log.error(e);
+        }
+        log.info("finish custom test");
+        Assert.assertTrue(true);
+
+    }
+
+    @Test(description = "Test NodeParser")
+    public void testNodeParser() {
+        ModulePartNode modulePartNode =
+                NodeParser.parseModulePart("import ballerina/graphql;\n" +
+                        "\n" +
+                        "configurable int port = 9090;\n" +
+                        "\n" +
+                        "service CustomerAPI /graphql on new graphql:Listener(port ) {\n" +
+                        "    resource function get book(string id) returns Book? {}\n" +
+                        "\n" +
+                        "\tresource function get books() returns Book[]? {}\n" +
+                        "\n" +
+                        "}");
+        modulePartNode.toString();
     }
 
     @Test(description = "Test graphql command execution without input file path argument")

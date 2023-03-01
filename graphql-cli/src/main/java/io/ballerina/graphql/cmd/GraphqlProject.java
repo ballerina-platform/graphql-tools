@@ -57,6 +57,11 @@ public abstract class GraphqlProject {
         return graphQLSchema;
     }
 
+    public String getFileName() {
+        String[] splits = schema.split("/");
+        return splits[splits.length - 1].split("\\.")[0];
+    }
+
     public void setGraphQLSchema(GraphQLSchema graphQLSchema) {
         this.graphQLSchema = graphQLSchema;
     }
