@@ -101,6 +101,10 @@ public class GraphqlCmd implements BLauncherCmd {
             description = "Ballerina source [service]")
     private String mode;
 
+    @CommandLine.Option(names = {"--use-records-for-objects"}, description = "Force the generator to generate records" +
+            " types where ever possible")
+    private boolean useRecordsForObjectsFlag;
+
     @CommandLine.Parameters
     private List<String> argList;
 
@@ -176,6 +180,8 @@ public class GraphqlCmd implements BLauncherCmd {
             outStream.println(commandUsageInfo);
             exitError(this.exitWhenFinish);
         }
+
+        // TODO: Validate other flags
     }
 
     /**

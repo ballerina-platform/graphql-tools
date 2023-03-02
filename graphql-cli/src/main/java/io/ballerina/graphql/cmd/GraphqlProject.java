@@ -65,4 +65,6 @@ public abstract class GraphqlProject {
     public void setGraphQLSchema(GraphQLSchema graphQLSchema) {
         this.graphQLSchema = graphQLSchema;
     }
+
+    public abstract GenerationType getGenerationType();
 }

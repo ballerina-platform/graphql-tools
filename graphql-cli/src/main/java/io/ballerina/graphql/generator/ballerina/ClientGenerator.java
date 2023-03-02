@@ -93,6 +93,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.INIT;
 public class ClientGenerator {
     private static ClientGenerator clientGenerator = null;
 
+    // TODO: stop using singleton
     public static ClientGenerator getInstance() {
         if (clientGenerator == null) {
             clientGenerator = new ClientGenerator();

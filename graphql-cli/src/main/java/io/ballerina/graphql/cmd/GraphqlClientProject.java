@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class GraphqlClientProject extends GraphqlProject {
     private List<String> documents;
-
+    private static GenerationType generationType = GenerationType.CLIENT;
     private Extension extensions;
 
     public GraphqlClientProject(String name, String schema, List<String> documents, Extension extensions,
@@ -33,5 +33,7 @@ public class GraphqlClientProject extends GraphqlProject {
         return extensions;
     }
 
-
+    public GenerationType getGenerationType() {
+        return generationType;
+    }
 }

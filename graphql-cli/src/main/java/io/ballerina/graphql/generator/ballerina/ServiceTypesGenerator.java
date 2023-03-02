@@ -38,6 +38,7 @@ import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 import io.ballerina.graphql.exception.TypesGenerationException;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.graphql.Constants;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
@@ -71,45 +72,6 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createReturnTypeDesc
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypeDefinitionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypeReferenceNode;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.ASTERISK_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.BOOLEAN_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.BOOLEAN_TYPE_DESC;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLASS_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACE_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACKET_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_PAREN_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.COMMA_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.FLOAT_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.FLOAT_TYPE_DESC;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.FUNCTION_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.INT_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.INT_TYPE_DESC;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_BRACE_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_BRACKET_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_PAREN_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.QUESTION_MARK_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_ACCESSOR_DECLARATION;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_ACCESSOR_DEFINITION;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.RESOURCE_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.RETURNS_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.SERVICE_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.STREAM_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_TYPE_DESC;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GET;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.MUTATION;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SUBSCRIPTION;
-import static io.ballerina.graphql.generator.graphql.Constants.GRAPHQL_BOOLEAN_TYPE;
-import static io.ballerina.graphql.generator.graphql.Constants.GRAPHQL_FLOAT_TYPE;
-import static io.ballerina.graphql.generator.graphql.Constants.GRAPHQL_ID_TYPE;
-import static io.ballerina.graphql.generator.graphql.Constants.GRAPHQL_INT_TYPE;
-import static io.ballerina.graphql.generator.graphql.Constants.GRAPHQL_STRING_TYPE;
 
 /**
  * Generates the Ballerina syntax tree for the service types.
@@ -120,6 +82,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private String fileName;
 
+    // TODO: stop using singleton
     public static ServiceTypesGenerator getInstance() {
         if (serviceTypesGenerator == null) {
             serviceTypesGenerator = new ServiceTypesGenerator();
@@ -142,17 +105,19 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
         List<ModuleMemberDeclarationNode> typeDefinitionNodes = new LinkedList<>();
         addServiceObjectTypeDefinitionNode(schema, typeDefinitionNodes);
-
+//        addTypes(schema, typeDefinitionNodes);
         addServiceClassTypes(schema, typeDefinitionNodes);
-
         NodeList<ModuleMemberDeclarationNode> members = createNodeList(typeDefinitionNodes);
+        ModulePartNode modulePartNode = createModulePartNode(imports, members, createToken(SyntaxKind.EOF_TOKEN));
 
-        ModulePartNode modulePartNode = createModulePartNode(imports, members, createToken(EOF_TOKEN));
-
-        TextDocument textDocument = TextDocuments.from(EMPTY_STRING);
+        TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
         SyntaxTree modifiedSyntaxTree = syntaxTree.modifyWith(modulePartNode);
         return modifiedSyntaxTree;
+    }
+
+    private void addTypes(GraphQLSchema schema, List<ModuleMemberDeclarationNode> typeDefinitionNodes) {
+
     }
 
     private void addServiceClassTypes(GraphQLSchema schema, List<ModuleMemberDeclarationNode> typeDefinitionNodes) {
@@ -164,7 +129,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
             String key = typeEntry.getKey();
             GraphQLNamedType type = typeEntry.getValue();
 
-            if (!key.startsWith("__") && !QUERY.equals(key) && !MUTATION.equals(key) && !SUBSCRIPTION.equals(key) &&
+            // TODO: generate record type for input type
+            if (!key.startsWith("__") && !CodeGeneratorConstants.QUERY.equals(key) &&
+                    !CodeGeneratorConstants.MUTATION.equals(key) && !CodeGeneratorConstants.SUBSCRIPTION.equals(key) &&
                     !(type instanceof GraphQLScalarType)) {
                 typeDefinitionNodes.add(generateServiceClassType(type));
             }
@@ -172,10 +139,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private ClassDefinitionNode generateServiceClassType(GraphQLNamedType type) {
-        NodeList<Token> classTypeQualifiers = createNodeList(createToken(SERVICE_KEYWORD));
-
+        NodeList<Token> classTypeQualifiers = createNodeList(createToken(SyntaxKind.SERVICE_KEYWORD));
         IdentifierToken className = createIdentifierToken(type.getName());
-
         List<GraphQLFieldDefinition> fieldDefinitions = new ArrayList<>();
 
         for (GraphQLSchemaElement fieldDefinition : type.getChildren()) {
@@ -187,9 +152,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
         NodeList<Node> serviceClassTypeMembers = generateServiceClassTypeMembers(fieldDefinitions);
 
         ClassDefinitionNode classDefinition =
-                createClassDefinitionNode(null, null, classTypeQualifiers, createToken(CLASS_KEYWORD), className,
-                        createToken(OPEN_BRACE_TOKEN), serviceClassTypeMembers, createToken(CLOSE_BRACE_TOKEN),
-                        createToken(SEMICOLON_TOKEN));
+                createClassDefinitionNode(null, null, classTypeQualifiers, createToken(SyntaxKind.CLASS_KEYWORD),
+                        className, createToken(SyntaxKind.OPEN_BRACE_TOKEN), serviceClassTypeMembers,
+                        createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
 
         return classDefinition;
     }
@@ -199,7 +164,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
         for (GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
             FunctionDefinitionNode functionDefinition = generateServiceClassTypeMember(fieldDefinition);
-
             members.add(functionDefinition);
         }
 
@@ -207,7 +171,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private FunctionDefinitionNode generateServiceClassTypeMember(GraphQLFieldDefinition fieldDefinition) {
-        NodeList<Token> memberQualifiers = createNodeList(createToken(RESOURCE_KEYWORD));
+        NodeList<Token> memberQualifiers = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD));
 
         NodeList<Node> memberRelativeResourcePaths = createNodeList(createIdentifierToken(fieldDefinition.getName()));
 
@@ -218,37 +182,37 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType());
 
         FunctionSignatureNode functionSignature =
-                createFunctionSignatureNode(createToken(OPEN_PAREN_TOKEN), methodSignatureParameters,
-                        createToken(CLOSE_PAREN_TOKEN), methodSignatureReturnTypeDescriptor);
+                createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN), methodSignatureParameters,
+                        createToken(SyntaxKind.CLOSE_PAREN_TOKEN), methodSignatureReturnTypeDescriptor);
 
         FunctionBodyBlockNode functionBody =
-                createFunctionBodyBlockNode(createToken(OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
-                        createToken(CLOSE_BRACE_TOKEN), createToken(SEMICOLON_TOKEN));
+                createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
+                        createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
 
         FunctionDefinitionNode functionDefinition =
-                createFunctionDefinitionNode(RESOURCE_ACCESSOR_DEFINITION, null, memberQualifiers,
-                        createToken(FUNCTION_KEYWORD), createIdentifierToken(GET), memberRelativeResourcePaths,
-                        functionSignature, functionBody);
+                createFunctionDefinitionNode(SyntaxKind.RESOURCE_ACCESSOR_DEFINITION, null, memberQualifiers,
+                        createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
+                        memberRelativeResourcePaths, functionSignature, functionBody);
 
         return functionDefinition;
     }
 
     private void addServiceObjectTypeDefinitionNode(GraphQLSchema schema,
                                                     List<ModuleMemberDeclarationNode> typeDefinitionNodes) {
-        assert this.fileName != null;
         IdentifierToken tokenTypeName = createIdentifierToken(this.fileName);
 
-        NodeList<Token> objectTypeQualifiers = createNodeList(createToken(SERVICE_KEYWORD));
+        NodeList<Token> objectTypeQualifiers = createNodeList(createToken(SyntaxKind.SERVICE_KEYWORD));
 
         NodeList<Node> serviceObjectTypeMembers = generateServiceObjectTypeMembers(schema);
 
         ObjectTypeDescriptorNode serviceObjectTypeDescriptor =
-                createObjectTypeDescriptorNode(objectTypeQualifiers, createToken(OBJECT_KEYWORD),
-                        createToken(OPEN_BRACE_TOKEN), serviceObjectTypeMembers, createToken(CLOSE_BRACE_TOKEN));
+                createObjectTypeDescriptorNode(objectTypeQualifiers, createToken(SyntaxKind.OBJECT_KEYWORD),
+                        createToken(SyntaxKind.OPEN_BRACE_TOKEN), serviceObjectTypeMembers,
+                        createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
 
         TypeDefinitionNode serviceObjectTypeDefinition =
-                createTypeDefinitionNode(null, null, createToken(TYPE_KEYWORD), tokenTypeName,
-                        serviceObjectTypeDescriptor, createToken(SEMICOLON_TOKEN));
+                createTypeDefinitionNode(null, null, createToken(SyntaxKind.TYPE_KEYWORD), tokenTypeName,
+                        serviceObjectTypeDescriptor, createToken(SyntaxKind.SEMICOLON_TOKEN));
 
         typeDefinitionNodes.add(serviceObjectTypeDefinition);
     }
@@ -256,8 +220,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private NodeList<Node> generateServiceObjectTypeMembers(GraphQLSchema schema) {
         List<Node> members = new ArrayList<>();
 
-        TypeReferenceNode typeReferenceNode = createTypeReferenceNode(createToken(ASTERISK_TOKEN),
-                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_SERVICE_TYPE_NAME), createToken(SEMICOLON_TOKEN));
+        TypeReferenceNode typeReferenceNode = createTypeReferenceNode(createToken(SyntaxKind.ASTERISK_TOKEN),
+                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_SERVICE_TYPE_NAME),
+                createToken(SyntaxKind.SEMICOLON_TOKEN));
 
         members.add(typeReferenceNode);
 
@@ -276,7 +241,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         List<Node> methodDeclarations = new ArrayList<>();
 
         for (GraphQLFieldDefinition fieldDefinition : queryType.getFieldDefinitions()) {
-            NodeList<Token> methodQualifiers = createNodeList(createToken(RESOURCE_KEYWORD));
+            NodeList<Token> methodQualifiers = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD));
 
             NodeList<Node> methodRelativeResourcePaths =
                     createNodeList(createIdentifierToken(fieldDefinition.getDefinition().getName()));
@@ -288,25 +253,45 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType());
 
             FunctionSignatureNode methodSignatureNode =
-                    createFunctionSignatureNode(createToken(OPEN_PAREN_TOKEN), methodSignatureRequiredParams,
-                            createToken(CLOSE_PAREN_TOKEN), methodSignatureReturnTypeDescriptor);
+                    createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN), methodSignatureRequiredParams,
+                            createToken(SyntaxKind.CLOSE_PAREN_TOKEN), methodSignatureReturnTypeDescriptor);
 
             MethodDeclarationNode methodDeclaration =
-                    createMethodDeclarationNode(RESOURCE_ACCESSOR_DECLARATION, null, methodQualifiers,
-                            createToken(FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
-                            methodRelativeResourcePaths, methodSignatureNode, createToken(SEMICOLON_TOKEN));
+                    createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, null, methodQualifiers,
+                            createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
+                            methodRelativeResourcePaths, methodSignatureNode, createToken(SyntaxKind.SEMICOLON_TOKEN));
 
             methodDeclarations.add(methodDeclaration);
         }
 
         // TODO: Add mutation methods
+        for (GraphQLFieldDefinition fieldDefinition : mutationType.getFieldDefinitions()) {
+            NodeList<Token> methodQualifiers = createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD));
+            NodeList<Node> methodRelativeResourcePaths =
+                    createNodeList(createIdentifierToken(fieldDefinition.getDefinition().getName()));
+
+            SeparatedNodeList<ParameterNode> methodSignatureRequiredParams =
+                    generateMethodSignatureRequiredParams(fieldDefinition.getArguments());
+            ReturnTypeDescriptorNode methodSignatureReturnTypeDescriptor =
+                    generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType());
+            FunctionSignatureNode methodSignatureNode =
+                    createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN), methodSignatureRequiredParams,
+                            createToken(SyntaxKind.CLOSE_PAREN_TOKEN), methodSignatureReturnTypeDescriptor);
+
+            MethodDeclarationNode methodDeclaration =
+                    createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, null, methodQualifiers,
+                            createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(""),
+                            methodRelativeResourcePaths, methodSignatureNode, createToken(SyntaxKind.SEMICOLON_TOKEN));
+
+            methodDeclarations.add(methodDeclaration);
+        }
         // TODO: Add subscription methods
 
         return methodDeclarations;
     }
 
     private ReturnTypeDescriptorNode generateMethodSignatureReturnTypeDescriptor(GraphQLOutputType type) {
-        return createReturnTypeDescriptorNode(createToken(RETURNS_KEYWORD), createEmptyNodeList(),
+        return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), createEmptyNodeList(),
                 generateTypeDescriptor(type, false));
     }
 
@@ -327,7 +312,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             requiredParams.add(requiredParameterNode);
 
             if (i != arguments.size() - 1) {
-                requiredParams.add(createToken(COMMA_TOKEN));
+                requiredParams.add(createToken(SyntaxKind.COMMA_TOKEN));
             }
         }
 
@@ -346,7 +331,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 return createOptionalTypeDescriptorNode(
                         createBuiltinSimpleNameReferenceNode(getTypeDescFor(argumentTypeName),
                                 createToken(getTypeKeywordFor(argumentTypeName))),
-                        createToken(QUESTION_MARK_TOKEN));
+                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         }
         if (argumentType instanceof GraphQLObjectType) {
@@ -356,7 +341,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             } else {
                 return createOptionalTypeDescriptorNode(createSimpleNameReferenceNode(
                                 createIdentifierToken(((GraphQLObjectType) argumentType).getName())),
-                        createToken(QUESTION_MARK_TOKEN));
+                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         }
 
@@ -370,8 +355,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
         if (argumentType instanceof GraphQLList) {
             ArrayDimensionNode arrayDimensionNode =
-                    createArrayDimensionNode(createToken(OPEN_BRACKET_TOKEN), null, createToken(CLOSE_BRACKET_TOKEN));
-
+                    createArrayDimensionNode(createToken(SyntaxKind.OPEN_BRACKET_TOKEN), null,
+                            createToken(SyntaxKind.CLOSE_BRACKET_TOKEN));
             NodeList<ArrayDimensionNode> arrayDimensionNodes = createNodeList(arrayDimensionNode);
 
             List<GraphQLSchemaElement> argumentChildren = argumentType.getChildren();
@@ -385,7 +370,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
             if (nonNull) {
                 return arrayTypeDescriptorNode;
             } else {
-                return createOptionalTypeDescriptorNode(arrayTypeDescriptorNode, createToken(QUESTION_MARK_TOKEN));
+                return createOptionalTypeDescriptorNode(arrayTypeDescriptorNode,
+                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         }
         return null;
@@ -393,35 +379,35 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private SyntaxKind getTypeKeywordFor(String argumentTypeName) {
         // TODO: Handle exceptions
-        if (GRAPHQL_STRING_TYPE.equals(argumentTypeName)) {
-            return STRING_KEYWORD;
-        } else if (GRAPHQL_INT_TYPE.equals(argumentTypeName)) {
-            return INT_KEYWORD;
-        } else if (GRAPHQL_FLOAT_TYPE.equals(argumentTypeName)) {
-            return FLOAT_KEYWORD;
-        } else if (GRAPHQL_BOOLEAN_TYPE.equals(argumentTypeName)) {
-            return BOOLEAN_KEYWORD;
-        } else if (GRAPHQL_ID_TYPE.equals(argumentTypeName)) {
-            return STRING_KEYWORD;
+        if (Constants.GRAPHQL_STRING_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.STRING_KEYWORD;
+        } else if (Constants.GRAPHQL_INT_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.INT_KEYWORD;
+        } else if (Constants.GRAPHQL_FLOAT_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.FLOAT_KEYWORD;
+        } else if (Constants.GRAPHQL_BOOLEAN_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.BOOLEAN_KEYWORD;
+        } else if (Constants.GRAPHQL_ID_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.STRING_KEYWORD;
         } else {
-            return STREAM_KEYWORD;
+            return SyntaxKind.STREAM_KEYWORD;
         }
     }
 
     private SyntaxKind getTypeDescFor(String argumentTypeName) {
         // TODO: Handle exceptions
-        if (GRAPHQL_STRING_TYPE.equals(argumentTypeName)) {
-            return STRING_TYPE_DESC;
-        } else if (GRAPHQL_INT_TYPE.equals(argumentTypeName)) {
-            return INT_TYPE_DESC;
-        } else if (GRAPHQL_FLOAT_TYPE.equals(argumentTypeName)) {
-            return FLOAT_TYPE_DESC;
-        } else if (GRAPHQL_BOOLEAN_TYPE.equals(argumentTypeName)) {
-            return BOOLEAN_TYPE_DESC;
-        } else if (GRAPHQL_ID_TYPE.equals(argumentTypeName)) {
-            return STRING_TYPE_DESC;
+        if (Constants.GRAPHQL_STRING_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.STRING_TYPE_DESC;
+        } else if (Constants.GRAPHQL_INT_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.INT_TYPE_DESC;
+        } else if (Constants.GRAPHQL_FLOAT_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.FLOAT_TYPE_DESC;
+        } else if (Constants.GRAPHQL_BOOLEAN_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.BOOLEAN_TYPE_DESC;
+        } else if (Constants.GRAPHQL_ID_TYPE.equals(argumentTypeName)) {
+            return SyntaxKind.STRING_TYPE_DESC;
         } else {
-            return STRING_TYPE_DESC;
+            return SyntaxKind.STRING_TYPE_DESC;
         }
     }
 

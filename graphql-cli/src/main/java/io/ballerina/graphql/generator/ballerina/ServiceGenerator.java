@@ -72,6 +72,7 @@ public class ServiceGenerator {
 
     private String fileName;
 
+    // TODO: stop using singleton
     public static ServiceGenerator getInstance() {
         if (serviceGenerator == null) {
             serviceGenerator = new ServiceGenerator();
@@ -136,7 +137,6 @@ public class ServiceGenerator {
                                                               GeneratorContext generatorContext) throws IOException {
         NodeList<Token> serviceQualifiers = createEmptyNodeList();
 
-        assert this.fileName != null;
         SimpleNameReferenceNode serviceObjectTypeDescriptor =
                 createSimpleNameReferenceNode(createIdentifierToken(this.fileName));
 
@@ -144,11 +144,11 @@ public class ServiceGenerator {
 
         ExplicitNewExpressionNode serviceExpression = generateServiceExpression();
 
-        return createServiceDeclarationNode(null, createEmptyNodeList(), createToken(SERVICE_KEYWORD),
-                serviceObjectTypeDescriptor, createEmptyNodeList(), createToken(ON_KEYWORD),
+        return createServiceDeclarationNode(null, serviceQualifiers, createToken(SERVICE_KEYWORD),
+                serviceObjectTypeDescriptor, absoluteResourcePath, createToken(ON_KEYWORD),
                 createSeparatedNodeList(serviceExpression), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
-                createNodeList(createIdentifierToken(EMPTY_STRING)), createToken(SyntaxKind.CLOSE_BRACE_TOKEN),
-                createToken(SEMICOLON_TOKEN));
+                createEmptyNodeList(), createToken(SyntaxKind.CLOSE_BRACE_TOKEN),
+                null);
     }
 
     private ExplicitNewExpressionNode generateServiceExpression() {

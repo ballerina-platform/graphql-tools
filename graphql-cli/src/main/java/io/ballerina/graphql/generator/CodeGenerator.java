@@ -19,9 +19,9 @@
 package io.ballerina.graphql.generator;
 
 import graphql.schema.GraphQLSchema;
+import io.ballerina.graphql.cmd.GenerationType;
 import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.GraphqlServiceProject;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.exception.ConfigTypesGenerationException;
@@ -91,7 +91,7 @@ public class CodeGenerator {
     public List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratorContext generatorContext)
             throws ClientGenerationException, UtilsGenerationException, TypesGenerationException, IOException,
             ConfigTypesGenerationException {
-        if (project instanceof GraphqlClientProject) {
+        if (project.getGenerationType() == GenerationType.CLIENT) {
             String projectName = project.getName();
             Extension extensions = ((GraphqlClientProject) project).getExtensions();
             List<String> documents = ((GraphqlClientProject) project).getDocuments();
@@ -108,7 +108,7 @@ public class CodeGenerator {
             generateConfigTypes(projectName, authConfig, sourceFiles);
 
             return sourceFiles;
-        } else if (project instanceof GraphqlServiceProject) {
+        } else if (project.getGenerationType() == GenerationType.SERVICE) {
             String projectName = project.getName();
             String fileName = project.getFileName();
             GraphQLSchema graphQLSchema = project.getGraphQLSchema();
@@ -143,8 +143,8 @@ public class CodeGenerator {
     }
 
     public void generateServices(String projectName, String fileName, GraphQLSchema graphQLSchema,
-                                 List<SrcFilePojo> sourceFiles,
-                                 GeneratorContext generatorContext) throws IOException, ClientGenerationException {
+                                 List<SrcFilePojo> sourceFiles, GeneratorContext generatorContext)
+            throws IOException, ClientGenerationException {
         String serviceSrc = ServiceGenerator.getInstance().generateSrc(fileName, graphQLSchema, generatorContext);
         sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName, SERVICE_FILE_NAME, serviceSrc));
 
@@ -168,8 +168,7 @@ public class CodeGenerator {
     }
 
     private void generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema,
-                                      List<SrcFilePojo> sourceFiles)
-            throws TypesGenerationException {
+                                      List<SrcFilePojo> sourceFiles) throws TypesGenerationException {
         String typesFileContent = "";
         typesFileContent = ServiceTypesGenerator.getInstance().generateSrc(fileName, graphQLSchema);
         sourceFiles.add(
