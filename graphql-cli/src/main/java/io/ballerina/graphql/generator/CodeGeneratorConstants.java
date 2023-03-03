@@ -37,6 +37,7 @@ public class CodeGeneratorConstants {
     public static final String SCHEMA_PATTERN = "schema";
     public static final String DOCUMENTS_PATTERN = "documents";
     public static final String GET = "get";
+    public static final String SUBSCRIBE = "subscribe";
     public static final String ID = "id";
 
     public static final String SLASH = "/";
