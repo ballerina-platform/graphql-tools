@@ -1,6 +1,8 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
@@ -16,6 +18,7 @@ import graphql.schema.GraphQLSchemaElement;
 import io.ballerina.compiler.syntax.tree.ArrayDimensionNode;
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
+import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
@@ -63,6 +66,8 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createArrayDimension
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createArrayTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createBuiltinSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createClassDefinitionNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createEnumDeclarationNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createEnumMemberNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionBodyBlockNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionDefinitionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionSignatureNode;
@@ -118,12 +123,14 @@ public class ServiceTypesGenerator extends TypesGenerator {
         List<ModuleMemberDeclarationNode> typeDefinitionNodes = new LinkedList<>();
         addServiceObjectTypeDefinitionNode(schema, typeDefinitionNodes);
         addInputTypeDefinitions(schema, typeDefinitionNodes);
-//        addTypes(schema, typeDefinitionNodes);
+
         if (recordForced) {
             addTypesRecordForced(schema, typeDefinitionNodes);
         } else {
             addServiceClassTypes(schema, typeDefinitionNodes);
         }
+
+        addEnumTypeDefinitions(schema, typeDefinitionNodes);
         NodeList<ModuleMemberDeclarationNode> members = createNodeList(typeDefinitionNodes);
         ModulePartNode modulePartNode = createModulePartNode(imports, members, createToken(SyntaxKind.EOF_TOKEN));
 
@@ -131,6 +138,40 @@ public class ServiceTypesGenerator extends TypesGenerator {
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
         SyntaxTree modifiedSyntaxTree = syntaxTree.modifyWith(modulePartNode);
         return modifiedSyntaxTree;
+    }
+
+    private void addEnumTypeDefinitions(GraphQLSchema schema, List<ModuleMemberDeclarationNode> typeDefinitionNodes) {
+        Iterator<Map.Entry<String, GraphQLNamedType>> typesIterator = schema.getTypeMap().entrySet().iterator();
+
+        while (typesIterator.hasNext()) {
+            Map.Entry<String, GraphQLNamedType> typeEntry = typesIterator.next();
+            String key = typeEntry.getKey();
+            GraphQLNamedType type = typeEntry.getValue();
+            if (!key.startsWith("__") && type instanceof GraphQLEnumType) {
+                GraphQLEnumType enumType = (GraphQLEnumType) type;
+                typeDefinitionNodes.add(generateEnumType(enumType));
+            }
+        }
+    }
+
+    private ModuleMemberDeclarationNode generateEnumType(GraphQLEnumType enumType) {
+        List<Node> enumMembers = new ArrayList<>();
+        List<GraphQLEnumValueDefinition> enumValues = enumType.getValues();
+        for (int i = 0; i < enumValues.size(); i++) {
+            GraphQLEnumValueDefinition enumValue = enumValues.get(i);
+            EnumMemberNode enumMember =
+                    createEnumMemberNode(null, createIdentifierToken(enumValue.getName()), null, null);
+            if (i == enumValues.size() - 1) {
+                enumMembers.add(enumMember);
+            } else {
+                enumMembers.add(enumMember);
+                enumMembers.add(createToken(SyntaxKind.COMMA_TOKEN));
+            }
+        }
+        SeparatedNodeList<Node> enumMemberNodes = createSeparatedNodeList(enumMembers);
+        return createEnumDeclarationNode(null, null, createToken(SyntaxKind.ENUM_KEYWORD),
+                createIdentifierToken(enumType.getName()), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
+                enumMemberNodes, createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
 
 
@@ -142,7 +183,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
             String key = typeEntry.getKey();
             GraphQLNamedType type = typeEntry.getValue();
             if (type instanceof GraphQLInputObjectType) {
-                typeDefinitionNodes.add(generateRecordType((GraphQLInputObjectType) type));
+                GraphQLInputObjectType inputObjectType = (GraphQLInputObjectType) type;
+                typeDefinitionNodes.add(generateRecordType(inputObjectType));
             }
         }
 
