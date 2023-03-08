@@ -68,17 +68,8 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.PORT_NUMBER_
  * This class is used to generate ballerina service file according to the GraphQL schema.
  */
 public class ServiceGenerator {
-    private static ServiceGenerator serviceGenerator = null;
 
     private String fileName;
-
-    // TODO: stop using singleton
-    public static ServiceGenerator getInstance() {
-        if (serviceGenerator == null) {
-            serviceGenerator = new ServiceGenerator();
-        }
-        return serviceGenerator;
-    }
 
     private NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();

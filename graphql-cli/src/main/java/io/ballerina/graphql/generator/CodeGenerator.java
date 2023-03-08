@@ -54,7 +54,12 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.UTILS_FILE_N
  */
 public class CodeGenerator {
     private static CodeGenerator codeGenerator = null;
+    private ServiceGenerator serviceGenerator;
+    private ServiceTypesGenerator serviceTypesGenerator;
 
+    private CodeGenerator() {
+        serviceGenerator = new ServiceGenerator();
+    }
     public static CodeGenerator getInstance() {
         if (codeGenerator == null) {
             codeGenerator = new CodeGenerator();
@@ -145,7 +150,7 @@ public class CodeGenerator {
     public void generateServices(String projectName, String fileName, GraphQLSchema graphQLSchema,
                                  List<SrcFilePojo> sourceFiles, GeneratorContext generatorContext)
             throws IOException, ClientGenerationException {
-        String serviceSrc = ServiceGenerator.getInstance().generateSrc(fileName, graphQLSchema, generatorContext);
+        String serviceSrc = this.serviceGenerator.generateSrc(fileName, graphQLSchema, generatorContext);
         sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName, SERVICE_FILE_NAME, serviceSrc));
 
     }
@@ -170,7 +175,7 @@ public class CodeGenerator {
     private void generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema,
                                       List<SrcFilePojo> sourceFiles) throws TypesGenerationException {
         String typesFileContent = "";
-        typesFileContent = ServiceTypesGenerator.getInstance().generateSrc(fileName, graphQLSchema);
+        typesFileContent = this.serviceTypesGenerator.generateSrc(fileName, graphQLSchema);
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, TYPES_FILE_NAME, typesFileContent));
     }
