@@ -52,8 +52,8 @@ public class Constants {
             "project is configured with a file path for queries file location which does not exist. " +
             "\nPlease provide a valid file path for the schema section " +
             "under each project in the YAML file. \nInvalid file path ";
-    public static final String MESSAGE_FOR_INVALID_MODE = "The mode flag value should be 'client' or 'service'";
-
+    public static final String MESSAGE_FOR_INVALID_MODE = "The mode flag value should be 'client', 'service' or " +
+            "'schema'";
     // GraphQL config file extensions supported
     public static final String YAML_EXTENSION = ".yaml";
     public static final String YML_EXTENSION = ".yml";

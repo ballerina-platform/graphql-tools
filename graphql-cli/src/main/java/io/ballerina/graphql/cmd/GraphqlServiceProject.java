@@ -13,7 +13,6 @@ public class GraphqlServiceProject extends GraphqlProject {
         super(name, schema);
     }
 
-    // TODO: get type static method , use enum or const
     public GenerationType getGenerationType() {
         return generationType;
     };

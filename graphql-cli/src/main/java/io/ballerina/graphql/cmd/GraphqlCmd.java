@@ -47,6 +47,7 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +56,7 @@ import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
 import static io.ballerina.graphql.cmd.Constants.SERVICE;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
@@ -76,6 +78,8 @@ import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
 )
 public class GraphqlCmd implements BLauncherCmd {
     private static final String CMD_NAME = "graphql";
+    private static List<String> validModes = Arrays.asList(CLIENT, SCHEMA, SERVICE);
+
     private PrintStream outStream;
     private boolean exitWhenFinish;
     private Path executionPath = Paths.get(System.getProperty("user.dir"));
@@ -181,7 +185,11 @@ public class GraphqlCmd implements BLauncherCmd {
             exitError(this.exitWhenFinish);
         }
 
-        // TODO: Validate other flags
+        if (mode != null) {
+            if (!validModes.contains(mode)) {
+                throw new CmdException(MESSAGE_FOR_INVALID_MODE);
+            }
+        }
     }
 
     /**
@@ -267,7 +275,13 @@ public class GraphqlCmd implements BLauncherCmd {
 
         SDLValidator.getInstance().validate(graphqlProject);
 
-        CodeGenerator.getInstance().generate(graphqlProject);
+        if (useRecordsForObjectsFlag) {
+
+        }
+        else {
+            CodeGenerator.getInstance().generate(graphqlProject);
+        }
+
     }
 
     /**
