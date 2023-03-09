@@ -14,7 +14,3 @@ type Book{
     title: String!
 }
 
-input CreateBookInput{
-    title: String!
-    authorId: Int
-}

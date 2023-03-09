@@ -96,8 +96,22 @@ public class GraphqlCmdTest extends GraphqlTest {
             log.error(e);
         }
         log.info("finish custom test");
-        Assert.assertTrue(true);
+    }
 
+    @Test(description = "Test graphql command execution with mode and use-records-for-objects flags")
+    public void testExecutionWithModeAndUseRecordsForObjectsFlags() {
+        Path graphql = resourceDir.resolve(Paths.get("specs", "CustomerApi.graphql"));
+        String[] args = {"-i", graphql.toString(), "--mode", "service", "--use-records-for-objects"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        try {
+            graphqlCmd.execute();
+        } catch (Exception e) {
+            log.error(e);
+        }
+        log.info("finish custom test");
     }
 
     @Test(description = "Test NodeParser")
@@ -105,13 +119,32 @@ public class GraphqlCmdTest extends GraphqlTest {
         ModulePartNode modulePartNode =
                 NodeParser.parseModulePart("import ballerina/graphql;\n" +
                         "\n" +
-                        "configurable int port = 9090;\n" +
+                        "type Schema09Api service object {\n" +
+                        "    *graphql:Service;\n" +
                         "\n" +
-                        "service CustomerAPI /graphql on new graphql:Listener(port ) {\n" +
-                        "    resource function get book(string id) returns Book? {}\n" +
+                        "    resource function get student(int id) returns Student?;\n" +
+                        "};\n" +
                         "\n" +
-                        "\tresource function get books() returns Book[]? {}\n" +
+                        "type Info distinct service object {\n" +
+                        "    resource function get name() returns string;\n" +
+                        "};\n" +
                         "\n" +
+                        "service class Book {\n" +
+                        "    resource function get name() returns string {}\n" +
+                        "}\n" +
+                        "\n" +
+                        "distinct service class Student {\n" +
+                        "    *Info;\n" +
+                        "\n" +
+                        "    resource function get id() returns int {}\n" +
+                        "    resource function get name() returns string {}\n" +
+                        "}\n" +
+                        "\n" +
+                        "distinct service class Teacher {\n" +
+                        "    *Info;\n" +
+                        "\n" +
+                        "    resource function get id() returns int {}\n" +
+                        "    resource function get name() returns string {}\n" +
                         "}");
         modulePartNode.toString();
     }

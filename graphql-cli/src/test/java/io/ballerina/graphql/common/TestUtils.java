@@ -18,7 +18,8 @@
 
 package io.ballerina.graphql.common;
 
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
+import io.ballerina.graphql.cmd.GraphqlServiceProject;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.cmd.pojo.Extension;
@@ -106,21 +107,21 @@ public class TestUtils {
      * @param outputPath     the target output path for the code generation
      * @return               the list of instances of the GraphQL projects
      */
-    public static List<GraphqlProject> populateProjects(Config config, Path outputPath) {
-        List<GraphqlProject> graphqlProjects = new ArrayList<>();
+    public static List<GraphqlClientProject> populateProjects(Config config, Path outputPath) {
+        List<GraphqlClientProject> graphqlProjects = new ArrayList<>();
         String schema = config.getSchema();
         List<String> documents = config.getDocuments();
         Extension extensions = config.getExtensions();
         Map<String, Project> projects = config.getProjects();
 
         if (schema != null || documents != null || extensions != null) {
-            graphqlProjects.add(new GraphqlProject(ROOT_PROJECT_NAME, schema, documents, extensions,
+            graphqlProjects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, extensions,
                     outputPath.toString()));
         }
 
         if (projects != null) {
             for (String projectName : projects.keySet()) {
-                graphqlProjects.add(new GraphqlProject(projectName,
+                graphqlProjects.add(new GraphqlClientProject(projectName,
                         projects.get(projectName).getSchema(),
                         projects.get(projectName).getDocuments(),
                         projects.get(projectName).getExtensions(),
@@ -137,16 +138,24 @@ public class TestUtils {
      * @param outputPath     the target output path for the code generation
      * @return               the list of instances of the GraphQL projects
      */
-    public static List<GraphqlProject> getValidatedMockProjects(String filePath, Path outputPath)
+    public static List<GraphqlClientProject> getValidatedMockProjects(String filePath, Path outputPath)
             throws CmdException, IOException, ParseException, ValidationException {
         Config config = TestUtils.readConfig(filePath);
         ConfigValidator.getInstance().validate(config);
-        List<GraphqlProject> projects = TestUtils.populateProjects(config, outputPath);
-        for (GraphqlProject project : projects) {
+        List<GraphqlClientProject> projects = TestUtils.populateProjects(config, outputPath);
+        for (GraphqlClientProject project : projects) {
             SDLValidator.getInstance().validate(project);
             QueryValidator.getInstance().validate(project);
         }
         return projects;
+    }
+
+    public static GraphqlServiceProject getValidatedMockServiceProject(String filePath, Path outputPath)
+            throws ValidationException, IOException {
+        GraphqlServiceProject graphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, outputPath.toString());
+        SDLValidator.getInstance().validate(graphqlProject);
+        return graphqlProject;
     }
 
     // Get string as a content of ballerina file

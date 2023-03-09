@@ -7,7 +7,7 @@ import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
@@ -37,7 +37,7 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
     @Test
     public void testGenerateInitFunctionSignature()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
 
@@ -62,7 +62,7 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
     @Test
     public void testGenerateInitFunctionSignatureWithApiKeysConfig()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-with-auth-apikeys-config.yaml")).toString(),
                 this.tmpDir);
@@ -88,7 +88,7 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
     @Test
     public void testGenerateInitFunctionSignatureWithClientConfig()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-with-auth-client-config.yaml")).toString(),
                 this.tmpDir);
@@ -114,7 +114,7 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
     @Test
     public void testGenerateInitFunctionSignatureWithBothApiKeysAndClientConfig()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-with-auth-apikeys-and-client-config.yaml")).toString(),
                 this.tmpDir);
@@ -140,7 +140,7 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
     @Test
     public void testGenerateRemoteFunctionSignatureWithRequiredParameters()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
@@ -202,7 +202,7 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
     @Test
     public void testGenerateRemoteFunctionSignatureWithOptionalParameters()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
@@ -240,7 +240,7 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
     @Test
     public void testGenerateRemoteFunctionSignatureWithRequiredAndOptionalParameters()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);

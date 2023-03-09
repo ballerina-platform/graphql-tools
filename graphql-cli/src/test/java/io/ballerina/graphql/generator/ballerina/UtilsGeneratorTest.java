@@ -1,6 +1,6 @@
 package io.ballerina.graphql.generator.ballerina;
 
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
@@ -26,7 +26,7 @@ public class UtilsGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithApiKeysConfig()
             throws ValidationException, CmdException, IOException, ParseException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                     this.resourceDir.resolve(Paths.get("specs",
                             "graphql-config-with-auth-apikeys-config.yaml")).toString(),
                     this.tmpDir);
@@ -57,7 +57,7 @@ public class UtilsGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithClientConfig()
             throws ValidationException, CmdException, IOException, ParseException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                     this.resourceDir.resolve(Paths.get("specs",
                             "graphql-config-with-auth-client-config.yaml")).toString(),
                     this.tmpDir);

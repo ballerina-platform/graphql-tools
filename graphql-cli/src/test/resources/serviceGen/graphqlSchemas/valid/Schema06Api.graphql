@@ -1,0 +1,14 @@
+type Query {
+    dog(name: String!): Dog
+    cat(name: String!): Cat
+}
+
+type Dog {
+    name: String!
+    knowsWord(word: String!): Boolean!
+}
+
+type Cat {
+    name: String!
+    age: Int!
+}

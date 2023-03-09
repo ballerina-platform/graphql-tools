@@ -19,7 +19,7 @@
 package io.ballerina.graphql.generator.graphql;
 
 import graphql.language.Document;
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
@@ -47,7 +47,7 @@ public class QueryReaderTest extends GraphqlTest {
     @Test
     public void testGetExtendedOperationDefinitions()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);

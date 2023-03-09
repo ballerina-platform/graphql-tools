@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.generator;
 
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.GraphqlProject;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
@@ -35,16 +36,17 @@ import java.util.List;
 /**
  * This class is used to test the functionality of the GraphQL code generator.
  */
-public class CodeGeneratorTest extends GraphqlTest {
+public class ClientCodeGeneratorTest extends GraphqlTest {
 
     @Test(description = "Test the functionality of the GraphQL code generator")
     public void testGenerate() throws CmdException, IOException, ParseException, ValidationException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+            ClientCodeGenerator clientCodeGenerator = new ClientCodeGenerator();
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                     this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                     this.tmpDir);
             for (GraphqlProject project : projects) {
-                CodeGenerator.getInstance().generate(project);
+                clientCodeGenerator.generate(project);
             }
             Assert.assertTrue(true);
         } catch (GenerationException e) {

@@ -19,7 +19,7 @@
 package io.ballerina.graphql.generator.graphql;
 
 import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
@@ -46,7 +46,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetInputObjectTypeNames() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -60,7 +60,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetInputTypeFieldsMap() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -83,7 +83,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetObjectTypeNames() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -97,7 +97,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetObjectTypeFieldsMap() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -122,7 +122,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetCustomScalarTypeNames() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -135,7 +135,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetEnumTypeNames() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();

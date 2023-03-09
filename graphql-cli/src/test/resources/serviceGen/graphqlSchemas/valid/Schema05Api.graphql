@@ -4,6 +4,10 @@ type Query{
     authors: [Author!]!
 }
 
+type Subscription{
+    bookTitles: String!
+}
+
 type Author {
     id: Int!
     name: String!
@@ -12,9 +16,4 @@ type Author {
 type Book{
     id: Int!
     title: String!
-}
-
-input CreateBookInput{
-    title: String!
-    authorId: Int
 }

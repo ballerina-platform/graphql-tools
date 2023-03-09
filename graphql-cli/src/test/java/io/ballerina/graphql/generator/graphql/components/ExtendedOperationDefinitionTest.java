@@ -20,7 +20,7 @@ package io.ballerina.graphql.generator.graphql.components;
 
 import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
@@ -50,7 +50,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
 
     @Test
     public void testGetOperationType() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
@@ -73,7 +73,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
 
     @Test
     public void testGetName() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
@@ -96,7 +96,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
 
     @Test
     public void testGetVariableDefinitions() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
@@ -128,7 +128,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
     @Test
     public void testGetVariableDefinitionsMap()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
@@ -161,7 +161,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
     @Test
     public void testGetExtendedFieldDefinitions()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
@@ -192,7 +192,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
     @Test
     public void testGetQueryString()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);

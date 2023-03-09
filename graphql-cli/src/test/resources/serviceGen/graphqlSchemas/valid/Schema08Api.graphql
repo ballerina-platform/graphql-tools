@@ -1,0 +1,21 @@
+type Query {
+    student(id: Int!): Student
+    teacher(id: Int!): Teacher
+}
+
+type Student {
+    id: Int!
+    name: String!
+}
+
+type Teacher {
+    id: Int!
+    name: String!
+}
+
+type Clerk {
+    id: Int!
+    name: String!
+}
+
+union Profile = Student | Teacher | Clerk

@@ -44,7 +44,7 @@ public class IntrospectorTest extends GraphqlTest {
     @Test(description = "Test successful introspection")
     public void testGetIntrospectionResult()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-with-extensions.yaml")).toString(),
                 this.tmpDir);
@@ -66,7 +66,7 @@ public class IntrospectorTest extends GraphqlTest {
     @Test(description = "Test successful introspection with empty headers")
     public void testGetIntrospectionResultWithEmptyHeaders()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs",
                         "graphql-config-with-empty-headers.yaml")).toString(),
                 this.tmpDir);

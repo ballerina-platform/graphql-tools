@@ -1,6 +1,6 @@
 package io.ballerina.graphql.generator.ballerina;
 
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
@@ -28,12 +28,12 @@ public class TypesGeneratorTest {
             TypesGenerationException {
         Config config = TestUtils.readConfig(RES_DIR.resolve("specs/typesGenTests/graphql.config.yaml").toString());
         ConfigValidator.getInstance().validate(config);
-        List<GraphqlProject> projects = TestUtils.populateProjects(config, Paths.get(""));
-        for (GraphqlProject project : projects) {
+        List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
+        for (GraphqlClientProject project : projects) {
             SDLValidator.getInstance().validate(project);
             QueryValidator.getInstance().validate(project);
         }
-        String typesFileContent = TypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
+        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
                 projects.get(0).getDocuments());
         Path expectedFilePath = RES_DIR.resolve("expectedGenCode/types/expectedInputRecords.bal");
         String expectedFileContent = TestUtils.getStringFromGivenBalFile(expectedFilePath);
@@ -45,12 +45,12 @@ public class TypesGeneratorTest {
             TypesGenerationException {
         Config config = TestUtils.readConfig(RES_DIR.resolve("specs/typesGenTests/graphql.config.yaml").toString());
         ConfigValidator.getInstance().validate(config);
-        List<GraphqlProject> projects = TestUtils.populateProjects(config, Paths.get(""));
-        for (GraphqlProject project : projects) {
+        List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
+        for (GraphqlClientProject project : projects) {
             SDLValidator.getInstance().validate(project);
             QueryValidator.getInstance().validate(project);
         }
-        String typesFileContent = TypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
+        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
                 projects.get(0).getDocuments());
         Path expectedFilePath = RES_DIR.resolve("expectedGenCode/types/expectedQueryResponseRecords.bal");
         String expectedFileContent = TestUtils.getStringFromGivenBalFile(expectedFilePath);
@@ -63,12 +63,12 @@ public class TypesGeneratorTest {
         Config config = TestUtils.readConfig(RES_DIR.resolve("specs/typesGenTests/fragment-graphql.config.yaml")
                 .toString());
         ConfigValidator.getInstance().validate(config);
-        List<GraphqlProject> projects = TestUtils.populateProjects(config, Paths.get(""));
-        for (GraphqlProject project : projects) {
+        List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
+        for (GraphqlClientProject project : projects) {
             SDLValidator.getInstance().validate(project);
             QueryValidator.getInstance().validate(project);
         }
-        String typesFileContent = TypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
+        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
                 projects.get(0).getDocuments());
         Path expectedFilePath = RES_DIR.resolve("expectedGenCode/types/expectedFragmentTypes.bal");
         String expectedFileContent = TestUtils.getStringFromGivenBalFile(expectedFilePath);
@@ -80,12 +80,12 @@ public class TypesGeneratorTest {
             TypesGenerationException {
         Config config = TestUtils.readConfig(RES_DIR.resolve("specs/typesGenTests/graphql.config.yaml").toString());
         ConfigValidator.getInstance().validate(config);
-        List<GraphqlProject> projects = TestUtils.populateProjects(config, Paths.get(""));
-        for (GraphqlProject project : projects) {
+        List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
+        for (GraphqlClientProject project : projects) {
             SDLValidator.getInstance().validate(project);
             QueryValidator.getInstance().validate(project);
         }
-        String typesFileContent = TypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
+        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
                 projects.get(0).getDocuments());
         Path expectedFilePath = RES_DIR.resolve("expectedGenCode/types/expectedTypes.bal");
         String expectedFileContent = TestUtils.getStringFromGivenBalFile(expectedFilePath);
