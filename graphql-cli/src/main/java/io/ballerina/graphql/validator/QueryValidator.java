@@ -22,7 +22,7 @@ import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
 import graphql.validation.ValidationError;
 import graphql.validation.Validator;
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.exception.QueryValidationException;
 import io.ballerina.graphql.exception.ValidationException;
@@ -50,7 +50,7 @@ public class QueryValidator {
      * @throws ValidationException                  when a validation error occurs
      * @throws IOException                          If an I/O error occurs
      */
-    public void validate(GraphqlProject project) throws ValidationException, IOException {
+    public void validate(GraphqlClientProject project) throws ValidationException, IOException {
         List<String> documents = project.getDocuments();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String projectName = project.getName();

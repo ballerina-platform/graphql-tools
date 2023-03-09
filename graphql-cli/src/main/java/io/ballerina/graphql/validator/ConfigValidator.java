@@ -18,7 +18,7 @@
 
 package io.ballerina.graphql.validator;
 
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.cmd.pojo.Project;
@@ -50,7 +50,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  */
 public class ConfigValidator {
     private static ConfigValidator configValidator = null;
-    private List<GraphqlProject> projects = new ArrayList<>();
+    private List<GraphqlClientProject> projects = new ArrayList<>();
 
     public static ConfigValidator getInstance() {
         if (configValidator == null) {
@@ -68,7 +68,7 @@ public class ConfigValidator {
      */
     public void validate(Config config) throws ValidationException, IOException {
         populateProjects(config);
-        for (GraphqlProject project : this.projects) {
+        for (GraphqlClientProject project : this.projects) {
             validateProject(project);
         }
     }
@@ -86,7 +86,7 @@ public class ConfigValidator {
         Map<String, Project> projects = config.getProjects();
 
         if (schema != null || documents != null || extensions != null) {
-            this.projects.add(new GraphqlProject(ROOT_PROJECT_NAME, schema, documents, extensions));
+            this.projects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, extensions));
         }
 
         if (projects != null) {
@@ -94,7 +94,7 @@ public class ConfigValidator {
                 if (projects.get(projectName) == null) {
                     throw new ValidationException(MESSAGE_FOR_EMPTY_PROJECT, projectName);
                 }
-                this.projects.add(new GraphqlProject(projectName,
+                this.projects.add(new GraphqlClientProject(projectName,
                         projects.get(projectName).getSchema(),
                         projects.get(projectName).getDocuments(),
                         projects.get(projectName).getExtensions()));
@@ -109,7 +109,7 @@ public class ConfigValidator {
      * @throws ValidationException                  when a validation error occurs
      * @throws IOException                          If an I/O error occurs
      */
-    private void validateProject(GraphqlProject project) throws ValidationException, IOException {
+    private void validateProject(GraphqlClientProject project) throws ValidationException, IOException {
         String schema = project.getSchema();
         List<String> documents = project.getDocuments();
 

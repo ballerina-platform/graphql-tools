@@ -20,6 +20,7 @@ package io.ballerina.graphql.validator;
 
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.errors.SchemaProblem;
+import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.GraphqlProject;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Extension;
@@ -45,13 +46,18 @@ public class SDLValidator {
     /**
      * Validates the GraphQL schema (SDL) of the given project.
      *
-     * @param project                               the instance of the Graphql project
-     * @throws ValidationException                  when a validation error occurs
-     * @throws IOException                          If an I/O error occurs
+     * @param project the instance of the Graphql project
+     * @throws ValidationException when a validation error occurs
+     * @throws IOException         If an I/O error occurs
      */
     public void validate(GraphqlProject project) throws ValidationException, IOException {
         String schema = project.getSchema();
-        Extension extensions = project.getExtensions();
+
+        Extension extensions = null;
+        if (project instanceof GraphqlClientProject) {
+            GraphqlClientProject clientProject = (GraphqlClientProject) project;
+            extensions = clientProject.getExtensions();
+        }
 
         try {
             GraphQLSchema graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
