@@ -26,7 +26,9 @@ import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.ClientCodeGenerator;
 import io.ballerina.graphql.generator.CodeGenerator;
+import io.ballerina.graphql.generator.ServiceCodeGenerator;
 import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
 import io.ballerina.graphql.schema.generator.SdlSchemaGenerator;
@@ -57,6 +59,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE_AND_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
 import static io.ballerina.graphql.cmd.Constants.SERVICE;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
@@ -112,12 +115,14 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Parameters
     private List<String> argList;
 
+    private ClientCodeGenerator clientCodeGenerator;
+    private ServiceCodeGenerator serviceCodeGenerator;
+
     /**
      * Constructor that initialize with the default values.
      */
     public GraphqlCmd() {
-        this.outStream = System.err;
-        this.exitWhenFinish = true;
+        new GraphqlCmd(System.err, this.executionPath, true);
     }
 
     /**
@@ -141,6 +146,8 @@ public class GraphqlCmd implements BLauncherCmd {
         this.outStream = outStream;
         this.executionPath = executionDir;
         this.exitWhenFinish = exitWhenFinish;
+        this.clientCodeGenerator = new ClientCodeGenerator();
+        this.serviceCodeGenerator = new ServiceCodeGenerator();
     }
 
     @Override
@@ -219,19 +226,19 @@ public class GraphqlCmd implements BLauncherCmd {
             if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
                 generateClient(filePath);
             } else {
-                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+                throw new CmdException(MESSAGE_FOR_INVALID_MODE_AND_FILE_EXTENSION);
             }
         } else if (SCHEMA.equals(mode)) {
             if (filePath.endsWith(BAL_EXTENSION)) {
                 generateSchema(filePath);
             } else {
-                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+                throw new CmdException(MESSAGE_FOR_INVALID_MODE_AND_FILE_EXTENSION);
             }
         } else if (SERVICE.equals(mode)) {
             if (filePath.endsWith(GRAPHQL_EXTENSION)) {
                 generateService(filePath);
             } else {
-                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+                throw new CmdException(MESSAGE_FOR_INVALID_MODE_AND_FILE_EXTENSION);
             }
         } else {
             if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
@@ -264,7 +271,7 @@ public class GraphqlCmd implements BLauncherCmd {
             QueryValidator.getInstance().validate(project);
         }
         for (GraphqlProject project : projects) {
-            CodeGenerator.getInstance().generate(project);
+            this.clientCodeGenerator.generate(project);
         }
     }
 
@@ -279,7 +286,7 @@ public class GraphqlCmd implements BLauncherCmd {
 
         }
         else {
-            CodeGenerator.getInstance().generate(graphqlProject);
+            this.serviceCodeGenerator.generate(graphqlProject);
         }
 
     }

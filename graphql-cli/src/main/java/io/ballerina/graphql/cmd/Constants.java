@@ -28,9 +28,13 @@ public class Constants {
             "Please provide the path of the GraphQL config file or Ballerina service file " +
             "with -i or --input flag. \ne.g: bal graphql --input <GraphQL configuration file>";
     public static final String MESSAGE_FOR_INVALID_FILE_EXTENSION = "A GraphQL configuration file " +
-            "with .yaml/.yml extension or a Ballerina service file with .bal is required to generate the artifacts. " +
+            "with .yaml/.yml extension, a Ballerina service file with .bal or a GraphQL schema file with .graphql is " +
+            "required to generate the artifacts. " +
             "\nPlease provide the path of the GraphQL config file with -i or --input flag." +
             "\ne.g: bal graphql --input <GraphQL configuration file>";
+    public static final String MESSAGE_FOR_INVALID_MODE_AND_FILE_EXTENSION = "The mode flag value should be 'client', " +
+            "'service' or 'schema' and the input file should be a GraphQL configuration file with .yaml/.yml extension, " +
+            "a Ballerina service file with .bal or a GraphQL schema file with .graphql respectively.";
     public static final String MESSAGE_FOR_EMPTY_CONFIGURATION_FILE = "The GraphQL " +
             "configuration YAML file is empty. \nPlease provide a valid content in the YAML file.";
     public static final String MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT = "The GraphQL config file is not in " +

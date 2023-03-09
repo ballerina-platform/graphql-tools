@@ -651,7 +651,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 FunctionSignatureNode methodSignatureNode =
                         createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
                                 generateMethodSignatureRequiredParams(fieldDefinition.getArguments()), createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
-                                generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType(), true));
+                                generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType(), false));
 
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, null, createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD)),

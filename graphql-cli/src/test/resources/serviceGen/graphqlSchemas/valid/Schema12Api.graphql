@@ -1,0 +1,11 @@
+type Query{
+    book(id: Int!, title: String): Book
+    books: [Book]
+    booksOfBooks: [[Book]]
+    booksOfBooksOfBooks: [[[Book]]]
+}
+
+type Book{
+    id: Int!
+    title: String!
+}
