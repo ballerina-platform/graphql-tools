@@ -64,9 +64,9 @@ import static io.ballerina.graphql.schema.Constants.SCHEMA_STRING_FIELD;
 import static io.ballerina.graphql.schema.Constants.SERVICE_CONFIG_IDENTIFIER;
 import static io.ballerina.graphql.schema.Constants.SLASH;
 import static io.ballerina.graphql.schema.Constants.UNDERSCORE;
+import static io.ballerina.stdlib.graphql.commons.utils.TypeUtils.removeEscapeCharacter;
 import static io.ballerina.stdlib.graphql.commons.utils.Utils.PACKAGE_NAME;
 import static io.ballerina.stdlib.graphql.commons.utils.Utils.hasGraphqlListener;
-import static io.ballerina.stdlib.graphql.commons.utils.Utils.removeEscapeCharacter;
 
 /**
  * Utility class for Ballerina GraphQL SDL schema generation.
