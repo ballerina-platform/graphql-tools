@@ -1,0 +1,9 @@
+schema: src/test/resources/specs/schema.graphql
+documents:
+  - src/test/resources/specs/queries/country-queries.graphql
+extensions:
+  endpoints:
+    default:
+      url: https://countries.trevorblades.com
+      headers:
+        { "Authorization": "Basic token" }

@@ -1,0 +1,42 @@
+type Query {
+  hero(episode: Episode): Character!
+  reviews(episode: Episode! = ""): [Review]!
+  characters(idList: [String!]!): [Character]!
+  human(id: String!): Human
+}
+
+interface Character {
+  id: String!
+  name: String!
+  appearsIn: [Episode!]!
+}
+
+type Human implements Character {
+  id: String!
+  name: String!
+  homePlanet: String
+  height: Float
+  mass: Int
+  appearsIn: [Episode!]!
+}
+
+enum Episode {
+  JEDI
+  EMPIRE
+  NEWHOPE
+}
+
+type Review {
+  episode: Episode
+  stars: Int!
+  commentary: String
+}
+
+type Mutation {
+  createReview(episode: Episode!, reviewInput: ReviewInput!): Review!
+}
+
+input ReviewInput {
+  stars: Int!
+  commentary: String!
+}

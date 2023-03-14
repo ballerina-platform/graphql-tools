@@ -24,7 +24,9 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
+import io.ballerina.graphql.cmd.ServiceDiagnosticMessages;
 import io.ballerina.graphql.exception.ClientGenerationException;
+import io.ballerina.graphql.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.GeneratorContext;
@@ -68,6 +70,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.PORT_NUMBER_
  * This class is used to generate ballerina service file according to the GraphQL schema.
  */
 public class ServiceGenerator {
+    private static ServiceGenerator serviceGenerator = null;
 
     private String fileName;
 
@@ -168,12 +171,12 @@ public class ServiceGenerator {
     }
 
     public String generateSrc(String fileName, GraphQLSchema graphQLSchema, GeneratorContext generatorContext)
-            throws ClientGenerationException {
+            throws ServiceGenerationException {
         try {
             this.fileName = fileName;
             return Formatter.format(generateSyntaxTree(graphQLSchema, generatorContext)).toString();
         } catch (FormatterException | IOException e) {
-            throw new ClientGenerationException(e.getMessage());
+            throw new ServiceGenerationException(e.getMessage());
         }
     }
 }

@@ -18,36 +18,21 @@
 
 package io.ballerina.graphql.generator;
 
-import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.cmd.GenerationType;
-import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.exception.ClientGenerationException;
+import io.ballerina.graphql.exception.ClientTypesGenerationException;
 import io.ballerina.graphql.exception.ConfigTypesGenerationException;
 import io.ballerina.graphql.exception.GenerationException;
-import io.ballerina.graphql.exception.TypesGenerationException;
+import io.ballerina.graphql.exception.ServiceGenerationException;
+import io.ballerina.graphql.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.exception.UtilsGenerationException;
-import io.ballerina.graphql.generator.ballerina.AuthConfigGenerator;
-import io.ballerina.graphql.generator.ballerina.ClientGenerator;
-import io.ballerina.graphql.generator.ballerina.ClientTypesGenerator;
-import io.ballerina.graphql.generator.ballerina.ConfigTypesGenerator;
 import io.ballerina.graphql.generator.ballerina.ServiceGenerator;
 import io.ballerina.graphql.generator.ballerina.ServiceTypesGenerator;
-import io.ballerina.graphql.generator.ballerina.UtilsGenerator;
-import io.ballerina.graphql.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.model.SrcFilePojo;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_FILE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONFIG_TYPES_FILE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SERVICE_FILE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.UTILS_FILE_NAME;
 
 /**
  * This class implements the GraphQL client code generator tool.
@@ -68,7 +53,7 @@ public abstract class CodeGenerator {
         try {
             List<SrcFilePojo> genSources = generateBalSources(project, GeneratorContext.CLI);
             writeGeneratedSources(genSources, Path.of(outputPath));
-        } catch (ClientGenerationException | UtilsGenerationException | TypesGenerationException | IOException e) {
+        } catch (ServiceGenerationException | ClientGenerationException | UtilsGenerationException | ClientTypesGenerationException | IOException e) {
             throw new GenerationException(e.getMessage(), project.getName());
         }
     }
@@ -118,8 +103,9 @@ public abstract class CodeGenerator {
 //    }
 
     public abstract List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratorContext generatorContext)
-            throws ClientGenerationException, UtilsGenerationException, TypesGenerationException, IOException,
-            ConfigTypesGenerationException;
+            throws ServiceGenerationException, ClientGenerationException, UtilsGenerationException,
+            ClientTypesGenerationException, IOException,
+            ConfigTypesGenerationException, ClientTypesGenerationException, ServiceTypesGenerationException;
 
 
 //    private void generateServices(String projectName, String fileName, GraphQLSchema graphQLSchema,
@@ -166,7 +152,8 @@ public abstract class CodeGenerator {
 //     * @throws ClientGenerationException when a client code generation error occurs
 //     * @throws IOException               If an I/O error occurs
 //     */
-//    private void generateClients(String projectName, List<String> documents, GraphQLSchema schema, AuthConfig authConfig,
+//    private void generateClients(String projectName, List<String> documents, GraphQLSchema schema,
+//    AuthConfig authConfig,
 //                                List<SrcFilePojo> sourceFiles, GeneratorContext generatorContext)
 //            throws ClientGenerationException {
 //        String clientSrc = ClientGenerator.getInstance().generateSrc(documents, schema, authConfig, generatorContext);

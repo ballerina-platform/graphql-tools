@@ -29,10 +29,21 @@ public class Constants {
     public static final String GRAPHQL_FLOAT_TYPE = "Float";
     public static final String GRAPHQL_BOOLEAN_TYPE = "Boolean";
 
+    // The GraphQL named types
+    public static final String GRAPHQL_INPUT_OBJECT_TYPE = "GraphQLInputObjectType";
+    public static final String GRAPHQL_OBJECT_TYPE = "GraphQLObjectType";
+    public static final String GRAPHQL_INTERFACE_TYPE = "GraphQLInterfaceType";
+    public static final String GRAPHQL_UNION_TYPE = "GraphQLUnionType";
+    public static final String GRAPHQL_ENUM_TYPE = "GraphQLEnumType";
+    public static final String GRAPHQL_SCALAR_TYPE = "GraphQLScalarType";
+    public static final String GRAPHQL_TYPE_REFERENCE = "GraphQLTypeReference";
+
     // The Ballerina types
     public static final String BALLERINA_STRING_TYPE = "string";
     public static final String BALLERINA_INT_TYPE = "int";
     public static final String BALLERINA_FLOAT_TYPE = "float";
     public static final String BALLERINA_BOOLEAN_TYPE = "boolean";
     public static final String BALLERINA_ANYDATA_TYPE = "anydata";
+
+    //
 }

@@ -5,7 +5,7 @@ import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
-import io.ballerina.graphql.exception.TypesGenerationException;
+import io.ballerina.graphql.exception.ClientTypesGenerationException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
@@ -25,7 +25,7 @@ public class TypesGeneratorTest {
 
     @Test(description = "Generate input records from the GraphQL Schema")
     public void getInputRecords() throws IOException, ParseException, CmdException, ValidationException,
-            TypesGenerationException {
+            ClientTypesGenerationException {
         Config config = TestUtils.readConfig(RES_DIR.resolve("specs/typesGenTests/graphql.config.yaml").toString());
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
@@ -42,7 +42,7 @@ public class TypesGeneratorTest {
 
     @Test(description = "Generate query response records from the GraphQL Schema")
     public void getQueryResponseRecords() throws IOException, ParseException, CmdException, ValidationException,
-            TypesGenerationException {
+            ClientTypesGenerationException {
         Config config = TestUtils.readConfig(RES_DIR.resolve("specs/typesGenTests/graphql.config.yaml").toString());
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
@@ -59,7 +59,7 @@ public class TypesGeneratorTest {
 
     @Test(description = "Generate fragment records")
     public void createFragmentRecords() throws IOException, ParseException, CmdException, ValidationException,
-            TypesGenerationException {
+            ClientTypesGenerationException {
         Config config = TestUtils.readConfig(RES_DIR.resolve("specs/typesGenTests/fragment-graphql.config.yaml")
                 .toString());
         ConfigValidator.getInstance().validate(config);
@@ -77,7 +77,7 @@ public class TypesGeneratorTest {
 
     @Test(description = "Generate all the records (input records and query response records)")
     public void getAllRecords() throws IOException, ParseException, CmdException, ValidationException,
-            TypesGenerationException {
+            ClientTypesGenerationException {
         Config config = TestUtils.readConfig(RES_DIR.resolve("specs/typesGenTests/graphql.config.yaml").toString());
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));

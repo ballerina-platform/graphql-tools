@@ -1,0 +1,3 @@
+schema: ./src/test/resources/specs/invalid-local-sdl.graphql
+documents:
+  - ./src/test/resources/specs/queries/country-queries.graphql

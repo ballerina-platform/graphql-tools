@@ -7,7 +7,7 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.graphql.exception.TypesGenerationException;
+import io.ballerina.graphql.exception.ClientTypesGenerationException;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
@@ -44,14 +44,14 @@ public class ClientTypesGenerator extends TypesGenerator {
      * @param schema                        the object instance of the GraphQL schema (SDL)
      * @param documents                     the list of documents of a given GraphQL project
      * @return                              the types file content
-     * @throws TypesGenerationException     when an error occurs during type generation
+     * @throws ClientTypesGenerationException     when an error occurs during type generation
      */
-    public String generateSrc(GraphQLSchema schema, List<String> documents) throws TypesGenerationException {
+    public String generateSrc(GraphQLSchema schema, List<String> documents) throws ClientTypesGenerationException {
         try {
             String generatedSyntaxTree = Formatter.format(this.generateSyntaxTree(schema, documents)).toString();
             return Formatter.format(generatedSyntaxTree);
         } catch (FormatterException | IOException e) {
-            throw new TypesGenerationException(e.getMessage());
+            throw new ClientTypesGenerationException(e.getMessage());
         }
     }
 

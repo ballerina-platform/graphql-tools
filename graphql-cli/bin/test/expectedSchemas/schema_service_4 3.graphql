@@ -1,0 +1,13 @@
+type Query {
+  latest: Review!
+}
+
+type Review {
+  product: Product!
+  score: Int!
+  description: String!
+}
+
+type Product {
+  id: String!
+}

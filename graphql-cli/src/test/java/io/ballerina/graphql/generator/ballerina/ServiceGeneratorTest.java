@@ -7,6 +7,7 @@ import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
+import io.ballerina.graphql.exception.ServiceGenerationException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.GeneratorContext;
 import org.testng.Assert;
@@ -41,7 +42,7 @@ public class ServiceGeneratorTest extends GraphqlTest {
             String expectedServiceContent = readContent(expectedServiceFile);
 
             Assert.assertEquals(expectedServiceContent, generatedServiceContent);
-        } catch (ClientGenerationException e) {
+        } catch (ServiceGenerationException e) {
             Assert.fail("Error while generating the service code. " + e.getMessage());
         }
     }

@@ -1,0 +1,4 @@
+schema: https://countries.trevorblades.com
+documents:
+  - src/test/resources/specs/queries/country-queries.graphql
+  

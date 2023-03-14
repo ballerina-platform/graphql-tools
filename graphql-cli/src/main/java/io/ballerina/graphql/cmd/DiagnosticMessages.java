@@ -46,10 +46,15 @@ public enum DiagnosticMessages {
             DiagnosticSeverity.ERROR),
     GRAPHQL_CLI_110("GRAPHQL_CLI_110", "Ballerina utils code generation related error occurred.",
             DiagnosticSeverity.ERROR),
-    GRAPHQL_CLI_111("GRAPHQL_CLI_111", "Ballerina types code generation related error occurred.",
+    GRAPHQL_CLI_111("GRAPHQL_CLI_111", "Ballerina client types code generation related error occurred.",
             DiagnosticSeverity.ERROR),
     GRAPHQL_CLI_112("GRAPHQL_CLI_112", "Ballerina config types code generation related error occurred.",
+            DiagnosticSeverity.ERROR),
+    GRAPHQL_CLI_113("GRAPHQL_CLI_113", "Ballerina service types code generation related error occurred.",
+                    DiagnosticSeverity.ERROR),
+    GRAPHQL_CLI_114("GRAPHQL_CLI_114", "Ballerina service code generation related error occurred.",
             DiagnosticSeverity.ERROR);
+
 
     private final String code;
     private final String description;

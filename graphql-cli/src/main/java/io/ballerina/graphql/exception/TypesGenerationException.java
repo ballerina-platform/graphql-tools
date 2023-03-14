@@ -26,23 +26,23 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 /**
  * Exception type definition for Ballerina Types code generation related errors.
  */
-public class TypesGenerationException extends GenerationException {
-    private String message;
-
-    public TypesGenerationException(String message, Throwable e) {
-        super(message, e);
-        this.message = message;
-    }
-
-    public TypesGenerationException(String message) {
-        super(message);
-        this.message = message;
-    }
-
-    public String getDiagnosticMessage() {
-        GraphqlDiagnostic graphqlDiagnostic = Utils.constructGraphqlDiagnostic(
-                DiagnosticMessages.GRAPHQL_CLI_111.getCode(),
-                this.message, DiagnosticSeverity.ERROR, null);
-        return graphqlDiagnostic.toString();
-    }
-}
+//public class TypesGenerationException extends GenerationException {
+//    private String message;
+//
+//    public TypesGenerationException(String message, Throwable e) {
+//        super(message, e);
+//        this.message = message;
+//    }
+//
+//    public TypesGenerationException(String message) {
+//        super(message);
+//        this.message = message;
+//    }
+//
+//    public String getDiagnosticMessage() {
+//        GraphqlDiagnostic graphqlDiagnostic = Utils.constructGraphqlDiagnostic(
+//                DiagnosticMessages.GRAPHQL_CLI_111.getCode(),
+//                this.message, DiagnosticSeverity.ERROR, null);
+//        return graphqlDiagnostic.toString();
+//    }
+//}
