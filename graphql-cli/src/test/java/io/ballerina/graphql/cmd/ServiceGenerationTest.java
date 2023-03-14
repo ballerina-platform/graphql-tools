@@ -11,6 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * This class includes tests for Ballerina Graphql service generation.
+ */
 public class ServiceGenerationTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with mode flag")
     public void testServiceGenerationWithModeFlag() {
@@ -52,7 +55,8 @@ public class ServiceGenerationTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with mode and use-records-for-objects flags")
     public void testServiceGenerationWithModeAndUseRecordsForObjectsFlags() {
         Path graphql = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "Schema06Api.graphql"));
-        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--use-records-for-objects"};
+        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
+                "--use-records-for-objects"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
 
         new CommandLine(graphqlCmd).parseArgs(args);

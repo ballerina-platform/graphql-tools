@@ -24,8 +24,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
-import io.ballerina.graphql.cmd.ServiceDiagnosticMessages;
-import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.CodeGeneratorUtils;

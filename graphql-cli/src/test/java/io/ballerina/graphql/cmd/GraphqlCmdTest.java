@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
@@ -125,7 +124,8 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with mode and use-records-for-objects flags")
     public void testExecutionWithModeAndUseRecordsForObjectsFlags() {
         Path graphql = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "Schema06Api.graphql"));
-        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--use-records-for-objects"};
+        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
+                "--use-records-for-objects"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
 
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -218,7 +218,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         new CommandLine(graphqlCmd).parseArgs(args);
         String output = "";
 
-        try{
+        try {
             graphqlCmd.execute();
             output = readOutput(true);
             Assert.assertTrue(output.contains(MESSAGE_FOR_INVALID_MODE));
@@ -247,10 +247,11 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @DataProvider(name = "invalidFileNameExtension")
     public Object[] createInvalidFileNameExtensionData() {
-        return new Object[] {"graphql.config.yam", "service.bl", "schema.grq"};
+        return new Object[]{"graphql.config.yam", "service.bl", "schema.grq"};
     }
 
-    @Test(description = "Test graphql command execution with invalid file extensions", dataProvider = "invalidFileNameExtension")
+    @Test(description = "Test graphql command execution with invalid file extensions",
+            dataProvider = "invalidFileNameExtension")
     public void testExecuteWithInvalidFileExtensions(String invalidFileNameExtension) {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", invalidFileNameExtension));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
@@ -269,7 +270,7 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @DataProvider(name = "mismatchModeAndFile")
     public Object[][] createMismatchModeAndFileData() {
-        return new Object[][] {{"service", "graphql.config.yaml"}, {"client", "service.bal"}, {"schema", "schema" +
+        return new Object[][]{{"service", "graphql.config.yaml"}, {"client", "service.bal"}, {"schema", "schema" +
                 ".graphql"}};
     }
 

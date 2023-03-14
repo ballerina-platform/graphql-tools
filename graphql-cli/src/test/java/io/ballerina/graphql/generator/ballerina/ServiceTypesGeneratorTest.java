@@ -42,7 +42,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
-//importballerina/graphql;typeSchema01Apiserviceobject{*graphql:Service;resourcefunctiongetbook(intid,string?title)returnsBook?;resourcefunctiongetbooks()returnsBook[]?;};serviceclassBook{resourcefunctiongetid()returnsint{}resourcefunctiongettitle()returnsstring{}}
+
     @Test(description = "Test for schema with more types, method - default")
     public void testGenerateSrcForMoreTypes()
             throws CmdException, IOException, ParseException, ValidationException, ServiceTypesGenerationException {
@@ -65,13 +65,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
-//importballerina/graphql;typeSchema02Apiserviceobject{*graphql:Service;resourcefunctiongetbook(intid,string?title)returnsBook?;resourcefunctiongetbooks()returnsBook?[]?;resourcefunctiongetauthors()returnsAuthor[];};serviceclassAuthor{resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}serviceclassBook{resourcefunctiongetid()returnsint{}resourcefunctiongettitle()returnsstring{}}
-//importballerina/graphql;typeSchema02Apiserviceobject{*graphql:Service;resourcefunctiongetbook(intid,string?title)returnsBook?;resourcefunctiongetbooks()returnsBook?[]?;resourcefunctiongetauthors()returnsAuthor[];};serviceclassAuthor{resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}serviceclassBook{resourcefunctiongetid()returnsint{}resourcefunctiongettitle()returnsstring{}}
+
     @Test(description = "Test for schema with mutation types, method - default")
     public void testGenerateSrcForSchemaWithMutationTypes()
             throws CmdException, IOException, ParseException, ValidationException, ServiceTypesGenerationException {
         String fileName = "Schema04Api";
-        String expectedFolder = "service04";
+        String expectedFile = "types04Default.bal";
 
         GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                 this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
@@ -84,20 +83,17 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
                 serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
-        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices",
-                expectedFolder, "types.bal"));
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
-//importballerina/graphql;typeSchema04Apiserviceobject{*graphql:Service;resourcefunctiongetbook(intid,string?title)returnsBook?;resourcefunctiongetbooks()returnsBook?[]?;resourcefunctiongetauthors()returnsAuthor[];remotefunctionaddBook(stringtitle,intauthorId)returnsBook?;};serviceclassAuthor{resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}serviceclassBook{resourcefunctiongetid()returnsint{}resourcefunctiongettitle()returnsstring{}}
-//importballerina/graphql;typeSchema04Apiserviceobject{*graphql:Service;resourcefunctiongetbook(intid,string?title)returnsBook?;resourcefunctiongetbooks()returnsBook?[]?;resourcefunctiongetauthors()returnsAuthor[];remotefunctionaddBook(stringtitle,intauthorId)returnsBook?;};serviceclassAuthor{resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}serviceclassBook{resourcefunctiongetid()returnsint{}resourcefunctiongettitle()returnsstring{}}
 
     @Test(description = "Test for schema with subscription types, method - default")
     public void testGenerateSrcForSchemaWithSubscriptionTypes()
             throws CmdException, IOException, ParseException, ValidationException, ServiceTypesGenerationException {
         String fileName = "Schema05Api";
-        String expectedFolder = "service05";
+        String expectedFile = "types05Default.bal";
 
         GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                 this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
@@ -110,8 +106,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
                 serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
-        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices",
-                expectedFolder, "types.bal"));
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
@@ -163,8 +158,6 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
-//importballerina/graphql;typeSchema06Apiserviceobject{*graphql:Service;resourcefunctiongetdog(stringname)returnsDog?;resourcefunctiongetcat(stringname)returnsCat?;};serviceclassCat{resourcefunctiongetname()returnsstring{}resourcefunctiongetage()returnsint{}}typeDogrecord{stringname;booleanknowsWord;};
-//importballerina/graphql;typeSchema06Apiserviceobject{*graphql:Service;resourcefunctiongetdog(stringname)returnsDog?;resourcefunctiongetcat(stringname)returnsCat?;};typeCatrecord{stringname;intage;};serviceclassDog{resourcefunctiongetname()returnsstring{}resourcefunctiongetknowsWord(stringword)returnsboolean{}}
 
     @Test(description = "Test for simple schema with enum, method - default")
     public void testGenerateSrcForEnum()
@@ -188,8 +181,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
-//importballerina/graphql;typeSchema07Apiserviceobject{*graphql:Service;resourcefunctiongetstudent(intid)returnsStudent?;};enumGender{MALE,FEMALE}serviceclassStudent{resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}
-//importballerina/graphql;typeSchema07Apiserviceobject{*graphql:Service;resourcefunctiongetstudent(intid)returnsStudent?;};serviceclassStudent{resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}enumGender{MALE,FEMALE}
+
     @Test(description = "Test for simple schema with union, method - default")
     public void testGenerateSrcForUnion() throws CmdException, IOException, ParseException, ValidationException,
             ServiceTypesGenerationException {
@@ -308,6 +300,3 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
 }
-
-//importballerina/graphql;typeSchema09Apiserviceobject{*graphql:Service;resourcefunctiongetstudent(intid)returnsStudent?;};typeInfodistinctserviceobject{resourcefunctiongetname()returnsstring;};serviceclassBook{resourcefunctiongetname()returnsstring{}}distinctserviceclassTeacher{*Info;resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}distinctserviceclassStudent{*Info;resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}
-//importballerina/graphql;typeSchema09Apiserviceobject{*graphql:Service;resourcefunctiongetstudent(intid)returnsStudent?;};typeInfodistinctserviceobject{resourcefunctiongetname()returnsstring;};serviceclassBook{resourcefunctiongetname()returnsstring{}}distinctserviceclassStudent{*Info;resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}distinctserviceclassTeacher{*Info;resourcefunctiongetid()returnsint{}resourcefunctiongetname()returnsstring{}}

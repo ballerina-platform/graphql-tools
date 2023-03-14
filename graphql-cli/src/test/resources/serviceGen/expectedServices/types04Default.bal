@@ -10,11 +10,12 @@ type Schema04Api service object {
 };
 
 service class Author {
-    resource function get id() returns int {}
+    resource function get id() returns string {}
     resource function get name() returns string {}
 }
 
 service class Book {
 	resource function get id() returns int {}
 	resource function get title() returns string {}
+	resource function get price() returns float {}
 }

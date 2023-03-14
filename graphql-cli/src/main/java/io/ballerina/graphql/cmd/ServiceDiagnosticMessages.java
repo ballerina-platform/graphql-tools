@@ -1,8 +1,10 @@
 package io.ballerina.graphql.cmd;
 
-import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
+/**
+ * Enum for service generation related diagnostic messages.
+ */
 public enum ServiceDiagnosticMessages {
     SERVICE_GEN_100("SERVICE_GEN_100", "Given GraphQL schema contains compilation error(s)", DiagnosticSeverity.ERROR),
     SERVICE_GEN_101("SERVICE_GEN_101", "Service generation failed: %s", DiagnosticSeverity.ERROR),

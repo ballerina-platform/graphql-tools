@@ -53,7 +53,8 @@ public abstract class CodeGenerator {
         try {
             List<SrcFilePojo> genSources = generateBalSources(project, GeneratorContext.CLI);
             writeGeneratedSources(genSources, Path.of(outputPath));
-        } catch (ServiceGenerationException | ClientGenerationException | UtilsGenerationException | ClientTypesGenerationException | IOException e) {
+        } catch (ServiceGenerationException | ClientGenerationException | UtilsGenerationException |
+                 ClientTypesGenerationException | IOException e) {
             throw new GenerationException(e.getMessage(), project.getName());
         }
     }

@@ -18,11 +18,6 @@
 
 package io.ballerina.graphql.exception;
 
-import io.ballerina.graphql.cmd.DiagnosticMessages;
-import io.ballerina.graphql.cmd.GraphqlDiagnostic;
-import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.tools.diagnostics.DiagnosticSeverity;
-
 /**
  * Exception type definition for Ballerina Types code generation related errors.
  */

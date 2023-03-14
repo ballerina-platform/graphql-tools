@@ -18,6 +18,3 @@ service class Book {
 	resource function get id() returns int {}
 	resource function get title() returns string {}
 }
-
-
-

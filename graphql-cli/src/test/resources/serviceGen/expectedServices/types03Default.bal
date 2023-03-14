@@ -7,7 +7,12 @@ type Schema03Api service object {
 	resource function get books() returns Book?[]?;
 	resource function get authors() returns Author[];
 	remote function createBook(CreateBookInput input) returns Book?;
+	remote function createAuthor(CreateAuthorInput? input) returns Author?;
 };
+
+type CreateAuthorInput record {|
+    string name;
+|};
 
 type CreateBookInput record {|
     string title;

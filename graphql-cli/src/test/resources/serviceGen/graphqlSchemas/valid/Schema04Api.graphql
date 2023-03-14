@@ -9,12 +9,13 @@ type Mutation{
 }
 
 type Author {
-    id: Int!
+    id: ID!
     name: String!
 }
 
 type Book{
     id: Int!
     title: String!
+    price: Float!
 }
 

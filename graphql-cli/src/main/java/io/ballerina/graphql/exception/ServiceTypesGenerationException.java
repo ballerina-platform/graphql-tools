@@ -5,6 +5,9 @@ import io.ballerina.graphql.cmd.GraphqlDiagnostic;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
+/**
+ * Exception type definition for Ballerina service types code generation related errors.
+ */
 public class ServiceTypesGenerationException extends GenerationException {
     public ServiceTypesGenerationException(String message, Throwable e) {
         super(message, e);

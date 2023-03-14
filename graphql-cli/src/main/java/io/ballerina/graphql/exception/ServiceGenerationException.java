@@ -5,6 +5,9 @@ import io.ballerina.graphql.cmd.GraphqlDiagnostic;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
+/**
+ * Exception type definition for Ballerina service code generation related errors.
+ */
 public class ServiceGenerationException extends GenerationException {
     private String message;
 
@@ -19,9 +22,9 @@ public class ServiceGenerationException extends GenerationException {
     }
 
     public String getDiagnosticMessage() {
-        GraphqlDiagnostic graphqlDiagnostic = Utils.constructGraphqlDiagnostic(
-                DiagnosticMessages.GRAPHQL_CLI_114.getCode(),
-                this.message, DiagnosticSeverity.ERROR, null);
+        GraphqlDiagnostic graphqlDiagnostic =
+                Utils.constructGraphqlDiagnostic(DiagnosticMessages.GRAPHQL_CLI_114.getCode(), this.message,
+                        DiagnosticSeverity.ERROR, null);
         return graphqlDiagnostic.toString();
     }
 
@@ -34,7 +37,8 @@ public class ServiceGenerationException extends GenerationException {
 //        this.diagnostic = createDiagnostic(diagnosticMessage, location);
 //    }
 //
-//    public ServiceGenerationException(ServiceDiagnosticMessages diagnosticMessage, Location location, String... args) {
+//    public ServiceGenerationException(ServiceDiagnosticMessages diagnosticMessage, Location location, String... args)
+//    {
 //        super(generateDescription(diagnosticMessage, args));
 //        this.diagnostic = createDiagnostic(diagnosticMessage, location, args);
 //    }
@@ -45,7 +49,8 @@ public class ServiceGenerationException extends GenerationException {
 //    private static String generateDescription(ServiceDiagnosticMessages message, String... args) {
 //        return String.format(message.getDescription(), (Object[]) args);
 //    }
-//    private static Diagnostic createDiagnostic(ServiceDiagnosticMessages diagnosticMessage, Location location, String... args) {
+//    private static Diagnostic createDiagnostic(ServiceDiagnosticMessages diagnosticMessage, Location location, String
+//    ... args) {
 //        DiagnosticInfo diagnosticInfo =
 //                new DiagnosticInfo(diagnosticMessage.getCode(), generateDescription(diagnosticMessage, args),
 //                        diagnosticMessage.getSeverity());
