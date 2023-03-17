@@ -299,4 +299,265 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
+
+    @Test(description = "Test for schema with docs in query resolver functions, method - default")
+    public void testGenerateSrcForSchemaWithDocsInQueryResolverFunctions() throws CmdException, IOException,
+            ParseException,
+            ValidationException,
+            ServiceTypesGenerationException {
+        String fileName = "SchemaDocs01Api";
+        String expectedFile = "typesDocs01Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    @Test(description = "Test for schema with docs in all resolver functions, method - default")
+    public void testGenerateSrcForSchemaWithDocsInAllResolverFunctions()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs02Api";
+        String expectedFile = "typesDocs02Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    @Test(description = "Test for schema with multiple line docs, method - default")
+    public void testGenerateSrcForSchemaWithMultipleLineDocs()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs03Api";
+        String expectedFile = "typesDocs03Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    @Test(description = "Test for schema with docs in arguments in resolver functions, method - default")
+    public void testGenerateSrcForSchemaWithDocsInArgumentsInResolverFunctions()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs04Api";
+        String expectedFile = "typesDocs04Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    @Test(description = "Test for schema with multiple line docs in resolver function arguments, method - default")
+    public void testGenerateSrcForSchemaWithMultipleLineDocsInResolverFunctionArguments()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs05Api";
+        String expectedFile = "typesDocs05Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    @Test(description = "Test for schema with docs in output types, method - default")
+    public void testGenerateSrcForSchemaWithDocsInOutputTypes()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs06Api";
+        String expectedFile = "typesDocs06Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    // TODO: check docs for record types
+    @Test(description = "Test for schema with docs in output types, method - with records")
+    public void testGenerateSrcForSchemaWithDocsInOutputTypesWithRecords()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs06Api";
+        String expectedFile = "typesDocs06RecordsAllowed.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setRecordForced(true);
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    // TODO: check docs for union types
+    @Test(description = "Test for schema with docs in output types, method - default")
+    public void testGenerateSrcForSchemaWithDocsInUnionTypes()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs07Api";
+        String expectedFile = "typesDocs07Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    // TODO: check docs for enum types
+    @Test(description = "Test for schema with docs in Enum types")
+    public void testGenerateSrcForSchemaWithDocsInEnumTypes()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs08Api";
+        String expectedFile = "typesDocs08Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    // TODO: check docs for input types
+    @Test(description = "Test for schema with docs in input types")
+    public void testGenerateSrcForSchemaWithDocsInInputTypes() throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs09Api";
+        String expectedFile = "typesDocs09Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
+
+    @Test(description = "Test for schema with docs in interfaces")
+    public void testGenerateSrcForSchemaWithDocsInInterfaces() throws ValidationException, IOException,
+                                                              ServiceTypesGenerationException {
+        String fileName = "SchemaDocs10Api";
+        String expectedFile = "typesDocs10Default.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                        fileName + ".graphql")).toString(),
+                this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(fileName, graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+    }
 }
+
+

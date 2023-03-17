@@ -1,0 +1,31 @@
+type Query {
+    "Fetch all the books from database"
+    books: [Book]
+    "Fetch a book by its id"
+    book(
+        "The id of the book to fetch"
+        id: Int!
+    ): Book
+}
+
+type Mutation {
+    "Add a new book to the database"
+    addBook(
+        "The book info to add"
+        bookInfo: BookInfo!
+    ): Book
+}
+
+"Represents a book written by an author"
+type Book {
+    "The id of the book, unique identifier"
+    id: Int!
+    "The title of the book"
+    title: String!
+}
+
+"Represents new book information"
+input BookInfo {
+    "The title of the book"
+    title: String!
+}
