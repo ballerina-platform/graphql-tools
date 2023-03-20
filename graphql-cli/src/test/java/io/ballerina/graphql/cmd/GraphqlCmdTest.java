@@ -164,7 +164,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         ModulePartNode modulePartNode =
                 NodeParser.parseModulePart("import ballerina/graphql;\n" +
                         "\n" +
-                        "type SchemaDocs01Api service object {\n" +
+                        "type SchemaDocs11Api service object {\n" +
                         "    *graphql:Service;\n" +
                         "\n" +
                         "    # Fetch all the books from database\n" +
@@ -179,7 +179,11 @@ public class GraphqlCmdTest extends GraphqlTest {
                         "    # The id of the book, unique identifier\n" +
                         "\tresource function get id() returns int {}\n" +
                         "\t# The title of the book\n" +
+                        "\t# # Deprecated\n" +
+                        "\t# reason: Use name instead\n" +
+                        "\t@deprecated\n" +
                         "\tresource function get title() returns string {}\n" +
+                        "\tresource function get name() returns string {}\n" +
                         "}");
         modulePartNode.toString();
     }

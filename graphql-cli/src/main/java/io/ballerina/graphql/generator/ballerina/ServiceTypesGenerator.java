@@ -1,6 +1,7 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
@@ -10,7 +11,6 @@ import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNamedOutputType;
-import graphql.schema.GraphQLNamedSchemaElement;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
@@ -19,6 +19,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLSchemaElement;
 import graphql.schema.GraphQLUnionType;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ArrayDimensionNode;
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
@@ -77,6 +78,7 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeLi
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createSeparatedNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createWhitespaceMinutiae;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createAnnotationNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createArrayDimensionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createArrayTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createBuiltinSimpleNameReferenceNode;
@@ -87,6 +89,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createEnumMemberNode
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionBodyBlockNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionDefinitionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionSignatureNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createInlineCodeReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMarkdownDocumentationLineNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMarkdownDocumentationNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMarkdownParameterDocumentationLineNode;
@@ -822,13 +825,43 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private MetadataNode generateMetadataForField(GraphQLFieldDefinition fieldDefinition) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
-        markdownDocumentationLines.addAll(generateMarkdownDocumentationLines(fieldDefinition.getDescription()));
+        List<AnnotationNode> annotations = new ArrayList<>();
 
+        markdownDocumentationLines.addAll(generateMarkdownDocumentationLines(fieldDefinition.getDescription()));
         for (GraphQLArgument argument : fieldDefinition.getArguments()) {
             markdownDocumentationLines.addAll(generateMarkdownParameterDocumentationLines(argument));
         }
+        // TODO: deprecation doc should come before or after arg docs?
+        if (fieldDefinition.isDeprecated()) {
+            AnnotationNode annotation = createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
+                    createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null);
+            annotations.add(annotation);
+
+            markdownDocumentationLines.addAll(generateMarkdownDocumentationLinesForDeprecated(fieldDefinition.getDeprecationReason()));
+        }
+
         return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
-                createEmptyNodeList());
+                createNodeList(annotations));
+    }
+
+    private List<Node> generateMarkdownDocumentationLinesForDeprecated(String deprecationReason) {
+        List<Node> markdownDocumentationLines = new ArrayList<>();
+        List<Node> literalValues = new ArrayList<>();
+        markdownDocumentationLines.add(createMarkdownDocumentationLineNode(SyntaxKind.MARKDOWN_DEPRECATION_DOCUMENTATION_LINE,
+                createToken(SyntaxKind.HASH_TOKEN), createNodeList(createLiteralValueToken(SyntaxKind.DEPRECATION_LITERAL,
+                        "# Deprecated", createEmptyMinutiaeList(),
+                        createMinutiaeList(createEndOfLineMinutiae("\n"))))));
+
+//        literalValues.add(createLiteralValueToken(SyntaxKind.DOCUMENTATION_DESCRIPTION, "The ", createEmptyMinutiaeList()
+//                , createEmptyMinutiaeList()));
+//        literalValues.add(createInlineCodeReferenceNode(createToken(SyntaxKind.BACKTICK_TOKEN),
+//                createLiteralValueToken(SyntaxKind.CODE_CONTENT, fieldName, createEmptyMinutiaeList(),
+//                        createEmptyMinutiaeList()), createToken(SyntaxKind.BACKTICK_TOKEN)));
+//        literalValues.add(createLiteralValueToken(SyntaxKind.DOCUMENTATION_DESCRIPTION, ))
+
+        markdownDocumentationLines.addAll(generateMarkdownDocumentationLines(deprecationReason));
+
+        return markdownDocumentationLines;
     }
 
     private List<Node> generateMarkdownParameterDocumentationLines(GraphQLArgument argument) {

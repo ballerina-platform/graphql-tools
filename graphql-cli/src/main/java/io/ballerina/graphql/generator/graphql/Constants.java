@@ -45,5 +45,6 @@ public class Constants {
     public static final String BALLERINA_BOOLEAN_TYPE = "boolean";
     public static final String BALLERINA_ANYDATA_TYPE = "anydata";
 
-    //
+    // GraphQL directives
+    public static final String GRAPHQL_DEPRECATED_DIRECTIVE = "deprecated";
 }

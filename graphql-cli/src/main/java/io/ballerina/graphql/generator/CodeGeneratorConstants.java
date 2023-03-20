@@ -108,6 +108,7 @@ public class CodeGeneratorConstants {
 
     public static final String PORT = "port";
     public static final String PORT_NUMBER_DEFAULT = "9090";
+    public static final String DEPRECATED = "deprecated";
 
     // OS specific line separator
     public static final String LINE_SEPARATOR = System.lineSeparator();

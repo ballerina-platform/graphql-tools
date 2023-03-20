@@ -10,6 +10,7 @@ import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
@@ -260,7 +261,48 @@ public class ServiceGenerationTest extends GraphqlTest {
                 schemaFile));
         Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service", "--use-records-for-objects"};
+        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service",
+                "--use-records-for-objects"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        try {
+            graphqlCmd.execute();
+
+            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
+            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
+        } catch (BLauncherException e) {
+            String output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @DataProvider(name = "schemaFilesWithDoc")
+    public Object[] createSchemaFilesWithDoc() {
+        return new Object[]{
+                "SchemaDocs01Api.graphql",
+                "SchemaDocs02Api.graphql",
+                "SchemaDocs03Api.graphql",
+                "SchemaDocs04Api.graphql",
+                "SchemaDocs05Api.graphql",
+                "SchemaDocs06Api.graphql",
+                "SchemaDocs07Api.graphql",
+                "SchemaDocs08Api.graphql",
+                "SchemaDocs09Api.graphql",
+                "SchemaDocs10Api.graphql",
+                "SchemaDocs11Api.graphql"
+        };
+    }
+
+
+    @Test(description = "Test compilation for schemas with documentation", dataProvider = "schemaFilesWithDoc")
+    public void testCompilationForSchemasWithDocumentation(String schemaFileWithDoc) {
+        String packagePath = "project";
+        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                schemaFileWithDoc));
+        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
+
+        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
@@ -318,8 +360,9 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
         Environment environment =
-                EnvironmentBuilder.getBuilder().setBallerinaHome(TestUtils.TEST_DISTRIBUTION_PATH.resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME))
-                        .toAbsolutePath()).build();
+                EnvironmentBuilder.getBuilder().setBallerinaHome(
+                        TestUtils.TEST_DISTRIBUTION_PATH.resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME))
+                                .toAbsolutePath()).build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
     }
 }
