@@ -549,6 +549,10 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
+
+    // TODO: Test for schema with deprecated fields in enums
+    // TODO: Test for schema with deprecated fields in interfaces
+    // TODO: Test for schema with deprecated fields in records
 }
 
 
