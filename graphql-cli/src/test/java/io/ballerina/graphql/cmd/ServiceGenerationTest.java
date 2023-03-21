@@ -41,12 +41,9 @@ public class ServiceGenerationTest extends GraphqlTest {
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("service.bal")) &&
-                    Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent =
-                        readContent(this.tmpDir.resolve("service.bal"));
-                String generatedTypesContent =
-                        readContent(this.tmpDir.resolve("types.bal"));
+            if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
+                String generatedClientContent = readContent(this.tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
                 Assert.assertEquals(expectedServiceContent, generatedClientContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
@@ -79,12 +76,9 @@ public class ServiceGenerationTest extends GraphqlTest {
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("service.bal")) &&
-                    Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent =
-                        readContent(this.tmpDir.resolve("service.bal"));
-                String generatedTypesContent =
-                        readContent(this.tmpDir.resolve("types.bal"));
+            if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
+                String generatedClientContent = readContent(this.tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
                 Assert.assertEquals(expectedServiceContent, generatedClientContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
@@ -100,8 +94,8 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution for service generation with invalid schema")
     public void testExecuteWithInvalidSchemaForServiceGen() {
-        Path graphqlSchema = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid",
-                "Schema01Api.graphql"));
+        Path graphqlSchema =
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid", "Schema01Api.graphql"));
         String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -119,8 +113,8 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with invalid schema input file path")
     public void testExecuteWithSchemaInvalidFilePath() {
-        Path invalidPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid",
-                "Schema.graphql"));
+        Path invalidPath =
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid", "Schema.graphql"));
         String[] args = {"-i", invalidPath.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -140,8 +134,8 @@ public class ServiceGenerationTest extends GraphqlTest {
     // TODO: test for compilation errors
     @Test(description = "Test compilation for simple schema")
     public void testCompilationForSimpleSchema() {
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
-                "Schema01Api.graphql"));
+        Path schemaPath =
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "Schema01Api.graphql"));
         String packagePath = "project01";
         Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
@@ -164,8 +158,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testCompilationForSchemaWithMoreTypes() {
         String schemaFile = "Schema02Api.graphql";
         String packagePath = "project02";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
-                schemaFile));
+        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
         Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
         String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
@@ -187,8 +180,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testCompilationForSchemaWithInputTypes() {
         String schemaFile = "Schema03Api.graphql";
         String packagePath = "project03";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
-                schemaFile));
+        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
         Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
         String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
@@ -210,8 +202,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testCompilationForSchemaWithMutationTypes() {
         String schemaFile = "Schema04Api.graphql";
         String packagePath = "project04";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
-                schemaFile));
+        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
         Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
         String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
@@ -233,8 +224,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testCompilationForSchemaWithSubscriptionTypes() {
         String schemaFile = "Schema05Api.graphql";
         String packagePath = "project05";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
-                schemaFile));
+        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
         Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
         String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
@@ -256,11 +246,11 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testCompilationForSchemaWithRecordObjects() {
         String schemaFile = "Schema06Api.graphql";
         String packagePath = "project06";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
-                schemaFile));
+        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
         Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service", "--use-records-for-objects"};
+        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service",
+                "--use-records-for-objects"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
@@ -279,8 +269,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testCompilationForCompleteSchema() {
         String schemaFile = "SchemaCompleteApi.graphql";
         String packagePath = "project";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
-                schemaFile));
+        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
         Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
         String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
@@ -317,9 +306,10 @@ public class ServiceGenerationTest extends GraphqlTest {
     }
 
     private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
-        Environment environment =
-                EnvironmentBuilder.getBuilder().setBallerinaHome(TestUtils.TEST_DISTRIBUTION_PATH.resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME))
-                        .toAbsolutePath()).build();
+        Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(
+                        TestUtils.TEST_DISTRIBUTION_PATH
+                                .resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME)).toAbsolutePath())
+                .build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
     }
 }

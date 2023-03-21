@@ -30,7 +30,6 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING
 public class ClientTypesGenerator extends TypesGenerator {
     public static ClientTypesGenerator clientTypesGenerator = null;
 
-    // TODO: stop using singleton
     public static ClientTypesGenerator getInstance() {
         if (clientTypesGenerator == null) {
             clientTypesGenerator = new ClientTypesGenerator();

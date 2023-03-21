@@ -67,4 +67,5 @@ public abstract class GraphqlProject {
     }
 
     public abstract GenerationType getGenerationType();
+
 }

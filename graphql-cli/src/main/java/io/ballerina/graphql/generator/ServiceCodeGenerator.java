@@ -31,8 +31,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
 
     @Override
     public List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratorContext generatorContext)
-            throws ServiceGenerationException, ClientGenerationException, UtilsGenerationException,
-            ClientTypesGenerationException, ServiceTypesGenerationException {
+            throws ServiceGenerationException, ServiceTypesGenerationException {
         String projectName = project.getName();
         String fileName = project.getFileName();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
@@ -52,9 +51,10 @@ public class ServiceCodeGenerator extends CodeGenerator {
 
     private void generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema,
                                       List<SrcFilePojo> sourceFiles) throws ServiceTypesGenerationException {
-        String typesFileContent = "";
 
-        typesFileContent = this.serviceTypesGenerator.generateSrc(fileName, graphQLSchema);
+
+        this.serviceTypesGenerator.setFileName(fileName);
+        String typesFileContent = this.serviceTypesGenerator.generateSrc( graphQLSchema);
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, TYPES_FILE_NAME, typesFileContent));
     }

@@ -84,7 +84,6 @@ public class ServiceGenerator {
     private SyntaxTree generateSyntaxTree(GraphQLSchema graphQLSchema, GeneratorContext generatorContext)
             throws IOException {
         NodeList<ImportDeclarationNode> imports = generateImports();
-
         NodeList<ModuleMemberDeclarationNode> moduleMemberDeclarationNodes =
                 generateMembers(graphQLSchema, generatorContext);
 
@@ -139,8 +138,7 @@ public class ServiceGenerator {
         return createServiceDeclarationNode(null, serviceQualifiers, createToken(SERVICE_KEYWORD),
                 serviceObjectTypeDescriptor, absoluteResourcePath, createToken(ON_KEYWORD),
                 createSeparatedNodeList(serviceExpression), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
-                createEmptyNodeList(), createToken(SyntaxKind.CLOSE_BRACE_TOKEN),
-                null);
+                createEmptyNodeList(), createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
 
     private ExplicitNewExpressionNode generateServiceExpression() {

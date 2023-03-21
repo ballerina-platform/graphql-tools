@@ -65,6 +65,7 @@ import static io.ballerina.graphql.cmd.Constants.SERVICE;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.IDL_PLUGIN_CLIENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.SCHEMA;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_CANNOT_READ_BAL_FILE;
@@ -79,7 +80,7 @@ import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
                 "SDL schema for the given Ballerina GraphQL service.")
 public class GraphqlCmd implements BLauncherCmd {
     private static final String CMD_NAME = "graphql";
-    private static List<String> validModes = Arrays.asList(CLIENT.toLowerCase(), SCHEMA, SERVICE);
+    private static final List<String> VALID_MODES = Arrays.asList(IDL_PLUGIN_CLIENT, SCHEMA, SERVICE);
 
     private PrintStream outStream;
     private boolean exitWhenFinish;
@@ -190,7 +191,7 @@ public class GraphqlCmd implements BLauncherCmd {
         }
 
         if (mode != null) {
-            if (!validModes.contains(mode)) {
+            if (!VALID_MODES.contains(mode)) {
                 throw new CmdException(MESSAGE_FOR_INVALID_MODE);
             }
         }
@@ -220,7 +221,7 @@ public class GraphqlCmd implements BLauncherCmd {
             SchemaFileGenerationException, ServiceGenerationException {
         String filePath = argList.get(0);
 
-        if (CLIENT.toLowerCase().equals(mode)) {
+        if (IDL_PLUGIN_CLIENT.equals(mode)) {
             if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
                 generateClient(filePath);
             } else {
@@ -274,7 +275,7 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private void generateService(String filePath)
-            throws IOException, ValidationException, GenerationException, ServiceGenerationException {
+            throws IOException, ValidationException, GenerationException {
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
             throw new ServiceGenerationException(Constants.MESSAGE_MISSING_SCHEMA_FILE);
@@ -285,12 +286,6 @@ public class GraphqlCmd implements BLauncherCmd {
 
         GraphqlServiceProject graphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());
-
-        try {
-            Path schemaPath = Paths.get(graphqlFile.getCanonicalPath());
-        } catch (IOException e) {
-            throw new ServiceGenerationException(e.toString());
-        }
 
         SDLValidator.getInstance().validate(graphqlProject);
         if (useRecordsForObjectsFlag) {
