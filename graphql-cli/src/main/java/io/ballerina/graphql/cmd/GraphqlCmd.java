@@ -192,7 +192,7 @@ public class GraphqlCmd implements BLauncherCmd {
 
         if (mode != null) {
             if (!VALID_MODES.contains(mode)) {
-                throw new CmdException(MESSAGE_FOR_INVALID_MODE);
+                throw new CmdException(mode.concat(MESSAGE_FOR_INVALID_MODE));
             }
         }
     }
