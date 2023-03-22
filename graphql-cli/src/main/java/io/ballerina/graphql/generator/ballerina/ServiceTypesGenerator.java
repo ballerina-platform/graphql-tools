@@ -767,13 +767,11 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             generateMethodSignatureParams(fieldDefinition.getArguments()),
                             createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                             generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType()));
-
             MethodDeclarationNode methodDeclaration = createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, null,
                     createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)), createToken(SyntaxKind.FUNCTION_KEYWORD),
                     createIdentifierToken(CodeGeneratorConstants.GET),
                     createNodeList(createIdentifierToken(fieldDefinition.getName())), methodSignatureNode,
                     createToken(SyntaxKind.SEMICOLON_TOKEN));
-
             methodDeclarations.add(methodDeclaration);
         }
 
@@ -784,15 +782,12 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                                 generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType(), false));
-
                 MethodDeclarationNode methodDeclaration =
-                        // TODO: change method name
-                        createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, null,
+                        createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, null,
                                 createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD)),
                                 createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(""),
                                 createNodeList(createIdentifierToken(fieldDefinition.getName())), methodSignatureNode,
                                 createToken(SyntaxKind.SEMICOLON_TOKEN));
-
                 methodDeclarations.add(methodDeclaration);
             }
         }
@@ -804,7 +799,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                                 generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType(), true));
-
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, null,
                                 createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
@@ -812,7 +806,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 createIdentifierToken(CodeGeneratorConstants.SUBSCRIBE),
                                 createNodeList(createIdentifierToken(fieldDefinition.getDefinition().getName())),
                                 methodSignatureNode, createToken(SyntaxKind.SEMICOLON_TOKEN));
-
                 methodDeclarations.add(methodDeclaration);
             }
         }

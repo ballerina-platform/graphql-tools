@@ -10,6 +10,7 @@ import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
@@ -130,8 +131,38 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    // TODO: test with read not allowed schema file
     // TODO: test for compilation errors
+    @DataProvider(name = "schemaFiles")
+    public Object[] createSchemaFilesData() {
+        return new Object[]{"Schema01Api.graphql", "Schema02Api.graphql", "Schema03Api.graphql", "Schema04Api.graphql",
+                "Schema05Api.graphql", "Schema06Api.graphql", "Schema07Api.graphql", "Schema08Api.graphql",
+                "Schema09Api.graphql", "Schema10Api.graphql", "Schema11Api.graphql", "Schema12Api.graphql",
+                "Schema13Api.graphql", "Schema14Api.graphql", "Schema15Api.graphql", "Schema16Api.graphql",
+                "Schema17Api.graphql"};
+    }
+
+    @Test(description = "Test compilation for all schemas, method - default", dataProvider = "schemaFiles")
+    public void testCompilationForAllSchemas(String file) {
+        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
+        String packagePath = "project";
+        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
+
+        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        try {
+            graphqlCmd.execute();
+
+            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
+            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
+        } catch (BLauncherException e) {
+            String output = e.toString();
+            Assert.fail(output);
+        }
+
+    }
+
     @Test(description = "Test compilation for simple schema")
     public void testCompilationForSimpleSchema() {
         Path schemaPath =
