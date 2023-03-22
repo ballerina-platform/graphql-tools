@@ -151,14 +151,36 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test NodeParser")
     public void testNodeParser() {
         ModulePartNode modulePartNode = NodeParser.parseModulePart(
-                "import ballerina/graphql;\n" + "\n" + "type Schema16Api service object {\n" +
-                        "    *graphql:Service;\n" + "\n" +
+                "import ballerina/graphql;\n" +
+                        "\n" +
+                        "type Schema03Api service object {\n" +
+                        "    *graphql:Service;\n" +
+                        "\n" +
                         "    resource function get book(int id, string? title) returns Book?;\n" +
-                        "\tremote function createBook(CreateBookInput input = { id: 1, title: \"no title\"}) " +
-                        "returns Book?;\n" +
-                        "};\n" + "\n" + "type CreateBookInput record {|\n" + "    int id;\n" + "    string title;\n" +
-                        "|};\n" + "\n" + "service class Book {\n" + "\tresource function get id() returns int {}\n" +
-                        "\tresource function get title() returns string {}\n" + "}\n" + "\n" + "\n" + "\n");
+                        "\tresource function get books() returns Book?[]?;\n" +
+                        "\tresource function get authors() returns Author[];\n" +
+                        "\tremote function createBook(CreateBookInput input) returns Book?;\n" +
+                        "\tremote function createAuthor(CreateAuthorInput? input) returns Author?;\n" +
+                        "};\n" +
+                        "\n" +
+                        "type CreateAuthorInput record {|\n" +
+                        "    string name;\n" +
+                        "|};\n" +
+                        "\n" +
+                        "type CreateBookInput record {|\n" +
+                        "    string title;\n" +
+                        "    int? authorId;\n" +
+                        "|};\n" +
+                        "\n" +
+                        "service class Author {\n" +
+                        "    resource function get id() returns int {}\n" +
+                        "    resource function get name() returns string {}\n" +
+                        "}\n" +
+                        "\n" +
+                        "service class Book {\n" +
+                        "\tresource function get id() returns int {}\n" +
+                        "\tresource function get title() returns string {}\n" +
+                        "}");
         modulePartNode.toString();
     }
 
@@ -351,8 +373,6 @@ public class GraphqlCmdTest extends GraphqlTest {
             } else {
                 Assert.fail("Code generation failed. : " + readOutput(true));
             }
-//publictypeContinentFilterInputrecord{StringQueryOperatorInput?code?;};publictypeCountryFilterInputrecord{StringQueryOperatorInput?continent?;StringQueryOperatorInput?code?;StringQueryOperatorInput?currency?;};publictypeLanguageFilterInputrecord{StringQueryOperatorInput?code?;};publictypeStringQueryOperatorInputrecord{string?[]?nin?;string?regex?;string?ne?;string?glob?;string?eq?;string?[]?'in?;};publictypeCountryResponserecord{|map<json?>__extensions?;record{|string?capital;stringname;|}?country;|};publictypeCountriesResponserecord{|map<json?>__extensions?;record{|stringname;record{|record{|stringname;|}[]countries;|}continent;|}[]countries;|};publictypeCombinedQueryResponserecord{|map<json?>__extensions?;record{|stringname;|}?country;record{|stringname;record{|record{|record{|stringname;|}continent;|}[]countries;|}continent;|}[]countries;|};publictypeNeighbouringCountriesResponserecord{|map<json?>__extensions?;record{|stringname;record{|record{|stringname;|}[]countries;|}continent;|}[]countries;|};
-//publictypeContinentFilterInputrecord{StringQueryOperatorInput?code?;};publictypeCountryFilterInputrecord{StringQueryOperatorInput?continent?;StringQueryOperatorInput?code?;StringQueryOperatorInput?currency?;};publictypeLanguageFilterInputrecord{StringQueryOperatorInput?code?;};publictypeStringQueryOperatorInputrecord{string[]?nin?;string?regex?;string?ne?;string?eq?;string[]?'in?;};publictypeCountryResponserecord{|map<json?>__extensions?;record{|string?capital;stringname;|}country;|};publictypeCountriesResponserecord{|map<json?>__extensions?;record{|stringname;record{|record{|stringname;|}[]countries;|}continent;|}[]countries;|};publictypeCombinedQueryResponserecord{|map<json?>__extensions?;record{|stringname;|}country;record{|stringname;record{|record{|record{|stringname;|}continent;|}[]countries;|}continent;|}[]countries;|};publictypeNeighbouringCountriesResponserecord{|map<json?>__extensions?;record{|stringname;record{|record{|stringname;|}[]countries;|}continent;|}[]countries;|};
         } catch (BLauncherException | IOException e) {
             String output = e.toString();
             Assert.fail(output);

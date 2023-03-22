@@ -31,7 +31,9 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_N
  * Test the successful generation of service types
  */
 public class ServiceTypesGeneratorTest extends GraphqlTest {
-    private Path typesCheckProjectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "typesCheckProject"));
+    private Path typesCheckProjectDir =
+            this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "typesCheckProject"));
+
     // TODO: add compilation check
     @Test(description = "Test for simple schema, method - default")
     public void testGenerateSrc()
@@ -401,8 +403,9 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     @DataProvider(name = "schemasWithDefaultParameterValuesAndExpectedFiles")
     public Object[][] createSchemasWithDefaultParameterValuesAndExpectedFilesData() {
         return new Object[][]{{"Schema13Api", "types13Default.bal"}, {"Schema14Api", "types14Default.bal"}, {
-            "Schema15Api", "types15Default.bal"}, {"Schema16Api", "types16Default.bal"}};
+                "Schema15Api", "types15Default.bal"}, {"Schema16Api", "types16Default.bal"}};
     }
+
     @Test(description = "Test for schema with default parameter values, method - default", dataProvider =
             "schemasWithDefaultParameterValuesAndExpectedFiles")
     public void testGenerateSrcForSchemaWithDefaultParameterValues(String fileName, String expectedFile)
@@ -431,7 +434,8 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     }
 
     @Test(description = "Test for schema with types with optional fields, method - record forced", enabled = false)
-    public void testGenerateSrcForSchemaWithTypesWithOptionalFields() throws CmdException, IOException, ParseException, ValidationException, ServiceTypesGenerationException {
+    public void testGenerateSrcForSchemaWithTypesWithOptionalFields()
+            throws CmdException, IOException, ParseException, ValidationException, ServiceTypesGenerationException {
         String fileName = "Schema17Api";
         String expectedFile = "types17RecordObjects.bal";
 

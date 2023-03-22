@@ -870,7 +870,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
         for (int i = 0; i < defaultParams.size(); i++) {
             DefaultableParameterNode defaultParam = defaultParams.get(i);
-            if (i !=0 || requiredParams.size()!=0) {
+            if (i != 0 || requiredParams.size() != 0) {
                 params.add(createToken(SyntaxKind.COMMA_TOKEN));
             }
             params.add(defaultParam);

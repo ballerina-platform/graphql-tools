@@ -65,7 +65,6 @@ import static io.ballerina.graphql.cmd.Constants.SERVICE;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.IDL_PLUGIN_CLIENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.SCHEMA;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_CANNOT_READ_BAL_FILE;
@@ -80,7 +79,7 @@ import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
                 "SDL schema for the given Ballerina GraphQL service.")
 public class GraphqlCmd implements BLauncherCmd {
     private static final String CMD_NAME = "graphql";
-    private static final List<String> VALID_MODES = Arrays.asList(IDL_PLUGIN_CLIENT, SCHEMA, SERVICE);
+    private static final List<String> VALID_MODES = Arrays.asList(CLIENT.toLowerCase(), SCHEMA, SERVICE);
 
     private PrintStream outStream;
     private boolean exitWhenFinish;
@@ -218,10 +217,10 @@ public class GraphqlCmd implements BLauncherCmd {
      */
     private void executeOperation()
             throws CmdException, ParseException, IOException, ValidationException, GenerationException,
-            SchemaFileGenerationException, ServiceGenerationException {
+            SchemaFileGenerationException {
         String filePath = argList.get(0);
 
-        if (IDL_PLUGIN_CLIENT.equals(mode)) {
+        if (CLIENT.toLowerCase().equals(mode)) {
             if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
                 generateClient(filePath);
             } else {
