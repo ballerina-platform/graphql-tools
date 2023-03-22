@@ -867,12 +867,21 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 createIdentifierToken(argument.getName()));
                 requiredParams.add(requiredParameterNode);
             }
-            if (i != arguments.size() - 1) {
+        }
+        for (int i = 0; i < requiredParams.size(); i++) {
+            RequiredParameterNode requireParam = requiredParams.get(i);
+            params.add(requireParam);
+            if (i != requiredParams.size() - 1) {
                 params.add(createToken(SyntaxKind.COMMA_TOKEN));
             }
         }
-        params.addAll(requiredParams);
-        params.addAll(defaultParams);
+        for (int i = 0; i < defaultParams.size(); i++) {
+            DefaultableParameterNode defaultParam = defaultParams.get(i);
+            if (i !=0 || requiredParams.size()!=0) {
+                params.add(createToken(SyntaxKind.COMMA_TOKEN));
+            }
+            params.add(defaultParam);
+        }
         return createSeparatedNodeList(params);
     }
 
@@ -922,11 +931,16 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     createSeparatedNodeList(mappingConstructorFields), createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
         } else if (value instanceof ArrayValue) {
             ArrayValue arrayValue = (ArrayValue) value;
+            List<Value> arrayElementValues = arrayValue.getValues();
             List<Node> arrayInternalExpressions = new ArrayList<>();
-
-            for (Value arrayElementValue : arrayValue.getValues()) {
+            for (int i = 0; i < arrayElementValues.size(); i++) {
+                Value arrayElementValue = arrayElementValues.get(i);
                 arrayInternalExpressions.add(generateExpressionFromDefaultArgValue(arrayElementValue));
+                if (i != arrayElementValues.size() - 1) {
+                    arrayInternalExpressions.add(createToken(SyntaxKind.COMMA_TOKEN));
+                }
             }
+
             return createListConstructorExpressionNode(createToken(SyntaxKind.OPEN_BRACKET_TOKEN),
                     createSeparatedNodeList(arrayInternalExpressions),
                     createToken(SyntaxKind.CLOSE_BRACKET_TOKEN));

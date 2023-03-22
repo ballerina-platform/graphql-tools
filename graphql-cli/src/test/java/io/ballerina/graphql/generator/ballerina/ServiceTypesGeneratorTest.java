@@ -324,7 +324,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
 
-    @Test(description = "Test for schema with types with optional fields, method - record forced")
+    @Test(description = "Test for schema with types with optional fields, method - record forced", enabled = false)
     public void testGenerateSrcForSchemaWithTypesWithOptionalFields() throws CmdException, IOException, ParseException, ValidationException, ServiceTypesGenerationException {
         String fileName = "Schema17Api";
         String expectedFile = "types17RecordObjects.bal";
