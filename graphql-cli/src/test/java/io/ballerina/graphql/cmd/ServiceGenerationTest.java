@@ -332,8 +332,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     private DiagnosticResult getDiagnosticResult(String packagePath) {
         Path projectDirPath = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
         BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath);
-        DiagnosticResult diagnosticResult = project.currentPackage().getCompilation().diagnosticResult();
-        return diagnosticResult;
+        return project.currentPackage().getCompilation().diagnosticResult();
     }
 
     private static ProjectEnvironmentBuilder getEnvironmentBuilder() {

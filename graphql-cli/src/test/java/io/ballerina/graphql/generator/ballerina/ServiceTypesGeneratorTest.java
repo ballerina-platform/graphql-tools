@@ -8,6 +8,9 @@ import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.model.SrcFilePojo;
+import io.ballerina.projects.DiagnosticResult;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -15,12 +18,21 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static io.ballerina.graphql.common.TestUtils.getDiagnosticResult;
+import static io.ballerina.graphql.common.TestUtils.writeSources;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 
 /**
  * Test class for ServiceTypesGenerator.
  * Test the successful generation of service types
  */
 public class ServiceTypesGeneratorTest extends GraphqlTest {
+    private Path typesCheckProjectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "typesCheckProject"));
+    // TODO: add compilation check
     @Test(description = "Test for simple schema, method - default")
     public void testGenerateSrc()
             throws CmdException, IOException, ParseException, ValidationException, ServiceTypesGenerationException {
@@ -34,14 +46,36 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
-        String generatedServiceTypesContent =
+        String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
+    }
+
+    private void writeContentTo(String content, Path projectDir) throws IOException {
+        SrcFilePojo srcFile = new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, "root", TYPES_FILE_NAME,
+                content);
+        List<SrcFilePojo> srcFiles = new ArrayList<>();
+        srcFiles.add(srcFile);
+        writeSources(srcFiles, projectDir);
+    }
+
+    private boolean hasOnlyResourceFuncMustReturnResultErrors(Collection<Diagnostic> errors) {
+        for (Diagnostic error : errors) {
+            if (!error.message().contains("this resource_func must return a result")) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Test(description = "Test for schema with more types, method - default")
@@ -58,13 +92,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for schema with mutation types, method - default")
@@ -81,13 +121,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for schema with subscription types, method - default")
@@ -104,13 +150,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for schema with input types, method - default")
@@ -127,13 +179,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for simple schema, method - record forced")
@@ -151,13 +209,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         serviceTypesGenerator.setRecordForced(true);
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for simple schema with enum, method - default")
@@ -174,13 +238,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for simple schema with union, method - default")
@@ -197,13 +267,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for simple schema with interface, method - default")
@@ -220,13 +296,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for simple schema with multiple interfaces, method - default")
@@ -243,13 +325,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for schema with interfaces implementing interfaces, method - default")
@@ -266,13 +354,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for schema multi-dimensional lists, method - default")
@@ -289,13 +383,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @DataProvider(name = "schemasWithDefaultParameterValuesAndExpectedFiles")
@@ -315,13 +415,19 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
     @Test(description = "Test for schema with types with optional fields, method - record forced", enabled = false)
@@ -337,12 +443,18 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+
+        String generatedServiceTypesContentTrimmed =
                 serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
 
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 }
