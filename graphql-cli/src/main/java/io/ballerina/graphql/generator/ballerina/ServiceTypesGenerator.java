@@ -984,7 +984,16 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         createSimpleNameReferenceNode(createIdentifierToken(enumType.getName())),
                         createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
-        } else if (argumentType instanceof GraphQLNonNull) {
+        } else if (argumentType instanceof GraphQLInterfaceType) {
+            GraphQLInterfaceType interfaceType = (GraphQLInterfaceType) argumentType;
+            if (nonNull) {
+                return createSimpleNameReferenceNode(createIdentifierToken(interfaceType.getName()));
+            } else {
+                return createOptionalTypeDescriptorNode(createSimpleNameReferenceNode(createIdentifierToken(interfaceType.getName())),
+                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
+            }
+        }
+        else if (argumentType instanceof GraphQLNonNull) {
             nonNull = true;
             GraphQLNonNull nonNullArgumentType = (GraphQLNonNull) argumentType;
             return generateTypeDescriptor(nonNullArgumentType.getWrappedType(), nonNull);

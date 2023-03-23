@@ -153,34 +153,33 @@ public class GraphqlCmdTest extends GraphqlTest {
         ModulePartNode modulePartNode = NodeParser.parseModulePart(
                 "import ballerina/graphql;\n" +
                         "\n" +
-                        "type Schema03Api service object {\n" +
+                        "type Schema09Api service object {\n" +
                         "    *graphql:Service;\n" +
                         "\n" +
-                        "    resource function get book(int id, string? title) returns Book?;\n" +
-                        "\tresource function get books() returns Book?[]?;\n" +
-                        "\tresource function get authors() returns Author[];\n" +
-                        "\tremote function createBook(CreateBookInput input) returns Book?;\n" +
-                        "\tremote function createAuthor(CreateAuthorInput? input) returns Author?;\n" +
+                        "    resource function get studentInfo(int id) returns Info?;\n" +
                         "};\n" +
                         "\n" +
-                        "type CreateAuthorInput record {|\n" +
-                        "    string name;\n" +
-                        "|};\n" +
+                        "type Info distinct service object {\n" +
+                        "    resource function get name() returns string;\n" +
+                        "};\n" +
                         "\n" +
-                        "type CreateBookInput record {|\n" +
-                        "    string title;\n" +
-                        "    int? authorId;\n" +
-                        "|};\n" +
+                        "service class Book {\n" +
+                        "    resource function get name() returns string {}\n" +
+                        "}\n" +
                         "\n" +
-                        "service class Author {\n" +
+                        "distinct service class Student {\n" +
+                        "    *Info;\n" +
+                        "\n" +
                         "    resource function get id() returns int {}\n" +
                         "    resource function get name() returns string {}\n" +
                         "}\n" +
                         "\n" +
-                        "service class Book {\n" +
-                        "\tresource function get id() returns int {}\n" +
-                        "\tresource function get title() returns string {}\n" +
-                        "}");
+                        "distinct service class Teacher {\n" +
+                        "    *Info;\n" +
+                        "\n" +
+                        "    resource function get id() returns int {}\n" +
+                        "    resource function get name() returns string {}\n" +
+                        "}\n");
         modulePartNode.toString();
     }
 

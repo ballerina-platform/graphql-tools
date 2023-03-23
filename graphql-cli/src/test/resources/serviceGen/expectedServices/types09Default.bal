@@ -3,7 +3,7 @@ import ballerina/graphql;
 type Schema09Api service object {
     *graphql:Service;
 
-    resource function get student(int id) returns Student?;
+    resource function get studentInfo(int id) returns Info?;
 };
 
 type Info distinct service object {
