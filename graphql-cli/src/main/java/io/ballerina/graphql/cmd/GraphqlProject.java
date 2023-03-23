@@ -58,7 +58,7 @@ public abstract class GraphqlProject {
     }
 
     public String getFileName() {
-        String[] splits = schema.split("/");
+        String[] splits = schema.split("/[/\\\\]/");
         return splits[splits.length - 1].split("\\.")[0];
     }
 
