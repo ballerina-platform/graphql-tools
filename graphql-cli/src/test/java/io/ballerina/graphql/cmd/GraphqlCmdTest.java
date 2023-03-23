@@ -174,17 +174,24 @@ public class GraphqlCmdTest extends GraphqlTest {
                         "    resource function get book(int id) returns Book?;\n" +
                         "};\n" +
                         "\n" +
+                        "enum Availability {\n" +
+                        "    AVAILABLE,\n" +
+                        "    BORROWED,\n" +
+                        "    @deprecated\n" +
+                        "    LOST\n" +
+                        "}\n" +
+                        "\n" +
                         "# Represents a book written by an author\n" +
                         "service class Book {\n" +
                         "    # The id of the book, unique identifier\n" +
                         "\tresource function get id() returns int {}\n" +
                         "\t# The title of the book\n" +
                         "\t# # Deprecated\n" +
-                        "\t# reason: Use name instead\n" +
+                        "\t# Use `name` instead\n" +
                         "\t@deprecated\n" +
                         "\tresource function get title() returns string {}\n" +
                         "\tresource function get name() returns string {}\n" +
-                        "}");
+                        "}\n");
         modulePartNode.toString();
     }
 

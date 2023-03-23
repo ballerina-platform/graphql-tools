@@ -16,3 +16,10 @@ type Book {
     title: String! @deprecated(reason: "Use `name` instead")
     name: String!
 }
+
+enum Availability {
+    AVAILABLE
+    BORROWED
+    UNAVAILABLE
+    LOST @deprecated(reason: "no longer used use unavailable")
+}

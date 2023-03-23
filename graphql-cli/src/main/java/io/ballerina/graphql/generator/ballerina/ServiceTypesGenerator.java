@@ -176,6 +176,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             throws ServiceTypesGenerationException {
         this.canRecordFromObject = new LinkedHashMap<>();
 
+        // TODO: move to constructor
         this.inputObjectTypesModuleMembers = new ArrayList<>();
         this.interfaceTypesModuleMembers = new ArrayList<>();
         this.enumTypesModuleMembers = new ArrayList<>();
@@ -478,7 +479,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         for (int i = 0; i < enumValues.size(); i++) {
             GraphQLEnumValueDefinition enumValue = enumValues.get(i);
             EnumMemberNode enumMember =
-                    createEnumMemberNode(generateMetadataForDescription(enumValue.getDescription()),
+                    createEnumMemberNode(generateMetadataForEnumValue(enumValue),
                             createIdentifierToken(enumValue.getName()), null, null);
             if (i == enumValues.size() - 1) {
                 enumMembers.add(enumMember);
@@ -492,6 +493,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 createIdentifierToken(enumType.getName()), createToken(SyntaxKind.OPEN_BRACE_TOKEN), enumMemberNodes,
                 createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
+
+
 
 
 //    private void addInputTypeDefinitions(GraphQLSchema schema, List<ModuleMemberDeclarationNode> typeDefinitionNodes)
@@ -663,7 +666,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         classTypeQualifiers, createToken(SyntaxKind.CLASS_KEYWORD),
                         createIdentifierToken(type.getName()), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
                         serviceClassTypeMembers, createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
-
         return classDefinition;
     }
 
@@ -675,6 +677,17 @@ public class ServiceTypesGenerator extends TypesGenerator {
         } else {
             return null;
         }
+    }
+
+    private MetadataNode generateMetadataForDeprecated(String description, String deprecatedReason) {
+        List<Node> documentationLines = generateMarkdownDocumentationLines(description);
+        List<AnnotationNode> annotations = new ArrayList<>();
+
+        AnnotationNode deprecationNode = createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
+                createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null);
+        annotations.add(deprecationNode);
+        return createMetadataNode(createMarkdownDocumentationNode(createNodeList(documentationLines)),
+                createNodeList(annotations));
     }
 
     private NodeList<Token> generateServiceClassTypeQualifiers(boolean isImplements) {
@@ -823,11 +836,23 @@ public class ServiceTypesGenerator extends TypesGenerator {
         return methodDeclarations;
     }
 
-    private MetadataNode generateMetadataForField(GraphQLFieldDefinition fieldDefinition) {
-        List<Node> markdownDocumentationLines = new ArrayList<>();
+    private MetadataNode generateMetadataForEnumValue(GraphQLEnumValueDefinition enumValue) {
         List<AnnotationNode> annotations = new ArrayList<>();
+        List<Node> markdownDocumentationLines =
+                new ArrayList<>(generateMarkdownDocumentationLines(enumValue.getDescription()));
+        if (enumValue.isDeprecated()) {
+            annotations.add(createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
+                    createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null));
+            markdownDocumentationLines.addAll(generateMarkdownDocumentationLinesForDeprecated(enumValue.getDeprecationReason()));
+        }
+        return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
+                createNodeList(annotations));
+    }
 
-        markdownDocumentationLines.addAll(generateMarkdownDocumentationLines(fieldDefinition.getDescription()));
+    private MetadataNode generateMetadataForField(GraphQLFieldDefinition fieldDefinition) {
+        List<AnnotationNode> annotations = new ArrayList<>();
+        List<Node> markdownDocumentationLines =
+                new ArrayList<>(generateMarkdownDocumentationLines(fieldDefinition.getDescription()));
         for (GraphQLArgument argument : fieldDefinition.getArguments()) {
             markdownDocumentationLines.addAll(generateMarkdownParameterDocumentationLines(argument));
         }
@@ -836,7 +861,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
             AnnotationNode annotation = createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
                     createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null);
             annotations.add(annotation);
-
             markdownDocumentationLines.addAll(generateMarkdownDocumentationLinesForDeprecated(fieldDefinition.getDeprecationReason()));
         }
 
@@ -846,21 +870,11 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private List<Node> generateMarkdownDocumentationLinesForDeprecated(String deprecationReason) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
-        List<Node> literalValues = new ArrayList<>();
         markdownDocumentationLines.add(createMarkdownDocumentationLineNode(SyntaxKind.MARKDOWN_DEPRECATION_DOCUMENTATION_LINE,
                 createToken(SyntaxKind.HASH_TOKEN), createNodeList(createLiteralValueToken(SyntaxKind.DEPRECATION_LITERAL,
                         "# Deprecated", createEmptyMinutiaeList(),
                         createMinutiaeList(createEndOfLineMinutiae("\n"))))));
-
-//        literalValues.add(createLiteralValueToken(SyntaxKind.DOCUMENTATION_DESCRIPTION, "The ", createEmptyMinutiaeList()
-//                , createEmptyMinutiaeList()));
-//        literalValues.add(createInlineCodeReferenceNode(createToken(SyntaxKind.BACKTICK_TOKEN),
-//                createLiteralValueToken(SyntaxKind.CODE_CONTENT, fieldName, createEmptyMinutiaeList(),
-//                        createEmptyMinutiaeList()), createToken(SyntaxKind.BACKTICK_TOKEN)));
-//        literalValues.add(createLiteralValueToken(SyntaxKind.DOCUMENTATION_DESCRIPTION, ))
-
         markdownDocumentationLines.addAll(generateMarkdownDocumentationLines(deprecationReason));
-
         return markdownDocumentationLines;
     }
 

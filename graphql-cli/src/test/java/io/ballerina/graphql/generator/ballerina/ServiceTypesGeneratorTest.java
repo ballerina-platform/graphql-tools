@@ -9,6 +9,7 @@ import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.exception.ValidationException;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -528,12 +529,18 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContent);
     }
 
-    @Test(description = "Test for schema with deprecated directive fields")
-    public void testGenerateSrcForSchemaWithDeprecatedDirective()
-            throws ValidationException, IOException, ServiceTypesGenerationException {
-        String fileName = "SchemaDocs11Api";
-        String expectedFile = "typesDocs11Default.bal";
+    @DataProvider(name = "schemaFileNamesWithDeprecationAndExpectedFiles")
+    public Object[][] getSchemaFileNamesWithDeprecationAndExpectedFiles() {
+        return new Object[][]{
+                {"SchemaDocs11Api", "typesDocs11Default.bal"},
+                {"SchemaDocs12Api", "typesDocs12Default.bal"}
+        };
+    }
 
+    @Test(description = "Test for schema with deprecated directive fields",
+            dataProvider = "schemaFileNamesWithDeprecationAndExpectedFiles")
+    public void testGenerateSrcForSchemaWithDeprecatedDirective(String fileName, String expectedFile)
+            throws ValidationException, IOException, ServiceTypesGenerationException {
         GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                 this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                         .toString(), this.tmpDir);
@@ -554,5 +561,3 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     // TODO: Test for schema with deprecated fields in interfaces
     // TODO: Test for schema with deprecated fields in records
 }
-
-
