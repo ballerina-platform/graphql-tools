@@ -98,10 +98,10 @@ public class GraphqlCmdTest extends GraphqlTest {
             String expectedTypesContent = readContent(expectedTypesFile);
 
             if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent = readContent(this.tmpDir.resolve("service.bal"));
+                String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
                 String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
-                Assert.assertEquals(expectedServiceContent, generatedClientContent);
+                Assert.assertEquals(expectedServiceContent, generatedServiceContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
             } else {
                 Assert.fail("Code generation failed. : " + readOutput(true));
