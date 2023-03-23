@@ -132,6 +132,11 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     public ServiceTypesGenerator() {
         this.schemaNamedTypes = initializeSchemaNamedTypes();
+        this.inputObjectTypesModuleMembers = new ArrayList<>();
+        this.interfaceTypesModuleMembers = new ArrayList<>();
+        this.enumTypesModuleMembers = new ArrayList<>();
+        this.unionTypesModuleMembers = new ArrayList<>();
+        this.objectTypesModuleMembers = new ArrayList<>();
     }
 
     private HashMap<String, List<GraphQLNamedType>> initializeSchemaNamedTypes() {
@@ -182,13 +187,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
             throws ServiceTypesGenerationException {
         this.canRecordFromObject = new LinkedHashMap<>();
 
-        // TODO : move to constructor
-        this.inputObjectTypesModuleMembers = new ArrayList<>();
-        this.interfaceTypesModuleMembers = new ArrayList<>();
-        this.enumTypesModuleMembers = new ArrayList<>();
-        this.unionTypesModuleMembers = new ArrayList<>();
-        this.objectTypesModuleMembers = new ArrayList<>();
-
         Iterator<Map.Entry<String, GraphQLNamedType>> typesIterator = schema.getTypeMap().entrySet().iterator();
         while (typesIterator.hasNext()) {
             Map.Entry<String, GraphQLNamedType> typeEntry = typesIterator.next();
@@ -209,11 +207,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     addUnionSubObjectTypesToMap(unionType);
                     unionTypesModuleMembers.add(generateUnionType(unionType));
                 } else if (type instanceof GraphQLObjectType) {
-                    if (!CodeGeneratorConstants.QUERY.equals(key) && !CodeGeneratorConstants.MUTATION.equals(key) &&
-                            !CodeGeneratorConstants.SUBSCRIPTION.equals(key)) {
-                        GraphQLObjectType objectType = (GraphQLObjectType) type;
-                        addObjectTypeToMap(objectType);
-                    }
+                    GraphQLObjectType objectType = (GraphQLObjectType) type;
+                    addObjectTypeToMap(objectType, key);
                 }
             }
         }
@@ -241,12 +236,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    private void addObjectTypeToMap(GraphQLObjectType objectType) {
-        // TODO: check query, mutation, subscription here
-        // TODO: use hasKey
-        canRecordFromObject.putIfAbsent(objectType, true);
-        if (hasFieldsWithInputs(objectType) || objectType.getInterfaces().size() > 0) {
-            canRecordFromObject.replace(objectType, false);
+    private void addObjectTypeToMap(GraphQLObjectType objectType, String key) {
+        if (!CodeGeneratorConstants.QUERY.equals(key) && !CodeGeneratorConstants.MUTATION.equals(key) &&
+                !CodeGeneratorConstants.SUBSCRIPTION.equals(key)) {
+            canRecordFromObject.putIfAbsent(objectType, true);
+            if (hasFieldsWithInputs(objectType) || objectType.getInterfaces().size() > 0) {
+                canRecordFromObject.replace(objectType, false);
+            }
         }
     }
 
@@ -254,12 +250,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         for (GraphQLNamedOutputType namedOutputType : unionType.getTypes()) {
             if (namedOutputType instanceof GraphQLObjectType) {
                 GraphQLObjectType namedOutputObjectType = (GraphQLObjectType) namedOutputType;
-                // TODO: no need null check
-                if (canRecordFromObject.get(namedOutputObjectType) != null) {
-                    canRecordFromObject.replace(namedOutputObjectType, false);
-                } else {
-                    canRecordFromObject.put(namedOutputObjectType, false);
-                }
+                canRecordFromObject.put(namedOutputObjectType, false);
             } else {
                 // TODO: check whether namedOutputType.getName() gives the name of the type
                 throw new ServiceTypesGenerationException(
@@ -284,13 +275,14 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private ModuleMemberDeclarationNode generateInterfaceType(GraphQLInterfaceType interfaceType)
             throws ServiceTypesGenerationException {
-        // TODO: hard to read
+        ObjectTypeDescriptorNode interfaceObjectTypeDescriptor =
+                createObjectTypeDescriptorNode(createNodeList(createToken(SyntaxKind.SERVICE_KEYWORD)),
+                        createToken(SyntaxKind.OBJECT_KEYWORD), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
+                        generateInterfaceTypeDescriptorMembers(interfaceType.getInterfaces(),
+                                interfaceType.getFields()), createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
         DistinctTypeDescriptorNode interfaceTypeDescriptorNode =
-                createDistinctTypeDescriptorNode(createToken(SyntaxKind.DISTINCT_KEYWORD),
-                        createObjectTypeDescriptorNode(createNodeList(createToken(SyntaxKind.SERVICE_KEYWORD)),
-                                createToken(SyntaxKind.OBJECT_KEYWORD), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
-                                generateInterfaceTypeDescriptorMembers(interfaceType.getInterfaces(),
-                                        interfaceType.getFields()), createToken(SyntaxKind.CLOSE_BRACE_TOKEN)));
+                createDistinctTypeDescriptorNode(createToken(SyntaxKind.DISTINCT_KEYWORD), interfaceObjectTypeDescriptor
+                        );
 
         return createTypeDefinitionNode(null, null, createToken(SyntaxKind.TYPE_KEYWORD),
                 createIdentifierToken(interfaceType.getName()), interfaceTypeDescriptorNode,
