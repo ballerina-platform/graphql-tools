@@ -1,6 +1,7 @@
 type Query{
-    book(id: Int! = 1, title: String = "no name", price: Float = 0.0, available: Boolean = false): Book
-    books: [Book]
+    book(id: Int!): Book
+    books(ids: [Int!] = [1, 2]): [Book!]
+    booksOfBooks(idOfIds: [[Int!]!] = [[1]]): [[Book!]!]
 }
 
 type Mutation{
@@ -9,11 +10,6 @@ type Mutation{
 
 type Subscription{
     bookTitles: String!
-}
-
-type Author {
-    id: Int!
-    name: String!
 }
 
 type Book{

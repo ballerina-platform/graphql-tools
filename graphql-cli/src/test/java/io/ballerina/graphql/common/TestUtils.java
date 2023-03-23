@@ -27,9 +27,16 @@ import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.model.SrcFilePojo;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
 import io.ballerina.graphql.validator.SDLValidator;
+import io.ballerina.projects.DiagnosticResult;
+import io.ballerina.projects.ProjectEnvironmentBuilder;
+import io.ballerina.projects.directory.BuildProject;
+import io.ballerina.projects.environment.Environment;
+import io.ballerina.projects.environment.EnvironmentBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.Assert;
 import org.yaml.snakeyaml.Yaml;
@@ -238,5 +245,31 @@ public class TestUtils {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             br.lines().forEach(OUT::println);
         }
+    }
+
+    // there is a similar func in CodeGenerator...
+    public static void writeSources(List<SrcFilePojo> sources, Path outputPath) throws IOException {
+        if (!sources.isEmpty()) {
+            for (SrcFilePojo file : sources) {
+                if (file.getType().isOverwritable()) {
+                    Path filePath = CodeGeneratorUtils.getAbsoluteFilePath(file, outputPath);
+                    String fileContent = file.getContent();
+                    CodeGeneratorUtils.writeFile(filePath, fileContent);
+                }
+            }
+        }
+    }
+
+    public static DiagnosticResult getDiagnosticResult(Path projectDirPath) {
+        BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath);
+        return project.currentPackage().getCompilation().diagnosticResult();
+    }
+
+    private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
+        Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(
+                        TestUtils.TEST_DISTRIBUTION_PATH
+                                .resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME)).toAbsolutePath())
+                .build();
+        return ProjectEnvironmentBuilder.getBuilder(environment);
     }
 }

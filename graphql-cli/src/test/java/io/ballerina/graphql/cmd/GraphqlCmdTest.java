@@ -102,14 +102,11 @@ public class GraphqlCmdTest extends GraphqlTest {
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("service.bal")) &&
-                    Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent =
-                        readContent(this.tmpDir.resolve("service.bal"));
-                String generatedTypesContent =
-                        readContent(this.tmpDir.resolve("types.bal"));
+            if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
+                String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
-                Assert.assertEquals(expectedServiceContent, generatedClientContent);
+                Assert.assertEquals(expectedServiceContent, generatedServiceContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
             } else {
                 Assert.fail("Code generation failed. : " + readOutput(true));
@@ -140,12 +137,9 @@ public class GraphqlCmdTest extends GraphqlTest {
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("service.bal")) &&
-                    Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent =
-                        readContent(this.tmpDir.resolve("service.bal"));
-                String generatedTypesContent =
-                        readContent(this.tmpDir.resolve("types.bal"));
+            if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
+                String generatedClientContent = readContent(this.tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
                 Assert.assertEquals(expectedServiceContent, generatedClientContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
@@ -161,36 +155,35 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test NodeParser")
     public void testNodeParser() {
-        ModulePartNode modulePartNode =
-                NodeParser.parseModulePart("import ballerina/graphql;\n" +
+        ModulePartNode modulePartNode = NodeParser.parseModulePart(
+                "import ballerina/graphql;\n" +
                         "\n" +
-                        "type SchemaDocs11Api service object {\n" +
+                        "type Schema09Api service object {\n" +
                         "    *graphql:Service;\n" +
                         "\n" +
-                        "    # Fetch all the books from database\n" +
-                        "\tresource function get books() returns Book?[]?;\n" +
-                        "\t# Fetch a book by its id\n" +
-                        "\t# + id - The id of the book to fetch\n" +
-                        "    resource function get book(int id) returns Book?;\n" +
+                        "    resource function get studentInfo(int id) returns Info?;\n" +
                         "};\n" +
                         "\n" +
-                        "enum Availability {\n" +
-                        "    AVAILABLE,\n" +
-                        "    BORROWED,\n" +
-                        "    @deprecated\n" +
-                        "    LOST\n" +
+                        "type Info distinct service object {\n" +
+                        "    resource function get name() returns string;\n" +
+                        "};\n" +
+                        "\n" +
+                        "service class Book {\n" +
+                        "    resource function get name() returns string {}\n" +
                         "}\n" +
                         "\n" +
-                        "# Represents a book written by an author\n" +
-                        "service class Book {\n" +
-                        "    # The id of the book, unique identifier\n" +
-                        "\tresource function get id() returns int {}\n" +
-                        "\t# The title of the book\n" +
-                        "\t# # Deprecated\n" +
-                        "\t# Use `name` instead\n" +
-                        "\t@deprecated\n" +
-                        "\tresource function get title() returns string {}\n" +
-                        "\tresource function get name() returns string {}\n" +
+                        "distinct service class Student {\n" +
+                        "    *Info;\n" +
+                        "\n" +
+                        "    resource function get id() returns int {}\n" +
+                        "    resource function get name() returns string {}\n" +
+                        "}\n" +
+                        "\n" +
+                        "distinct service class Teacher {\n" +
+                        "    *Info;\n" +
+                        "\n" +
+                        "    resource function get id() returns int {}\n" +
+                        "    resource function get name() returns string {}\n" +
                         "}\n");
         modulePartNode.toString();
     }
@@ -271,12 +264,12 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @DataProvider(name = "mismatchModeAndFile")
     public Object[][] createMismatchModeAndFileData() {
-        return new Object[][]{{"service", "graphql.config.yaml"}, {"client", "service.bal"}, {"schema", "schema" +
-                ".graphql"}};
+        return new Object[][]{{"service", "graphql.config.yaml"}, {"client", "service.bal"},
+                {"schema", "schema" + ".graphql"}};
     }
 
-    @Test(description = "Test graphql command execution with mismatch mode and file extension", dataProvider =
-            "mismatchModeAndFile")
+    @Test(description = "Test graphql command execution with mismatch mode and file extension",
+            dataProvider = "mismatchModeAndFile")
     public void testExecuteWithMismatchModeAndFileExtension(String mode, String fileName) {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", fileName));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString(), "--mode", mode};

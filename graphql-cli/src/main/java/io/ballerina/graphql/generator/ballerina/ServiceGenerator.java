@@ -13,7 +13,6 @@ import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
@@ -84,7 +83,6 @@ public class ServiceGenerator {
     private SyntaxTree generateSyntaxTree(GraphQLSchema graphQLSchema, GeneratorContext generatorContext)
             throws IOException {
         NodeList<ImportDeclarationNode> imports = generateImports();
-
         NodeList<ModuleMemberDeclarationNode> moduleMemberDeclarationNodes =
                 generateMembers(graphQLSchema, generatorContext);
 
@@ -139,8 +137,7 @@ public class ServiceGenerator {
         return createServiceDeclarationNode(null, serviceQualifiers, createToken(SERVICE_KEYWORD),
                 serviceObjectTypeDescriptor, absoluteResourcePath, createToken(ON_KEYWORD),
                 createSeparatedNodeList(serviceExpression), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
-                createEmptyNodeList(), createToken(SyntaxKind.CLOSE_BRACE_TOKEN),
-                null);
+                createEmptyNodeList(), createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
 
     private ExplicitNewExpressionNode generateServiceExpression() {
@@ -162,11 +159,6 @@ public class ServiceGenerator {
                 expressionParenthesizedArgList);
     }
 
-
-    private List<ObjectFieldNode> generateServiceVariables() {
-        List<ObjectFieldNode> objectFields = new ArrayList<>();
-        return objectFields;
-    }
 
     public String generateSrc(String fileName, GraphQLSchema graphQLSchema, GeneratorContext generatorContext)
             throws ServiceGenerationException {

@@ -36,4 +36,5 @@ public class GraphqlClientProject extends GraphqlProject {
     public GenerationType getGenerationType() {
         return generationType;
     }
+
 }

@@ -32,11 +32,9 @@ public class Constants {
             "required to generate the artifacts. " +
             "\nPlease provide the path of the GraphQL config file with -i or --input flag." +
             "\ne.g: bal graphql --input <GraphQL configuration file>";
-    public static final String MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION =
-            "The mode flag value should be client, " +
-                    "service or schema and the input file should be a GraphQL configuration file with .yaml/.yml " +
-                    "extension, " +
-                    "a Ballerina service file with .bal or a GraphQL schema file with .graphql respectively.";
+    public static final String MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION = "The mode flag value should be client, " +
+            "service or schema and the input file should be a GraphQL configuration file with .yaml/.yml " +
+            "extension, " + "a Ballerina service file with .bal or a GraphQL schema file with .graphql respectively.";
     public static final String MESSAGE_FOR_EMPTY_CONFIGURATION_FILE =
             "The GraphQL " + "configuration YAML file is empty. \nPlease provide a valid content in the YAML file.";
     public static final String MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT =
@@ -63,7 +61,8 @@ public class Constants {
     public static final String MESSAGE_CAN_NOT_READ_SCHEMA_FILE = "Provided Schema is not allowed to be read";
 
     public static final String MESSAGE_FOR_INVALID_MODE =
-            "The mode flag argument should be one of these (client, service, schema)";
+            " is not a supported argument for mode flag. The mode flag argument should be one of these " +
+                    "(client," + "service, schema)";
     // GraphQL config file extensions supported
     public static final String YAML_EXTENSION = ".yaml";
     public static final String YML_EXTENSION = ".yml";

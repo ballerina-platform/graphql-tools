@@ -20,6 +20,7 @@ package io.ballerina.graphql.validator;
 
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.errors.SchemaProblem;
+import io.ballerina.graphql.cmd.GenerationType;
 import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.GraphqlProject;
 import io.ballerina.graphql.cmd.Utils;
@@ -54,7 +55,7 @@ public class SDLValidator {
         String schema = project.getSchema();
 
         Extension extensions = null;
-        if (project instanceof GraphqlClientProject) {
+        if (project.getGenerationType() == GenerationType.CLIENT) {
             GraphqlClientProject clientProject = (GraphqlClientProject) project;
             extensions = clientProject.getExtensions();
         }

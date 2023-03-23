@@ -79,7 +79,7 @@ import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
                 "SDL schema for the given Ballerina GraphQL service.")
 public class GraphqlCmd implements BLauncherCmd {
     private static final String CMD_NAME = "graphql";
-    private static List<String> validModes = Arrays.asList(CLIENT.toLowerCase(), SCHEMA, SERVICE);
+    private static final List<String> VALID_MODES = Arrays.asList(CLIENT.toLowerCase(), SCHEMA, SERVICE);
 
     private PrintStream outStream;
     private boolean exitWhenFinish;
@@ -190,8 +190,8 @@ public class GraphqlCmd implements BLauncherCmd {
         }
 
         if (mode != null) {
-            if (!validModes.contains(mode)) {
-                throw new CmdException(MESSAGE_FOR_INVALID_MODE);
+            if (!VALID_MODES.contains(mode)) {
+                throw new CmdException(mode.concat(MESSAGE_FOR_INVALID_MODE));
             }
         }
     }
@@ -217,7 +217,7 @@ public class GraphqlCmd implements BLauncherCmd {
      */
     private void executeOperation()
             throws CmdException, ParseException, IOException, ValidationException, GenerationException,
-            SchemaFileGenerationException, ServiceGenerationException {
+            SchemaFileGenerationException {
         String filePath = argList.get(0);
 
         if (CLIENT.toLowerCase().equals(mode)) {
@@ -274,7 +274,7 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private void generateService(String filePath)
-            throws IOException, ValidationException, GenerationException, ServiceGenerationException {
+            throws IOException, ValidationException, GenerationException {
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
             throw new ServiceGenerationException(Constants.MESSAGE_MISSING_SCHEMA_FILE);
@@ -285,12 +285,6 @@ public class GraphqlCmd implements BLauncherCmd {
 
         GraphqlServiceProject graphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());
-
-        try {
-            Path schemaPath = Paths.get(graphqlFile.getCanonicalPath());
-        } catch (IOException e) {
-            throw new ServiceGenerationException(e.toString());
-        }
 
         SDLValidator.getInstance().validate(graphqlProject);
         if (useRecordsForObjectsFlag) {
