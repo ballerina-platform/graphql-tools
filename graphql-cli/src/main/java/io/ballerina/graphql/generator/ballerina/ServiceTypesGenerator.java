@@ -141,6 +141,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private HashMap<GraphQLObjectType, Boolean> canRecordFromObject;
 
+    private List<ModuleMemberDeclarationNode> moduleMembers;
     private List<ModuleMemberDeclarationNode> inputObjectTypesModuleMembers;
     private List<ModuleMemberDeclarationNode> interfaceTypesModuleMembers;
     private List<ModuleMemberDeclarationNode> enumTypesModuleMembers;
@@ -150,6 +151,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     public ServiceTypesGenerator() {
         this.schemaNamedTypes = initializeSchemaNamedTypes();
+        this.moduleMembers = new LinkedList<>();
         this.inputObjectTypesModuleMembers = new ArrayList<>();
         this.interfaceTypesModuleMembers = new ArrayList<>();
         this.enumTypesModuleMembers = new ArrayList<>();
@@ -191,7 +193,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
     public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceTypesGenerationException {
         NodeList<ImportDeclarationNode> imports = generateImports();
 
-        List<ModuleMemberDeclarationNode> moduleMembers = new LinkedList<>();
         if (!serviceObjectsAdded) {
             addServiceObjectTypeDefinitionNode(schema, moduleMembers);
             serviceObjectsAdded = true;

@@ -15,18 +15,9 @@ type Book record {
     # The id of the book, unique identifier
     int id;
     # The title of the book
+    # # Deprecated
+    # Use `name` instead
+    @deprecated
     string title;
-
+    string name;
 };
-
-# Represents a book written by an author
-service class Book {
-    # The id of the book, unique identifier
-	resource function get id() returns int {}
-	# The title of the book
-	# # Deprecated
-	# Use `name` instead
-	@deprecated
-	resource function get title() returns string {}
-	resource function get name() returns string {}
-}

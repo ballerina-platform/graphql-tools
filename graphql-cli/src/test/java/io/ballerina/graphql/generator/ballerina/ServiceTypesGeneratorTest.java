@@ -672,7 +672,8 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     public Object[][] getSchemaFileNamesWithDeprecationAndExpectedFiles() {
         return new Object[][]{
                 {"SchemaDocs11Api", "typesDocs11Default.bal"},
-                {"SchemaDocs12Api", "typesDocs12Default.bal"}
+                {"SchemaDocs12Api", "typesDocs12Default.bal"},
+                {"SchemaDocs13Api", "typesDocs13Default.bal"},
         };
     }
 
@@ -697,8 +698,34 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);    }
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
+    }
 
+    @Test(description = "Test for schema with deprecated directive fileds - method records allowed")
+    public void testGenerateSrcForSchemaWithDeprecatedAllowRecords() throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaDocs11Api";
+        String expectedFile = "typesDocs11RecordsAllowed.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                        .toString(), this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setRecordForced(true);
+        serviceTypesGenerator.setFileName(fileName);
+        String generatedServiceTypesContent =
+                serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+        String generatedServiceTypesContentTrimmed =
+                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
+    }
     // TODO: Test for schema with deprecated fields in enums
     // TODO: Test for schema with deprecated fields in interfaces
     // TODO: Test for schema with deprecated fields in records
