@@ -67,8 +67,8 @@ public class SpecReaderTest extends GraphqlTest {
         List<String> generatedInputObjectTypes = SpecReader.getInputObjectTypeNames(schema);
         List<String> expectedInputTypeFields = Arrays.asList("code StringQueryOperatorInput?",
                 "continent StringQueryOperatorInput?", "code StringQueryOperatorInput?",
-                "currency StringQueryOperatorInput?", "code StringQueryOperatorInput?", "nin string?[]?",
-                "regex string?", "ne string?", "glob string?", "eq string?", "'in string?[]?");
+                "currency StringQueryOperatorInput?", "code StringQueryOperatorInput?", "nin string[]?",
+                "regex string?", "ne string?", "glob string?", "eq string?", "'in string[]?");
         for (String generatedInputObjectType: generatedInputObjectTypes) {
             Map<String, FieldType> generatedInputTypeFieldsMap =
                     SpecReader.getInputTypeFieldsMap(schema, generatedInputObjectType);
