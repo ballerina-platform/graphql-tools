@@ -10,7 +10,10 @@ type Query {
 
 "Represents a book written by an author"
 type Book {
-    "The id of the book, unique identifier"
+    """
+    The id of the book,
+    unique identifier
+    """
     id: Int!
     "The title of the book"
     title: String!

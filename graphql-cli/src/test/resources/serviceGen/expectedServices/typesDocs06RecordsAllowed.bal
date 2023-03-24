@@ -12,9 +12,9 @@ type SchemaDocs06Api service object {
 
 # Represents a book written by an author
 type Book record {
-    # The id of the book, unique identifier
+    # The id of the book,
+    # unique identifier
     int id;
     # The title of the book
     string title;
 };
-

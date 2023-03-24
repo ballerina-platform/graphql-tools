@@ -134,6 +134,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private String fileName;
     private boolean recordForced;
+    private boolean serviceObjectsAdded;
+    private boolean typesAdded;
+
     private HashMap<String, List<GraphQLNamedType>> schemaNamedTypes;
 
     private HashMap<GraphQLObjectType, Boolean> canRecordFromObject;
@@ -152,6 +155,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
         this.enumTypesModuleMembers = new ArrayList<>();
         this.unionTypesModuleMembers = new ArrayList<>();
         this.objectTypesModuleMembers = new ArrayList<>();
+
+        this.serviceObjectsAdded = false;
+        this.typesAdded = false;
     }
 
     private HashMap<String, List<GraphQLNamedType>> initializeSchemaNamedTypes() {
@@ -186,8 +192,14 @@ public class ServiceTypesGenerator extends TypesGenerator {
         NodeList<ImportDeclarationNode> imports = generateImports();
 
         List<ModuleMemberDeclarationNode> moduleMembers = new LinkedList<>();
-        addServiceObjectTypeDefinitionNode(schema, moduleMembers);
-        addTypeDefinitions(schema, moduleMembers);
+        if (!serviceObjectsAdded) {
+            addServiceObjectTypeDefinitionNode(schema, moduleMembers);
+            serviceObjectsAdded = true;
+        }
+        if (!typesAdded) {
+            addTypeDefinitions(schema, moduleMembers);
+            typesAdded = true;
+        }
 
         NodeList<ModuleMemberDeclarationNode> moduleMemberNodes = createNodeList(moduleMembers);
         ModulePartNode modulePartNode =

@@ -12,7 +12,8 @@ type SchemaDocs06Api service object {
 
 # Represents a book written by an author
 service class Book {
-    # The id of the book, unique identifier
+    # The id of the book,
+    # unique identifier
 	resource function get id() returns int {}
 	# The title of the book
 	resource function get title() returns string {}
