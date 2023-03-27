@@ -21,12 +21,12 @@ public service class Book {
 	resource function get title() returns string {}
 }
 
-service class Student {
+public service class Student {
     resource function get id() returns int {}
     resource function get name() returns string {}
 }
 
-service class Teacher {
+public service class Teacher {
     resource function get id() returns int {}
     resource function get name() returns string {}
 }

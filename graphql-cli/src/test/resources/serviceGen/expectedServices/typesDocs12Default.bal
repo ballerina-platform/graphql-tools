@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-public public type SchemaDocs12Api service object {
+public type SchemaDocs12Api service object {
     *graphql:Service;
 
     # Fetch all the books from database
@@ -10,7 +10,7 @@ public public type SchemaDocs12Api service object {
     resource function get book(int id) returns Book?;
 };
 
-public public enum Availability {
+public enum Availability {
     AVAILABLE,
     BORROWED,
     UNAVAILABLE,
@@ -21,7 +21,7 @@ public public enum Availability {
 }
 
 # Represents a book written by an author
-service class Book {
+public service class Book {
     # The id of the book, unique identifier
 	resource function get id() returns int {}
 	# The title of the book

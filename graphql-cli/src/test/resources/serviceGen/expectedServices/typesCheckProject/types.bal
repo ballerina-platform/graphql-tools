@@ -1,14 +1,30 @@
 import ballerina/graphql;
 
-type Schema01Api service object {
+public type Schema08Api service object {
     *graphql:Service;
-    resource function get book(int id, string? title) returns Book?;
-    resource function get books() returns Book[]?;
+    resource function get student(int id) returns Student?;
+    resource function get teacher(int id) returns Teacher?;
 };
 
-public service class Book {
+public type Profile Student|Teacher|Clerk;
+
+public service class Clerk {
     resource function get id() returns int {
     }
-    resource function get title() returns string {
+    resource function get name() returns string {
+    }
+}
+
+public service class Student {
+    resource function get id() returns int {
+    }
+    resource function get name() returns string {
+    }
+}
+
+public service class Teacher {
+    resource function get id() returns int {
+    }
+    resource function get name() returns string {
     }
 }
