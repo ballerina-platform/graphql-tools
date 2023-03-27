@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type Schema03Api service object {
+public type Schema03Api service object {
     *graphql:Service;
 
     resource function get book(int id, string? title) returns Book?;
@@ -10,24 +10,21 @@ type Schema03Api service object {
 	remote function createAuthor(CreateAuthorInput? input) returns Author?;
 };
 
-type CreateAuthorInput record {|
+public type CreateAuthorInput record {|
     string name;
 |};
 
-type CreateBookInput record {|
+public type CreateBookInput record {|
     string title;
     int? authorId;
 |};
 
-service class Author {
+public service class Author {
     resource function get id() returns int {}
     resource function get name() returns string {}
 }
 
-service class Book {
+public service class Book {
 	resource function get id() returns int {}
 	resource function get title() returns string {}
 }
-
-
-

@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type Schema13Api service object {
+public type Schema13Api service object {
     *graphql:Service;
 
     resource function get book(int id=1, string? title="no name", float? price=0.0, boolean? available = false) returns Book?;
@@ -9,16 +9,13 @@ type Schema13Api service object {
 	resource function subscribe bookTitles() returns stream<string>;
 };
 
-service class Author {
+public service class Author {
     resource function get id() returns int {}
     resource function get name() returns string {}
 }
 
-service class Book {
+public service class Book {
 	resource function get id() returns int {}
 	resource function get title() returns string {}
 	resource function get price() returns float {}
 }
-
-
-

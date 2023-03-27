@@ -1,24 +1,24 @@
 import ballerina/graphql;
 
-type Schema10Api service object {
+public type Schema10Api service object {
     *graphql:Service;
 
     resource function get student(int id) returns Student?;
 };
 
-type ContactInfo distinct service object {
+public type ContactInfo distinct service object {
     resource function get email() returns string;
 };
 
-type ExamInfo distinct service object {
+public type ExamInfo distinct service object {
     resource function get pass(int marks) returns boolean;
 };
 
-type Info distinct service object {
+public type Info distinct service object {
     resource function get name() returns string;
 };
 
-distinct service class Student {
+public distinct service class Student {
     *Info;
     *ExamInfo;
 
@@ -27,7 +27,7 @@ distinct service class Student {
     resource function get pass(int marks) returns boolean {}
 }
 
-distinct service class Teacher {
+public distinct service class Teacher {
     *Info;
     *ContactInfo;
 
