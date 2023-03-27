@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaDocs13Api service object {
+public type SchemaDocs13Api service object {
     *graphql:Service;
 
     # Fetch all the books from database
@@ -11,7 +11,7 @@ type SchemaDocs13Api service object {
 };
 
 # Contact information of a person
-type ContactInfo distinct service object {
+public type ContactInfo distinct service object {
     # The email of the person
     resource function get email() returns string;
     # The name of the person
@@ -22,7 +22,7 @@ type ContactInfo distinct service object {
 };
 
 # Represents a book written by an author
-service class Book {
+public service class Book {
     # The id of the book, unique identifier
 	resource function get id() returns int {}
 	# The title of the book
