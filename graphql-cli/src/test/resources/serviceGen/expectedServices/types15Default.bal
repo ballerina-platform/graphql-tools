@@ -10,7 +10,7 @@ public type Schema15Api service object {
 	resource function subscribe bookTitles() returns stream<string>;
 };
 
-public service class Book {
+public distinct service class Book {
 	resource function get id() returns int {}
 	resource function get title() returns string {}
 	resource function get price() returns float {}

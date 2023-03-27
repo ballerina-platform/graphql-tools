@@ -9,7 +9,7 @@ public type Schema12Api service object {
 	resource function get booksOfBooksOfBooks() returns Book?[]?[]?[]?;
 };
 
-public service class Book {
+public distinct service class Book {
 	resource function get id() returns int {}
 	resource function get title() returns string {}
 }

@@ -10,7 +10,7 @@ public type Info distinct service object {
     resource function get name() returns string;
 };
 
-public service class Book {
+public distinct service class Book {
     resource function get name() returns string {}
 }
 

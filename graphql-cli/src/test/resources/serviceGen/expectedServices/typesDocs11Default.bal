@@ -11,7 +11,7 @@ public type SchemaDocs11Api service object {
 };
 
 # Represents a book written by an author
-public service class Book {
+public distinct service class Book {
     # The id of the book, unique identifier
 	resource function get id() returns int {}
 	# The title of the book

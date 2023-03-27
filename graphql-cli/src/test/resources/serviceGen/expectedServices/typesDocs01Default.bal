@@ -9,7 +9,7 @@ public type SchemaDocs01Api service object {
     resource function get book(int id) returns Book?;
 };
 
-public service class Book {
+public distinct service class Book {
 	resource function get id() returns int {}
 	resource function get title() returns string {}
 }

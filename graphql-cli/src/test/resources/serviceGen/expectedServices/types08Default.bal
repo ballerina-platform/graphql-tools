@@ -9,17 +9,17 @@ public type Schema08Api service object {
 
 public type Profile Student|Teacher|Clerk;
 
-public service class Clerk {
+public distinct service class Clerk {
     resource function get id() returns int {}
     resource function get name() returns string {}
 }
 
-public service class Student {
+public distinct service class Student {
     resource function get id() returns int {}
     resource function get name() returns string {}
 }
 
-public service class Teacher {
+public distinct service class Teacher {
     resource function get id() returns int {}
     resource function get name() returns string {}
 }

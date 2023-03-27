@@ -12,7 +12,7 @@ public type Cat record {
     int age;
 };
 
-public service class Dog {
+public distinct service class Dog {
     resource function get name() returns string {}
     resource function get knowsWord(string word) returns boolean {}
 }

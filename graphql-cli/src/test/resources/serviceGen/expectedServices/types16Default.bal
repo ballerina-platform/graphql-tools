@@ -12,7 +12,7 @@ public type CreateBookInput record {|
     string title;
 |};
 
-public service class Book {
+public distinct service class Book {
 	resource function get id() returns int {}
 	resource function get title() returns string {}
 }

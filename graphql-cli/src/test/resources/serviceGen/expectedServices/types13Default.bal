@@ -9,12 +9,12 @@ public type Schema13Api service object {
 	resource function subscribe bookTitles() returns stream<string>;
 };
 
-public service class Author {
+public distinct service class Author {
     resource function get id() returns int {}
     resource function get name() returns string {}
 }
 
-public service class Book {
+public distinct service class Book {
 	resource function get id() returns int {}
 	resource function get title() returns string {}
 	resource function get price() returns float {}

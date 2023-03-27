@@ -686,8 +686,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private ClassDefinitionNode generateServiceClassType(GraphQLObjectType type)
             throws ServiceTypesGenerationException {
-        NodeList<Token> classTypeQualifiers = generateServiceClassTypeQualifiers(type.getInterfaces().size() > 0);
-
+        NodeList<Token> classTypeQualifiers =
+                createNodeList(new ArrayList<>(List.of(createToken(SyntaxKind.DISTINCT_KEYWORD),
+                        createToken(SyntaxKind.SERVICE_KEYWORD))));
         List<Node> serviceClassTypeMembersList = new ArrayList<>();
         for (GraphQLNamedOutputType typeInterface : getInterfacesToBeWritten(type.getInterfaces())) {
             serviceClassTypeMembersList.add(createTypeReferenceNode(createToken(SyntaxKind.ASTERISK_TOKEN),

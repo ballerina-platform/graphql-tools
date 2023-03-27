@@ -11,7 +11,7 @@ public enum Gender {
     FEMALE
 }
 
-public service class Student {
+public distinct service class Student {
     resource function get id() returns int {}
     resource function get name() returns string {}
 }
