@@ -189,11 +189,40 @@ public class GraphqlCmd implements BLauncherCmd {
             exitError(this.exitWhenFinish);
         }
 
+        String filePath = argList.get(0);
+        if (!validInputFileExtension(filePath)) {
+            throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+        }
+
+        if (!isModeAndFileCompatible()) {
+            throw new CmdException(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION);
+        }
+
+        if (useRecordsForObjectsFlag && !filePath.endsWith(Constants.GRAPHQL_EXTENSION)) {
+            throw new CmdException(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE);
+        }
+    }
+
+    private boolean validInputFileExtension(String filePath) {
+        return filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION) ||
+                filePath.endsWith(BAL_EXTENSION) ||
+                filePath.endsWith(GRAPHQL_EXTENSION);
+    }
+
+    private boolean isModeAndFileCompatible() throws CmdException {
+        String filePath = argList.get(0);
         if (mode != null) {
-            if (!VALID_MODES.contains(mode)) {
+            if (mode.equals(CLIENT.toLowerCase())) {
+                return filePath.endsWith(Constants.YAML_EXTENSION) || filePath.endsWith(Constants.YML_EXTENSION);
+            } else if (mode.equals(SCHEMA)) {
+                return filePath.endsWith(Constants.BAL_EXTENSION);
+            } else if (mode.equals(SERVICE)) {
+                return filePath.endsWith(Constants.GRAPHQL_EXTENSION);
+            } else {
                 throw new CmdException(mode.concat(MESSAGE_FOR_INVALID_MODE));
             }
         }
+        return true;
     }
 
     /**
@@ -223,20 +252,14 @@ public class GraphqlCmd implements BLauncherCmd {
         if (CLIENT.toLowerCase().equals(mode)) {
             if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
                 generateClient(filePath);
-            } else {
-                throw new CmdException(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION);
             }
         } else if (SCHEMA.equals(mode)) {
             if (filePath.endsWith(BAL_EXTENSION)) {
                 generateSchema(filePath);
-            } else {
-                throw new CmdException(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION);
             }
         } else if (SERVICE.equals(mode)) {
             if (filePath.endsWith(GRAPHQL_EXTENSION)) {
                 generateService(filePath);
-            } else {
-                throw new CmdException(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION);
             }
         } else {
             if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
@@ -245,8 +268,6 @@ public class GraphqlCmd implements BLauncherCmd {
                 generateSchema(filePath);
             } else if (filePath.endsWith(GRAPHQL_EXTENSION)) {
                 generateService(filePath);
-            } else {
-                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
             }
         }
     }

@@ -702,7 +702,8 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     }
 
     @Test(description = "Test for schema with deprecated directive fileds - method records allowed")
-    public void testGenerateSrcForSchemaWithDeprecatedAllowRecords() throws ValidationException, IOException, ServiceTypesGenerationException {
+    public void testGenerateSrcForSchemaWithDeprecatedAllowRecords()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
         String fileName = "SchemaDocs11Api";
         String expectedFile = "typesDocs11RecordsAllowed.bal";
 
