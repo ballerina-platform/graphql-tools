@@ -70,7 +70,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test successful GraphQL command execution with service name")
+    @Test(description = "Test successful GraphQL command e  mbhj h            xecution with service name")
     public void testSdlGenerationWithServiceBasePath() {
         String[] args = {"-i", "valid/service_2.bal", "-o", this.tmpDir.toString(), "-s", "/service/gql"};
         try {

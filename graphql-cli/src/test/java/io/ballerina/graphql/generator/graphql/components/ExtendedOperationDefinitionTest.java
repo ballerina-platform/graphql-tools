@@ -20,18 +20,21 @@ package io.ballerina.graphql.generator.graphql.components;
 
 import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.ballerina.AuthConfigGenerator;
-import io.ballerina.graphql.generator.graphql.QueryReader;
-import io.ballerina.graphql.generator.model.AuthConfig;
-import io.ballerina.graphql.generator.model.FieldType;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
+import io.ballerina.graphql.generator.client.generator.graphql.QueryReader;
+import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedFieldDefinition;
+import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedVariableDefinition;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.generator.model.FieldType;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -41,8 +44,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.testng.Assert.assertTrue;
-
 /**
  * This class is used to test the functionality of the GraphQL query reader ExtendedOperationDefinition class.
  */
@@ -51,8 +52,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
     @Test
     public void testGetOperationType() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-to-test-arguments.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
@@ -74,8 +74,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
     @Test
     public void testGetName() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-to-test-arguments.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
@@ -97,8 +96,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
     @Test
     public void testGetVariableDefinitions() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-to-test-arguments.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
@@ -114,23 +112,22 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
 
         ExtendedOperationDefinition operation1Definition = queryReader.getExtendedOperationDefinitions().get(0);
         List<ExtendedVariableDefinition> generatedVariableDefinitions = operation1Definition.getVariableDefinitions();
-        List<String> expectedVariables = Arrays.asList("argument1 Boolean", "argument2 String",
-                "argument3 Int", "argument4 Float", "argument5 ID", "argument6 CustomScalar", "argument7 CustomInput",
-                "argument8 null", "argument9 null");
+        List<String> expectedVariables =
+                Arrays.asList("argument1 Boolean", "argument2 String", "argument3 Int", "argument4 Float",
+                        "argument5 ID", "argument6 CustomScalar", "argument7 CustomInput", "argument8 null",
+                        "argument9 null");
         for (ExtendedVariableDefinition generatedVariableDefinition : generatedVariableDefinitions) {
             String generatedVariableName = generatedVariableDefinition.getOriginalName();
             String generatedVariableType = generatedVariableDefinition.getDataType();
             String generatedVariable = generatedVariableName + " " + generatedVariableType;
-            assertTrue(expectedVariables.contains(generatedVariable));
+            Assert.assertTrue(expectedVariables.contains(generatedVariable));
         }
     }
 
     @Test
-    public void testGetVariableDefinitionsMap()
-            throws ValidationException, CmdException, IOException, ParseException {
+    public void testGetVariableDefinitionsMap() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-to-test-arguments.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
@@ -147,14 +144,15 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
         ExtendedOperationDefinition queryOperation1Definition = queryReader.getExtendedOperationDefinitions().get(0);
         Map<String, FieldType> generatedVariableDefinitionsMap =
                 queryOperation1Definition.getVariableDefinitionsMap(schema);
-        List<String> expectedVariables = Arrays.asList("argument1 boolean", "argument2 string", "argument3 int",
-                "argument4 float", "argument5 string", "argument6 anydata", "argument7 CustomInput",
-                "argument8 CustomInput?[]", "argument9 CustomInput[]");
-        for (Map.Entry<String, FieldType> variableDefinitions: generatedVariableDefinitionsMap.entrySet()) {
+        List<String> expectedVariables =
+                Arrays.asList("argument1 boolean", "argument2 string", "argument3 int", "argument4 float",
+                        "argument5 string", "argument6 anydata", "argument7 CustomInput", "argument8 CustomInput?[]",
+                        "argument9 CustomInput[]");
+        for (Map.Entry<String, FieldType> variableDefinitions : generatedVariableDefinitionsMap.entrySet()) {
             String generatedVariableName = variableDefinitions.getKey();
             String generatedVariableTypeName = variableDefinitions.getValue().getFieldTypeAsString();
             String generatedVariable = generatedVariableName + " " + generatedVariableTypeName;
-            assertTrue(expectedVariables.contains(generatedVariable));
+            Assert.assertTrue(expectedVariables.contains(generatedVariable));
         }
     }
 
@@ -162,8 +160,7 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
     public void testGetExtendedFieldDefinitions()
             throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-to-test-arguments.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
@@ -180,21 +177,20 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
         ExtendedOperationDefinition queryOperation1Definition = queryReader.getExtendedOperationDefinitions().get(0);
         List<ExtendedFieldDefinition> generatedExtendedFieldDefinitions =
                 queryOperation1Definition.getExtendedFieldDefinitions();
-        List<String> expectedVariables = Arrays.asList("argument1 boolean", "argument2 string", "argument3 int",
-                "argument4 float", "argument5 string", "argument6 anydata", "argument7 CustomInput",
-                "argument8 CustomInput?[]", "argument9 CustomInput[]");
+        List<String> expectedVariables =
+                Arrays.asList("argument1 boolean", "argument2 string", "argument3 int", "argument4 float",
+                        "argument5 string", "argument6 anydata", "argument7 CustomInput", "argument8 CustomInput?[]",
+                        "argument9 CustomInput[]");
 
-        for (ExtendedFieldDefinition extendedFieldDefinition: generatedExtendedFieldDefinitions) {
+        for (ExtendedFieldDefinition extendedFieldDefinition : generatedExtendedFieldDefinitions) {
             String fieldName = extendedFieldDefinition.getName();
         }
     }
 
     @Test
-    public void testGetQueryString()
-            throws ValidationException, CmdException, IOException, ParseException {
+    public void testGetQueryString() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-to-test-arguments.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();

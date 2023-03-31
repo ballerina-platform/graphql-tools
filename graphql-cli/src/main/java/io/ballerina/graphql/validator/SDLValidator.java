@@ -20,14 +20,14 @@ package io.ballerina.graphql.validator;
 
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.errors.SchemaProblem;
-import io.ballerina.graphql.cmd.GenerationType;
-import io.ballerina.graphql.cmd.GraphqlClientProject;
-import io.ballerina.graphql.cmd.GraphqlProject;
 import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.graphql.cmd.pojo.Extension;
-import io.ballerina.graphql.exception.IntospectionException;
 import io.ballerina.graphql.exception.SDLValidationException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.IntospectionException;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.utils.GenerationType;
 
 import java.io.IOException;
 
