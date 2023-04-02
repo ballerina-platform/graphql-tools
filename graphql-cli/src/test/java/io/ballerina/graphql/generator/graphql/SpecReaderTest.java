@@ -61,15 +61,15 @@ public class SpecReaderTest extends GraphqlTest {
     @Test
     public void testGetInputTypeFieldsMap() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
-                this.tmpDir);
+                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
         List<String> generatedInputObjectTypes = SpecReader.getInputObjectTypeNames(schema);
-        List<String> expectedInputTypeFields = Arrays.asList("code StringQueryOperatorInput?",
-                "continent StringQueryOperatorInput?", "code StringQueryOperatorInput?",
-                "currency StringQueryOperatorInput?", "code StringQueryOperatorInput?", "nin string[]?",
-                "regex string?", "ne string?", "glob string?", "eq string?", "'in string[]?");
-        for (String generatedInputObjectType: generatedInputObjectTypes) {
+        List<String> expectedInputTypeFields =
+                Arrays.asList("code StringQueryOperatorInput?", "continent StringQueryOperatorInput?",
+                        "code StringQueryOperatorInput?", "currency StringQueryOperatorInput?",
+                        "code StringQueryOperatorInput?", "nin string?[]?", "regex string?", "ne string?",
+                        "glob string?", "eq string?", "'in string?[]?");
+        for (String generatedInputObjectType : generatedInputObjectTypes) {
             Map<String, FieldType> generatedInputTypeFieldsMap =
                     SpecReader.getInputTypeFieldsMap(schema, generatedInputObjectType);
             for (Map.Entry<String, FieldType> generatedInputTypeFields : generatedInputTypeFieldsMap.entrySet()) {
