@@ -18,15 +18,17 @@
 
 package io.ballerina.graphql.generator.ballerina;
 
-import io.ballerina.graphql.cmd.GraphqlClientProject;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
-import io.ballerina.graphql.exception.ConfigTypesGenerationException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.ConfigTypesGenerationException;
+import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
+import io.ballerina.graphql.generator.client.generator.ballerina.ConfigTypesGenerator;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

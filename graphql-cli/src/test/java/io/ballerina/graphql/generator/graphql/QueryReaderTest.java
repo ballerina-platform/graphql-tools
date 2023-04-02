@@ -19,25 +19,25 @@
 package io.ballerina.graphql.generator.graphql;
 
 import graphql.language.Document;
-import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.ballerina.AuthConfigGenerator;
-import io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinition;
-import io.ballerina.graphql.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
+import io.ballerina.graphql.generator.client.generator.graphql.QueryReader;
+import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.testng.Assert.assertTrue;
 
 /**
  * This class is used to test the functionality of the GraphQL query reader.
@@ -48,8 +48,7 @@ public class QueryReaderTest extends GraphqlTest {
     public void testGetExtendedOperationDefinitions()
             throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-to-test-arguments.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
@@ -63,11 +62,10 @@ public class QueryReaderTest extends GraphqlTest {
         QueryReader queryReader = new QueryReader(queryDocument);
 
         List<String> expectedOperationNames = Arrays.asList("operation1", "operation2", "operation3");
-        List<ExtendedOperationDefinition> generatedOperationDefinitions =
-                queryReader.getExtendedOperationDefinitions();
+        List<ExtendedOperationDefinition> generatedOperationDefinitions = queryReader.getExtendedOperationDefinitions();
         for (ExtendedOperationDefinition generatedOperationDefinition : generatedOperationDefinitions) {
             String generatedOperationName = generatedOperationDefinition.getName();
-            assertTrue(expectedOperationNames.contains(generatedOperationName));
+            Assert.assertTrue(expectedOperationNames.contains(generatedOperationName));
         }
     }
 

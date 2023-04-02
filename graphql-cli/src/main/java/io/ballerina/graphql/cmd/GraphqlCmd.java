@@ -20,15 +20,18 @@ package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.BLauncherCmd;
 import io.ballerina.graphql.cmd.pojo.Config;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.CmdException;
-import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.ParseException;
-import io.ballerina.graphql.exception.ServiceGenerationException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.ClientCodeGenerator;
-import io.ballerina.graphql.generator.ServiceCodeGenerator;
+import io.ballerina.graphql.generator.GenerationException;
+import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.generator.ClientCodeGenerator;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.service.GraphqlServiceProject;
+import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
 import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
 import io.ballerina.graphql.schema.generator.SdlSchemaGenerator;
@@ -128,9 +131,9 @@ public class GraphqlCmd implements BLauncherCmd {
      * @param outStream    output stream from ballerina
      * @param executionDir defines the directory location of  execution of ballerina command
      */
-    public GraphqlCmd(PrintStream outStream, Path executionDir) {
-        new GraphqlCmd(outStream, executionDir, true);
-    }
+//    public GraphqlCmd(PrintStream outStream, Path executionDir) {
+//        new GraphqlCmd(outStream, executionDir, true);
+//    }
 
     /**
      * Constructor override, which takes output stream and execution dir and exits when finish as inputs.
@@ -205,13 +208,13 @@ public class GraphqlCmd implements BLauncherCmd {
 
     private boolean validInputFileExtension(String filePath) {
         return filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION) ||
-                filePath.endsWith(BAL_EXTENSION) ||
-                filePath.endsWith(GRAPHQL_EXTENSION);
+                filePath.endsWith(BAL_EXTENSION) || filePath.endsWith(GRAPHQL_EXTENSION);
     }
 
     private boolean isModeAndFileCompatible() throws CmdException {
         String filePath = argList.get(0);
         if (mode != null) {
+            // TODO: constant first
             if (mode.equals(CLIENT.toLowerCase())) {
                 return filePath.endsWith(Constants.YAML_EXTENSION) || filePath.endsWith(Constants.YML_EXTENSION);
             } else if (mode.equals(SCHEMA)) {
@@ -294,8 +297,7 @@ public class GraphqlCmd implements BLauncherCmd {
         }
     }
 
-    private void generateService(String filePath)
-            throws IOException, ValidationException, GenerationException {
+    private void generateService(String filePath) throws IOException, ValidationException, GenerationException {
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
             throw new ServiceGenerationException(Constants.MESSAGE_MISSING_SCHEMA_FILE);

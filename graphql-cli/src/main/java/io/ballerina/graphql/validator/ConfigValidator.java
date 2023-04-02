@@ -18,14 +18,15 @@
 
 package io.ballerina.graphql.validator;
 
-import io.ballerina.graphql.cmd.GraphqlClientProject;
+
 import io.ballerina.graphql.cmd.pojo.Config;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.DocumentPathValidationException;
 import io.ballerina.graphql.exception.SchemaPathValidationException;
 import io.ballerina.graphql.exception.SchemaUrlValidationException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,9 +63,9 @@ public class ConfigValidator {
     /**
      * Validates the configuration of all the projects in the given GraphQL config file.
      *
-     * @param config                                the instance of the Graphql config file
-     * @throws ValidationException                  when a validation error occurs
-     * @throws IOException                          If an I/O error occurs
+     * @param config the instance of the Graphql config file
+     * @throws ValidationException when a validation error occurs
+     * @throws IOException         If an I/O error occurs
      */
     public void validate(Config config) throws ValidationException, IOException {
         populateProjects(config);
@@ -76,8 +77,8 @@ public class ConfigValidator {
     /**
      * Populate the projects with information given in the GraphQL config file.
      *
-     * @param config                                the instance of the Graphql config file
-     * @throws ValidationException                  when a validation error occurs
+     * @param config the instance of the Graphql config file
+     * @throws ValidationException when a validation error occurs
      */
     private void populateProjects(Config config) throws ValidationException {
         String schema = config.getSchema();
@@ -94,10 +95,8 @@ public class ConfigValidator {
                 if (projects.get(projectName) == null) {
                     throw new ValidationException(MESSAGE_FOR_EMPTY_PROJECT, projectName);
                 }
-                this.projects.add(new GraphqlClientProject(projectName,
-                        projects.get(projectName).getSchema(),
-                        projects.get(projectName).getDocuments(),
-                        projects.get(projectName).getExtensions()));
+                this.projects.add(new GraphqlClientProject(projectName, projects.get(projectName).getSchema(),
+                        projects.get(projectName).getDocuments(), projects.get(projectName).getExtensions()));
             }
         }
     }
@@ -105,9 +104,9 @@ public class ConfigValidator {
     /**
      * Validates the configuration of a project in the GraphQL config file.
      *
-     * @param project                               the instance of the Graphql project
-     * @throws ValidationException                  when a validation error occurs
-     * @throws IOException                          If an I/O error occurs
+     * @param project the instance of the Graphql project
+     * @throws ValidationException when a validation error occurs
+     * @throws IOException         If an I/O error occurs
      */
     private void validateProject(GraphqlClientProject project) throws ValidationException, IOException {
         String schema = project.getSchema();
@@ -128,10 +127,10 @@ public class ConfigValidator {
     /**
      * Validates the schema value of the Graphql config file.
      *
-     * @param schema                                the schema value of the Graphql config file
-     * @throws SchemaUrlValidationException         when a schema web URL validation error occurs
-     * @throws SchemaPathValidationException        when a schema path validation error occurs
-     * @throws IOException                          If an I/O error occurs
+     * @param schema the schema value of the Graphql config file
+     * @throws SchemaUrlValidationException  when a schema web URL validation error occurs
+     * @throws SchemaPathValidationException when a schema path validation error occurs
+     * @throws IOException                   If an I/O error occurs
      */
     private void validateSchema(String schema)
             throws SchemaUrlValidationException, SchemaPathValidationException, IOException {
@@ -149,9 +148,9 @@ public class ConfigValidator {
     /**
      * Validates the documents value of the Graphql config file.
      *
-     * @param documents                                 the documents value of the Graphql config file
-     * @throws DocumentPathValidationException          when a document path validation error occurs
-     * @throws IOException                              If an I/O error occurs
+     * @param documents the documents value of the Graphql config file
+     * @throws DocumentPathValidationException when a document path validation error occurs
+     * @throws IOException                     If an I/O error occurs
      */
     private void validateDocuments(List<String> documents) throws DocumentPathValidationException, IOException {
         for (String document : documents) {
@@ -164,8 +163,8 @@ public class ConfigValidator {
     /**
      * Validates the schema web URL.
      *
-     * @param schema                                the schema value of the Graphql config file
-     * @throws SchemaUrlValidationException         when a schema web URL validation error occurs
+     * @param schema the schema value of the Graphql config file
+     * @throws SchemaUrlValidationException when a schema web URL validation error occurs
      */
     private void validateSchemaUrl(String schema) throws SchemaUrlValidationException {
         if (!isValidURL(schema)) {
@@ -176,8 +175,8 @@ public class ConfigValidator {
     /**
      * Validates the schema file path.
      *
-     * @param schemaPath                            the path to the schema
-     * @throws SchemaPathValidationException        when a schema path validation error occurs
+     * @param schemaPath the path to the schema
+     * @throws SchemaPathValidationException when a schema path validation error occurs
      */
     private static void validateSchemaPath(Path schemaPath) throws SchemaPathValidationException {
         if (!Files.exists(schemaPath)) {
@@ -188,8 +187,8 @@ public class ConfigValidator {
     /**
      * Validates the documents' file path.
      *
-     * @param documentPath                          the path to the document
-     * @throws DocumentPathValidationException      when a document path validation error occurs
+     * @param documentPath the path to the document
+     * @throws DocumentPathValidationException when a document path validation error occurs
      */
     private static void validateDocumentPath(Path documentPath) throws DocumentPathValidationException {
         if (!Files.exists(documentPath)) {
