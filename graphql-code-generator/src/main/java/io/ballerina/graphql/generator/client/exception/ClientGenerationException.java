@@ -16,33 +16,26 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.exception;
+package io.ballerina.graphql.generator.client.exception;
 
-import io.ballerina.graphql.cmd.DiagnosticMessages;
-import io.ballerina.graphql.cmd.GraphqlDiagnostic;
-import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import io.ballerina.graphql.generator.DiagnosticMessages;
+import io.ballerina.graphql.generator.GenerationException;
+import io.ballerina.tools.diagnostics.Diagnostic;
 
 /**
  * Exception type definition for Ballerina client code generation related errors.
  */
 public class ClientGenerationException extends GenerationException {
-    private String message;
-
     public ClientGenerationException(String message, Throwable e) {
         super(message, e);
-        this.message = message;
     }
 
     public ClientGenerationException(String message) {
         super(message);
-        this.message = message;
     }
 
     public String getDiagnosticMessage() {
-        GraphqlDiagnostic graphqlDiagnostic = Utils.constructGraphqlDiagnostic(
-                DiagnosticMessages.GRAPHQL_CLI_109.getCode(),
-                this.message, DiagnosticSeverity.ERROR, null);
-        return graphqlDiagnostic.toString();
+        Diagnostic diagnostic = createDiagnostic(DiagnosticMessages.GRAPHQL_GEN_102, null, this.getMessage());
+        return diagnostic.toString();
     }
 }
