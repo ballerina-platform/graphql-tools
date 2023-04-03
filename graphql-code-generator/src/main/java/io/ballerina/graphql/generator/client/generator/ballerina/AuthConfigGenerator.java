@@ -16,11 +16,12 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.ballerina;
+package io.ballerina.graphql.generator.client.generator.ballerina;
 
-import io.ballerina.graphql.cmd.pojo.Extension;
+
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 
 import java.util.Map;
 
