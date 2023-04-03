@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.graphql;
+package io.ballerina.graphql.generator.client.generator.graphql;
 
 /**
  * This class represents GraphQL schema (SDL) reader & GraphQL query reader related constants.

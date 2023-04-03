@@ -16,19 +16,30 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.cmd.pojo;
+package io.ballerina.graphql.generator.client.pojo;
+
+import java.util.Map;
 
 /**
- * POJO class representing endpoints of a project in GraphQL config file.
+ * POJO class representing default values of a project in GraphQL config file.
  */
-public class Endpoints {
-    private Default defaultName;
+public class Default {
+    private String url;
+    private Map<String, String> headers;
 
-    public Default getDefaultName() {
-        return defaultName;
+    public String getUrl() {
+        return url;
     }
 
-    public void setDefaultName(Default defaultName) {
-        this.defaultName = defaultName;
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 }

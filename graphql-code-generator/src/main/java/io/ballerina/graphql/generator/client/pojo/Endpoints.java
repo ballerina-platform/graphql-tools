@@ -16,26 +16,19 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.graphql.components;
-
-import graphql.language.Argument;
-import graphql.language.Value;
+package io.ballerina.graphql.generator.client.pojo;
 
 /**
- * ExtendedArgumentDefinition class to extract necessary components from an GraphQL Argument.
+ * POJO class representing endpoints of a project in GraphQL config file.
  */
-public class ExtendedArgumentDefinition {
-    private final Argument argument;
+public class Endpoints {
+    private Default defaultName;
 
-    public ExtendedArgumentDefinition(Argument argument) {
-        this.argument = argument;
+    public Default getDefaultName() {
+        return defaultName;
     }
 
-    public String getName() {
-        return this.argument.getName();
-    }
-
-    public Value<?> getArgumentValue() {
-        return this.argument.getValue();
+    public void setDefaultName(Default defaultName) {
+        this.defaultName = defaultName;
     }
 }
