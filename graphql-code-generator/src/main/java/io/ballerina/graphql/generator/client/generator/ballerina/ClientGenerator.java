@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.ballerina;
+package io.ballerina.graphql.generator.client.generator.ballerina;
 
 import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
@@ -36,14 +36,14 @@ import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
-import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.CodeGeneratorUtils;
-import io.ballerina.graphql.generator.GeneratorContext;
-import io.ballerina.graphql.generator.graphql.QueryReader;
-import io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinition;
-import io.ballerina.graphql.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.Utils;
+import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
+import io.ballerina.graphql.generator.client.generator.graphql.QueryReader;
+import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
@@ -93,7 +93,6 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.INIT;
 public class ClientGenerator {
     private static ClientGenerator clientGenerator = null;
 
-    // TODO: stop using singleton
     public static ClientGenerator getInstance() {
         if (clientGenerator == null) {
             clientGenerator = new ClientGenerator();
