@@ -31,6 +31,7 @@ configurations {
 
 dependencies {
     implementation project(':graphql-schema-file-generator')
+    implementation project(':graphql-code-generator')
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
@@ -99,6 +100,7 @@ task copyStdlibs(type: Copy) {
 
 task copyJar(type: Copy) {
     from "$project.rootDir/graphql-schema-file-generator/build/libs/graphql-schema-file-generator-${version}.jar"
+    from "$project.rootDir/graphql-code-generator/build/libs/graphql-code-generator-${version}.jar"
     from "$project.buildDir/libs/graphql-cli-${version}.jar"
     into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
 }
@@ -169,6 +171,7 @@ compileJava {
 def packageName = "graphql"
 
 jBallerinaPack.dependsOn ":${packageName}-schema-file-generator:build"
+jBallerinaPack.dependsOn ":${packageName}-code-generator:build"
 unpackStdLibs.dependsOn jBallerinaPack
 copyStdlibs.dependsOn unpackStdLibs
 shadowJar.dependsOn copyStdlibs
