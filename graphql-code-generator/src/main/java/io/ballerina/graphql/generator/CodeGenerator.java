@@ -18,17 +18,15 @@
 
 package io.ballerina.graphql.generator;
 
-import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.exception.ClientGenerationException;
-import io.ballerina.graphql.exception.ClientTypesGenerationException;
-import io.ballerina.graphql.exception.ConfigTypesGenerationException;
-import io.ballerina.graphql.exception.GenerationException;
-import io.ballerina.graphql.exception.ServiceGenerationException;
-import io.ballerina.graphql.exception.ServiceTypesGenerationException;
-import io.ballerina.graphql.exception.UtilsGenerationException;
-import io.ballerina.graphql.generator.ballerina.ServiceGenerator;
-import io.ballerina.graphql.generator.ballerina.ServiceTypesGenerator;
-import io.ballerina.graphql.generator.model.SrcFilePojo;
+import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
+import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationException;
+import io.ballerina.graphql.generator.client.exception.ConfigTypesGenerationException;
+import io.ballerina.graphql.generator.client.exception.UtilsGenerationException;
+import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
+import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.GeneratorContext;
+import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -39,8 +37,6 @@ import java.util.List;
  */
 public abstract class CodeGenerator {
     private static CodeGenerator codeGenerator = null;
-    private ServiceGenerator serviceGenerator;
-    private ServiceTypesGenerator serviceTypesGenerator;
 
     /**
      * Generates the code for a given GraphQL project.

@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator;
+package io.ballerina.graphql.generator.utils;
 
 import io.ballerina.compiler.syntax.tree.AbstractNodeFactory;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
@@ -32,7 +32,7 @@ import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
-import io.ballerina.graphql.generator.model.SrcFilePojo;
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -73,6 +73,9 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
  * Utility class for GraphQL client code generation.
  */
 public class CodeGeneratorUtils {
+
+    public static final MinutiaeList SINGLE_WS_MINUTIAE = getSingleWSMinutiae();
+    private static final MinutiaeList SINGLE_END_OF_LINE_MINUTIAE = getEndOfLineMinutiae();
 
     /**
      * Gets the document name for a given document.
