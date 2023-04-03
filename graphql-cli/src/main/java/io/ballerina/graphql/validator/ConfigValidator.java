@@ -18,14 +18,15 @@
 
 package io.ballerina.graphql.validator;
 
-import io.ballerina.graphql.cmd.GraphqlClientProject;
+
 import io.ballerina.graphql.cmd.pojo.Config;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.DocumentPathValidationException;
 import io.ballerina.graphql.exception.SchemaPathValidationException;
 import io.ballerina.graphql.exception.SchemaUrlValidationException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 
 import java.io.File;
 import java.io.IOException;
