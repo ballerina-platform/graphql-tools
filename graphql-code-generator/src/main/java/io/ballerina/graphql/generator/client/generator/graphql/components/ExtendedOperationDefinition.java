@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.graphql.components;
+package io.ballerina.graphql.generator.client.generator.graphql.components;
 
 import graphql.language.AstPrinter;
 import graphql.language.Definition;
@@ -27,8 +27,8 @@ import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.VariableDefinition;
 import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.generator.graphql.Utils;
-import io.ballerina.graphql.generator.model.FieldType;
+import io.ballerina.graphql.generator.client.generator.graphql.Utils;
+import io.ballerina.graphql.generator.client.generator.model.FieldType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
