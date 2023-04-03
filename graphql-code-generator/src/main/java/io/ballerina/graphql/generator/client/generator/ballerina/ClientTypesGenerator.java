@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.ballerina;
+package io.ballerina.graphql.generator.client.generator.ballerina;
 
 import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
@@ -7,7 +7,8 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.graphql.exception.ClientTypesGenerationException;
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
+import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationException;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
@@ -22,7 +23,6 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeLi
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 
 /**
  * This class is used to generate the types file content.
@@ -69,14 +69,14 @@ public class ClientTypesGenerator extends TypesGenerator {
         addInputRecords(schema, typeDefinitionNodeList);
         addQueryResponseRecords(schema, documents, typeDefinitionNodeList);
 
-        NodeList<ModuleMemberDeclarationNode> members =  createNodeList(typeDefinitionNodeList.toArray(
+        NodeList<ModuleMemberDeclarationNode> members = createNodeList(typeDefinitionNodeList.toArray(
                 new TypeDefinitionNode[typeDefinitionNodeList.size()]));
         ModulePartNode modulePartNode = createModulePartNode(
                 importsList,
                 members,
                 createToken(EOF_TOKEN));
 
-        TextDocument textDocument = TextDocuments.from(EMPTY_STRING);
+        TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
         return syntaxTree.modifyWith(modulePartNode);
     }
