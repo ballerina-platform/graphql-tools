@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.client.generator.graphql.components;
+package io.ballerina.graphql.generator.utils.graphql.components;
 
 import graphql.language.Argument;
 import graphql.language.Value;

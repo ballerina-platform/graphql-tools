@@ -16,13 +16,13 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.client.generator.graphql;
+package io.ballerina.graphql.generator.utils.graphql;
 
 import graphql.language.Document;
 import graphql.language.FragmentDefinition;
 import graphql.language.OperationDefinition;
-import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedFragmentDefinition;
-import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.utils.graphql.components.ExtendedFragmentDefinition;
+import io.ballerina.graphql.generator.utils.graphql.components.ExtendedOperationDefinition;
 
 import java.util.ArrayList;
 import java.util.List;

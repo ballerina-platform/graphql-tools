@@ -27,7 +27,7 @@ import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.exception.ConfigTypesGenerationException;
 import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
 import io.ballerina.graphql.generator.client.generator.ballerina.ConfigTypesGenerator;
-import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 import io.ballerina.graphql.generator.client.pojo.Extension;
 import org.testng.Assert;
 import org.testng.annotations.Test;

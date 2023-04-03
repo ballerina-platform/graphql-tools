@@ -16,10 +16,10 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.client.generator.graphql.components;
+package io.ballerina.graphql.generator.utils.graphql.components;
 
-import graphql.language.Argument;
 import graphql.language.Field;
+import graphql.language.FragmentDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
 
@@ -27,30 +27,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ExtendedFieldDefinition class to extract necessary components from an GraphQL FieldDefinition.
+ * ExtendedFragmentDefinition class to extract necessary components from an GraphQL FragmentDefinition.
  */
-public class ExtendedFieldDefinition {
-    private final Field definition;
+public class ExtendedFragmentDefinition {
+    private final FragmentDefinition definition;
 
-    public ExtendedFieldDefinition(Field definition) {
+    public ExtendedFragmentDefinition(FragmentDefinition definition) {
         this.definition = definition;
-    }
-
-    public String getAlias() {
-        return this.definition.getAlias();
     }
 
     public String getName() {
         return this.definition.getName();
     }
 
-    public List<ExtendedArgumentDefinition> getArguments() {
-        List<ExtendedArgumentDefinition> extendedArgumentDefinitions = new ArrayList<>();
-        for (Argument argument : this.definition.getArguments()) {
-            ExtendedArgumentDefinition argumentDefinition = new ExtendedArgumentDefinition(argument);
-            extendedArgumentDefinitions.add(argumentDefinition);
-        }
-        return extendedArgumentDefinitions;
+    public String getOperationType() {
+        return this.definition.getTypeCondition().getName();
     }
 
     public SelectionSet getSelectionSet() {
@@ -59,12 +50,10 @@ public class ExtendedFieldDefinition {
 
     public List<ExtendedFieldDefinition> getExtendedFieldDefinitions() {
         List<ExtendedFieldDefinition> fieldDefinitionList = new ArrayList<>();
-        if (definition.getSelectionSet() != null) {
-            for (Selection<?> selection : this.definition.getSelectionSet().getSelections()) {
-                Field field = (Field) selection;
-                ExtendedFieldDefinition extendedFieldDefinition = new ExtendedFieldDefinition(field);
-                fieldDefinitionList.add(extendedFieldDefinition);
-            }
+        for (Selection<?> selection : this.definition.getSelectionSet().getSelections()) {
+            Field field = (Field) selection;
+            ExtendedFieldDefinition extendedFieldDefinition = new ExtendedFieldDefinition(field);
+            fieldDefinitionList.add(extendedFieldDefinition);
         }
         return fieldDefinitionList;
     }

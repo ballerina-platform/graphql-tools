@@ -33,10 +33,10 @@ import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
-import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
-import io.ballerina.graphql.generator.client.generator.model.FieldType;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
+import io.ballerina.graphql.generator.utils.model.FieldType;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,10 +1,10 @@
-package io.ballerina.graphql.generator.client.generator.graphql.components;
+package io.ballerina.graphql.generator.utils.graphql.components;
 
 import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.graphql.generator.client.generator.graphql.QueryReader;
-import io.ballerina.graphql.generator.client.generator.model.FieldType;
+import io.ballerina.graphql.generator.utils.graphql.QueryReader;
+import io.ballerina.graphql.generator.utils.model.FieldType;
 
 import java.util.List;
 import java.util.Map;

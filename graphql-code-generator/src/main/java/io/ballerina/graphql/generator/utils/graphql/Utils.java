@@ -16,14 +16,14 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.client.generator.graphql;
+package io.ballerina.graphql.generator.utils.graphql;
 
 import graphql.language.ListType;
 import graphql.language.NonNullType;
 import graphql.language.Type;
 import graphql.language.TypeName;
 import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.generator.client.generator.model.FieldType;
+import io.ballerina.graphql.generator.utils.model.FieldType;
 
 /**
  * Utility class for GraphQL schema (SDL) reader & GraphQL query reader.

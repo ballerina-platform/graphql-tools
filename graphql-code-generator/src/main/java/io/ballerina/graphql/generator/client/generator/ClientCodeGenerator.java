@@ -15,11 +15,11 @@ import io.ballerina.graphql.generator.client.generator.ballerina.ClientGenerator
 import io.ballerina.graphql.generator.client.generator.ballerina.ClientTypesGenerator;
 import io.ballerina.graphql.generator.client.generator.ballerina.ConfigTypesGenerator;
 import io.ballerina.graphql.generator.client.generator.ballerina.UtilsGenerator;
-import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.client.pojo.Extension;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;

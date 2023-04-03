@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.ballerina.graphql.generator.client.generator.model;
+package io.ballerina.graphql.generator.utils.model;
 
 /**
  * Model class representing Ballerina field type.
