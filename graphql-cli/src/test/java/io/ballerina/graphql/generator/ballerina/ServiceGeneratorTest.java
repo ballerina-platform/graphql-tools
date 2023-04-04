@@ -10,7 +10,6 @@ import io.ballerina.graphql.generator.client.exception.ClientGenerationException
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceGenerator;
-import io.ballerina.graphql.generator.utils.GeneratorContext;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -35,7 +34,7 @@ public class ServiceGeneratorTest extends GraphqlTest {
 
             ServiceGenerator serviceGenerator = new ServiceGenerator();
             String generatedServiceContent =
-                    serviceGenerator.generateSrc(fileName, graphQLSchema, GeneratorContext.CLI).trim()
+                    serviceGenerator.generateSrc(fileName, graphQLSchema).trim()
                             .replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedServiceFile =

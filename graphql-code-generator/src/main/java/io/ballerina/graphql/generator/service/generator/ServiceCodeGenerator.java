@@ -5,12 +5,8 @@ import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
-import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
-import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationException;
-import io.ballerina.graphql.generator.client.exception.UtilsGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
-import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
 import java.io.IOException;
