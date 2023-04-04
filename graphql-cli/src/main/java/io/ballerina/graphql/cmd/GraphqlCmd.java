@@ -52,7 +52,6 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -64,12 +63,12 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENS
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
-import static io.ballerina.graphql.cmd.Constants.SERVICE;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_CLIENT;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_SCHEMA;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_SERVICE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SCHEMA;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_CANNOT_READ_BAL_FILE;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
 
@@ -82,8 +81,6 @@ import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
                 "SDL schema for the given Ballerina GraphQL service.")
 public class GraphqlCmd implements BLauncherCmd {
     private static final String CMD_NAME = "graphql";
-    private static final List<String> VALID_MODES = Arrays.asList(CLIENT.toLowerCase(), SCHEMA, SERVICE);
-
     private PrintStream outStream;
     private boolean exitWhenFinish;
     private Path executionPath = Paths.get(System.getProperty("user.dir"));
@@ -214,12 +211,11 @@ public class GraphqlCmd implements BLauncherCmd {
     private boolean isModeAndFileCompatible() throws CmdException {
         String filePath = argList.get(0);
         if (mode != null) {
-            // TODO: constant first
-            if (mode.equals(CLIENT.toLowerCase())) {
+            if (MODE_CLIENT.equals(mode)) {
                 return filePath.endsWith(Constants.YAML_EXTENSION) || filePath.endsWith(Constants.YML_EXTENSION);
-            } else if (mode.equals(SCHEMA)) {
+            } else if (MODE_SCHEMA.equals(mode)) {
                 return filePath.endsWith(Constants.BAL_EXTENSION);
-            } else if (mode.equals(SERVICE)) {
+            } else if (MODE_SERVICE.equals(mode)) {
                 return filePath.endsWith(Constants.GRAPHQL_EXTENSION);
             } else {
                 throw new CmdException(mode.concat(MESSAGE_FOR_INVALID_MODE));
@@ -252,15 +248,15 @@ public class GraphqlCmd implements BLauncherCmd {
             SchemaFileGenerationException {
         String filePath = argList.get(0);
 
-        if (CLIENT.toLowerCase().equals(mode)) {
+        if (MODE_CLIENT.equals(mode)) {
             if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
                 generateClient(filePath);
             }
-        } else if (SCHEMA.equals(mode)) {
+        } else if (MODE_SCHEMA.equals(mode)) {
             if (filePath.endsWith(BAL_EXTENSION)) {
                 generateSchema(filePath);
             }
-        } else if (SERVICE.equals(mode)) {
+        } else if (MODE_SERVICE.equals(mode)) {
             if (filePath.endsWith(GRAPHQL_EXTENSION)) {
                 generateService(filePath);
             }
