@@ -27,6 +27,7 @@ import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.utils.GenerationType;
 
 import java.io.IOException;
@@ -61,7 +62,12 @@ public class SDLValidator {
         }
 
         try {
-            GraphQLSchema graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
+            GraphQLSchema graphQLSchema;
+            if (project instanceof GraphqlGatewayProject) {
+                graphQLSchema = Utils.getGraphQLFederatedSchemaDocument(schema, extensions);
+            } else {
+                graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
+            }
             project.setGraphQLSchema(graphQLSchema);
         } catch (IntospectionException e) {
             throw new ValidationException(e.getMessage(), project.getName());

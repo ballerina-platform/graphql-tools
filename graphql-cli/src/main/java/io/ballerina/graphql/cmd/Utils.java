@@ -18,9 +18,12 @@
 
 package io.ballerina.graphql.cmd;
 
+import graphql.Scalars;
 import graphql.introspection.IntrospectionResultToSchema;
 import graphql.language.Document;
 import graphql.parser.Parser;
+import graphql.scalars.ExtendedScalars;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
@@ -105,6 +108,49 @@ public class Utils {
             typeRegistry = schemaParser.parse(sdlInput);
         }
         GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeRegistry, RuntimeWiring.MOCKED_WIRING);
+        return graphQLSchema;
+    }
+
+
+    /**
+     * Returns the `GraphQLSchema` instance for a given Federated GraphQL schema file or schema URL.
+     *
+     * @param schema     the schema value of the Graphql config file
+     * @param extensions the extensions value of the Graphql config file
+     * @return the `GraphQLSchema` instance
+     * @throws IntospectionException If an error occurs during introspection of the GraphQL API
+     * @throws SchemaProblem         If a GraphQL schema related error occurs
+     * @throws IOException           If an I/O error occurs
+     */
+    public static GraphQLSchema getGraphQLFederatedSchemaDocument(String schema, Extension extensions)
+            throws IntospectionException, SchemaProblem, IOException {
+        Document introspectSchema = null;
+        if (schema.startsWith(URL_RECOGNIZER)) {
+            Map<String, Object> introspectionResult =
+                    Introspector.getInstance().getIntrospectionResult(schema, extensions);
+            IntrospectionResultToSchema introspectionResultToSchema = new IntrospectionResultToSchema();
+            introspectSchema = introspectionResultToSchema.createSchemaDefinition(introspectionResult);
+        }
+
+        SchemaParser schemaParser = new SchemaParser();
+        TypeDefinitionRegistry typeRegistry;
+        if (introspectSchema != null) {
+            typeRegistry = schemaParser.buildRegistry(introspectSchema);
+        } else {
+            String sdlInput = extractSchemaContent(schema);
+            typeRegistry = schemaParser.parse(sdlInput);
+        }
+
+        // TODO: Find an alternative way for define custom scalar types
+        GraphQLScalarType joinFieldSet  = ExtendedScalars.newAliasedScalar("join__FieldSet")
+                .aliasedScalar(Scalars.GraphQLString).build();
+        GraphQLScalarType linkImport = ExtendedScalars.newAliasedScalar("link__Import")
+                .aliasedScalar(Scalars.GraphQLString).build();
+
+
+        GraphQLSchema graphQLSchema = new SchemaGenerator().makeExecutableSchema(typeRegistry,
+                RuntimeWiring.newRuntimeWiring().scalar(joinFieldSet).scalar(linkImport).build());
+
         return graphQLSchema;
     }
 

@@ -18,6 +18,8 @@
 
 package io.ballerina.graphql.generator.utils.graphql;
 
+import graphql.language.FieldDefinition;
+import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
@@ -148,4 +150,41 @@ public class SpecReader {
         }
         return enumTypeNames;
     }
+
+    public static Map<String, FieldDefinition> getObjectTypeFieldDefinitionMap(GraphQLSchema graphQLSchema,
+                                                                               String objectTypeName) {
+        Map<String, FieldDefinition> objectTypeFieldsMap = new HashMap<>();
+        if (graphQLSchema.getType(objectTypeName) instanceof GraphQLObjectType) {
+            GraphQLObjectType objectType =
+                    ((GraphQLObjectType) graphQLSchema.getType(objectTypeName));
+            if (objectType != null) {
+                for (GraphQLFieldDefinition field : objectType.getFields()) {
+                    objectTypeFieldsMap.put(CodeGeneratorUtils.escapeIdentifier(field.getName()),
+                            field.getDefinition());
+                }
+            }
+        }
+        return objectTypeFieldsMap;
+    }
+
+    /**
+     * Get the directives applied on the object type name from the GraphQL schema.
+     *
+     * @param graphQLSchema         the instance of the Graphql schema file
+     * @param objectTypeName        the object type name
+     * @return                      the object type directives
+     * */
+    public static List<GraphQLDirective> getObjectTypeDirectives(GraphQLSchema graphQLSchema, String objectTypeName) {
+        List<GraphQLDirective> objectTypeDirectives = new ArrayList<>();
+        if (graphQLSchema.getType(objectTypeName) instanceof GraphQLObjectType) {
+            GraphQLObjectType objectType =
+                    ((GraphQLObjectType) graphQLSchema.getType(objectTypeName));
+            if (objectType != null) {
+                objectTypeDirectives = objectType.getDirectives();
+            }
+        }
+        return objectTypeDirectives;
+    }
+
+
 }

@@ -45,6 +45,7 @@ dependencies {
     implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
     implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    implementation "com.graphql-java:graphql-java-extended-scalars:${graphqlJavaExtendedScalarVersion}" // NEW
     implementation "org.json:json:${orgJsonVersion}" // NEW
     dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
     dist "com.google.guava:guava:${googleGuavaVersion}" // NEW

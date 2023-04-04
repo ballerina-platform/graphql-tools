@@ -27,10 +27,10 @@ import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 import io.ballerina.graphql.generator.utils.graphql.QueryReader;
 import io.ballerina.graphql.generator.utils.graphql.components.ExtendedOperationDefinition;
 import io.ballerina.graphql.generator.utils.model.AuthConfig;
-import io.ballerina.graphql.generator.client.pojo.Extension;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

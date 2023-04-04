@@ -10,8 +10,8 @@ import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.exception.UtilsGenerationException;
 import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
 import io.ballerina.graphql.generator.client.generator.ballerina.UtilsGenerator;
-import io.ballerina.graphql.generator.utils.model.AuthConfig;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

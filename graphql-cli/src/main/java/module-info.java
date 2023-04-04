@@ -24,6 +24,7 @@ module io.ballerina.graphql {
     requires java.net.http;
     requires io.ballerina.parser;
     requires com.graphqljava;
+    requires com.graphqljava.extendedscalars;
     requires io.ballerina.formatter.core;
     requires org.apache.commons.io;
     requires commons.logging;

@@ -12,10 +12,10 @@ import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
 import io.ballerina.graphql.generator.client.generator.ballerina.FunctionBodyGenerator;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 import io.ballerina.graphql.generator.utils.graphql.QueryReader;
 import io.ballerina.graphql.generator.utils.graphql.components.ExtendedOperationDefinition;
 import io.ballerina.graphql.generator.utils.model.AuthConfig;
-import io.ballerina.graphql.generator.client.pojo.Extension;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
@@ -165,7 +165,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
     @DataProvider(name = "dataProviderForInitFunctionBody")
     public Object[][] dataProviderForInitFunctionBody() {
-        return new Object[][]{{"graphql.config.yaml", "{graphql:ClientConfigurationgraphqlClientConfig={" +
+        return new Object[][] {{"graphql.config.yaml", "{graphql:ClientConfigurationgraphqlClientConfig={" +
                 "timeout:config.timeout,forwarded:config.forwarded,poolConfig:config.poolConfig,compression:" +
                 "config.compression,circuitBreaker:config.circuitBreaker,retryConfig:config.retryConfig," +
                 "validation:config.validation};do{ifconfig.http1SettingsisClientHttp1Settings{" +
@@ -241,7 +241,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
     @DataProvider(name = "dataProviderForRemoteFunctionBody")
     public Object[][] dataProviderForRemoteFunctionBody() {
-        return new Object[][]{{"graphql.config.yaml",
+        return new Object[][] {{"graphql.config.yaml",
                 "{stringquery=string`query country($code:ID!) {country(code:$code) " +
                         "{capital name}}`;map<anydata>variables={\"code\":code};" +
                         "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables);" +
@@ -269,7 +269,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
     @DataProvider(name = "dataProviderForRemoteFunctionBodyWithRequiredParameters")
     public Object[][] dataProviderForRemoteFunctionBodyWithRequiredParameters() {
-        return new Object[][]{{"graphql-config-to-test-arguments.yaml",
+        return new Object[][] {{"graphql-config-to-test-arguments.yaml",
                 "{stringquery=string`query operation1($argument1:Boolean!," +
                         "$argument2:String!,$argument3:Int!,$argument4:Float!,$argument5:ID!," +
                         "$argument6:CustomScalar!,$argument7:CustomInput!,$argument8:[CustomInput]!," +
@@ -286,7 +286,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
     @DataProvider(name = "dataProviderForRemoteFunctionBodyWithOptionalParameters")
     public Object[][] dataProviderForRemoteFunctionBodyWithOptionalParameters() {
-        return new Object[][]{{"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation2(" +
+        return new Object[][] {{"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation2(" +
                 "$argument1:CustomInput,$argument2:[CustomInput],$argument3:[CustomInput!]) " +
                 "{operation2(argument1:$argument1,argument2:$argument2,argument3:$argument3) " +
                 "{field1 field2}}`;map<anydata>variables={\"argument1\":argument1," +
@@ -297,7 +297,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
     @DataProvider(name = "dataProviderForRemoteFunctionBodyWithRequiredAndOptionalParameters")
     public Object[][] dataProviderForRemoteFunctionBodyWithRequiredAndOptionalParameters() {
-        return new Object[][]{{"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation3(" +
+        return new Object[][] {{"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation3(" +
                 "$argument1:CustomInput!,$argument2:CustomInput) {operation3(argument1:$argument1," +
                 "argument2:$argument2) {field1 field2}}`;map<anydata>variables={\"argument1\":argument1," +
                 "\"argument2\":argument2};jsongraphqlResponse=checkself.graphqlClient->" +

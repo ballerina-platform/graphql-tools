@@ -28,6 +28,7 @@ import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
@@ -156,6 +157,15 @@ public class TestUtils {
             throws ValidationException, IOException {
         GraphqlServiceProject graphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, outputPath.toString());
+        SDLValidator.getInstance().validate(graphqlProject);
+        return graphqlProject;
+    }
+
+
+    public static GraphqlGatewayProject getValidatedMockGatewayProject(String filePath, Path outputPath)
+            throws ValidationException, IOException {
+        GraphqlGatewayProject graphqlProject =
+                new GraphqlGatewayProject(ROOT_PROJECT_NAME, filePath, outputPath.toString());
         SDLValidator.getInstance().validate(graphqlProject);
         return graphqlProject;
     }
