@@ -73,10 +73,6 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
  * Utility class for GraphQL client code generation.
  */
 public class CodeGeneratorUtils {
-
-    public static final MinutiaeList SINGLE_WS_MINUTIAE = getSingleWSMinutiae();
-    private static final MinutiaeList SINGLE_END_OF_LINE_MINUTIAE = getEndOfLineMinutiae();
-
     /**
      * Gets the document name for a given document.
      *

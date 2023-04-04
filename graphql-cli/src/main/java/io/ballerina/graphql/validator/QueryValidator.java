@@ -22,10 +22,10 @@ import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
 import graphql.validation.ValidationError;
 import graphql.validation.Validator;
-import io.ballerina.graphql.cmd.GraphqlClientProject;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.exception.QueryValidationException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
 
 import java.io.IOException;
 import java.util.List;

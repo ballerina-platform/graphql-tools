@@ -1,12 +1,14 @@
 package io.ballerina.graphql.generator.ballerina;
 
-import io.ballerina.graphql.cmd.GraphqlClientProject;
+
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.common.TestUtils;
-import io.ballerina.graphql.exception.ClientTypesGenerationException;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationException;
+import io.ballerina.graphql.generator.client.generator.ballerina.ClientTypesGenerator;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
 import io.ballerina.graphql.validator.SDLValidator;

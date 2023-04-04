@@ -18,17 +18,17 @@
 
 package io.ballerina.graphql.common;
 
-import io.ballerina.graphql.cmd.GraphqlClientProject;
-import io.ballerina.graphql.cmd.GraphqlServiceProject;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Config;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.CodeGeneratorUtils;
-import io.ballerina.graphql.generator.model.SrcFilePojo;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.service.GraphqlServiceProject;
+import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
 import io.ballerina.graphql.validator.SDLValidator;
@@ -267,9 +267,8 @@ public class TestUtils {
 
     private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
         Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(
-                        TestUtils.TEST_DISTRIBUTION_PATH
-                                .resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME)).toAbsolutePath())
-                .build();
+                        TestUtils.TEST_DISTRIBUTION_PATH.resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME))
+                                .toAbsolutePath()).build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
     }
 }
