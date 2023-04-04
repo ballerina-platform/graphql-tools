@@ -20,7 +20,6 @@ package io.ballerina.graphql.cmd;
 
 import graphql.introspection.IntrospectionResultToSchema;
 import graphql.language.Document;
-import graphql.parser.Parser;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
@@ -121,33 +120,6 @@ public class Utils {
         File schemaFile = new File(schema);
         Path schemaPath = Paths.get(schemaFile.getCanonicalPath());
         return Files.readString(schemaPath);
-    }
-
-    /**
-     * Returns the `Document` instance for a given GraphQL queries file.
-     *
-     * @param document                              the document value of the Graphql config file
-     * @return                                      the `GraphQLSchema` instance
-     * @throws IOException                          If an I/O error occurs
-     */
-    public static Document getGraphQLQueryDocument(String document) throws IOException {
-        Parser parser = new Parser();
-        String queriesInput = extractDocumentContent(document);
-        Document parsedDocument = parser.parseDocument(queriesInput);
-        return parsedDocument;
-    }
-
-    /**
-     * Extracts the document content.
-     *
-     * @param document                              the document value of the Graphql config file
-     * @return                                      the document content
-     * @throws IOException                          If an I/O error occurs
-     */
-    public static String extractDocumentContent(String document) throws IOException {
-        File documentFile = new File(document);
-        Path documentPath = Paths.get(documentFile.getCanonicalPath());
-        return Files.readString(documentPath);
     }
 
     /**
