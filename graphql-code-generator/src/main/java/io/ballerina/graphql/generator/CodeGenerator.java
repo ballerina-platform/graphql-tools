@@ -44,20 +44,7 @@ public abstract class CodeGenerator {
      * @param project the instance of the GraphQL project
      * @throws GenerationException when a code generation error occurs
      */
-    public void generate(GraphqlProject project) throws GenerationException {
-        String outputPath = project.getOutputPath();
-        try {
-            List<SrcFilePojo> genSources = generateBalSources(project, GeneratorContext.CLI);
-            writeGeneratedSources(genSources, Path.of(outputPath));
-        } catch (ServiceGenerationException | ClientGenerationException | UtilsGenerationException |
-                 ClientTypesGenerationException | IOException e) {
-            throw new GenerationException(e.getMessage(), project.getName());
-        }
-    }
-
-    public abstract List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratorContext generatorContext)
-            throws ServiceGenerationException, ClientGenerationException, UtilsGenerationException, IOException,
-            ConfigTypesGenerationException, ClientTypesGenerationException, ServiceTypesGenerationException;
+    public abstract void generate(GraphqlProject project) throws GenerationException ;
 
     /**
      * Writes the generated Ballerina source codes to the files in the specified {@code outputPath}.
