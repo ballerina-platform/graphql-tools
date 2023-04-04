@@ -35,9 +35,5 @@ module io.ballerina.graphql {
     exports io.ballerina.graphql.cmd;
     exports io.ballerina.graphql.cmd.pojo;
     exports io.ballerina.graphql.exception;
-//    exports io.ballerina.graphql.generator.client.generator.model;
     exports io.ballerina.graphql.validator;
-//    exports io.ballerina.graphql.generator.ballerina;
-//    exports io.ballerina.graphql.generator.client.generator.graphql.components;
-//    exports io.ballerina.graphql.generator.client.generator.graphql;
 }

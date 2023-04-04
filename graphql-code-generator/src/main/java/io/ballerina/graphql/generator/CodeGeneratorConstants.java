@@ -57,6 +57,9 @@ public class CodeGeneratorConstants {
     public static final String GRAPHQL = "graphql";
     public static final String CLIENT_CLASS_PREFIX = "Graphql";
     public static final String IDL_PLUGIN_CLIENT = "'client";
+    public static final String MODE_CLIENT = "client";
+    public static final String MODE_SERVICE = "service";
+    public static final String MODE_SCHEMA = "schema";
     public static final String CLIENT = "Client";
     public static final String SCHEMA = "schema";
     public static final String LISTENER = "Listener";
@@ -114,7 +117,7 @@ public class CodeGeneratorConstants {
     public static final String LINE_SEPARATOR = System.lineSeparator();
 
     // TODO: Update keywords if Ballerina Grammer changes
-    private static final String[] KEYWORDS = new String[]{"abort", "aborted", "abstract", "all", "annotation",
+    private static final String[] KEYWORDS = new String[] {"abort", "aborted", "abstract", "all", "annotation",
             "any", "anydata", "boolean", "break", "byte", "catch", "channel", "check", "checkpanic", "client",
             "committed", "const", "continue", "decimal", "else", "error", "external", "fail", "final", "finally",
             "float", "flush", "fork", "function", "future", "handle", "if", "import", "in", "int", "is", "join",
@@ -127,7 +130,7 @@ public class CodeGeneratorConstants {
             , "commit", "enum", "base16", "base64", "rollback", "configurable", "class", "module", "never",
             "outer", "order", "null", "key", "let", "by", "equals"};
 
-    private static final String[] TYPES = new String[]{"int", "any", "anydata", "boolean", "byte", "float", "int",
+    private static final String[] TYPES = new String[] {"int", "any", "anydata", "boolean", "byte", "float", "int",
             "json", "string", "table", "var", "xml"};
 
     public static final List<String> BAL_KEYWORDS;

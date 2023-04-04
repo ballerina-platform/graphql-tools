@@ -20,5 +20,4 @@ public class GraphqlServiceProject extends GraphqlProject {
     public GenerationType getGenerationType() {
         return generationType;
     }
-
 }

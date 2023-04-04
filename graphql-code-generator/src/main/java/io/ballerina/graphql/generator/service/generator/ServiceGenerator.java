@@ -26,7 +26,6 @@ import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
-import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
@@ -77,11 +76,11 @@ public class ServiceGenerator {
         return createNodeList(imports);
     }
 
-    private SyntaxTree generateSyntaxTree(GraphQLSchema graphQLSchema, GeneratorContext generatorContext)
+    private SyntaxTree generateSyntaxTree(GraphQLSchema graphQLSchema)
             throws IOException {
         NodeList<ImportDeclarationNode> imports = generateImports();
         NodeList<ModuleMemberDeclarationNode> moduleMemberDeclarationNodes =
-                generateMembers(graphQLSchema, generatorContext);
+                generateMembers(graphQLSchema);
 
         ModulePartNode modulePartNode =
                 createModulePartNode(imports, moduleMemberDeclarationNodes, createToken(SyntaxKind.EOF_TOKEN));
@@ -91,8 +90,8 @@ public class ServiceGenerator {
         return syntaxTree.modifyWith(modulePartNode);
     }
 
-    private NodeList<ModuleMemberDeclarationNode> generateMembers(GraphQLSchema graphQLSchema,
-                                                                  GeneratorContext generatorContext)
+    private NodeList<ModuleMemberDeclarationNode> generateMembers(GraphQLSchema graphQLSchema
+                                                                  )
             throws IOException {
         List<ModuleMemberDeclarationNode> members = new ArrayList<>();
 
@@ -100,7 +99,7 @@ public class ServiceGenerator {
                 generatePortModuleVariableDeclaration(CodeGeneratorConstants.PORT_NUMBER_DEFAULT);
         members.add(portVariable);
 
-        ServiceDeclarationNode serviceDeclaration = generateServiceDeclaration(graphQLSchema, generatorContext);
+        ServiceDeclarationNode serviceDeclaration = generateServiceDeclaration(graphQLSchema);
         members.add(serviceDeclaration);
 
         return createNodeList(members);
@@ -122,8 +121,8 @@ public class ServiceGenerator {
                 createToken(SyntaxKind.EQUAL_TOKEN), portBasicLiteral, createToken(SEMICOLON_TOKEN));
     }
 
-    private ServiceDeclarationNode generateServiceDeclaration(GraphQLSchema graphQLSchema,
-                                                              GeneratorContext generatorContext) throws IOException {
+    private ServiceDeclarationNode generateServiceDeclaration(GraphQLSchema graphQLSchema
+                                                              ) throws IOException {
         NodeList<Token> serviceQualifiers = createEmptyNodeList();
 
         SimpleNameReferenceNode serviceObjectTypeDescriptor =
@@ -159,11 +158,11 @@ public class ServiceGenerator {
     }
 
 
-    public String generateSrc(String fileName, GraphQLSchema graphQLSchema, GeneratorContext generatorContext)
+    public String generateSrc(String fileName, GraphQLSchema graphQLSchema)
             throws ServiceGenerationException {
         try {
             this.fileName = fileName;
-            return Formatter.format(generateSyntaxTree(graphQLSchema, generatorContext)).toString();
+            return Formatter.format(generateSyntaxTree(graphQLSchema)).toString();
         } catch (FormatterException | IOException e) {
             throw new ServiceGenerationException(e.getMessage());
         }

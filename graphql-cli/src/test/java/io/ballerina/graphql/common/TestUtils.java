@@ -18,7 +18,6 @@
 
 package io.ballerina.graphql.common;
 
-
 import io.ballerina.graphql.cmd.Constants;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Config;
