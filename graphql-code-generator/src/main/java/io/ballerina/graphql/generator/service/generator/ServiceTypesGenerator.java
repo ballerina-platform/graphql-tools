@@ -188,8 +188,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceTypesGenerationException {
-        NodeList<ImportDeclarationNode> imports = generateImports();
-
+        NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
         if (!serviceObjectsAdded) {
             addServiceObjectTypeDefinitionNode(schema, moduleMembers);
             serviceObjectsAdded = true;
@@ -732,16 +731,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 createNodeList(annotations));
     }
 
-    // TODO: add distinct to all, no checking needed
-    private NodeList<Token> generateServiceClassTypeQualifiers(boolean isImplements) {
-        List<Token> typeQualifierTokens = new ArrayList<>();
-        if (isImplements) {
-            typeQualifierTokens.add(createToken(SyntaxKind.DISTINCT_KEYWORD));
-        }
-        typeQualifierTokens.add(createToken(SyntaxKind.SERVICE_KEYWORD));
-        return createNodeList(typeQualifierTokens);
-    }
-
     private NodeList<Node> generateServiceClassTypeMembers(List<GraphQLFieldDefinition> fieldDefinitions)
             throws ServiceTypesGenerationException {
         List<Node> members = new ArrayList<>();
@@ -800,7 +789,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private NodeList<Node> generateServiceObjectTypeMembers(GraphQLSchema schema)
             throws ServiceTypesGenerationException {
         List<Node> members = new ArrayList<>();
-
         TypeReferenceNode typeReferenceNode = createTypeReferenceNode(createToken(SyntaxKind.ASTERISK_TOKEN),
                 createIdentifierToken(CodeGeneratorConstants.GRAPHQL_SERVICE_TYPE_NAME),
                 createToken(SyntaxKind.SEMICOLON_TOKEN));
@@ -810,7 +798,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 generateServiceTypeMethodDeclarations(schema.getQueryType(), schema.getMutationType(),
                         schema.getSubscriptionType());
         members.addAll(serviceTypeMethodDeclarations);
-
         return createNodeList(members);
     }
 
@@ -820,7 +807,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                                              GraphQLObjectType subscriptionType)
             throws ServiceTypesGenerationException {
         List<Node> methodDeclarations = new ArrayList<>();
-
         for (GraphQLFieldDefinition fieldDefinition : queryType.getFieldDefinitions()) {
             FunctionSignatureNode methodSignatureNode =
                     createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
@@ -1022,11 +1008,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private SeparatedNodeList<ParameterNode> generateMethodSignatureParams(List<GraphQLArgument> arguments)
             throws ServiceTypesGenerationException {
         List<Node> params = new ArrayList<>();
-
         List<DefaultableParameterNode> defaultParams = new ArrayList<>();
         List<RequiredParameterNode> requiredParams = new ArrayList<>();
 
-        // TODO: try to use a join
         for (int i = 0; i < arguments.size(); i++) {
             GraphQLArgument argument = arguments.get(i);
             GraphQLInputType argumentType = argument.getType();
@@ -1127,7 +1111,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    // TODO: check into the casting
     // TODO: check restraining the input param type as possible
     private TypeDescriptorNode generateTypeDescriptor(GraphQLSchemaElement argumentType, boolean nonNull)
             throws ServiceTypesGenerationException {
@@ -1184,15 +1167,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
             return generateTypeDescriptor(nonNullArgumentType.getWrappedType(), nonNull);
         } else if (argumentType instanceof GraphQLList) {
             GraphQLList listArgumentType = (GraphQLList) argumentType;
-
             ArrayDimensionNode arrayDimensionNode =
                     createArrayDimensionNode(createToken(SyntaxKind.OPEN_BRACKET_TOKEN), null,
                             createToken(SyntaxKind.CLOSE_BRACKET_TOKEN));
             TypeDescriptorNode wrappedArgumentTypeDescriptor =
-                    generateTypeDescriptor(listArgumentType.getWrappedType(), nonNull);
+                    generateTypeDescriptor(listArgumentType.getWrappedType());
             ArrayTypeDescriptorNode arrayTypeDescriptorNode =
                     createArrayTypeDescriptorNode(wrappedArgumentTypeDescriptor, createNodeList(arrayDimensionNode));
-
             if (nonNull) {
                 return arrayTypeDescriptorNode;
             } else {
