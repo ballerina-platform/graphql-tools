@@ -14,6 +14,9 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+/**
+ * Class to test the generation of Ballerina types for a supergraph.
+ */
 public class GatewayTypeGenerationTest extends GraphqlTest {
     @Test(description = "Test supergraph types generation 01")
     public void testSupergraphTypeGeneration01()
@@ -27,8 +30,6 @@ public class GatewayTypeGenerationTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayTypeGenerator(graphQLSchema)).generateSrc();
-
-        System.out.println(generatedSrc);
     }
 
     @Test(description = "Test supergraph types generation 02")
@@ -43,7 +44,5 @@ public class GatewayTypeGenerationTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayTypeGenerator(graphQLSchema)).generateSrc();
-
-        System.out.println(generatedSrc);
     }
 }

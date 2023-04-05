@@ -12,6 +12,9 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+/**
+ * Class for testing the generation of Ballerina services for a supergraph.
+ */
 public class GatewayServiceGeneratorTest extends GraphqlTest {
     @Test(description = "Test service generation for gateway 01")
     public void testGatewayServiceGeneration01()
@@ -23,7 +26,6 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayServiceGenerator(graphQLSchema)).generateSrc();
-        System.out.println(generatedSrc);
     }
 
     @Test(description = "Test service generation for gateway 02")
@@ -36,6 +38,5 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayServiceGenerator(graphQLSchema)).generateSrc();
-        System.out.println(generatedSrc);
     }
 }
