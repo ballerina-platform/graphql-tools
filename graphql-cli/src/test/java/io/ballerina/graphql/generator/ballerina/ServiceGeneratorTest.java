@@ -24,7 +24,7 @@ import java.nio.file.Paths;
 public class ServiceGeneratorTest extends GraphqlTest {
     @Test(description = "Test the successful generation of service code")
     public void testGenerateSrc()
-            throws CmdException, IOException, ParseException, ValidationException, ClientGenerationException {
+            throws IOException, ValidationException {
         try {
             String fileName = "Schema01Api";
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
@@ -34,7 +34,7 @@ public class ServiceGeneratorTest extends GraphqlTest {
 
             ServiceGenerator serviceGenerator = new ServiceGenerator();
             String generatedServiceContent =
-                    serviceGenerator.generateSrc(fileName, graphQLSchema).trim()
+                    serviceGenerator.generateSrc(fileName).trim()
                             .replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedServiceFile =
