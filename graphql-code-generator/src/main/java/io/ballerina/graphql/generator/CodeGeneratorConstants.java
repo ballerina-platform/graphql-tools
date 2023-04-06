@@ -32,6 +32,7 @@ public class CodeGeneratorConstants {
     public static final String CLIENT_FILE_NAME = "client.bal";
     public static final String SERVICE_FILE_NAME = "service.bal";
     public static final String TYPES_FILE_NAME = "types.bal";
+    public static final String QUERY_PLAN_FILE_NAME = "query_plan.bal";
     public static final String UTILS_FILE_NAME = "utils.bal";
     public static final String CONFIG_TYPES_FILE_NAME = "config_types.bal";
     public static final String SCHEMA_PATTERN = "schema";
@@ -60,6 +61,7 @@ public class CodeGeneratorConstants {
     public static final String MODE_CLIENT = "client";
     public static final String MODE_SERVICE = "service";
     public static final String MODE_SCHEMA = "schema";
+    public static final String MODE_GATEWAY = "federation-gateway";
     public static final String CLIENT = "Client";
     public static final String SCHEMA = "schema";
     public static final String LISTENER = "Listener";

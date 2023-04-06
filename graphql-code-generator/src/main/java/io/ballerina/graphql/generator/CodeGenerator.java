@@ -22,11 +22,13 @@ import io.ballerina.graphql.generator.client.exception.ClientGenerationException
 import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationException;
 import io.ballerina.graphql.generator.client.exception.ConfigTypesGenerationException;
 import io.ballerina.graphql.generator.client.exception.UtilsGenerationException;
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -49,14 +51,15 @@ public abstract class CodeGenerator {
         try {
             List<SrcFilePojo> genSources = generateBalSources(project, GeneratorContext.CLI);
             writeGeneratedSources(genSources, Path.of(outputPath));
-        } catch (ServiceGenerationException | ClientGenerationException | UtilsGenerationException |
-                 ClientTypesGenerationException | IOException e) {
+        } catch (GatewayGenerationException | ServiceGenerationException | ClientGenerationException
+                 | UtilsGenerationException | ClientTypesGenerationException | IOException e) {
             throw new GenerationException(e.getMessage(), project.getName());
         }
     }
 
     public abstract List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratorContext generatorContext)
-            throws ServiceGenerationException, ClientGenerationException, UtilsGenerationException, IOException,
+            throws GatewayGenerationException, ServiceGenerationException, ClientGenerationException,
+            UtilsGenerationException, IOException,
             ConfigTypesGenerationException, ClientTypesGenerationException, ServiceTypesGenerationException;
 
     /**
@@ -76,5 +79,16 @@ public abstract class CodeGenerator {
                 }
             }
         }
+    }
+
+    /**
+     * Copies the template project files to the specified {@code outputPath}.
+     *
+     * @param templateProjectPath the path of the template project
+     * @param outputPath          the target output path for the code generation
+     * @throws IOException If an I/O error occurs
+     */
+    protected void copyTemplateProjectFiles(Path templateProjectPath, Path outputPath) throws IOException {
+        FileUtils.copyDirectory(templateProjectPath.toFile(), outputPath.toFile());
     }
 }

@@ -9,6 +9,7 @@ import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.GatewayQueryPlanGenerator;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -34,11 +35,8 @@ public class GatewayQueryPlanGenerationTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayQueryPlanGenerator(graphQLSchema)).generateSrc();
-        ModulePartNode actualModulePartNode = NodeParser.parseModulePart(generatedSrc);
         String expectedSrc = Files.readString(resources.resolve("queryPlan01.bal"));
-        ModulePartNode expectedModulePartNode = NodeParser.parseModulePart(expectedSrc);
-        //Assert.assertEquals(actualModulePartNode, expectedModulePartNode);
-
+        Assert.assertEquals(generatedSrc, expectedSrc);
     }
 
     @Test(description = "Test query plan for gateway 02")
@@ -52,10 +50,8 @@ public class GatewayQueryPlanGenerationTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayQueryPlanGenerator(graphQLSchema)).generateSrc();
-        ModulePartNode actualModulePartNode = NodeParser.parseModulePart(generatedSrc);
         String expectedSrc = Files.readString(resources.resolve("queryPlan02.bal"));
-        ModulePartNode expectedModulePartNode = NodeParser.parseModulePart(expectedSrc);
-        //Assert.assertEquals(actualModulePartNode, expectedModulePartNode);
+        Assert.assertEquals(generatedSrc, expectedSrc);
     }
 
 }

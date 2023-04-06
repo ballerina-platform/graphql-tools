@@ -21,15 +21,15 @@ package io.ballerina.graphql.generator.gateway.exception;
 /**
  * Exception for errors thrown by util functions.
  * */
-public class GatewayCommonException extends Exception {
+public class GatewayGenerationException extends Exception {
     private String message;
 
-    public GatewayCommonException(String message, Throwable e) {
+    public GatewayGenerationException(String message, Throwable e) {
         super(message, e);
         this.message = message;
     }
 
-    public GatewayCommonException(String message) {
+    public GatewayGenerationException(String message) {
         super(message);
         this.message = message;
     }

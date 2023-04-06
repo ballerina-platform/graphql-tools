@@ -135,7 +135,7 @@ public class GatewayServiceGenerator {
         this.graphQLSchema = graphQLSchema;
     }
 
-    public String generateSrc() {
+    public String generateSrc() throws GatewayServiceGenerationException {
         try {
             SyntaxTree syntaxTree = generateSyntaxTree();
             return Formatter.format(syntaxTree).toString();

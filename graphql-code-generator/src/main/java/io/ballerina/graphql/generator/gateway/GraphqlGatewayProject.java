@@ -21,19 +21,20 @@ package io.ballerina.graphql.generator.gateway;
 import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.utils.GenerationType;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * Class to represent GraphQL federation gateway generation project.
- * */
+ */
 public class GraphqlGatewayProject extends GraphqlProject {
 
     public static GenerationType generationType = GenerationType.GATEWAY;
+    public static final Path GATEWAY_TEMPLATE_PATH =
+            Paths.get("src", "main", "resources", "gateway");
 
     public GraphqlGatewayProject(String name, String schema, String outputPath) {
         super(name, schema, outputPath);
-    }
-
-    public GraphqlGatewayProject(String name, String schema) {
-        super(name, schema);
     }
 
     @Override

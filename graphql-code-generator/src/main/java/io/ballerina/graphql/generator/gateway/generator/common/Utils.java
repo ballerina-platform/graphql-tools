@@ -24,7 +24,7 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
-import io.ballerina.graphql.generator.gateway.exception.GatewayCommonException;
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
 
 import java.util.HashMap;
@@ -54,15 +54,15 @@ public class Utils {
      *
      * @param queryType GraphQL type
      * @return Type name
-     * @throws GatewayCommonException if the type is not supported
+     * @throws GatewayGenerationException if the type is not supported
      * */
-    public static String getTypeNameFromGraphQLType(GraphQLType queryType) throws GatewayCommonException {
+    public static String getTypeNameFromGraphQLType(GraphQLType queryType) throws GatewayGenerationException {
         if (queryType instanceof GraphQLObjectType) {
             return ((GraphQLObjectType) queryType).getName();
         } else if (queryType instanceof GraphQLList) {
             return getTypeNameFromGraphQLType(((GraphQLList) queryType).getOriginalWrappedType()) + "[]";
         } else {
-            throw new GatewayCommonException("Unsupported type: " + queryType);
+            throw new GatewayGenerationException("Unsupported type: " + queryType);
         }
     }
 

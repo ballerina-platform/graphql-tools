@@ -30,7 +30,7 @@ import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.graphql.generator.gateway.exception.GatewayCommonException;
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayTypeGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.Utils;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
@@ -86,7 +86,7 @@ public class GatewayTypeGenerator {
         }
     }
 
-    private SyntaxTree generateSyntaxTree() throws GatewayCommonException {
+    private SyntaxTree generateSyntaxTree() throws GatewayGenerationException {
         List<TypeDefinitionNode> typeDefinitionNodeList = new LinkedList<>();
         NodeList<ImportDeclarationNode> importsList = createEmptyNodeList();
 
@@ -141,7 +141,8 @@ public class GatewayTypeGenerator {
         }
     }
 
-    private void addQueryResponseTypes(List<TypeDefinitionNode> typeDefinitionNodeList) throws GatewayCommonException {
+    private void addQueryResponseTypes(List<TypeDefinitionNode> typeDefinitionNodeList) throws
+            GatewayGenerationException {
         List<GraphQLSchemaElement> queryTypes = graphQLSchema.getQueryType().getChildren().stream()
                 .filter(type -> type instanceof GraphQLFieldDefinition).collect(Collectors.toList());
 
@@ -164,7 +165,7 @@ public class GatewayTypeGenerator {
     }
 
     private RecordTypeDescriptorNode getRecordTypeDescriptorNode(GraphQLFieldDefinition queryDefinition)
-            throws GatewayCommonException {
+            throws GatewayGenerationException {
         String typename = Utils.getTypeNameFromGraphQLType(queryDefinition.getType());
         return createRecordTypeDescriptorNode(
                 createToken(RECORD_KEYWORD),

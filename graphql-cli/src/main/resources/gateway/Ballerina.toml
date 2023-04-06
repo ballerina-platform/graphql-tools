@@ -1,0 +1,19 @@
+[package]
+org = "mohamed_ishad"
+name = "initial_impl"
+version = "0.1.0"
+
+[build-options]
+observabilityIncluded = true
+
+[[dependency]]
+name = "graphql"
+org = "ballerina"
+version = "1.6.2"
+repository = "local"
+
+[[platform.java11.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "federation-gateway"
+version = "0.1.0"
+path="D:\\module-ballerina-gateway\\native\\build\\libs\\federation-gateway-native-0.1.0-SNAPSHOT.jar"

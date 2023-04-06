@@ -10,12 +10,17 @@ import io.ballerina.graphql.generator.gateway.generator.GatewayServiceGenerator;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
  * Class for testing the generation of Ballerina services for a supergraph.
  */
 public class GatewayServiceGeneratorTest extends GraphqlTest {
+
+    private final Path resources = this.resourceDir.resolve(Paths.get("federationGatewayGen",
+            "expectedResults", "queryPlans"));
+
     @Test(description = "Test service generation for gateway 01")
     public void testGatewayServiceGeneration01()
             throws ValidationException, IOException, GatewayServiceGenerationException {

@@ -22,6 +22,7 @@ import io.ballerina.cli.launcher.BLauncherException;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.graphql.common.GraphqlTest;
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
@@ -406,6 +407,32 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.assertTrue(output.contains("Failed to retrieve SDL."));
         } catch (BLauncherException | IOException e) {
             output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test successful graphql federation gateway code generation")
+    public void testGatewayCodeGeneration() {
+        Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
+                "Supergraph01.graphql"));
+//        Path outputDir = Paths.get("C:\\Users\\Mohamed Ishad\\Desktop\\gateway_gen");
+        String[] args = {"-i", supergraphSdl.toString(), "-o", this.tmpDir.toString(), "-m",
+                CodeGeneratorConstants.MODE_GATEWAY };
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        try {
+            graphqlCmd.execute();
+
+            if (Files.exists(this.tmpDir.resolve("service.bal"))
+                    && Files.exists(this.tmpDir.resolve("types.bal"))
+                    && Files.exists(this.tmpDir.resolve("query_plan.bal"))
+            ) {
+            } else {
+                Assert.fail("Code generation failed. : " + readOutput(true));
+            }
+        } catch (BLauncherException | IOException e) {
+            String output = e.toString();
             Assert.fail(output);
         }
     }
