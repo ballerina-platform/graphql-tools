@@ -17,7 +17,7 @@ public type astronautResponse record {
 };
 
 public type astronautsResponse record {
-    record {|[Astronaut] astronauts;|} data;
+    record {|Astronaut[] astronauts;|} data;
 };
 
 public type missionResponse record {
@@ -25,5 +25,5 @@ public type missionResponse record {
 };
 
 public type missionsResponse record {
-    record {|[Mission] missions;|} data;
+    record {|Mission[] missions;|} data;
 };

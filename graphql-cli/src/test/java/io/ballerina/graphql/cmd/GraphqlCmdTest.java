@@ -412,7 +412,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     }
 
     @Test(description = "Test successful graphql federation gateway code generation")
-    public void testGatewayCodeGeneration() {
+    public void testGatewayCodeGeneration() throws IOException {
         Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
                 "Supergraph01.graphql"));
 //        Path outputDir = Paths.get("C:\\Users\\Mohamed Ishad\\Desktop\\gateway_gen");
@@ -421,6 +421,16 @@ public class GraphqlCmdTest extends GraphqlTest {
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
+        Path expectedServiceFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "services", "service01.bal"));
+        Path expectedTypesFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "types", "types01.bal"));
+        Path expectedQueryPlanFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "queryPlans", "queryPlan01.bal"));
+        String expectedServiceContent = readContent(expectedServiceFile);
+        String expectedTypesContent = readContent(expectedTypesFile);
+        String expectedQueryPlanContent = readContent(expectedQueryPlanFile);
+
         try {
             graphqlCmd.execute();
 
@@ -428,6 +438,14 @@ public class GraphqlCmdTest extends GraphqlTest {
                     && Files.exists(this.tmpDir.resolve("types.bal"))
                     && Files.exists(this.tmpDir.resolve("query_plan.bal"))
             ) {
+                String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
+                String generatedQueryPlanContent = readContent(this.tmpDir.resolve("query_plan.bal"));
+
+                Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+                Assert.assertEquals(expectedQueryPlanContent, generatedQueryPlanContent);
+
             } else {
                 Assert.fail("Code generation failed. : " + readOutput(true));
             }

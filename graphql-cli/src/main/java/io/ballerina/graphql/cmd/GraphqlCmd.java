@@ -273,7 +273,7 @@ public class GraphqlCmd implements BLauncherCmd {
             generateSchema(filePath);
         } else if ((MODE_SERVICE.equals(mode) || mode == null) && (filePath.endsWith(GRAPHQL_EXTENSION))) {
             generateService(filePath);
-        } else if (MODE_GATEWAY.equals(mode)){
+        } else if (MODE_GATEWAY.equals(mode)) {
             generateFederationGateway(filePath);
         }
     }

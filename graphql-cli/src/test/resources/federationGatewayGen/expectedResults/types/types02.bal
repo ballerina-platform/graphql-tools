@@ -35,5 +35,5 @@ public type meResponse record {
 };
 
 public type topProductsResponse record {
-    record {|[Product] topProducts;|} data;
+    record {|Product[] topProducts;|} data;
 };

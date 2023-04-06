@@ -7,9 +7,11 @@ import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.GatewayServiceGenerator;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -19,7 +21,7 @@ import java.nio.file.Paths;
 public class GatewayServiceGeneratorTest extends GraphqlTest {
 
     private final Path resources = this.resourceDir.resolve(Paths.get("federationGatewayGen",
-            "expectedResults", "queryPlans"));
+            "expectedResults", "services"));
 
     @Test(description = "Test service generation for gateway 01")
     public void testGatewayServiceGeneration01()
@@ -31,6 +33,8 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayServiceGenerator(graphQLSchema)).generateSrc();
+        String expectedSrc = Files.readString(resources.resolve("service01.bal"));
+        Assert.assertEquals(generatedSrc, expectedSrc);
     }
 
     @Test(description = "Test service generation for gateway 02")
@@ -43,5 +47,7 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayServiceGenerator(graphQLSchema)).generateSrc();
+        String expectedSrc = Files.readString(resources.resolve("service02.bal"));
+        Assert.assertEquals(generatedSrc, expectedSrc);
     }
 }

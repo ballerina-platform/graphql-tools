@@ -1,8 +1,6 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import graphql.schema.GraphQLSchema;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
