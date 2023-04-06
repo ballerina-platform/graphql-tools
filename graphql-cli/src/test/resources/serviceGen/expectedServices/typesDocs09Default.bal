@@ -17,6 +17,11 @@ public type SchemaDocs09Api service object {
 public type BookInfo record {|
     # The title of the book
     string title;
+    # The author of the book
+    # # Deprecated
+    # No longer needed
+    @deprecated
+    string author;
 |};
 
 # Represents a book written by an author

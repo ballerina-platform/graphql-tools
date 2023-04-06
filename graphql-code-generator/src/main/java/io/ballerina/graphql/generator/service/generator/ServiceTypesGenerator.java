@@ -210,7 +210,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private void addTypeDefinitions(GraphQLSchema schema, List<ModuleMemberDeclarationNode> moduleMembers)
             throws ServiceTypesGenerationException {
         this.canRecordFromObject = new LinkedHashMap<>();
-
         Iterator<Map.Entry<String, GraphQLNamedType>> typesIterator = schema.getTypeMap().entrySet().iterator();
         while (typesIterator.hasNext()) {
             Map.Entry<String, GraphQLNamedType> typeEntry = typesIterator.next();
@@ -440,7 +439,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private ModuleMemberDeclarationNode generateRecordType(GraphQLInputObjectType type)
             throws ServiceTypesGenerationException {
         List<GraphQLInputObjectField> typeFields = type.getFields();
-
         NodeList<Node> recordTypeFields = generateRecordTypeFieldsForGraphQLInputObjectFields(typeFields);
         RecordTypeDescriptorNode recordTypeDescriptor =
                 createRecordTypeDescriptorNode(createToken(SyntaxKind.RECORD_KEYWORD),
@@ -477,7 +475,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLInputObjectField> inputTypeFields) throws ServiceTypesGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLInputObjectField field : inputTypeFields) {
-            fields.add(createRecordFieldNode(generateMetadataForDescription(field.getDescription()), null,
+            fields.add(createRecordFieldNode(generateMetadataForInputObjectField(field), null,
                     generateTypeDescriptor(field.getType()), createIdentifierToken(field.getName()), null,
                     createToken(SyntaxKind.SEMICOLON_TOKEN)));
         }
@@ -678,6 +676,21 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null));
             markdownDocumentationLines.addAll(
                     generateMarkdownDocumentationLinesForDeprecated(enumValue.getDeprecationReason()));
+        }
+        return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
+                createNodeList(annotations));
+    }
+
+    private MetadataNode generateMetadataForInputObjectField(GraphQLInputObjectField field) {
+        List<AnnotationNode> annotations = new ArrayList<>();
+        List<Node> markdownDocumentationLines =
+                new ArrayList<>(generateMarkdownDocumentationLines(field.getDescription()));
+        if (field.isDeprecated()) {
+            AnnotationNode annotation = createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
+                    createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null);
+            annotations.add(annotation);
+            markdownDocumentationLines.addAll(
+                    generateMarkdownDocumentationLinesForDeprecated(field.getDeprecationReason()));
         }
         return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
                 createNodeList(annotations));

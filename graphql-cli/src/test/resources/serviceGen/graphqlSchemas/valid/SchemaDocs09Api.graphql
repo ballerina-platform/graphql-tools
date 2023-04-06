@@ -28,4 +28,6 @@ type Book {
 input BookInfo {
     "The title of the book"
     title: String!
+    "The author of the book"
+    author: String! @deprecated(reason: "No longer needed")
 }
