@@ -863,7 +863,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    // TODO: check restraining the input param type as possible
     private TypeDescriptorNode generateTypeDescriptor(GraphQLType argumentType, boolean nonNull)
             throws ServiceTypesGenerationException {
         if (argumentType instanceof GraphQLScalarType) {
