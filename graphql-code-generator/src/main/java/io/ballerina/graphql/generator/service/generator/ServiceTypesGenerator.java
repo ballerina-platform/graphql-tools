@@ -338,7 +338,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
         for (GraphQLFieldDefinition field : allFields) {
             fieldNames.add(field.getName());
         }
-        // TODO: use a filter
         for (GraphQLNamedOutputType interfaceType : filteredInterfaces) {
             if (interfaceType instanceof GraphQLInterfaceType) {
                 GraphQLInterfaceType graphQLInterfaceType = (GraphQLInterfaceType) interfaceType;
@@ -364,7 +363,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
         for (GraphQLNamedOutputType interfaceType : interfaceTypes) {
             interfaceTypeNames.add(interfaceType.getName());
         }
-        // TODO: try to use a filter
         for (GraphQLNamedOutputType interfaceType : interfaceTypes) {
             if (interfaceType instanceof GraphQLInterfaceType) {
                 GraphQLInterfaceType graphQLInterfaceType = (GraphQLInterfaceType) interfaceType;
@@ -917,6 +915,16 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 return interfaceSimpleNameReference;
             } else {
                 return createOptionalTypeDescriptorNode(interfaceSimpleNameReference,
+                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
+            }
+        } else if (argumentType instanceof GraphQLUnionType) {
+            GraphQLUnionType unionType = (GraphQLUnionType) argumentType;
+            SimpleNameReferenceNode unionSimpleNameReference =
+                    createSimpleNameReferenceNode(createIdentifierToken(unionType.getName()));
+            if (nonNull) {
+                return unionSimpleNameReference;
+            } else {
+                return createOptionalTypeDescriptorNode(unionSimpleNameReference,
                         createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         } else if (argumentType instanceof GraphQLNonNull) {

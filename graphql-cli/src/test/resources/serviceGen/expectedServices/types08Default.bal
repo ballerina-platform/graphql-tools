@@ -3,8 +3,8 @@ import ballerina/graphql;
 public type Schema08Api service object {
     *graphql:Service;
 
-    resource function get student(int id) returns Student?;
-    resource function get teacher(int id) returns Teacher?;
+    resource function get student(int id) returns Profile?;
+    resource function get teacher(int id) returns Profile?;
 };
 
 public type Profile Student|Teacher|Clerk;

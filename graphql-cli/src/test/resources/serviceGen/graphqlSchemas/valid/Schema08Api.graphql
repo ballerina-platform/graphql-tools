@@ -1,6 +1,6 @@
 type Query {
-    student(id: Int!): Student
-    teacher(id: Int!): Teacher
+    student(id: Int!): Profile
+    teacher(id: Int!): Profile
 }
 
 type Student {
