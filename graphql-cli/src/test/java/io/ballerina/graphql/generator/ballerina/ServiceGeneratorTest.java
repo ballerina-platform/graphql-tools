@@ -1,26 +1,17 @@
 package io.ballerina.graphql.generator.ballerina;
 
-import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceGenerator;
-import io.ballerina.graphql.generator.utils.SrcFilePojo;
-import io.ballerina.projects.DiagnosticResult;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
-import static io.ballerina.graphql.common.TestUtils.getDiagnosticResult;
-import static io.ballerina.graphql.common.TestUtils.writeSources;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 
 /**
  * Test class for ServiceGenerator.
