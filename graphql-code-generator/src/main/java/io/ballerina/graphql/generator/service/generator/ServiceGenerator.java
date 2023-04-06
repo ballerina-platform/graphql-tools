@@ -1,9 +1,6 @@
 package io.ballerina.graphql.generator.service.generator;
 
-import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
-import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
@@ -63,25 +60,11 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.SERVICE_KEYWORD;
  * This class is used to generate ballerina service file according to the GraphQL schema.
  */
 public class ServiceGenerator {
-    private static ServiceGenerator serviceGenerator = null;
-
     private String fileName;
 
-    private NodeList<ImportDeclarationNode> generateImports() {
-        List<ImportDeclarationNode> imports = new ArrayList<>();
-        ImportDeclarationNode importForGraphql =
-                CodeGeneratorUtils.getImportDeclarationNode(CodeGeneratorConstants.BALLERINA,
-                        CodeGeneratorConstants.GRAPHQL);
-        imports.add(importForGraphql);
-        return createNodeList(imports);
-    }
-
-    private SyntaxTree generateSyntaxTree(GraphQLSchema graphQLSchema)
-            throws IOException {
-        NodeList<ImportDeclarationNode> imports = generateImports();
-        NodeList<ModuleMemberDeclarationNode> moduleMemberDeclarationNodes =
-                generateMembers(graphQLSchema);
-
+    private SyntaxTree generateSyntaxTree() throws IOException {
+        NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
+        NodeList<ModuleMemberDeclarationNode> moduleMemberDeclarationNodes = generateMembers();
         ModulePartNode modulePartNode =
                 createModulePartNode(imports, moduleMemberDeclarationNodes, createToken(SyntaxKind.EOF_TOKEN));
 
@@ -90,48 +73,33 @@ public class ServiceGenerator {
         return syntaxTree.modifyWith(modulePartNode);
     }
 
-    private NodeList<ModuleMemberDeclarationNode> generateMembers(GraphQLSchema graphQLSchema
-                                                                  )
-            throws IOException {
+    private NodeList<ModuleMemberDeclarationNode> generateMembers() {
         List<ModuleMemberDeclarationNode> members = new ArrayList<>();
-
         ModuleVariableDeclarationNode portVariable =
                 generatePortModuleVariableDeclaration(CodeGeneratorConstants.PORT_NUMBER_DEFAULT);
         members.add(portVariable);
-
-        ServiceDeclarationNode serviceDeclaration = generateServiceDeclaration(graphQLSchema);
+        ServiceDeclarationNode serviceDeclaration = generateServiceDeclaration();
         members.add(serviceDeclaration);
-
         return createNodeList(members);
     }
 
     private ModuleVariableDeclarationNode generatePortModuleVariableDeclaration(String portNumberStr) {
         NodeList<Token> qualifierList = createNodeList(createToken(SyntaxKind.CONFIGURABLE_KEYWORD));
-
-        BuiltinSimpleNameReferenceNode portTypeDescriptor =
-                createBuiltinSimpleNameReferenceNode(null, createToken(INT_KEYWORD));
-        CaptureBindingPatternNode portBindingPattern =
-                createCaptureBindingPatternNode(createIdentifierToken(CodeGeneratorConstants.PORT));
-        TypedBindingPatternNode portTypeBinding = createTypedBindingPatternNode(portTypeDescriptor, portBindingPattern);
-
+        TypedBindingPatternNode portTypeBinding =
+                createTypedBindingPatternNode(createBuiltinSimpleNameReferenceNode(null, createToken(INT_KEYWORD)),
+                        createCaptureBindingPatternNode(createIdentifierToken(CodeGeneratorConstants.PORT)));
         BasicLiteralNode portBasicLiteral =
                 NodeFactory.createBasicLiteralNode(SyntaxKind.NUMERIC_LITERAL, createIdentifierToken(portNumberStr));
-
         return createModuleVariableDeclarationNode(null, null, qualifierList, portTypeBinding,
                 createToken(SyntaxKind.EQUAL_TOKEN), portBasicLiteral, createToken(SEMICOLON_TOKEN));
     }
 
-    private ServiceDeclarationNode generateServiceDeclaration(GraphQLSchema graphQLSchema
-                                                              ) throws IOException {
+    private ServiceDeclarationNode generateServiceDeclaration() {
         NodeList<Token> serviceQualifiers = createEmptyNodeList();
-
         SimpleNameReferenceNode serviceObjectTypeDescriptor =
                 createSimpleNameReferenceNode(createIdentifierToken(this.fileName));
-
         NodeList<Node> absoluteResourcePath = createEmptyNodeList();
-
         ExplicitNewExpressionNode serviceExpression = generateServiceExpression();
-
         return createServiceDeclarationNode(null, serviceQualifiers, createToken(SERVICE_KEYWORD),
                 serviceObjectTypeDescriptor, absoluteResourcePath, createToken(ON_KEYWORD),
                 createSeparatedNodeList(serviceExpression), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
@@ -145,24 +113,22 @@ public class ServiceGenerator {
 
         PositionalArgumentNode expressionPositionalArgument = createPositionalArgumentNode(
                 createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.PORT)));
-
         SeparatedNodeList<FunctionArgumentNode> expressionArguments =
                 createSeparatedNodeList(expressionPositionalArgument);
-
         ParenthesizedArgList expressionParenthesizedArgList =
                 createParenthesizedArgList(createToken(SyntaxKind.OPEN_PAREN_TOKEN), expressionArguments,
                         createToken(CLOSE_PAREN_TOKEN));
-
         return createExplicitNewExpressionNode(createToken(NEW_KEYWORD), expressionQualifiedNameReference,
                 expressionParenthesizedArgList);
     }
 
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
 
-    public String generateSrc(String fileName, GraphQLSchema graphQLSchema)
-            throws ServiceGenerationException {
+    public String generateSrc() throws ServiceGenerationException {
         try {
-            this.fileName = fileName;
-            return Formatter.format(generateSyntaxTree(graphQLSchema)).toString();
+            return Formatter.format(generateSyntaxTree()).toString();
         } catch (FormatterException | IOException e) {
             throw new ServiceGenerationException(e.getMessage());
         }
