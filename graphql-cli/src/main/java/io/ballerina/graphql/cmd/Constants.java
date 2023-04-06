@@ -60,8 +60,8 @@ public class Constants {
             "\nPlease provide a valid file path for the schema section " +
             "under each project in the YAML file. \nInvalid file path ";
 
-    public static final String MESSAGE_MISSING_SCHEMA_FILE = "Provided Schema file path does not exist";
-    public static final String MESSAGE_CAN_NOT_READ_SCHEMA_FILE = "Provided Schema is not allowed to be read";
+    public static final String MESSAGE_MISSING_SCHEMA_FILE = "- Provided Schema file path does not exist.";
+    public static final String MESSAGE_CAN_NOT_READ_SCHEMA_FILE = "- Provided Schema is not allowed to be read";
 
     public static final String MESSAGE_FOR_INVALID_MODE =
             " is not a supported argument for mode flag. The mode flag argument should be one of these " +
