@@ -25,7 +25,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLSchemaElement;
+import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLUnionType;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ArrayDimensionNode;
@@ -864,7 +864,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     // TODO: check restraining the input param type as possible
-    private TypeDescriptorNode generateTypeDescriptor(GraphQLSchemaElement argumentType, boolean nonNull)
+    private TypeDescriptorNode generateTypeDescriptor(GraphQLType argumentType, boolean nonNull)
             throws ServiceTypesGenerationException {
         if (argumentType instanceof GraphQLScalarType) {
             GraphQLScalarType scalarArgumentType = (GraphQLScalarType) argumentType;
@@ -950,7 +950,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    private TypeDescriptorNode generateTypeDescriptor(GraphQLSchemaElement argumentType)
+    private TypeDescriptorNode generateTypeDescriptor(GraphQLType argumentType)
             throws ServiceTypesGenerationException {
         return generateTypeDescriptor(argumentType, false);
     }
