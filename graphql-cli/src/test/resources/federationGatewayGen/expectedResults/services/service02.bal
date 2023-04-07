@@ -32,7 +32,7 @@ isolated service on new graphql:Listener(PORT) {
         Resolver resolver = new (queryPlan, result, "User", propertiesNotResolved, ["me"]);
         return resolver.getResult().ensureType();
     };
-    isolated resource function get topProducts(graphql:Field 'field, int? first) returns Product[]|error {
+    isolated resource function get topProducts(graphql:Field 'field, int? first = 5) returns Product[]|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, PRODUCTS);
         string fieldString = classifier.getFieldString();
         UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();

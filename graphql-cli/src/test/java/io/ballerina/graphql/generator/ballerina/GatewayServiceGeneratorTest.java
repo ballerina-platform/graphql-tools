@@ -29,7 +29,8 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
         String fileName = "Supergraph01";
 
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                this.resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas", fileName + ".graphql"))
+                this.resourceDir.resolve(Paths.get("federationGatewayGen",
+                                "supergraphSchemas", fileName + ".graphql"))
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayServiceGenerator(graphQLSchema)).generateSrc();
@@ -43,7 +44,8 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
         String fileName = "Supergraph02";
 
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                this.resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas", fileName + ".graphql"))
+                this.resourceDir.resolve(Paths.get("federationGatewayGen",
+                                "supergraphSchemas", fileName + ".graphql"))
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayServiceGenerator(graphQLSchema)).generateSrc();

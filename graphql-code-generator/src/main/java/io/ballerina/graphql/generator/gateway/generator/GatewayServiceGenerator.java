@@ -1,6 +1,11 @@
 package io.ballerina.graphql.generator.gateway.generator;
 
+import graphql.language.BooleanValue;
 import graphql.language.EnumValue;
+import graphql.language.FloatValue;
+import graphql.language.IntValue;
+import graphql.language.StringValue;
+import graphql.language.Value;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
@@ -47,6 +52,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createBracedExpressi
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createBuiltinSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createCaptureBindingPatternNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createCheckExpressionNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createDefaultableParameterNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createElseBlockNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createErrorConstructorExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createExplicitNewExpressionNode;
@@ -600,8 +606,9 @@ public class GatewayServiceGenerator {
                                                                                         STRING_LITERAL_TOKEN,
                                                                                     "\"" +
                                                                                             ((GraphQLFieldDefinition)
-                                                                                            graphQLObjectType)
-                                                                                            .getName() + "\"",
+                                                                                                    graphQLObjectType)
+                                                                                                    .getName() +
+                                                                                            "\"",
                                                                                         createEmptyMinutiaeList(),
                                                                                         createEmptyMinutiaeList()
                                                                                 )
@@ -661,15 +668,37 @@ public class GatewayServiceGenerator {
         for (GraphQLArgument argument : ((GraphQLFieldDefinition) graphQLObjectType).getArguments()) {
             nodes.add(createToken(COMMA_TOKEN));
             FieldType fieldType = Utils.getFieldType(graphQLSchema, argument.getDefinition().getType());
-            nodes.add(
-                    createRequiredParameterNode(
-                            createSeparatedNodeList(),
-                            createSimpleNameReferenceNode(
-                                    createIdentifierToken(fieldType.getName() + fieldType.getTokens())
-                            ),
-                            createIdentifierToken(argument.getName())
-                    )
-            );
+            if (argument.getDefinition().getDefaultValue() != null) {
+                nodes.add(
+                        createDefaultableParameterNode(
+                                createSeparatedNodeList(),
+                                createSimpleNameReferenceNode(
+                                        createIdentifierToken(fieldType.getName() + fieldType.getTokens())
+                                ),
+                                createIdentifierToken(argument.getName()),
+                                createToken(EQUAL_TOKEN),
+                                createBasicLiteralNode(
+                                        STRING_LITERAL,
+                                        createLiteralValueToken(
+                                                STRING_LITERAL_TOKEN,
+                                                getValue(argument.getDefinition().getDefaultValue()),
+                                                createEmptyMinutiaeList(),
+                                                createEmptyMinutiaeList()
+                                        )
+                                )
+                        )
+                );
+            } else {
+                nodes.add(
+                        createRequiredParameterNode(
+                                createSeparatedNodeList(),
+                                createSimpleNameReferenceNode(
+                                        createIdentifierToken(fieldType.getName() + fieldType.getTokens())
+                                ),
+                                createIdentifierToken(argument.getName())
+                        )
+                );
+            }
         }
         return nodes;
     }
@@ -899,6 +928,20 @@ public class GatewayServiceGenerator {
             return getTypeName(((GraphQLList) queryType).getOriginalWrappedType());
         } else {
             throw new GatewayServiceGenerationException("Unsupported type: " + queryType);
+        }
+    }
+
+    private String getValue(Value value) {
+        if (value instanceof IntValue) {
+            return ((IntValue) value).getValue().toString();
+        } else if (value instanceof StringValue) {
+            return "\""+((StringValue) value).getValue() + "\"";
+        } else if (value instanceof BooleanValue) {
+            return ((BooleanValue) value).isValue() ? "true" : "false";
+        } else if (value instanceof FloatValue) {
+            return ((FloatValue) value).getValue().toString();
+        } else {
+            throw new GatewayServiceGenerationException("Unsupported value: " + value);
         }
     }
 }
