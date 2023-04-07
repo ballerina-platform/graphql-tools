@@ -9,11 +9,8 @@ import graphql.language.Value;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLSchemaElement;
-import graphql.schema.GraphQLType;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
@@ -24,7 +21,9 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
+import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.gateway.generator.common.JoinGraph;
 import io.ballerina.graphql.generator.utils.graphql.Utils;
 import io.ballerina.graphql.generator.utils.model.FieldType;
@@ -129,7 +128,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_TYPE_DESC;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.gateway.generator.common.Utils.getJoinGraphs;
+import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtils.getJoinGraphs;
 
 /**
  * Class to generate service code for the gateway.
@@ -150,7 +149,7 @@ public class GatewayServiceGenerator {
         }
     }
 
-    private SyntaxTree generateSyntaxTree() {
+    private SyntaxTree generateSyntaxTree() throws GatewayGenerationException {
         NodeList<ImportDeclarationNode> importsList = createNodeList(
                 createImportDeclarationNode(
                         createToken(SyntaxKind.IMPORT_KEYWORD),
@@ -299,7 +298,7 @@ public class GatewayServiceGenerator {
         return syntaxTree.modifyWith(modulePartNode);
     }
 
-    private List<FunctionDefinitionNode> getResourceFunctions() {
+    private List<FunctionDefinitionNode> getResourceFunctions() throws GatewayGenerationException {
         List<FunctionDefinitionNode> resourceFunctions = new ArrayList<>();
         for (GraphQLSchemaElement graphQLObjectType : graphQLSchema.getQueryType().getChildren().stream().filter(
                 child -> child instanceof GraphQLFieldDefinition).collect(Collectors.toList())) {
@@ -327,8 +326,10 @@ public class GatewayServiceGenerator {
                                             createToken(RETURNS_KEYWORD),
                                             createNodeList(),
                                             createUnionTypeDescriptorNode(
-                                                    createSimpleNameReferenceNode(createIdentifierToken(getTypeName(
-                                                            ((GraphQLFieldDefinition) graphQLObjectType).getType()))),
+                                                    createSimpleNameReferenceNode(
+                                                            createIdentifierToken(CommonUtils
+                                                                    .getTypeNameFromGraphQLType(
+                                                                            ((GraphQLFieldDefinition) graphQLObjectType).getType()))),
                                                     createToken(PIPE_TOKEN),
                                                     createParameterizedTypeDescriptorNode(
                                                             ERROR_TYPE_DESC,
@@ -351,7 +352,8 @@ public class GatewayServiceGenerator {
         return resourceFunctions;
     }
 
-    private SeparatedNodeList getResourceFunctionBody(GraphQLSchemaElement graphQLObjectType) {
+    private SeparatedNodeList getResourceFunctionBody(GraphQLSchemaElement graphQLObjectType)
+            throws GatewayGenerationException {
         return createSeparatedNodeList(
                 createVariableDeclarationNode(
                         createSeparatedNodeList(),
@@ -528,8 +530,8 @@ public class GatewayServiceGenerator {
                         null,
                         createTypedBindingPatternNode(
                                 createSimpleNameReferenceNode(
-                                        createIdentifierToken(
-                                                getTypeName(((GraphQLFieldDefinition) graphQLObjectType).getType()))
+                                        createIdentifierToken(CommonUtils.getTypeNameFromGraphQLType(
+                                                ((GraphQLFieldDefinition) graphQLObjectType).getType()))
                                 ),
                                 createCaptureBindingPatternNode(
                                         createIdentifierToken("result")
@@ -584,9 +586,11 @@ public class GatewayServiceGenerator {
                                                 createToken(COMMA_TOKEN),
                                                 createPositionalArgumentNode(
                                                         createSimpleNameReferenceNode(
-                                                                createIdentifierToken("\"" + getBasicTypeName(
-                                                                        ((GraphQLFieldDefinition) graphQLObjectType)
-                                                                                .getType()) + "\"")
+                                                                createIdentifierToken("\"" +
+                                                                        CommonUtils.getBasicTypeNameFromGraphQLType(
+                                                                            ((GraphQLFieldDefinition) graphQLObjectType)
+                                                                                    .getType())
+                                                                        + "\"")
                                                         )
                                                 ),
                                                 createToken(COMMA_TOKEN),
@@ -910,32 +914,11 @@ public class GatewayServiceGenerator {
         return null;
     }
 
-    // TODO: Repeated in GatewayTypeGenerator
-    private String getTypeName(GraphQLType queryType) {
-        if (queryType instanceof GraphQLObjectType) {
-            return ((GraphQLObjectType) queryType).getName();
-        } else if (queryType instanceof GraphQLList) {
-            return getTypeName(((GraphQLList) queryType).getOriginalWrappedType()) + "[]";
-        } else {
-            throw new GatewayServiceGenerationException("Unsupported type: " + queryType);
-        }
-    }
-
-    private String getBasicTypeName(GraphQLType queryType) {
-        if (queryType instanceof GraphQLObjectType) {
-            return ((GraphQLObjectType) queryType).getName();
-        } else if (queryType instanceof GraphQLList) {
-            return getTypeName(((GraphQLList) queryType).getOriginalWrappedType());
-        } else {
-            throw new GatewayServiceGenerationException("Unsupported type: " + queryType);
-        }
-    }
-
     private String getValue(Value value) {
         if (value instanceof IntValue) {
             return ((IntValue) value).getValue().toString();
         } else if (value instanceof StringValue) {
-            return "\""+((StringValue) value).getValue() + "\"";
+            return "\"" + ((StringValue) value).getValue() + "\"";
         } else if (value instanceof BooleanValue) {
             return ((BooleanValue) value).isValue() ? "true" : "false";
         } else if (value instanceof FloatValue) {

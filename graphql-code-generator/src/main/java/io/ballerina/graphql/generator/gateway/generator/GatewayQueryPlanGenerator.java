@@ -28,7 +28,7 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.JoinGraph;
-import io.ballerina.graphql.generator.gateway.generator.common.Utils;
+import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
@@ -91,7 +91,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_TYPE_DESC;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TABLE_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.gateway.generator.common.Utils.getJoinGraphs;
+import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtils.getJoinGraphs;
 
 /**
  * Class to generate the query plan for the gateway.
@@ -106,7 +106,7 @@ public class GatewayQueryPlanGenerator {
         this.graphQLSchema = graphQLSchema;
         this.joinGraphs = getJoinGraphs(graphQLSchema);
         this.fieldDataMap = new HashMap<>();
-        List<String> names = Utils.getCustomDefinedObjectTypeNames(graphQLSchema);
+        List<String> names = CommonUtils.getCustomDefinedObjectTypeNames(graphQLSchema);
 
         for (String name : names) {
             fieldDataMap.put(name, getFieldsOfType(name));
@@ -193,7 +193,7 @@ public class GatewayQueryPlanGenerator {
 
     private SeparatedNodeList<Node> getTableRows() throws GatewayQueryPlanGenerationException {
         List<Node> nodeList = new ArrayList<>();
-        List<String> names = Utils.getCustomDefinedObjectTypeNames(graphQLSchema);
+        List<String> names = CommonUtils.getCustomDefinedObjectTypeNames(graphQLSchema);
 
         int namesLength = names.size();
         int i = 0;

@@ -35,14 +35,14 @@ import java.util.stream.Collectors;
 /**
  * Common utility functions used inside the package.
  */
-public class Utils {
+public class CommonUtils {
 
     /**
      * Return the list of custom defined object type names in the GraphQL schema.
      *
      * @param graphQLSchema GraphQL schema
      * @return List of custom defined object type names
-     * */
+     */
     public static List<String> getCustomDefinedObjectTypeNames(GraphQLSchema graphQLSchema) {
         return SpecReader.getObjectTypeNames(graphQLSchema).stream()
                 .filter(name -> name != null && !name.isEmpty() && !name.equals("Query") && !name.equals("Mutation") &&
@@ -55,7 +55,7 @@ public class Utils {
      * @param queryType GraphQL type
      * @return Type name
      * @throws GatewayGenerationException if the type is not supported
-     * */
+     */
     public static String getTypeNameFromGraphQLType(GraphQLType queryType) throws GatewayGenerationException {
         if (queryType instanceof GraphQLObjectType) {
             return ((GraphQLObjectType) queryType).getName();
@@ -67,16 +67,33 @@ public class Utils {
     }
 
     /**
+     * Return the type name of the GraphQL type without the array brackets.
+     *
+     * @param queryType GraphQL type
+     * @return Type name
+     * @throws GatewayGenerationException if the type is not supported
+     */
+    public static String getBasicTypeNameFromGraphQLType(GraphQLType queryType) throws GatewayGenerationException {
+        if (queryType instanceof GraphQLObjectType) {
+            return ((GraphQLObjectType) queryType).getName();
+        } else if (queryType instanceof GraphQLList) {
+            return getBasicTypeNameFromGraphQLType(((GraphQLList) queryType).getOriginalWrappedType());
+        } else {
+            throw new GatewayGenerationException("Unsupported type: " + queryType);
+        }
+    }
+
+    /**
      * Return map of join graphs in the GraphQL schema as Enum value as the key and a JoinGraph object as the value.
      *
      * @param graphQLSchema GraphQL schema
      * @return Map of join graphs
-     * */
+     */
     public static Map<String, JoinGraph> getJoinGraphs(GraphQLSchema graphQLSchema) {
         Map<String, JoinGraph> joinGraphs = new HashMap<>();
         GraphQLType joinGraph = graphQLSchema.getType("join__Graph");
         if (joinGraph != null) {
-            for (GraphQLEnumValueDefinition element: ((GraphQLEnumType) joinGraph).getValues()) {
+            for (GraphQLEnumValueDefinition element : ((GraphQLEnumType) joinGraph).getValues()) {
                 joinGraphs.put(element.getName(), new JoinGraph(element));
             }
         }

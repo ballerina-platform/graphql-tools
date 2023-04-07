@@ -32,7 +32,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayTypeGenerationException;
-import io.ballerina.graphql.generator.gateway.generator.common.Utils;
+import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
 import io.ballerina.graphql.generator.utils.model.FieldType;
 import io.ballerina.tools.text.TextDocument;
@@ -105,7 +105,7 @@ public class GatewayTypeGenerator {
     }
 
     private void addCustomDefinedTypes(List<TypeDefinitionNode> typeDefinitionNodeList) {
-        List<String> names = Utils.getCustomDefinedObjectTypeNames(graphQLSchema);
+        List<String> names = CommonUtils.getCustomDefinedObjectTypeNames(graphQLSchema);
 
         for (String name : names) {
             List<Node> fieldNodes = new ArrayList<>();
@@ -166,7 +166,7 @@ public class GatewayTypeGenerator {
 
     private RecordTypeDescriptorNode getRecordTypeDescriptorNode(GraphQLFieldDefinition queryDefinition)
             throws GatewayGenerationException {
-        String typename = Utils.getTypeNameFromGraphQLType(queryDefinition.getType());
+        String typename = CommonUtils.getTypeNameFromGraphQLType(queryDefinition.getType());
         return createRecordTypeDescriptorNode(
                 createToken(RECORD_KEYWORD),
                 createToken(OPEN_BRACE_TOKEN),
