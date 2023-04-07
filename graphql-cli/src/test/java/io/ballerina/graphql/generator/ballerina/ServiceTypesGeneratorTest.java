@@ -3,8 +3,6 @@ package io.ballerina.graphql.generator.ballerina;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
-import io.ballerina.graphql.exception.CmdException;
-import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
@@ -165,7 +163,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
     @Test(description = "Test for schema with lists, method - default")
     public void testGenerateSrcForSchemaWithLists()
-            throws CmdException, IOException, ParseException, ValidationException, ServiceTypesGenerationException {
+            throws IOException, ValidationException, ServiceTypesGenerationException {
         String fileName = "SchemaWithListsApi";
         String expectedFile = "typesWithListsDefault.bal";
 
