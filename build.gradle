@@ -204,6 +204,10 @@ task directoryBuild {
             from targetGraphqlBalServiceJar
             into file("$artifactLibParent/libs")
         }
+        copy {
+            from targetGraphqlCodeGenJar
+            into file("$artifactLibParent/libs")
+        }
     }
 
     outputs.dir artifactCacheParent
