@@ -22,7 +22,7 @@ public class ServiceGeneratorTest extends GraphqlTest {
     public void testGenerateSrc()
             throws IOException, ValidationException {
         try {
-            String fileName = "Schema01Api";
+            String fileName = "SchemaWithBasic01Api";
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
@@ -34,7 +34,7 @@ public class ServiceGeneratorTest extends GraphqlTest {
                             .replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedServiceFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "service01.bal"));
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema01.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
 
             Assert.assertEquals(expectedServiceContent, generatedServiceContent);
