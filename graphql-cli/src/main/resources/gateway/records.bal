@@ -16,13 +16,13 @@ public type FieldRecord record {|
     string 'client;
     // In query plan generation need to process the required field string and seperate the fields and the client
     // which will resolve it.
-    requiresFieldRecord[] requires?;
+    RequiresFieldRecord[] requires?;
 |};
 
 public type QueryPlanEntry record {|
     readonly string typename;
     map<string> keys;
-    readonly & table<fieldRecord> key(name) fields;
+    readonly & table<FieldRecord> key(name) fields;
 |};
 
 type EntityResponse record {

@@ -411,12 +411,12 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test successful graphql federation gateway code generation")
-    public void testGatewayCodeGeneration() throws IOException {
+    @Test(description = "Test successful graphql federation gateway code generation 01")
+    public void testGatewayCodeGeneration1() throws IOException {
         Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
                 "Supergraph01.graphql"));
-//        Path outputDir = Paths.get("C:\\Users\\Mohamed Ishad\\Desktop\\gateway_gen");
-        String[] args = {"-i", supergraphSdl.toString(), "-o", this.tmpDir.toString(), "-m",
+
+        String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
                 CodeGeneratorConstants.MODE_GATEWAY };
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -434,13 +434,57 @@ public class GraphqlCmdTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
 
-            if (Files.exists(this.tmpDir.resolve("service.bal"))
-                    && Files.exists(this.tmpDir.resolve("types.bal"))
-                    && Files.exists(this.tmpDir.resolve("query_plan.bal"))
+            if (Files.exists(tmpDir.resolve("service.bal"))
+                    && Files.exists(tmpDir.resolve("types.bal"))
+                    && Files.exists(tmpDir.resolve("query_plan.bal"))
             ) {
-                String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
-                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
-                String generatedQueryPlanContent = readContent(this.tmpDir.resolve("query_plan.bal"));
+                String generatedServiceContent = readContent(tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(tmpDir.resolve("types.bal"));
+                String generatedQueryPlanContent = readContent(tmpDir.resolve("query_plan.bal"));
+
+                Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+                Assert.assertEquals(expectedQueryPlanContent, generatedQueryPlanContent);
+
+            } else {
+                Assert.fail("Code generation failed. : " + readOutput(true));
+            }
+        } catch (BLauncherException | IOException e) {
+            String output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test successful graphql federation gateway code generation 02")
+    public void testGatewayCodeGeneration2() throws IOException {
+        Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
+                "Supergraph02.graphql"));
+
+        String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
+                CodeGeneratorConstants.MODE_GATEWAY };
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        Path expectedServiceFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "services", "service02.bal"));
+        Path expectedTypesFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "types", "types02.bal"));
+        Path expectedQueryPlanFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "queryPlans", "queryPlan02.bal"));
+        String expectedServiceContent = readContent(expectedServiceFile);
+        String expectedTypesContent = readContent(expectedTypesFile);
+        String expectedQueryPlanContent = readContent(expectedQueryPlanFile);
+
+        try {
+            graphqlCmd.execute();
+
+            if (Files.exists(tmpDir.resolve("service.bal"))
+                    && Files.exists(tmpDir.resolve("types.bal"))
+                    && Files.exists(tmpDir.resolve("query_plan.bal"))
+            ) {
+                String generatedServiceContent = readContent(tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(tmpDir.resolve("types.bal"));
+                String generatedQueryPlanContent = readContent(tmpDir.resolve("query_plan.bal"));
 
                 Assert.assertEquals(expectedServiceContent, generatedServiceContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
