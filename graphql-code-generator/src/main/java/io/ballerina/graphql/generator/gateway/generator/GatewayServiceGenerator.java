@@ -329,7 +329,8 @@ public class GatewayServiceGenerator {
                                                     createSimpleNameReferenceNode(
                                                             createIdentifierToken(CommonUtils
                                                                     .getTypeNameFromGraphQLType(
-                                                                            ((GraphQLFieldDefinition) graphQLObjectType).getType()))),
+                                                                            ((GraphQLFieldDefinition) graphQLObjectType)
+                                                                                    .getType()))),
                                                     createToken(PIPE_TOKEN),
                                                     createParameterizedTypeDescriptorNode(
                                                             ERROR_TYPE_DESC,
@@ -359,12 +360,8 @@ public class GatewayServiceGenerator {
                         createSeparatedNodeList(),
                         null,
                         createTypedBindingPatternNode(
-                                createSimpleNameReferenceNode(
-                                        createIdentifierToken("QueryFieldClassifier")
-                                ),
-                                createCaptureBindingPatternNode(
-                                        createIdentifierToken("classifier")
-                                )
+                                createSimpleNameReferenceNode(createIdentifierToken("QueryFieldClassifier")),
+                                createCaptureBindingPatternNode(createIdentifierToken("classifier"))
                         ),
                         createToken(EQUAL_TOKEN),
                         createImplicitNewExpressionNode(
