@@ -31,7 +31,7 @@ isolated service on new graphql:Listener(PORT) {
         User result = response.data.me;
         Resolver resolver = new (queryPlan, result, "User", propertiesNotResolved, ["me"]);
         return resolver.getResult().ensureType();
-    };
+    }
     isolated resource function get topProducts(graphql:Field 'field, int? first = 5) returns Product[]|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, PRODUCTS);
         string fieldString = classifier.getFieldString();
@@ -41,5 +41,5 @@ isolated service on new graphql:Listener(PORT) {
         Product[] result = response.data.topProducts;
         Resolver resolver = new (queryPlan, result, "Product", propertiesNotResolved, ["topProducts"]);
         return resolver.getResult().ensureType();
-    };
+    }
 }

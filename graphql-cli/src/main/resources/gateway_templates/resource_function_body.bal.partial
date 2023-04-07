@@ -1,0 +1,10 @@
+{
+    QueryFieldClassifier classifier = new ('field, queryPlan, @{clientName});
+    string fieldString = classifier.getFieldString();
+    UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+    string queryString = wrapwithQuery("@{query}", fieldString @{queryArgs});
+    @{query}Response response = check @{clientName}_CLIENT->execute(queryString);
+    @{responseType} result = response.data.@{query};
+    Resolver resolver = new (queryPlan, result, "@{basicResponseType}", propertiesNotResolved, ["@{query}"]);
+    return resolver.getResult().ensureType();
+}
