@@ -8,13 +8,19 @@ public class Constants {
     public static final String RESPONSE_TYPE_PLACEHOLDER = "@\\{responseType}";
     public static final String BASIC_RESPONSE_TYPE_PLACEHOLDER = "@\\{basicResponseType}";
     public static final String CLIENT_NAME_PLACEHOLDER = "@\\{clientName}";
+    public static final String CLIENT_NAME_VALUE_PLACEHOLDER = "@\\{clientNameValue}";
     public static final String QUERY_ARGS_PLACEHOLDER = "@\\{queryArgs}";
     public static final String URL_PLACEHOLDER = "@\\{url}";
 
+    // Constants for the gateway service generation.
     public static final String CLIENT_NOT_FOUND_PANIC_BLOCK = "{ panic error(\"Client not found\"); }";
     public static final String CONFIGURABLE_PORT_STATEMENT = "configurable int PORT = 9000;";
     public static final String BALLERINA_GRAPHQL_IMPORT_STATEMENT = "import ballerina/graphql;";
     public static final String GRAPHQL_CLIENT_DECLARATION_STATEMENT =
             "final graphql:Client " + CLIENT_NAME_PLACEHOLDER +
                     "_CLIENT = check new graphql:Client(\"" + URL_PLACEHOLDER + "\");";
+
+    // Constants for the gateway query plan generation.
+    public static final String CLIENT_NAME_DECLARATION = "public const string " + CLIENT_NAME_PLACEHOLDER
+            + " = \"" + CLIENT_NAME_VALUE_PLACEHOLDER + "\";";
 }

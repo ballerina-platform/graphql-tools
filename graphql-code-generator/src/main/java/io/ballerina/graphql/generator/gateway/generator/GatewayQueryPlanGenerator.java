@@ -14,8 +14,8 @@ import graphql.language.Selection;
 import graphql.language.StringValue;
 import graphql.language.TypeName;
 import graphql.parser.Parser;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLDirective;
+import graphql.schema.GraphQLAppliedDirective;
+import graphql.schema.GraphQLAppliedDirectiveArgument;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
@@ -24,6 +24,7 @@ import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
@@ -52,7 +53,6 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createBasicLiteralNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createBuiltinSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createCaptureBindingPatternNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createConstantDeclarationNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createIntersectionTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createKeySpecifierNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createListConstructorExpressionNode;
@@ -71,7 +71,6 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACKET_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.COMMA_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CONST_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EQUAL_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.FINAL_KEYWORD;
@@ -85,12 +84,13 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.PUBLIC_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.READONLY_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.READONLY_TYPE_DESC;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_TYPE_DESC;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TABLE_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
+import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_DECLARATION;
+import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_VALUE_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtils.getJoinGraphs;
 
 /**
@@ -102,7 +102,7 @@ public class GatewayQueryPlanGenerator {
     private final Map<String, JoinGraph> joinGraphs;
     private final Map<String, List<FieldData>> fieldDataMap;
 
-    public GatewayQueryPlanGenerator(GraphQLSchema graphQLSchema) throws GatewayQueryPlanGenerationException {
+    public GatewayQueryPlanGenerator(GraphQLSchema graphQLSchema) {
         this.graphQLSchema = graphQLSchema;
         this.joinGraphs = getJoinGraphs(graphQLSchema);
         this.fieldDataMap = new HashMap<>();
@@ -124,14 +124,14 @@ public class GatewayQueryPlanGenerator {
     }
 
     private SyntaxTree generateSyntaxTree() throws GatewayQueryPlanGenerationException {
-        List<Node> nodeList = new LinkedList<>();
+        List<ModuleMemberDeclarationNode> nodeList = new LinkedList<>();
         NodeList<ImportDeclarationNode> importsList = createEmptyNodeList();
 
         addClientConstantDeclarations(nodeList);
         addQueryPlanTableNode(nodeList);
 
         NodeList<ModuleMemberDeclarationNode> members = createNodeList(nodeList.toArray(
-                new ModuleMemberDeclarationNode[nodeList.size()]));
+                new ModuleMemberDeclarationNode[0]));
 
         ModulePartNode modulePartNode = createModulePartNode(
                 importsList,
@@ -143,10 +143,11 @@ public class GatewayQueryPlanGenerator {
         return syntaxTree.modifyWith(modulePartNode);
     }
 
-    private void addQueryPlanTableNode(List<Node> nodeList) throws GatewayQueryPlanGenerationException {
+    private void addQueryPlanTableNode(List<ModuleMemberDeclarationNode> nodeList)
+            throws GatewayQueryPlanGenerationException {
 
 
-        Node tableNode = createModuleVariableDeclarationNode(
+        ModuleMemberDeclarationNode tableNode = createModuleVariableDeclarationNode(
                 null,
                 createToken(PUBLIC_KEYWORD),
                 createNodeList(createToken(FINAL_KEYWORD)),
@@ -215,7 +216,6 @@ public class GatewayQueryPlanGenerator {
 
     private SeparatedNodeList<MappingFieldNode> getTableEntry(String name) throws GatewayQueryPlanGenerationException {
         List<Node> nodeList = new ArrayList<>();
-
         nodeList.add(
                 createSpecificFieldNode(
                         null,
@@ -232,7 +232,6 @@ public class GatewayQueryPlanGenerator {
                         )
                 )
         );
-
         nodeList.add(createToken(COMMA_TOKEN));
 
         Map<String, String> keys = getKeys(name);
@@ -246,9 +245,7 @@ public class GatewayQueryPlanGenerator {
                         createToken(CLOSE_BRACE_TOKEN)
                 )
         );
-
         nodeList.add(keyNode);
-
         nodeList.add(createToken(COMMA_TOKEN));
 
         Node fieldNode = createSpecificFieldNode(
@@ -263,7 +260,6 @@ public class GatewayQueryPlanGenerator {
                         createToken(CLOSE_BRACKET_TOKEN)
                 )
         );
-
         nodeList.add(fieldNode);
 
         return createSeparatedNodeList(nodeList);
@@ -304,10 +300,9 @@ public class GatewayQueryPlanGenerator {
     private Map<String, String> getKeys(String name)
             throws GatewayQueryPlanGenerationException {
         Map<String, String> keys = new HashMap<>();
+        List<GraphQLAppliedDirective> directives = SpecReader.getObjectTypeDirectives(this.graphQLSchema, name);
 
-        List<GraphQLDirective> directives = SpecReader.getObjectTypeDirectives(this.graphQLSchema, name);
-
-        for (GraphQLDirective directive : directives) {
+        for (GraphQLAppliedDirective directive : directives) {
             if (directive.getName().equals("join__type")) {
                 String graph = getGraphOfJoinTypeArgument(directive);
                 String key = getKeyOfJoinTypeArgument(name, directive);
@@ -318,8 +313,9 @@ public class GatewayQueryPlanGenerator {
         return keys;
     }
 
-    private String getGraphOfJoinTypeArgument(GraphQLDirective directive) throws GatewayQueryPlanGenerationException {
-        for (GraphQLArgument argument : directive.getArguments()) {
+    private String getGraphOfJoinTypeArgument(GraphQLAppliedDirective directive)
+            throws GatewayQueryPlanGenerationException {
+        for (GraphQLAppliedDirectiveArgument argument : directive.getArguments()) {
             if (argument.getName().equals("graph")) {
                 String graphEnumName =
                         ((EnumValue) Objects.requireNonNull(argument.getArgumentValue().getValue())).getName();
@@ -329,11 +325,10 @@ public class GatewayQueryPlanGenerator {
         throw new GatewayQueryPlanGenerationException("No graph argument found in @join__type directive");
     }
 
-    private String getKeyOfJoinTypeArgument(String name, GraphQLDirective directive)
+    private String getKeyOfJoinTypeArgument(String name, GraphQLAppliedDirective directive)
             throws GatewayQueryPlanGenerationException {
-
         try {
-            for (GraphQLArgument argument : directive.getArguments()) {
+            for (GraphQLAppliedDirectiveArgument argument : directive.getArguments()) {
                 if (argument.getName().equals("key")) {
                     return ((StringValue) Objects.requireNonNull(argument.getArgumentValue().getValue())).getValue();
                 }
@@ -349,9 +344,8 @@ public class GatewayQueryPlanGenerator {
         throw new GatewayQueryPlanGenerationException("No key argument found in @join__type directive");
     }
 
-    private SeparatedNodeList<Node> getFieldTableRows(String name) throws GatewayQueryPlanGenerationException {
+    private SeparatedNodeList<Node> getFieldTableRows(String name) {
         List<Node> nodeList = new ArrayList<>();
-
         List<FieldData> fields = this.fieldDataMap.get(name);
 
         int fieldsLength = fields.size();
@@ -361,7 +355,6 @@ public class GatewayQueryPlanGenerator {
             if (field.isID()) {
                 continue;
             }
-
             MappingConstructorExpressionNode entryNode = createMappingConstructorExpressionNode(
                     createToken(OPEN_BRACE_TOKEN),
                     getFieldTableEntry(field),
@@ -378,8 +371,7 @@ public class GatewayQueryPlanGenerator {
         return createSeparatedNodeList(nodeList);
     }
 
-    private SeparatedNodeList<MappingFieldNode> getFieldTableEntry(FieldData data)
-            throws GatewayQueryPlanGenerationException {
+    private SeparatedNodeList<MappingFieldNode> getFieldTableEntry(FieldData data) {
         List<Node> fieldNodeList = new ArrayList<>();
         fieldNodeList.add(
                 createSpecificFieldNode(
@@ -580,8 +572,7 @@ public class GatewayQueryPlanGenerator {
 
 
     private static String getClientFromFieldDefinition(FieldDefinition definition,
-                                                       List<GraphQLDirective> joinTypeDirectivesOnParent)
-            throws GatewayQueryPlanGenerationException {
+                                                       List<GraphQLAppliedDirective> joinTypeDirectivesOnParent) {
         for (Directive directive : definition.getDirectives()) {
             if (directive.getName().equals("join__field")) {
                 String graph = null;
@@ -601,9 +592,9 @@ public class GatewayQueryPlanGenerator {
         }
 
         if (joinTypeDirectivesOnParent.size() == 1) {
-            for (GraphQLArgument argument : joinTypeDirectivesOnParent.get(0).getArguments()) {
+            for (GraphQLAppliedDirectiveArgument argument : joinTypeDirectivesOnParent.get(0).getArguments()) {
                 if (argument.getName().equals("graph")) {
-                    return ((EnumValue) argument.getArgumentValue().getValue()).getName();
+                    return ((EnumValue) Objects.requireNonNull(argument.getArgumentValue().getValue())).getName();
                 }
             }
         }
@@ -611,10 +602,10 @@ public class GatewayQueryPlanGenerator {
         return null;
     }
 
-    private List<FieldData> getFieldsOfType(String typeName) throws GatewayQueryPlanGenerationException {
+    private List<FieldData> getFieldsOfType(String typeName) {
         List<FieldData> fields = new ArrayList<>();
 
-        List<GraphQLDirective> joinTypeDirectives =
+        List<GraphQLAppliedDirective> joinTypeDirectives =
                 SpecReader.getObjectTypeDirectives(this.graphQLSchema, typeName).stream().filter(
                         directive -> directive.getName().equals("join__type")
                 ).collect(Collectors.toList());
@@ -630,26 +621,13 @@ public class GatewayQueryPlanGenerator {
         return fields;
     }
 
-    private void addClientConstantDeclarations(List<Node> nodeList) {
+    private void addClientConstantDeclarations(List<ModuleMemberDeclarationNode> nodeList) {
         for (Map.Entry<String, JoinGraph> entry :
                 getJoinGraphs(this.graphQLSchema).entrySet()) {
-            Node declarationNode = createConstantDeclarationNode(
-                    null,
-                    createToken(PUBLIC_KEYWORD),
-                    createToken(CONST_KEYWORD),
-                    createBuiltinSimpleNameReferenceNode(STRING_TYPE_DESC, createToken(STRING_KEYWORD)),
-                    createIdentifierToken(entry.getKey()),
-                    createToken(EQUAL_TOKEN),
-                    createBasicLiteralNode(
-                            STRING_LITERAL,
-                            createLiteralValueToken(STRING_LITERAL_TOKEN,
-                                    "\"" + entry.getValue().getName() + "\"",
-                                    createEmptyMinutiaeList(), createEmptyMinutiaeList())
-                    ),
-                    createToken(SEMICOLON_TOKEN)
-            );
-
-            nodeList.add(declarationNode);
+            nodeList.add(NodeParser.parseModuleMemberDeclaration(
+                    CLIENT_NAME_DECLARATION.replace(CLIENT_NAME_PLACEHOLDER, entry.getKey())
+                            .replace(CLIENT_NAME_VALUE_PLACEHOLDER, entry.getValue().getName())
+            ));
         }
     }
 
@@ -663,8 +641,7 @@ public class GatewayQueryPlanGenerator {
         private final GatewayQueryPlanGenerator generator;
 
         public FieldData(GatewayQueryPlanGenerator generator, String fieldName, FieldDefinition fieldDefinition,
-                         List<GraphQLDirective> joinTypeDirectivesOnParent, String parentType)
-                throws GatewayQueryPlanGenerationException {
+                         List<GraphQLAppliedDirective> joinTypeDirectivesOnParent, String parentType) {
             this.fieldName = fieldName;
             this.type = getTypeFromFieldDefinition(fieldDefinition);
             this.client = getClientFromFieldDefinition(fieldDefinition, joinTypeDirectivesOnParent);
