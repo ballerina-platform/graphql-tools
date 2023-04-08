@@ -450,31 +450,6 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
 
-    @Test(description = "Test for schema with types with optional fields, method - record forced", enabled = false)
-    public void testGenerateSrcForSchemaWithTypesWithOptionalFields()
-            throws IOException, ValidationException, ServiceTypesGenerationException {
-        String fileName = "Schema17Api";
-        String expectedFile = "types17RecordObjects.bal";
-
-        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
-                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
-                        .toString(), this.tmpDir);
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
-
-        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(fileName);
-        String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
-        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
-        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
-        String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
-                        .replaceAll(System.lineSeparator(), "");
-        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
-        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
-        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
-    }
-
     @Test(description = "Test for schema with docs in query resolvers, method - default")
     public void testGenerateSrcForSchemaWithDocsInQueryResolverFunctions()
             throws ValidationException, IOException, ServiceTypesGenerationException {
