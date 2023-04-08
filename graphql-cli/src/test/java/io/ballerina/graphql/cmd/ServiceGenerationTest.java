@@ -108,7 +108,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testExecuteWithInvalidSchemaForServiceGen() {
         Path graphqlSchema =
                 this.resourceDir.resolve(
-                        Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithBasic01Api.graphql"));
+                        Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
         String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
