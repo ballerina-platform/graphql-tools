@@ -41,9 +41,10 @@ public class GatewayCodeGenerator extends CodeGenerator {
         String outputPath = project.getOutputPath();
         try {
             Path templateProjectPath = GraphqlGatewayProject.GATEWAY_TEMPLATE_PATH;
-            copyTemplateProjectFiles(templateProjectPath, Path.of(outputPath));
+            Path outputDirectoryPath = Path.of(outputPath);
+            copyTemplateProjectFiles(templateProjectPath, outputDirectoryPath);
             List<SrcFilePojo> genSources = generateBalSources(project);
-            writeGeneratedSources(genSources, Path.of(outputPath));
+            writeGeneratedSources(genSources, outputDirectoryPath);
 
         } catch (GatewayGenerationException | IOException | GatewayTypeGenerationException |
                  GatewayQueryPlanGenerationException e) {

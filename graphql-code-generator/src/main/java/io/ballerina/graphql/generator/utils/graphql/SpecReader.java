@@ -19,7 +19,7 @@
 package io.ballerina.graphql.generator.utils.graphql;
 
 import graphql.language.FieldDefinition;
-import graphql.schema.GraphQLDirective;
+import graphql.schema.GraphQLAppliedDirective;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
@@ -44,8 +44,8 @@ public class SpecReader {
     /**
      * Get the input object type names from the GraphQL schema.
      *
-     * @param graphQLSchema         the instance of the Graphql schema file
-     * @return                      the list of the input object type names
+     * @param graphQLSchema the instance of the Graphql schema file
+     * @return the list of the input object type names
      */
     public static List<String> getInputObjectTypeNames(GraphQLSchema graphQLSchema) {
         List<String> inputObjectTypeNames = new ArrayList<>();
@@ -60,9 +60,9 @@ public class SpecReader {
     /**
      * Get the input object type fields map based on the input object type name from the GraphQL schema.
      *
-     * @param graphQLSchema         the instance of the Graphql schema file
-     * @param inputObjectTypeName   the input object type name
-     * @return                      the input object type fields map
+     * @param graphQLSchema       the instance of the Graphql schema file
+     * @param inputObjectTypeName the input object type name
+     * @return the input object type fields map
      */
     public static Map<String, FieldType> getInputTypeFieldsMap(GraphQLSchema graphQLSchema,
                                                                String inputObjectTypeName) {
@@ -83,8 +83,8 @@ public class SpecReader {
     /**
      * Get the object type names from the GraphQL schema.
      *
-     * @param graphQLSchema         the instance of the Graphql schema file
-     * @return                      the list of the object type names
+     * @param graphQLSchema the instance of the Graphql schema file
+     * @return the list of the object type names
      */
     public static List<String> getObjectTypeNames(GraphQLSchema graphQLSchema) {
         List<String> objectTypeNames = new ArrayList<>();
@@ -99,9 +99,9 @@ public class SpecReader {
     /**
      * Get the object type fields map based on the input object type name from the GraphQL schema.
      *
-     * @param graphQLSchema         the instance of the Graphql schema file
-     * @param objectTypeName        the object type name
-     * @return                      the object type fields map
+     * @param graphQLSchema  the instance of the Graphql schema file
+     * @param objectTypeName the object type name
+     * @return the object type fields map
      */
     public static Map<String, FieldType> getObjectTypeFieldsMap(GraphQLSchema graphQLSchema, String objectTypeName) {
         Map<String, FieldType> objectTypeFieldsMap = new HashMap<>();
@@ -121,8 +121,8 @@ public class SpecReader {
     /**
      * Get the custom scalar type names from the GraphQL schema.
      *
-     * @param graphQLSchema         the instance of the Graphql schema file
-     * @return                      the list of the custom scalar type names
+     * @param graphQLSchema the instance of the Graphql schema file
+     * @return the list of the custom scalar type names
      */
     public static List<String> getCustomScalarTypeNames(GraphQLSchema graphQLSchema) {
         List<String> scalarTypeNames = new ArrayList<>();
@@ -138,8 +138,8 @@ public class SpecReader {
     /**
      * Get the enum type names from the GraphQL schema.
      *
-     * @param graphQLSchema         the instance of the Graphql schema file
-     * @return                      the list of the enum type names
+     * @param graphQLSchema the instance of the Graphql schema file
+     * @return the list of the enum type names
      */
     public static List<String> getEnumTypeNames(GraphQLSchema graphQLSchema) {
         List<String> enumTypeNames = new ArrayList<>();
@@ -170,17 +170,18 @@ public class SpecReader {
     /**
      * Get the directives applied on the object type name from the GraphQL schema.
      *
-     * @param graphQLSchema         the instance of the Graphql schema file
-     * @param objectTypeName        the object type name
-     * @return                      the object type directives
-     * */
-    public static List<GraphQLDirective> getObjectTypeDirectives(GraphQLSchema graphQLSchema, String objectTypeName) {
-        List<GraphQLDirective> objectTypeDirectives = new ArrayList<>();
+     * @param graphQLSchema  the instance of the Graphql schema file
+     * @param objectTypeName the object type name
+     * @return the object type directives
+     */
+    public static List<GraphQLAppliedDirective> getObjectTypeDirectives(GraphQLSchema graphQLSchema,
+                                                                        String objectTypeName) {
+        List<GraphQLAppliedDirective> objectTypeDirectives = new ArrayList<>();
         if (graphQLSchema.getType(objectTypeName) instanceof GraphQLObjectType) {
             GraphQLObjectType objectType =
                     ((GraphQLObjectType) graphQLSchema.getType(objectTypeName));
             if (objectType != null) {
-                objectTypeDirectives = objectType.getDirectives();
+                objectTypeDirectives = objectType.getAppliedDirectives();
             }
         }
         return objectTypeDirectives;

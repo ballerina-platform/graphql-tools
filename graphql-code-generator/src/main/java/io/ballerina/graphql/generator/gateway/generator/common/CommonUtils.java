@@ -20,9 +20,11 @@ package io.ballerina.graphql.generator.gateway.generator.common;
 
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
+import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLSchemaElement;
 import graphql.schema.GraphQLType;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
@@ -47,6 +49,17 @@ public class CommonUtils {
         return SpecReader.getObjectTypeNames(graphQLSchema).stream()
                 .filter(name -> name != null && !name.isEmpty() && !name.equals("Query") && !name.equals("Mutation") &&
                         !name.equals("Subscription")).collect(Collectors.toList());
+    }
+
+    /**
+     * Return list of query types.
+     *
+     * @param graphQLSchema GraphQL schema
+     * @return List of query types
+     */
+    public static List<GraphQLSchemaElement> getQueryTypes(GraphQLSchema graphQLSchema) {
+        return graphQLSchema.getQueryType().getChildren().stream().filter(
+                child -> child instanceof GraphQLFieldDefinition).collect(Collectors.toList());
     }
 
     /**
