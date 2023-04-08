@@ -1,6 +1,6 @@
 [package]
-org = "mohamed_ishad"
-name = "initial_impl"
+org = "ballerina"
+name = "fedration_gateway"
 version = "0.1.0"
 
 [build-options]
