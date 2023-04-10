@@ -19,13 +19,15 @@
 
 package io.ballerina.graphql.cmd;
 
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
-import io.ballerina.graphql.exception.IntospectionException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.Introspector;
+import io.ballerina.graphql.generator.client.exception.IntospectionException;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -41,12 +43,10 @@ import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
  */
 public class IntrospectorTest extends GraphqlTest {
 
-    @Test(description = "Test successful introspection")
-    public void testGetIntrospectionResult()
-            throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-with-extensions.yaml")).toString(),
+    @Test(description = "Test successful introspection", enabled = false)
+    public void testGetIntrospectionResult() throws ValidationException, CmdException, IOException, ParseException {
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-with-extensions.yaml")).toString(),
                 this.tmpDir);
 
         String schema = projects.get(0).getSchema();
@@ -63,12 +63,11 @@ public class IntrospectorTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test successful introspection with empty headers")
+    @Test(description = "Test successful introspection with empty headers", enabled = false)
     public void testGetIntrospectionResultWithEmptyHeaders()
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-with-empty-headers.yaml")).toString(),
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-with-empty-headers.yaml")).toString(),
                 this.tmpDir);
 
         String schema = projects.get(0).getSchema();

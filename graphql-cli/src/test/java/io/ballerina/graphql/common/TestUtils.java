@@ -18,17 +18,27 @@
 
 package io.ballerina.graphql.common;
 
-import io.ballerina.graphql.cmd.GraphqlProject;
+import io.ballerina.graphql.cmd.Constants;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Config;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
+import io.ballerina.graphql.generator.service.GraphqlServiceProject;
+import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
 import io.ballerina.graphql.validator.SDLValidator;
+import io.ballerina.projects.DiagnosticResult;
+import io.ballerina.projects.ProjectEnvironmentBuilder;
+import io.ballerina.projects.directory.BuildProject;
+import io.ballerina.projects.environment.Environment;
+import io.ballerina.projects.environment.EnvironmentBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.Assert;
 import org.yaml.snakeyaml.Yaml;
@@ -52,78 +62,71 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
-import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
-import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
 /**
  * Utility class for tests.
  */
 public class TestUtils {
-    private static final String LINE_SEPARATOR = System.lineSeparator();
     public static final PrintStream OUT = System.out;
     public static final Path TARGET_DIR = Paths.get(System.getProperty("target.dir"));
     public static final Path TEST_DISTRIBUTION_PATH = TARGET_DIR.resolve("extracted-distribution");
     public static final String DISTRIBUTION_FILE_NAME = System.getProperty("ballerina.version");
-    private static String balFile = "bal";
     public static final String WHITESPACE_REGEX = "\\s+";
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+    private static String balFile = "bal";
 
     /**
      * Constructs an instance of the `Config` reading the given GraphQL config file.
      *
-     * @param filePath                      the path to the Graphql config file
-     * @return                              the instance of the Graphql config file
-     * @throws FileNotFoundException        when the GraphQL config file doesn't exist
-     * @throws ParseException               when a parsing related error occurs
-     * @throws CmdException                 when a graphql command related error occurs
+     * @param filePath the path to the Graphql config file
+     * @return the instance of the Graphql config file
+     * @throws FileNotFoundException when the GraphQL config file doesn't exist
+     * @throws ParseException        when a parsing related error occurs
+     * @throws CmdException          when a graphql command related error occurs
      */
     public static Config readConfig(String filePath) throws FileNotFoundException, ParseException, CmdException {
         try {
-            if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
+            if (filePath.endsWith(Constants.YAML_EXTENSION) || filePath.endsWith(Constants.YML_EXTENSION)) {
                 InputStream inputStream = new FileInputStream(new File(filePath));
                 Constructor constructor = Utils.getProcessedConstructor();
                 Yaml yaml = new Yaml(constructor);
                 Config config = yaml.load(inputStream);
                 if (config == null) {
-                    throw new ParseException(MESSAGE_FOR_EMPTY_CONFIGURATION_FILE);
+                    throw new ParseException(Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE);
                 }
                 return config;
             } else {
-                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+                throw new CmdException(Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION);
             }
         } catch (YAMLException e) {
-            throw new ParseException(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT + e.getMessage());
+            throw new ParseException(Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT + e.getMessage());
         }
     }
 
     /**
      * Populate the projects with information given in the GraphQL config file.
      *
-     * @param config         the instance of the Graphql config file
-     * @param outputPath     the target output path for the code generation
-     * @return               the list of instances of the GraphQL projects
+     * @param config     the instance of the Graphql config file
+     * @param outputPath the target output path for the code generation
+     * @return the list of instances of the GraphQL projects
      */
-    public static List<GraphqlProject> populateProjects(Config config, Path outputPath) {
-        List<GraphqlProject> graphqlProjects = new ArrayList<>();
+    public static List<GraphqlClientProject> populateProjects(Config config, Path outputPath) {
+        List<GraphqlClientProject> graphqlProjects = new ArrayList<>();
         String schema = config.getSchema();
         List<String> documents = config.getDocuments();
         Extension extensions = config.getExtensions();
         Map<String, Project> projects = config.getProjects();
 
         if (schema != null || documents != null || extensions != null) {
-            graphqlProjects.add(new GraphqlProject(ROOT_PROJECT_NAME, schema, documents, extensions,
-                    outputPath.toString()));
+            graphqlProjects.add(
+                    new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, extensions, outputPath.toString()));
         }
 
         if (projects != null) {
             for (String projectName : projects.keySet()) {
-                graphqlProjects.add(new GraphqlProject(projectName,
-                        projects.get(projectName).getSchema(),
-                        projects.get(projectName).getDocuments(),
-                        projects.get(projectName).getExtensions(),
+                graphqlProjects.add(new GraphqlClientProject(projectName, projects.get(projectName).getSchema(),
+                        projects.get(projectName).getDocuments(), projects.get(projectName).getExtensions(),
                         outputPath.toString()));
             }
         }
@@ -133,20 +136,37 @@ public class TestUtils {
     /**
      * Get a list of instances of Mock GraphQL projects for a given GraphQL config.
      *
-     * @param filePath       the path to the Graphql config file
-     * @param outputPath     the target output path for the code generation
-     * @return               the list of instances of the GraphQL projects
+     * @param filePath   the path to the Graphql config file
+     * @param outputPath the target output path for the code generation
+     * @return the list of instances of the GraphQL projects
      */
-    public static List<GraphqlProject> getValidatedMockProjects(String filePath, Path outputPath)
+    public static List<GraphqlClientProject> getValidatedMockProjects(String filePath, Path outputPath)
             throws CmdException, IOException, ParseException, ValidationException {
         Config config = TestUtils.readConfig(filePath);
         ConfigValidator.getInstance().validate(config);
-        List<GraphqlProject> projects = TestUtils.populateProjects(config, outputPath);
-        for (GraphqlProject project : projects) {
+        List<GraphqlClientProject> projects = TestUtils.populateProjects(config, outputPath);
+        for (GraphqlClientProject project : projects) {
             SDLValidator.getInstance().validate(project);
             QueryValidator.getInstance().validate(project);
         }
         return projects;
+    }
+
+    public static GraphqlServiceProject getValidatedMockServiceProject(String filePath, Path outputPath)
+            throws ValidationException, IOException {
+        GraphqlServiceProject graphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, outputPath.toString());
+        SDLValidator.getInstance().validate(graphqlProject);
+        return graphqlProject;
+    }
+
+
+    public static GraphqlGatewayProject getValidatedMockGatewayProject(String filePath, Path outputPath)
+            throws ValidationException, IOException {
+        GraphqlGatewayProject graphqlProject =
+                new GraphqlGatewayProject(ROOT_PROJECT_NAME, filePath, outputPath.toString());
+        SDLValidator.getInstance().validate(graphqlProject);
+        return graphqlProject;
     }
 
     // Get string as a content of ballerina file
@@ -174,8 +194,8 @@ public class TestUtils {
      * @throws IOException          Error executing build command.
      * @throws InterruptedException Interrupted error executing build command.
      */
-    public static boolean executeGraphql(String distributionName, Path sourceDirectory, List<String> args) throws
-            IOException, InterruptedException {
+    public static boolean executeGraphql(String distributionName, Path sourceDirectory, List<String> args)
+            throws IOException, InterruptedException {
         Process process = getProcessBuilderResults(distributionName, sourceDirectory, args);
         int exitCode = process.waitFor();
         logOutput(process.getInputStream());
@@ -190,7 +210,7 @@ public class TestUtils {
      * @param sourceDirectory  The directory where the sources files are location.
      * @param args             The arguments to be passed to the build command.
      * @return InputStream that include the error message.
-     * @throws IOException          Error executing build command.
+     * @throws IOException Error executing build command.
      */
     public static InputStream executeGraphqlWithErrors(String distributionName, Path sourceDirectory, List<String> args)
             throws IOException {
@@ -199,12 +219,13 @@ public class TestUtils {
     }
 
     /**
-     *  Get Process from given arguments.
+     * Get Process from given arguments.
+     *
      * @param distributionName The name of the distribution.
      * @param sourceDirectory  The directory where the sources files are location.
      * @param args             The arguments to be passed to the build command.
      * @return process
-     * @throws IOException          Error executing build command.
+     * @throws IOException Error executing build command.
      */
     public static Process getProcessBuilderResults(String distributionName, Path sourceDirectory, List<String> args)
             throws IOException {
@@ -229,5 +250,30 @@ public class TestUtils {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             br.lines().forEach(OUT::println);
         }
+    }
+
+    // there is a similar func in CodeGenerator...
+    public static void writeSources(List<SrcFilePojo> sources, Path outputPath) throws IOException {
+        if (!sources.isEmpty()) {
+            for (SrcFilePojo file : sources) {
+                if (file.getType().isOverwritable()) {
+                    Path filePath = CodeGeneratorUtils.getAbsoluteFilePath(file, outputPath);
+                    String fileContent = file.getContent();
+                    CodeGeneratorUtils.writeFile(filePath, fileContent);
+                }
+            }
+        }
+    }
+
+    public static DiagnosticResult getDiagnosticResult(Path projectDirPath) {
+        BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath);
+        return project.currentPackage().getCompilation().diagnosticResult();
+    }
+
+    private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
+        Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(
+                        TestUtils.TEST_DISTRIBUTION_PATH.resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME))
+                                .toAbsolutePath()).build();
+        return ProjectEnvironmentBuilder.getBuilder(environment);
     }
 }

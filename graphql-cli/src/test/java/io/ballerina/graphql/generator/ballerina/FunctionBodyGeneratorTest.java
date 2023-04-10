@@ -3,17 +3,19 @@ package io.ballerina.graphql.generator.ballerina;
 import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
-import io.ballerina.graphql.cmd.GraphqlProject;
 import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.graphql.QueryReader;
-import io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinition;
-import io.ballerina.graphql.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
+import io.ballerina.graphql.generator.client.generator.ballerina.FunctionBodyGenerator;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.utils.graphql.QueryReader;
+import io.ballerina.graphql.generator.utils.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
@@ -34,9 +36,9 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
             dataProvider = "dataProviderForInitFunctionBody")
     public void testGenerateInitFunctionBody(String configFile, String expectedInitFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
-                this.tmpDir);
+        List<GraphqlClientProject> projects =
+                TestUtils.getValidatedMockProjects(this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
+                        this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
 
@@ -54,9 +56,9 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
             dataProvider = "dataProviderForRemoteFunctionBody")
     public void testGenerateRemoteFunctionBody(String configFile, String expectedRemoteFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
-                this.tmpDir);
+        List<GraphqlClientProject> projects =
+                TestUtils.getValidatedMockProjects(this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
+                        this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
         List<String> documents = projects.get(0).getDocuments();
@@ -71,8 +73,8 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
         ExtendedOperationDefinition queryOperation1Definition = queryReader.getExtendedOperationDefinitions().get(0);
 
-        FunctionBodyNode remoteFunctionBodyNode = FunctionBodyGenerator.getInstance().
-                generateRemoteFunctionBody(queryOperation1Definition, schema, authConfig);
+        FunctionBodyNode remoteFunctionBodyNode = FunctionBodyGenerator.getInstance()
+                .generateRemoteFunctionBody(queryOperation1Definition, schema, authConfig);
         String generatedRemoteFunctionBody = remoteFunctionBodyNode.toString();
         Assert.assertEquals(expectedRemoteFunctionBody, generatedRemoteFunctionBody);
     }
@@ -82,9 +84,9 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
     public void testGenerateRemoteFunctionBodyWithRequiredParameters(String configFile,
                                                                      String expectedRemoteFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
-                this.tmpDir);
+        List<GraphqlClientProject> projects =
+                TestUtils.getValidatedMockProjects(this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
+                        this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
         List<String> documents = projects.get(0).getDocuments();
@@ -99,8 +101,8 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
         ExtendedOperationDefinition queryOperation1Definition = queryReader.getExtendedOperationDefinitions().get(0);
 
-        FunctionBodyNode remoteFunctionBodyNode = FunctionBodyGenerator.getInstance().
-                generateRemoteFunctionBody(queryOperation1Definition, schema, authConfig);
+        FunctionBodyNode remoteFunctionBodyNode = FunctionBodyGenerator.getInstance()
+                .generateRemoteFunctionBody(queryOperation1Definition, schema, authConfig);
         String generatedRemoteFunctionBody = remoteFunctionBodyNode.toString();
         Assert.assertEquals(expectedRemoteFunctionBody, generatedRemoteFunctionBody);
     }
@@ -110,9 +112,9 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
     public void testGenerateRemoteFunctionBodyWithOptionalParameters(String configFile,
                                                                      String expectedRemoteFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
-                this.tmpDir);
+        List<GraphqlClientProject> projects =
+                TestUtils.getValidatedMockProjects(this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
+                        this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
         List<String> documents = projects.get(0).getDocuments();
@@ -127,8 +129,8 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
         ExtendedOperationDefinition queryOperation2Definition = queryReader.getExtendedOperationDefinitions().get(1);
 
-        FunctionBodyNode remoteFunctionBodyNode = FunctionBodyGenerator.getInstance().
-                generateRemoteFunctionBody(queryOperation2Definition, schema, authConfig);
+        FunctionBodyNode remoteFunctionBodyNode = FunctionBodyGenerator.getInstance()
+                .generateRemoteFunctionBody(queryOperation2Definition, schema, authConfig);
         String generatedRemoteFunctionBody = remoteFunctionBodyNode.toString();
         Assert.assertEquals(expectedRemoteFunctionBody, generatedRemoteFunctionBody);
     }
@@ -138,9 +140,9 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
     public void testGenerateRemoteFunctionBodyWithRequiredAndOptionalParameters(String configFile,
                                                                                 String expectedRemoteFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
-                this.tmpDir);
+        List<GraphqlClientProject> projects =
+                TestUtils.getValidatedMockProjects(this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
+                        this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
         List<String> documents = projects.get(0).getDocuments();
@@ -155,33 +157,31 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
 
         ExtendedOperationDefinition queryOperation3Definition = queryReader.getExtendedOperationDefinitions().get(2);
 
-        FunctionBodyNode remoteFunctionBodyNode = FunctionBodyGenerator.getInstance().
-                generateRemoteFunctionBody(queryOperation3Definition, schema, authConfig);
+        FunctionBodyNode remoteFunctionBodyNode = FunctionBodyGenerator.getInstance()
+                .generateRemoteFunctionBody(queryOperation3Definition, schema, authConfig);
         String generatedRemoteFunctionBody = remoteFunctionBodyNode.toString();
         Assert.assertEquals(expectedRemoteFunctionBody, generatedRemoteFunctionBody);
     }
 
     @DataProvider(name = "dataProviderForInitFunctionBody")
     public Object[][] dataProviderForInitFunctionBody() {
-        return new Object[][]{
-                {"graphql.config.yaml", "{graphql:ClientConfigurationgraphqlClientConfig={" +
-                        "timeout:config.timeout,forwarded:config.forwarded,poolConfig:config.poolConfig,compression:" +
-                        "config.compression,circuitBreaker:config.circuitBreaker,retryConfig:config.retryConfig," +
-                        "validation:config.validation};do{ifconfig.http1SettingsisClientHttp1Settings{" +
-                        "ClientHttp1Settingssettings=checkconfig.http1Settings.ensureType(ClientHttp1Settings);" +
-                        "graphqlClientConfig.http1Settings={...settings};}ifconfig.cacheisgraphql:CacheConfig" +
-                        "{graphqlClientConfig.cache=" +
-                        "checkconfig.cache.ensureType(graphql:CacheConfig);}ifconfig.responseLimitsisgraphql:" +
-                        "ResponseLimitConfigs{graphqlClientConfig.responseLimits=" +
-                        "checkconfig.responseLimits.ensureType(" +
-                        "graphql:ResponseLimitConfigs);}ifconfig.secureSocketisgraphql:ClientSecureSocket{" +
-                        "graphqlClientConfig.secureSocket=" +
-                        "checkconfig.secureSocket.ensureType(graphql:ClientSecureSocket);}" +
-                        "ifconfig.proxyisgraphql:ProxyConfig{graphqlClientConfig.proxy=checkconfig.proxy.ensureType" +
-                        "(graphql:ProxyConfig);}}onfailvare{return<graphql:ClientError>error" +
-                        "(\"GraphQLClientError\",e,body=());}graphql:ClientclientEp=checknew(serviceUrl," +
-                        "graphqlClientConfig);self.graphqlClient=clientEp;}"},
-                {"graphql-config-with-auth-apikeys-config.yaml", "{graphql:ClientConfigurationgraphqlClientConfig={" +
+        return new Object[][] {{"graphql.config.yaml", "{graphql:ClientConfigurationgraphqlClientConfig={" +
+                "timeout:config.timeout,forwarded:config.forwarded,poolConfig:config.poolConfig,compression:" +
+                "config.compression,circuitBreaker:config.circuitBreaker,retryConfig:config.retryConfig," +
+                "validation:config.validation};do{ifconfig.http1SettingsisClientHttp1Settings{" +
+                "ClientHttp1Settingssettings=checkconfig.http1Settings.ensureType(ClientHttp1Settings);" +
+                "graphqlClientConfig.http1Settings={...settings};}ifconfig.cacheisgraphql:CacheConfig" +
+                "{graphqlClientConfig.cache=" +
+                "checkconfig.cache.ensureType(graphql:CacheConfig);}ifconfig.responseLimitsisgraphql:" +
+                "ResponseLimitConfigs{graphqlClientConfig.responseLimits=" + "checkconfig.responseLimits.ensureType(" +
+                "graphql:ResponseLimitConfigs);}ifconfig.secureSocketisgraphql:ClientSecureSocket{" +
+                "graphqlClientConfig.secureSocket=" +
+                "checkconfig.secureSocket.ensureType(graphql:ClientSecureSocket);}" +
+                "ifconfig.proxyisgraphql:ProxyConfig{graphqlClientConfig.proxy=checkconfig.proxy.ensureType" +
+                "(graphql:ProxyConfig);}}onfailvare{return<graphql:ClientError>error" +
+                "(\"GraphQLClientError\",e,body=());}graphql:ClientclientEp=checknew(serviceUrl," +
+                "graphqlClientConfig);self.graphqlClient=clientEp;}"}, {"graphql-config-with-auth-apikeys-config.yaml",
+                "{graphql:ClientConfigurationgraphqlClientConfig={" +
                         "timeout:config.timeout,forwarded:config.forwarded," +
                         "poolConfig:config.poolConfig,compression:config.compression,circuitBreaker:" +
                         "config.circuitBreaker,retryConfig:config.retryConfig,validation:config.validation};" +
@@ -189,8 +189,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                         "http1Settings.ensureType(ClientHttp1Settings);" +
                         "graphqlClientConfig.http1Settings={...settings};}" +
                         "ifconfig.cacheisgraphql:CacheConfig{graphqlClientConfig.cache" +
-                        "=checkconfig.cache.ensureType(graphql:CacheConfig);}" +
-                        "ifconfig.responseLimitsisgraphql:" +
+                        "=checkconfig.cache.ensureType(graphql:CacheConfig);}" + "ifconfig.responseLimitsisgraphql:" +
                         "ResponseLimitConfigs{graphqlClientConfig.responseLimits=check" +
                         "config.responseLimits.ensureType(graphql:ResponseLimitConfigs);}ifconfig.secureSocketis" +
                         "graphql:ClientSecureSocket{graphqlClientConfig.secureSocket" +
@@ -200,15 +199,14 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                         "{return<graphql:ClientError>error" +
                         "(\"GraphQLClientError\",e,body=());}graphql:ClientclientEp=checknew(serviceUrl," +
                         "graphqlClientConfig);self.graphqlClient=clientEp;self.apiKeysConfig=" +
-                        "apiKeysConfig.cloneReadOnly();}"},
-                {"graphql-config-with-auth-client-config.yaml", "{graphql:ClientConfigurationgraphqlClientConfig={" +
+                        "apiKeysConfig.cloneReadOnly();}"}, {"graphql-config-with-auth-client-config.yaml",
+                "{graphql:ClientConfigurationgraphqlClientConfig={" +
                         "auth:config.auth,timeout:config.timeout,forwarded:" +
                         "config.forwarded,poolConfig:config.poolConfig,compression:config.compression,circuitBreaker:" +
                         "config.circuitBreaker,retryConfig:config.retryConfig,validation:config.validation};do" +
                         "{ifconfig.http1SettingsisClientHttp1Settings{ClientHttp1Settingssettings=checkconfig." +
                         "http1Settings.ensureType(ClientHttp1Settings);graphqlClientConfig.http1Settings=" +
-                        "{...settings};}" +
-                        "ifconfig.cacheisgraphql:CacheConfig{graphqlClientConfig.cache" +
+                        "{...settings};}" + "ifconfig.cacheisgraphql:CacheConfig{graphqlClientConfig.cache" +
                         "=checkconfig.cache.ensureType(graphql:CacheConfig);}" +
                         "ifconfig.responseLimitsisgraphql:ResponseLimitConfigs" +
                         "{graphqlClientConfig.responseLimits=check" +
@@ -238,14 +236,13 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                         "onfailvare{return<graphql:ClientError>error(" +
                         "\"GraphQLClientError\",e,body=());}graphql:ClientclientEp=checknew(serviceUrl," +
                         "graphqlClientConfig);self.graphqlClient=clientEp;self.apiKeysConfig=apiKeysConfig." +
-                        "cloneReadOnly();}"}
-        };
+                        "cloneReadOnly();}"}};
     }
 
     @DataProvider(name = "dataProviderForRemoteFunctionBody")
     public Object[][] dataProviderForRemoteFunctionBody() {
-        return new Object[][]{
-                {"graphql.config.yaml", "{stringquery=string`query country($code:ID!) {country(code:$code) " +
+        return new Object[][] {{"graphql.config.yaml",
+                "{stringquery=string`query country($code:ID!) {country(code:$code) " +
                         "{capital name}}`;map<anydata>variables={\"code\":code};" +
                         "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables);" +
                         "return<CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);}"},
@@ -260,21 +257,20 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                         "{country(code:$code) {capital name}}`;map<anydata>variables={\"code\":code};" +
                         "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables);" +
                         "return<CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);}"},
-                {"graphql-config-with-auth-apikeys-and-client-config.yaml", "{stringquery=string`query " +
-                        "country($code:ID!) {country(code:$code) {capital name}}`;" +
-                        "map<anydata>variables={\"code\":code};map<any>headerValues={\"Header1\":" +
-                        "self.apiKeysConfig.header1,\"Header2\":self.apiKeysConfig.header2};" +
-                        "map<string|string[]>httpHeaders=getMapForHeaders(headerValues);" +
-                        "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables," +
-                        "headers=httpHeaders);" +
-                        "return<CountryResponse> check performDataBinding(graphqlResponse, CountryResponse);}"}
-        };
+                {"graphql-config-with-auth-apikeys-and-client-config.yaml",
+                        "{stringquery=string`query " + "country($code:ID!) {country(code:$code) {capital name}}`;" +
+                                "map<anydata>variables={\"code\":code};map<any>headerValues={\"Header1\":" +
+                                "self.apiKeysConfig.header1,\"Header2\":self.apiKeysConfig.header2};" +
+                                "map<string|string[]>httpHeaders=getMapForHeaders(headerValues);" +
+                                "jsongraphqlResponse=checkself.graphqlClient->executeWithType(query,variables," +
+                                "headers=httpHeaders);" + "return<CountryResponse> " +
+                                "check performDataBinding(graphqlResponse, CountryResponse);}"}};
     }
 
     @DataProvider(name = "dataProviderForRemoteFunctionBodyWithRequiredParameters")
     public Object[][] dataProviderForRemoteFunctionBodyWithRequiredParameters() {
-        return new Object[][]{
-                {"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation1($argument1:Boolean!," +
+        return new Object[][] {{"graphql-config-to-test-arguments.yaml",
+                "{stringquery=string`query operation1($argument1:Boolean!," +
                         "$argument2:String!,$argument3:Int!,$argument4:Float!,$argument5:ID!," +
                         "$argument6:CustomScalar!,$argument7:CustomInput!,$argument8:[CustomInput]!," +
                         "$argument9:[CustomInput!]!) {operation1(argument1:$argument1,argument2:$argument2," +
@@ -285,32 +281,27 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
                         "\"argument1\":argument1,\"argument2\":argument2,\"argument3\":argument3," +
                         "\"argument4\":argument4};jsongraphqlResponse=checkself.graphqlClient->" +
                         "executeWithType(query,variables);return<Operation1Response> " +
-                        "check performDataBinding(graphqlResponse, Operation1Response);}"}
-        };
+                        "check performDataBinding(graphqlResponse, Operation1Response);}"}};
     }
 
     @DataProvider(name = "dataProviderForRemoteFunctionBodyWithOptionalParameters")
     public Object[][] dataProviderForRemoteFunctionBodyWithOptionalParameters() {
-        return new Object[][]{
-                {"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation2(" +
-                        "$argument1:CustomInput,$argument2:[CustomInput],$argument3:[CustomInput!]) " +
-                        "{operation2(argument1:$argument1,argument2:$argument2,argument3:$argument3) " +
-                        "{field1 field2}}`;map<anydata>variables={\"argument1\":argument1," +
-                        "\"argument2\":argument2,\"argument3\":argument3};jsongraphqlResponse=" +
-                        "checkself.graphqlClient->executeWithType(query,variables);" +
-                        "return<Operation2Response> check performDataBinding(graphqlResponse, Operation2Response);}"}
-        };
+        return new Object[][] {{"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation2(" +
+                "$argument1:CustomInput,$argument2:[CustomInput],$argument3:[CustomInput!]) " +
+                "{operation2(argument1:$argument1,argument2:$argument2,argument3:$argument3) " +
+                "{field1 field2}}`;map<anydata>variables={\"argument1\":argument1," +
+                "\"argument2\":argument2,\"argument3\":argument3};jsongraphqlResponse=" +
+                "checkself.graphqlClient->executeWithType(query,variables);" +
+                "return<Operation2Response> check performDataBinding(graphqlResponse, Operation2Response);}"}};
     }
 
     @DataProvider(name = "dataProviderForRemoteFunctionBodyWithRequiredAndOptionalParameters")
     public Object[][] dataProviderForRemoteFunctionBodyWithRequiredAndOptionalParameters() {
-        return new Object[][]{
-                {"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation3(" +
-                        "$argument1:CustomInput!,$argument2:CustomInput) {operation3(argument1:$argument1," +
-                        "argument2:$argument2) {field1 field2}}`;map<anydata>variables={\"argument1\":argument1," +
-                        "\"argument2\":argument2};jsongraphqlResponse=checkself.graphqlClient->" +
-                        "executeWithType(query,variables);return<Operation3Response> " +
-                        "check performDataBinding(graphqlResponse, Operation3Response);}"}
-        };
+        return new Object[][] {{"graphql-config-to-test-arguments.yaml", "{stringquery=string`query operation3(" +
+                "$argument1:CustomInput!,$argument2:CustomInput) {operation3(argument1:$argument1," +
+                "argument2:$argument2) {field1 field2}}`;map<anydata>variables={\"argument1\":argument1," +
+                "\"argument2\":argument2};jsongraphqlResponse=checkself.graphqlClient->" +
+                "executeWithType(query,variables);return<Operation3Response> " +
+                "check performDataBinding(graphqlResponse, Operation3Response);}"}};
     }
 }

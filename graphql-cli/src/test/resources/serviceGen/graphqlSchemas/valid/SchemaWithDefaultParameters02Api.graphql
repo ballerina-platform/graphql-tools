@@ -1,0 +1,22 @@
+type Query{
+    book(id: Int!, available: Availability = UNAVAILABLE): Book
+}
+
+type Mutation{
+    addBook(title: String!, authorId: Int!): Book
+}
+
+type Subscription{
+    bookTitles: String!
+}
+
+type Book{
+    id: Int!
+    title: String!
+    price: Float!
+}
+
+enum Availability {
+    AVAILABLE
+    UNAVAILABLE
+}

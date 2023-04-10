@@ -20,12 +20,15 @@ package io.ballerina.graphql.validator;
 
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.errors.SchemaProblem;
-import io.ballerina.graphql.cmd.GraphqlProject;
 import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.graphql.cmd.pojo.Extension;
-import io.ballerina.graphql.exception.IntospectionException;
 import io.ballerina.graphql.exception.SDLValidationException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.IntospectionException;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
+import io.ballerina.graphql.generator.utils.GenerationType;
 
 import java.io.IOException;
 
@@ -45,16 +48,26 @@ public class SDLValidator {
     /**
      * Validates the GraphQL schema (SDL) of the given project.
      *
-     * @param project                               the instance of the Graphql project
-     * @throws ValidationException                  when a validation error occurs
-     * @throws IOException                          If an I/O error occurs
+     * @param project the instance of the Graphql project
+     * @throws ValidationException when a validation error occurs
+     * @throws IOException         If an I/O error occurs
      */
     public void validate(GraphqlProject project) throws ValidationException, IOException {
         String schema = project.getSchema();
-        Extension extensions = project.getExtensions();
+
+        Extension extensions = null;
+        if (project.getGenerationType() == GenerationType.CLIENT) {
+            GraphqlClientProject clientProject = (GraphqlClientProject) project;
+            extensions = clientProject.getExtensions();
+        }
 
         try {
-            GraphQLSchema graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
+            GraphQLSchema graphQLSchema;
+            if (project instanceof GraphqlGatewayProject) {
+                graphQLSchema = Utils.getGraphQLFederatedSchemaDocument(schema, extensions);
+            } else {
+                graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
+            }
             project.setGraphQLSchema(graphQLSchema);
         } catch (IntospectionException e) {
             throw new ValidationException(e.getMessage(), project.getName());
