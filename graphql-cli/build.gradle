@@ -48,6 +48,7 @@ dependencies {
     implementation "com.graphql-java:graphql-java-extended-scalars:${graphqlJavaExtendedScalarVersion}" // NEW
     implementation "org.json:json:${orgJsonVersion}" // NEW
     dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    dist "com.graphql-java:graphql-java-extended-scalars:${graphqlJavaExtendedScalarVersion}" // NEW
     dist "com.google.guava:guava:${googleGuavaVersion}" // NEW
     dist "org.json:json:${orgJsonVersion}" // NEW
     dist "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
