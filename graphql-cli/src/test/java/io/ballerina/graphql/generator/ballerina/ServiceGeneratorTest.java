@@ -1,12 +1,8 @@
 package io.ballerina.graphql.generator.ballerina;
 
-import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
-import io.ballerina.graphql.exception.CmdException;
-import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceGenerator;
@@ -24,21 +20,21 @@ import java.nio.file.Paths;
 public class ServiceGeneratorTest extends GraphqlTest {
     @Test(description = "Test the successful generation of service code")
     public void testGenerateSrc()
-            throws CmdException, IOException, ParseException, ValidationException, ClientGenerationException {
+            throws IOException, ValidationException {
         try {
-            String fileName = "Schema01Api";
+            String fileName = "SchemaWithBasic01Api";
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
             ServiceGenerator serviceGenerator = new ServiceGenerator();
+            serviceGenerator.setFileName(fileName);
             String generatedServiceContent =
-                    serviceGenerator.generateSrc(fileName, graphQLSchema).trim()
+                    serviceGenerator.generateSrc().trim()
                             .replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedServiceFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "service01.bal"));
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema01.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
 
             Assert.assertEquals(expectedServiceContent, generatedServiceContent);

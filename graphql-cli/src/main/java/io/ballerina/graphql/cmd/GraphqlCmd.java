@@ -303,22 +303,18 @@ public class GraphqlCmd implements BLauncherCmd {
     private void generateService(String filePath) throws IOException, ValidationException, GenerationException {
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
-            throw new ServiceGenerationException(Constants.MESSAGE_MISSING_SCHEMA_FILE);
+            throw new ServiceGenerationException(filePath.concat(Constants.MESSAGE_MISSING_SCHEMA_FILE));
         }
         if (!graphqlFile.canRead()) {
-            throw new ServiceGenerationException(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE);
+            throw new ServiceGenerationException(filePath.concat(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE));
         }
-
         GraphqlServiceProject graphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());
-
         SDLValidator.getInstance().validate(graphqlProject);
         if (useRecordsForObjectsFlag) {
             this.serviceCodeGenerator.enableRecordForced();
         }
-
         this.serviceCodeGenerator.generate(graphqlProject);
-
     }
 
     private void generateFederationGateway(String filePath)

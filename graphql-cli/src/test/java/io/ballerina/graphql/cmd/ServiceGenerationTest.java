@@ -24,9 +24,18 @@ import java.util.Collection;
  * This class includes tests for Ballerina Graphql service generation.
  */
 public class ServiceGenerationTest extends GraphqlTest {
+    private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
+        Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(
+                        TestUtils.TEST_DISTRIBUTION_PATH
+                                .resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME)).toAbsolutePath())
+                .build();
+        return ProjectEnvironmentBuilder.getBuilder(environment);
+    }
+
     @Test(description = "Test graphql command execution with mode flag")
     public void testServiceGenerationWithModeFlag() {
-        Path graphql = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "Schema01Api.graphql"));
+        Path graphql =
+                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic01Api.graphql"));
         String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
 
@@ -36,9 +45,9 @@ public class ServiceGenerationTest extends GraphqlTest {
             graphqlCmd.execute();
 
             Path expectedServiceFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "service01.bal"));
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema01.bal"));
             Path expectedTypesFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "types01Default.bal"));
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "typesWithBasic01Default.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
@@ -60,7 +69,8 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with mode and use-records-for-objects flags")
     public void testServiceGenerationWithModeAndUseRecordsForObjectsFlags() {
-        Path graphql = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "Schema06Api.graphql"));
+        Path graphql =
+                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic03Api.graphql"));
         String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
                 "--use-records-for-objects"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
@@ -71,9 +81,10 @@ public class ServiceGenerationTest extends GraphqlTest {
             graphqlCmd.execute();
 
             Path expectedServiceFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "service06.bal"));
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema03.bal"));
             Path expectedTypesFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "types06RecordObjects.bal"));
+                    resourceDir.resolve(
+                            Paths.get("serviceGen", "expectedServices", "typesWithBasic03RecordsAllowed.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
@@ -96,7 +107,8 @@ public class ServiceGenerationTest extends GraphqlTest {
     @Test(description = "Test graphql command execution for service generation with invalid schema")
     public void testExecuteWithInvalidSchemaForServiceGen() {
         Path graphqlSchema =
-                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid", "Schema01Api.graphql"));
+                this.resourceDir.resolve(
+                        Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
         String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -133,10 +145,14 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @DataProvider(name = "schemaFiles")
     public Object[] createSchemaFilesData() {
-        return new Object[]{"Schema01Api.graphql", "Schema02Api.graphql", "Schema03Api.graphql", "Schema04Api.graphql",
-                "Schema05Api.graphql", "Schema06Api.graphql", "Schema07Api.graphql", "Schema08Api.graphql",
-                "Schema09Api.graphql", "Schema10Api.graphql", "Schema11Api.graphql", "Schema12Api.graphql",
-                "Schema13Api.graphql", "Schema14Api.graphql", "Schema15Api.graphql", "Schema16Api.graphql",
+        return new Object[]{"SchemaWithBasic01Api.graphql", "SchemaWithBasic02Api.graphql",
+                "SchemaWithInputsApi.graphql", "SchemaWithMutationApi.graphql",
+                "SchemaWithSubscriptionApi.graphql", "SchemaWithBasic03Api.graphql", "SchemaWithEnumApi.graphql",
+                "SchemaWithUnionApi.graphql",
+                "SchemaWithInterfaceApi.graphql", "SchemaWithMultipleInterfacesApi.graphql",
+                "SchemaWithInterfacesImplementingInterfacesApi.graphql", "SchemaWithMultiDimensionalListsApi.graphql",
+                "SchemaWithDefaultParameters01Api.graphql", "SchemaWithDefaultParameters02Api.graphql",
+                "SchemaWithDefaultParameters03Api.graphql", "SchemaWithDefaultParameters04Api.graphql",
                 "Schema17Api.graphql"};
     }
 
@@ -152,7 +168,6 @@ public class ServiceGenerationTest extends GraphqlTest {
 
         try {
             graphqlCmd.execute();
-
             DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
             Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
         } catch (BLauncherException e) {
@@ -160,158 +175,24 @@ public class ServiceGenerationTest extends GraphqlTest {
             Assert.fail(output);
         }
 
-    }
-
-    @Test(description = "Test compilation for simple schema", enabled = false)
-    public void testCompilationForSimpleSchema() {
-        Path schemaPath =
-                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "Schema01Api.graphql"));
-        String packagePath = "project01";
-        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
-
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
-        try {
-            graphqlCmd.execute();
-
-            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
-        } catch (BLauncherException e) {
-            String output = e.toString();
-            Assert.fail(output);
-        }
-    }
-
-    @Test(description = "Test compilation for schema with more types", enabled = false)
-    public void testCompilationForSchemaWithMoreTypes() {
-        String schemaFile = "Schema02Api.graphql";
-        String packagePath = "project02";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
-        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
-
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
-        try {
-            graphqlCmd.execute();
-
-            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
-        } catch (BLauncherException e) {
-            String output = e.toString();
-            Assert.fail(output);
-        }
-    }
-
-    @Test(description = "Test compilation for schema with input types", enabled = false)
-    public void testCompilationForSchemaWithInputTypes() {
-        String schemaFile = "Schema03Api.graphql";
-        String packagePath = "project03";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
-        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
-
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
-        try {
-            graphqlCmd.execute();
-
-            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
-        } catch (BLauncherException e) {
-            String output = e.toString();
-            Assert.fail(output);
-        }
-    }
-
-    @Test(description = "Test compilation for schema with mutation types", enabled = false)
-    public void testCompilationForSchemaWithMutationTypes() {
-        String schemaFile = "Schema04Api.graphql";
-        String packagePath = "project04";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
-        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
-
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
-        try {
-            graphqlCmd.execute();
-
-            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
-        } catch (BLauncherException e) {
-            String output = e.toString();
-            Assert.fail(output);
-        }
-    }
-
-    @Test(description = "Test compilation for schema with subscription types", enabled = false)
-    public void testCompilationForSchemaWithSubscriptionTypes() {
-        String schemaFile = "Schema05Api.graphql";
-        String packagePath = "project05";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
-        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
-
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
-        try {
-            graphqlCmd.execute();
-
-            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
-        } catch (BLauncherException e) {
-            String output = e.toString();
-            Assert.fail(output);
-        }
-    }
-
-    @Test(description = "Test compilation for schema with record objects", enabled = false)
-    public void testCompilationForSchemaWithRecordObjects() {
-        String schemaFile = "Schema06Api.graphql";
-        String packagePath = "project06";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
-        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
-
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service",
-                "--use-records-for-objects"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
-        try {
-            graphqlCmd.execute();
-
-            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
-        } catch (BLauncherException e) {
-            String output = e.toString();
-            Assert.fail(output);
-        }
     }
 
     @DataProvider(name = "schemaFilesWithDoc")
     public Object[] createSchemaFilesWithDoc() {
         return new Object[]{
-                "SchemaDocs01Api.graphql",
-                "SchemaDocs02Api.graphql",
-                "SchemaDocs03Api.graphql",
-                "SchemaDocs04Api.graphql",
-                "SchemaDocs05Api.graphql",
-                "SchemaDocs06Api.graphql",
-                "SchemaDocs07Api.graphql",
-                "SchemaDocs08Api.graphql",
-                "SchemaDocs09Api.graphql",
-                "SchemaDocs10Api.graphql",
-                "SchemaDocs11Api.graphql"
+                "SchemaDocsWithQueryResolversApi.graphql",
+                "SchemaDocsWithMutationAndSubscriptionResolversApi.graphql",
+                "SchemaDocsWithResolverMultipleLinesApi.graphql",
+                "SchemaDocsWithResolverArgumentsApi.graphql",
+                "SchemaDocsWithMultipleLinesApi.graphql",
+                "SchemaDocsWithOutputsApi.graphql",
+                "SchemaDocsWithUnionApi.graphql",
+                "SchemaDocsWithEnumApi.graphql",
+                "SchemaDocsWithInputsApi.graphql",
+                "SchemaDocsWithInterfacesApi.graphql",
+                "SchemaDocsWithDeprecated01Api.graphql"
         };
     }
-
 
     @Test(description = "Test compilation for schemas with documentation", dataProvider = "schemaFilesWithDoc")
     public void testCompilationForSchemasWithDocumentation(String schemaFileWithDoc) {
@@ -372,13 +253,5 @@ public class ServiceGenerationTest extends GraphqlTest {
         Path projectDirPath = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
         BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath);
         return project.currentPackage().getCompilation().diagnosticResult();
-    }
-
-    private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
-        Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(
-                        TestUtils.TEST_DISTRIBUTION_PATH
-                                .resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME)).toAbsolutePath())
-                .build();
-        return ProjectEnvironmentBuilder.getBuilder(environment);
     }
 }

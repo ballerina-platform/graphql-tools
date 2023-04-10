@@ -81,7 +81,8 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with mode flag")
     public void testExecuteWithModeFlag() {
-        Path graphql = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "Schema01Api.graphql"));
+        Path graphql =
+                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic01Api.graphql"));
         String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
 
@@ -91,9 +92,9 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
 
             Path expectedServiceFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "service01.bal"));
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema01.bal"));
             Path expectedTypesFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "types01Default.bal"));
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "typesWithBasic01Default.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
@@ -115,7 +116,8 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with mode and use-records-for-objects flags")
     public void testExecutionWithModeAndUseRecordsForObjectsFlags() {
-        Path graphql = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "Schema06Api.graphql"));
+        Path graphql =
+                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic03Api.graphql"));
         String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
                 "--use-records-for-objects"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
@@ -126,9 +128,10 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
 
             Path expectedServiceFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "service06.bal"));
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema03.bal"));
             Path expectedTypesFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "types06RecordObjects.bal"));
+                    resourceDir.resolve(
+                            Paths.get("serviceGen", "expectedServices", "typesWithBasic03RecordsAllowed.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 

@@ -56,31 +56,28 @@ public class ServiceCodeGenerator extends CodeGenerator {
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
-        generateServices(projectName, fileName, graphQLSchema, sourceFiles);
+        generateServices(projectName, fileName, sourceFiles);
         generateServiceTypes(projectName, fileName, graphQLSchema, sourceFiles);
         return sourceFiles;
     }
 
-    private void generateServices(String projectName, String fileName, GraphQLSchema graphQLSchema,
-                                  List<SrcFilePojo> sourceFiles)
+    private void generateServices(String projectName, String fileName, List<SrcFilePojo> sourceFiles)
             throws ServiceGenerationException {
-        String serviceSrc = this.serviceGenerator.generateSrc(fileName, graphQLSchema);
+        this.serviceGenerator.setFileName(fileName);
+        String serviceSrc = this.serviceGenerator.generateSrc();
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName, CodeGeneratorConstants.SERVICE_FILE_NAME,
                         serviceSrc));
     }
 
     private void generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema,
-                                      List<SrcFilePojo> sourceFiles) throws ServiceTypesGenerationException {
+                                      List<SrcFilePojo> sourceFiles)
+            throws ServiceTypesGenerationException {
         this.serviceTypesGenerator.setFileName(fileName);
         String typesFileContent = this.serviceTypesGenerator.generateSrc(graphQLSchema);
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
                         typesFileContent));
-    }
-
-    public ServiceTypesGenerator getServiceTypesGenerator() {
-        return serviceTypesGenerator;
     }
 
     public void enableRecordForced() {

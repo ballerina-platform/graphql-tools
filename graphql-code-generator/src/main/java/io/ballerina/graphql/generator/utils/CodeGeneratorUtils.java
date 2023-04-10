@@ -29,6 +29,7 @@ import io.ballerina.compiler.syntax.tree.Minutiae;
 import io.ballerina.compiler.syntax.tree.MinutiaeList;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -232,6 +233,19 @@ public class CodeGeneratorUtils {
             documentElements.add(newLine);
         }
         return documentElements;
+    }
+
+    /**
+     * Generates the imports for client and service files.
+     *
+     * @return                          the node list which represent imports in the client file
+     */
+    public static NodeList<ImportDeclarationNode> generateImports() {
+        List<ImportDeclarationNode> imports = new ArrayList<>();
+        ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
+                CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.GRAPHQL);
+        imports.add(importForGraphql);
+        return createNodeList(imports);
     }
 
     /**
