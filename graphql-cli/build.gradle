@@ -153,7 +153,10 @@ jacoco {
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
     def classFiles = new File("${rootDir}/graphql-schema-file-generator/build/classes/java/main/io/ballerina/graphql/schema")
+    def codeGenFiles = new File("${rootDir}/graphql-code-generator/build/classes/java/main/io/ballerina/graphql" +
+            "/generator")
     additionalClassDirs(classFiles)
+    additionalClassDirs(codeGenFiles)
     reports {
         xml.required = true
     }
