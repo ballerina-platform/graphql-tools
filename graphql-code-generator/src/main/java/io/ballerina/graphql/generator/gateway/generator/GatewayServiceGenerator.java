@@ -29,12 +29,18 @@ import io.ballerina.graphql.generator.utils.graphql.Utils;
 import io.ballerina.graphql.generator.utils.model.FieldType;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.ballerinalang.formatter.core.Formatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -116,9 +122,9 @@ import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtil
  * Class to generate service code for the gateway.
  */
 public class GatewayServiceGenerator {
-    private final GraphQLSchema graphQLSchema;
 
-    private static final Path RESOURCE_PATH = Paths.get("src", "main", "resources", "gateway_templates");
+    private static final Logger LOGGER = LoggerFactory.getLogger(GatewayServiceGenerator.class);
+    private final GraphQLSchema graphQLSchema;
 
     public GatewayServiceGenerator(GraphQLSchema graphQLSchema) {
         this.graphQLSchema = graphQLSchema;
@@ -298,8 +304,7 @@ public class GatewayServiceGenerator {
 
     private FunctionBodyBlockNode getResourceFunctionBody(GraphQLSchemaElement graphQLSchemaElement)
             throws IOException, GatewayGenerationException {
-        String functionTemplate = Files.readString(
-                Path.of(RESOURCE_PATH.toString(), "resource_function_body.bal.partial").toAbsolutePath());
+        String functionTemplate = Files.readString(getResourceFunctionTemplateFilePath());
         functionTemplate = functionTemplate.replaceAll(QUERY_PLACEHOLDER,
                 ((GraphQLFieldDefinition) graphQLSchemaElement).getName());
         functionTemplate = functionTemplate.replaceAll(RESPONSE_TYPE_PLACEHOLDER,
@@ -491,5 +496,35 @@ public class GatewayServiceGenerator {
             }
         }
         return argumentList.toString();
+    }
+
+    /**
+     * Gets the path of the  resource_function_body.bal.partial template at the time of execution.
+     *
+     * @return Path to resource_function_body.bal.partial file in the temporary directory created
+     * @throws IOException When failed to get the gateway_templates/resource_function_body.bal.partial file
+     *                     from resources
+     */
+    private Path getResourceFunctionTemplateFilePath() throws IOException {
+        Path path = null;
+        ClassLoader classLoader = getClass().getClassLoader();
+        InputStream inputStream =
+                classLoader.getResourceAsStream("gateway_templates/resource_function_body.bal.partial");
+        if (inputStream != null) {
+            String resource = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            Path tmpDir = Files.createTempDirectory(".gateway-tmp" + System.nanoTime());
+            path = tmpDir.resolve("resource_function_body.bal.partial");
+            try (PrintWriter writer = new PrintWriter(path.toString(), StandardCharsets.UTF_8)) {
+                writer.print(resource);
+            }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    FileUtils.deleteDirectory(tmpDir.toFile());
+                } catch (IOException ex) {
+                    LOGGER.error("Unable to delete the temporary directory : " + tmpDir, ex);
+                }
+            }));
+        }
+        return path;
     }
 }

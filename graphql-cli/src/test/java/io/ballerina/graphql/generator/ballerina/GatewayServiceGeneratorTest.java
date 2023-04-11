@@ -11,6 +11,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,7 +26,7 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
 
     @Test(description = "Test service generation for gateway 01")
     public void testGatewayServiceGeneration01()
-            throws ValidationException, IOException, GatewayServiceGenerationException {
+            throws ValidationException, IOException, GatewayServiceGenerationException, URISyntaxException {
         String fileName = "Supergraph01";
 
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
@@ -40,7 +41,7 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
 
     @Test(description = "Test service generation for gateway 02")
     public void testGatewayServiceGeneration02()
-            throws ValidationException, IOException, GatewayServiceGenerationException {
+            throws ValidationException, IOException, GatewayServiceGenerationException, URISyntaxException {
         String fileName = "Supergraph02";
 
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(

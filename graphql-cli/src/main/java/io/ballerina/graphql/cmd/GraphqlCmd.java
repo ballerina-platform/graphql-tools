@@ -274,6 +274,7 @@ public class GraphqlCmd implements BLauncherCmd {
         } else if ((MODE_SERVICE.equals(mode) || mode == null) && (filePath.endsWith(GRAPHQL_EXTENSION))) {
             generateService(filePath);
         } else if (MODE_GATEWAY.equals(mode)) {
+            outStream.println("Generating the gateway...");
             generateFederationGateway(filePath);
         }
     }
