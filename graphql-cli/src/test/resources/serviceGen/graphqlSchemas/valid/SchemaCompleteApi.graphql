@@ -17,6 +17,7 @@ interface Info {
     name: String!
 }
 interface ContactInfo implements Info {
+    name: String!
     email: String!
 }
 interface AddressInfo {
