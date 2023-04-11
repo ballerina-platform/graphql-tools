@@ -12,6 +12,7 @@ import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,7 +44,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
         String fileName = project.getFileName();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
-        List<SrcFilePojo> sourceFiles = new ArrayList<>();
+        List<SrcFilePojo> sourceFiles = Collections.synchronizedList(new ArrayList<>());
         generateServices(projectName, fileName, sourceFiles);
         generateServiceTypes(projectName, fileName, graphQLSchema, sourceFiles);
         return sourceFiles;
