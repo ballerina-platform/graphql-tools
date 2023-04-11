@@ -51,7 +51,6 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yaml"));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
-        String name = graphqlCmd.getName();
 
         new CommandLine(graphqlCmd).parseArgs(args);
 
@@ -128,9 +127,8 @@ public class GraphqlCmdTest extends GraphqlTest {
 
             Path expectedServiceFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema03.bal"));
-            Path expectedTypesFile =
-                    resourceDir.resolve(
-                            Paths.get("serviceGen", "expectedServices", "typesWithBasic03RecordsAllowed.bal"));
+            Path expectedTypesFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "typesWithBasic03RecordsAllowed.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
@@ -291,6 +289,23 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
             output = readOutput(true);
             Assert.assertTrue(output.contains(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test graphql command execution with invalid schema file path")
+    public void testExecuteWithInvalidSchemaFilePath() {
+        Path graphqlSchema = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "schema.graphql"));
+        String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(Constants.MESSAGE_MISSING_SCHEMA_FILE));
         } catch (BLauncherException | IOException e) {
             output = e.toString();
             Assert.fail(output);
