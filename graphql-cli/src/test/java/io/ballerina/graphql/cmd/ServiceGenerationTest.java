@@ -109,7 +109,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         Path graphqlSchema =
                 this.resourceDir.resolve(
                         Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
-        String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
@@ -128,7 +128,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testExecuteWithSchemaInvalidFilePath() {
         Path invalidPath =
                 this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid", "Schema.graphql"));
-        String[] args = {"-i", invalidPath.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {"-i", invalidPath.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 

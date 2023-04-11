@@ -266,22 +266,15 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @DataProvider(name = "useRecordsForObjectsFlagMisUse")
     public Object[][] createUseRecordsForObjectsFlagMisUseData() {
-        return new Object[][]{{"client", "graphql.config.yaml"}, {"schema", "service.bal"},
-                {null, "graphql.config" + ".yaml"}, {null, "service.bal"}};
+        return new Object[][]{{"client", "graphql.config.yaml"}, {"schema", "service.bal"}};
     }
 
     @Test(description = "Test graphql command execution with use-records-for-objects and incompatible mode",
             dataProvider = "useRecordsForObjectsFlagMisUse")
     public void testExecuteWithUseRecordsForObjectsFlagAndIncompatibleMode(String mode, String fileName) {
         Path filePath = resourceDir.resolve(Paths.get("specs", fileName));
-        String[] args = null;
-        if (mode != null) {
-
-            args = new String[]{"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode,
-                    "--use-records-for-objects"};
-        } else {
-            args = new String[]{"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--use-records-for-objects"};
-        }
+        String[] args = new String[]{"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode,
+                "--use-records-for-objects"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
         String output = "";
