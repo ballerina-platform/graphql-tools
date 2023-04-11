@@ -204,11 +204,11 @@ public class GraphqlCmd implements BLauncherCmd {
             throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
         }
 
-        if (!isModeAndFileCompatible()) {
+        if (!isModeCompatible()) {
             throw new CmdException(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION);
         }
 
-        if (useRecordsForObjectsFlag && !filePath.endsWith(Constants.GRAPHQL_EXTENSION)) {
+        if (useRecordsForObjectsFlag && !MODE_SERVICE.equals(mode)) {
             throw new CmdException(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE);
         }
     }
@@ -218,20 +218,17 @@ public class GraphqlCmd implements BLauncherCmd {
                 filePath.endsWith(BAL_EXTENSION) || filePath.endsWith(GRAPHQL_EXTENSION);
     }
 
-    private boolean isModeAndFileCompatible() throws CmdException {
+    private boolean isModeCompatible() throws CmdException {
         String filePath = argList.get(0);
-        if (mode != null) {
-            if (MODE_CLIENT.equals(mode)) {
-                return filePath.endsWith(Constants.YAML_EXTENSION) || filePath.endsWith(Constants.YML_EXTENSION);
-            } else if (MODE_SCHEMA.equals(mode)) {
-                return filePath.endsWith(Constants.BAL_EXTENSION);
-            } else if (MODE_SERVICE.equals(mode)) {
-                return filePath.endsWith(Constants.GRAPHQL_EXTENSION);
-            } else {
-                throw new CmdException(mode.concat(MESSAGE_FOR_INVALID_MODE));
-            }
+        if ((mode == null || MODE_CLIENT.equals(mode))) {
+            return filePath.endsWith(Constants.YAML_EXTENSION) || filePath.endsWith(Constants.YML_EXTENSION);
+        } else if (MODE_SCHEMA.equals(mode)) {
+            return filePath.endsWith(Constants.BAL_EXTENSION);
+        } else if (MODE_SERVICE.equals(mode)) {
+            return filePath.endsWith(Constants.GRAPHQL_EXTENSION);
+        } else {
+            throw new CmdException(mode.concat(MESSAGE_FOR_INVALID_MODE));
         }
-        return true;
     }
 
     /**
@@ -258,12 +255,11 @@ public class GraphqlCmd implements BLauncherCmd {
             SchemaFileGenerationException {
         String filePath = argList.get(0);
 
-        if ((MODE_CLIENT.equals(mode) || mode == null) &&
-                (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION))) {
+        if (mode == null || MODE_CLIENT.equals(mode)) {
             generateClient(filePath);
-        } else if ((MODE_SCHEMA.equals(mode) || mode == null) && (filePath.endsWith(BAL_EXTENSION))) {
+        } else if (MODE_SCHEMA.equals(mode)) {
             generateSchema(filePath);
-        } else if ((MODE_SERVICE.equals(mode) || mode == null) && (filePath.endsWith(GRAPHQL_EXTENSION))) {
+        } else if (MODE_SERVICE.equals(mode)) {
             generateService(filePath);
         }
     }
