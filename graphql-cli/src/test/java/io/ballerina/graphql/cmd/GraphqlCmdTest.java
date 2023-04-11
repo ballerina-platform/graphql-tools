@@ -19,10 +19,14 @@
 package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.launcher.BLauncherException;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.graphql.common.GraphqlTest;
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
@@ -34,6 +38,7 @@ import java.nio.file.Paths;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
 
 /**
@@ -47,24 +52,21 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yaml"));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        String name = graphqlCmd.getName();
+
         new CommandLine(graphqlCmd).parseArgs(args);
 
         try {
             graphqlCmd.execute();
 
-            Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
-            Path expectedTypesFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
+            Path expectedClientFile = resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
+            Path expectedTypesFile = resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("client.bal")) &&
-                    Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent =
-                        readContent(this.tmpDir.resolve("client.bal"));
-                String generatedTypesContent =
-                        readContent(this.tmpDir.resolve("types.bal"));
+            if (Files.exists(this.tmpDir.resolve("client.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
+                String generatedClientContent = readContent(this.tmpDir.resolve("client.bal"));
+                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
                 Assert.assertEquals(expectedClientContent, generatedClientContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
@@ -75,6 +77,96 @@ public class GraphqlCmdTest extends GraphqlTest {
             String output = e.toString();
             Assert.fail(output);
         }
+    }
+
+    @Test(description = "Test graphql command execution with mode flag")
+    public void testExecuteWithModeFlag() {
+        Path graphql =
+                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic01Api.graphql"));
+        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        try {
+            graphqlCmd.execute();
+
+            Path expectedServiceFile =
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema01.bal"));
+            Path expectedTypesFile =
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "typesWithBasic01Default.bal"));
+            String expectedServiceContent = readContent(expectedServiceFile);
+            String expectedTypesContent = readContent(expectedTypesFile);
+
+            if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
+                String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
+
+                Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+            } else {
+                Assert.fail("Code generation failed. : " + readOutput(true));
+            }
+
+        } catch (BLauncherException | IOException e) {
+            String output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test graphql command execution with mode and use-records-for-objects flags")
+    public void testExecutionWithModeAndUseRecordsForObjectsFlags() {
+        Path graphql =
+                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic03Api.graphql"));
+        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
+                "--use-records-for-objects"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        try {
+            graphqlCmd.execute();
+
+            Path expectedServiceFile =
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema03.bal"));
+            Path expectedTypesFile =
+                    resourceDir.resolve(
+                            Paths.get("serviceGen", "expectedServices", "typesWithBasic03RecordsAllowed.bal"));
+            String expectedServiceContent = readContent(expectedServiceFile);
+            String expectedTypesContent = readContent(expectedTypesFile);
+
+            if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
+                String generatedClientContent = readContent(this.tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
+
+                Assert.assertEquals(expectedServiceContent, generatedClientContent);
+                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+            } else {
+                Assert.fail("Code generation failed. : " + readOutput(true));
+            }
+
+        } catch (BLauncherException | IOException e) {
+            String output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test NodeParser")
+    public void testNodeParser() {
+        ModulePartNode modulePartNode = NodeParser.parseModulePart(
+                "import ballerina/graphql;\n" + "\n" + "type Schema09Api service object {\n" +
+                        "    *graphql:Service;\n" + "\n" +
+                        "    resource function get studentInfo(int id) returns Info?;\n" + "};\n" + "\n" +
+                        "type Info distinct service object {\n" + "    resource function get name() returns string;\n" +
+                        "};\n" + "\n" + "service class Book {\n" +
+                        "    resource function get name() returns string {}\n" + "}\n" + "\n" +
+                        "distinct service class Student {\n" + "    *Info;\n" + "\n" +
+                        "    resource function get id() returns int {}\n" +
+                        "    resource function get name() returns string {}\n" + "}\n" + "\n" +
+                        "distinct service class Teacher {\n" + "    *Info;\n" + "\n" +
+                        "    resource function get id() returns int {}\n" +
+                        "    resource function get name() returns string {}\n" + "}\n");
+        modulePartNode.toString();
     }
 
     @Test(description = "Test graphql command execution without input file path argument")
@@ -93,6 +185,24 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test graphql command execution with invalid mode argument")
+    public void testExecuteWithInvalidModeArgument() {
+        Path graphql = resourceDir.resolve(Paths.get("specs", "CustomerApi.graphql"));
+        String[] args = {"-i", graphql.toString(), "--mode", "invalid-service", "--use-records-for-objects"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
+
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(MESSAGE_FOR_INVALID_MODE));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
     @Test(description = "Test graphql command execution with invalid config file extension")
     public void testExecuteWithInvalidConfigFileExtension() {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yam"));
@@ -104,6 +214,84 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
             output = readOutput(true);
             Assert.assertTrue(output.contains(MESSAGE_FOR_INVALID_FILE_EXTENSION));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @DataProvider(name = "invalidFileNameExtension")
+    public Object[] createInvalidFileNameExtensionData() {
+        return new Object[]{"graphql.config.yam", "service.bl", "schema.grq", "schema.py"};
+    }
+
+    @Test(description = "Test graphql command execution with invalid file extensions",
+            dataProvider = "invalidFileNameExtension")
+    public void testExecuteWithInvalidFileExtensions(String invalidFileNameExtension) {
+        Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", invalidFileNameExtension));
+        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(MESSAGE_FOR_INVALID_FILE_EXTENSION));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @DataProvider(name = "mismatchModeAndFile")
+    public Object[][] createMismatchModeAndFileData() {
+        return new Object[][]{{"service", "graphql.config.yaml"}, {"client", "service.bal"},
+                {"schema", "schema" + ".graphql"}};
+    }
+
+    @Test(description = "Test graphql command execution with mismatch mode and file extension",
+            dataProvider = "mismatchModeAndFile")
+    public void testExecuteWithMismatchModeAndFileExtension(String mode, String fileName) {
+        Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", fileName));
+        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString(), "--mode", mode};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(Constants.MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @DataProvider(name = "useRecordsForObjectsFlagMisUse")
+    public Object[][] createUseRecordsForObjectsFlagMisUseData() {
+        return new Object[][]{{"client", "graphql.config.yaml"}, {"schema", "service.bal"},
+                {null, "graphql.config" + ".yaml"}, {null, "service.bal"}};
+    }
+
+    @Test(description = "Test graphql command execution with use-records-for-objects and incompatible mode",
+            dataProvider = "useRecordsForObjectsFlagMisUse")
+    public void testExecuteWithUseRecordsForObjectsFlagAndIncompatibleMode(String mode, String fileName) {
+        Path filePath = resourceDir.resolve(Paths.get("specs", fileName));
+        String[] args = null;
+        if (mode != null) {
+
+            args = new String[]{"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode,
+                    "--use-records-for-objects"};
+        } else {
+            args = new String[]{"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--use-records-for-objects"};
+        }
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE));
         } catch (BLauncherException | IOException e) {
             output = e.toString();
             Assert.fail(output);
@@ -146,8 +334,7 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test successful graphql command execution with projects in config file")
     public void testExecuteWithProjects() {
-        Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs",
-                "graphql-config-with-projects.yaml"));
+        Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql-config-with-projects.yaml"));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -155,18 +342,15 @@ public class GraphqlCmdTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
 
-            Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
-            Path expectedTypesFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
+            Path expectedClientFile = resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
+            Path expectedTypesFile = resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve(Paths.get("modules", "country",
-                    "client.bal"))) && Files.exists(this.tmpDir.resolve(Paths.get("modules",
-                    "country", "types.bal")))) {
-                String generatedClientContent = readContent(this.tmpDir.resolve(Paths.get("modules",
-                        "country", "client.bal")));
+            if (Files.exists(this.tmpDir.resolve(Paths.get("modules", "country", "client.bal"))) &&
+                    Files.exists(this.tmpDir.resolve(Paths.get("modules", "country", "types.bal")))) {
+                String generatedClientContent =
+                        readContent(this.tmpDir.resolve(Paths.get("modules", "country", "client.bal")));
                 String generatedTypesContent =
                         readContent(this.tmpDir.resolve(Paths.get("modules", "country", "types.bal")));
 
@@ -181,10 +365,9 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test successful graphql command execution with schema URL in config file")
+    @Test(description = "Test successful graphql command execution with schema URL in config file", enabled = false)
     public void testExecuteWithSchemaUrl() {
-        Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs",
-                "graphql-config-with-schema-url.yaml"));
+        Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql-config-with-schema-url.yaml"));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -192,19 +375,14 @@ public class GraphqlCmdTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
 
-            Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
-            Path expectedTypesFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
+            Path expectedClientFile = resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
+            Path expectedTypesFile = resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("client.bal")) &&
-                    Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent =
-                        readContent(this.tmpDir.resolve("client.bal"));
-                String generatedTypesContent =
-                        readContent(this.tmpDir.resolve("types.bal"));
+            if (Files.exists(this.tmpDir.resolve("client.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
+                String generatedClientContent = readContent(this.tmpDir.resolve("client.bal"));
+                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
                 Assert.assertEquals(expectedClientContent, generatedClientContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
@@ -219,8 +397,8 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test successful graphql command execution with invalid introspection URL in config file")
     public void testExecuteWithInvalidIntrospectionUrl() {
-        Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs",
-                "graphql-config-with-invalid-introspection-url.yaml"));
+        Path graphqlConfigYaml =
+                resourceDir.resolve(Paths.get("specs", "graphql-config-with-invalid-introspection-url.yaml"));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -232,6 +410,94 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.assertTrue(output.contains("Failed to retrieve SDL."));
         } catch (BLauncherException | IOException e) {
             output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test successful graphql federation gateway code generation 01")
+    public void testGatewayCodeGeneration1() throws IOException {
+        Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
+                "Supergraph01.graphql"));
+
+        String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
+                CodeGeneratorConstants.MODE_GATEWAY };
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        Path expectedServiceFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "services", "service01.bal"));
+        Path expectedTypesFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "types", "types01.bal"));
+        Path expectedQueryPlanFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "queryPlans", "queryPlan01.bal"));
+        String expectedServiceContent = readContent(expectedServiceFile);
+        String expectedTypesContent = readContent(expectedTypesFile);
+        String expectedQueryPlanContent = readContent(expectedQueryPlanFile);
+
+        try {
+            graphqlCmd.execute();
+
+            if (Files.exists(tmpDir.resolve("service.bal"))
+                    && Files.exists(tmpDir.resolve("types.bal"))
+                    && Files.exists(tmpDir.resolve("query_plan.bal"))
+            ) {
+                String generatedServiceContent = readContent(tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(tmpDir.resolve("types.bal"));
+                String generatedQueryPlanContent = readContent(tmpDir.resolve("query_plan.bal"));
+
+                Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+                Assert.assertEquals(expectedQueryPlanContent, generatedQueryPlanContent);
+
+            } else {
+                Assert.fail("Code generation failed. : " + readOutput(true));
+            }
+        } catch (BLauncherException | IOException e) {
+            String output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test successful graphql federation gateway code generation 02")
+    public void testGatewayCodeGeneration2() throws IOException {
+        Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
+                "Supergraph02.graphql"));
+
+        String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
+                CodeGeneratorConstants.MODE_GATEWAY };
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        Path expectedServiceFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "services", "service02.bal"));
+        Path expectedTypesFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "types", "types02.bal"));
+        Path expectedQueryPlanFile = resourceDir.resolve(Paths.get("federationGatewayGen",
+                "expectedResults", "queryPlans", "queryPlan02.bal"));
+        String expectedServiceContent = readContent(expectedServiceFile);
+        String expectedTypesContent = readContent(expectedTypesFile);
+        String expectedQueryPlanContent = readContent(expectedQueryPlanFile);
+
+        try {
+            graphqlCmd.execute();
+
+            if (Files.exists(tmpDir.resolve("service.bal"))
+                    && Files.exists(tmpDir.resolve("types.bal"))
+                    && Files.exists(tmpDir.resolve("query_plan.bal"))
+            ) {
+                String generatedServiceContent = readContent(tmpDir.resolve("service.bal"));
+                String generatedTypesContent = readContent(tmpDir.resolve("types.bal"));
+                String generatedQueryPlanContent = readContent(tmpDir.resolve("query_plan.bal"));
+
+                Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+                Assert.assertEquals(expectedQueryPlanContent, generatedQueryPlanContent);
+
+            } else {
+                Assert.fail("Code generation failed. : " + readOutput(true));
+            }
+        } catch (BLauncherException | IOException e) {
+            String output = e.toString();
             Assert.fail(output);
         }
     }

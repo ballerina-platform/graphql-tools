@@ -1,0 +1,44 @@
+query country($code: ID!) {
+    country(code: $code) {
+        capital,
+        name
+    }
+}
+
+query countries($filter: CountryFilterInput) {
+    countries(filter: $filter) {
+        name
+        continent {
+            countries {
+                name
+            }
+        }
+    }
+}
+
+query combinedQuery($code: ID!, $filter: CountryFilterInput) {
+    country(code: $code) {
+        name
+    }
+    countries(filter: $filter) {
+        name
+        continent {
+            countries {
+                continent {
+                    name
+                }
+            }
+        }
+    }
+}
+
+query neighbouringCountries {
+    countries(filter: {code: {eq: "LK"}}) {
+        name
+        continent {
+            countries {
+                nam
+            }
+        }
+    }
+}

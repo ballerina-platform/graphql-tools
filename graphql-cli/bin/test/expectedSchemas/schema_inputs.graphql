@@ -1,0 +1,4 @@
+type Query {
+  greet(name: String!): String!
+  isLegal(age: Int!): Boolean!
+}

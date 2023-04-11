@@ -1,0 +1,148 @@
+type Query {
+  "Fetch the hero of the Star Wars"
+  hero(
+    """
+    The episode which hero appears
+    This is a Nullable input
+    """
+    episode: Episode
+  ): Profile!
+  "Returns reviews of the Star Wars"
+  reviews(
+    """
+    The episode
+    Default value of the `episode` is ""JEDI""
+    """
+    episode: Episode! = ""
+    name: String! = ""
+  ): [Review]!
+  "Returns characters by id, or null if character is not found"
+  characters(
+    idList: [String!]!
+    "Name of the character"
+    name: String!
+  ): [Character]!
+  """
+  Returns a human by id,
+  or null if human is not found
+  """
+  human(
+    "**id** of the human"
+    id: String!
+  ): Human
+  "The home planet of the human, or null if unknown"
+  planet: Planet
+}
+
+interface Profile {
+  "The name of the human"
+  name(
+    ""
+    id: String!
+    """
+    This should be an integer
+    
+    This is a Non-Null type argument
+    """
+    age: Int!
+    isAdult: Boolean!
+  ): String!
+}
+
+"""
+A mechanical character from the Star Wars universe.
+It can be a **Human** or a ~Droid~
+"""
+interface Character implements Profile {
+  "The unique identifier of the character"
+  id: String!
+  "The episodes this character appears in"
+  appearsIn: [Episode!]! @deprecated(reason: "This field is deprecated. Use `appears` field instead of this.")
+  "The name of the human"
+  name(
+    ""
+    id: String!
+    """
+    This should be an integer
+    
+    This is a Non-Null type argument
+    """
+    age: Int!
+    isAdult: Boolean!
+  ): String!
+}
+
+"A humanoid creature from the Star Wars universe"
+type Human implements Profile & Character & Planet {
+  """
+  The unique identifier of the human
+  The type of the id is String
+  
+  The "id" returns a string
+  """
+  id: String!
+  "The name of the human"
+  name(id: String!, age: Int!, isAdult: Boolean!): String!
+  "The home planet of the human, or null if unknown"
+  homePlanet: String
+  "Height in meters, or null if unknown"
+  height: Float
+  "Mass in kilograms, or null if unknown"
+  mass: Int
+  "The episodes this human appears in"
+  appearsIn: [Episode!]!
+}
+
+"Episodes of Starwars Series"
+enum Episode {
+  "The episode jedi"
+  JEDI
+  ""
+  EMPIRE
+  """
+  The episode new hope.
+  `Luke Skywalker` joins forces with a Jedi Knight.
+  
+  Check new lines in the documentation
+  """
+  NEWHOPE
+}
+
+""
+type Review {
+  "Number of stars"
+  stars: Int!
+  "The episode"
+  episode: Episode
+  commentary: String
+}
+
+"Planet of the Human"
+interface Planet {
+  "The home planet of the human, or null if unknown"
+  homePlanet: String
+}
+
+type Mutation {
+  """
+  Add new reviews.
+  Return the updated review values
+  """
+  createReview(
+    "Episode name"
+    episode: Episode!
+    """
+    Review of the episode.
+    
+    This should be an `input object` type value
+    """
+    reviewInput: ReviewInput!
+  ): Review!
+}
+
+"The review input type"
+input ReviewInput {
+  "Number of stars"
+  stars: Int!
+  commentary: String!
+}

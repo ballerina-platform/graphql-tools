@@ -96,7 +96,7 @@ public class GraphQLToolIDLPlugin extends IDLGeneratorPlugin {
             try {
                 Config config = Utils.readConfig(idlSourceGeneratorContext.resourcePath().toString());
                 ConfigValidator.getInstance().validate(config);
-                List<GraphqlProject> projects = Utils.populateProjects(config, EMPTY_STRING);
+                List<GraphqlClientProject> projects = Utils.populateProjects(config, EMPTY_STRING);
                 if (projects.size() > 1) {
                     throw new IDLMultipleProjectException(
                             Constants.DiagnosticMessages.ERROR_MULTIPLE_PROJECT_AVAILABILITY.getDescription());

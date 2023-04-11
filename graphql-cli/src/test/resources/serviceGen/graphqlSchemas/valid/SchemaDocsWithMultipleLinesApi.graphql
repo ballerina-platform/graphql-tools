@@ -1,0 +1,25 @@
+type Query {
+    "Fetch all the books from database"
+    books: [Book]
+    """
+    Fetch a book
+    by its id
+    """
+    book(
+        """
+        The id of the book to fetch
+        id is non nullable
+        """
+        id: Int!
+        """
+        The title of the book to fetch
+        title is non nullable
+        """
+        title: String!
+    ): Book
+}
+
+type Book {
+    id: Int!
+    title: String!
+}

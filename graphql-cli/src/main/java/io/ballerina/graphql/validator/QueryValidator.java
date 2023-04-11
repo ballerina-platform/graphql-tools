@@ -22,13 +22,14 @@ import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
 import graphql.validation.ValidationError;
 import graphql.validation.Validator;
-import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.exception.QueryValidationException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.Utils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * This class is used to validate the GraphQL query files.
@@ -46,11 +47,11 @@ public class QueryValidator {
     /**
      * Validates the GraphQL query files (documents) of the given project.
      *
-     * @param project                               the instance of the Graphql project
-     * @throws ValidationException                  when a validation error occurs
-     * @throws IOException                          If an I/O error occurs
+     * @param project the instance of the Graphql project
+     * @throws ValidationException when a validation error occurs
+     * @throws IOException         If an I/O error occurs
      */
-    public void validate(GraphqlProject project) throws ValidationException, IOException {
+    public void validate(GraphqlClientProject project) throws ValidationException, IOException {
         List<String> documents = project.getDocuments();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String projectName = project.getName();
@@ -67,18 +68,19 @@ public class QueryValidator {
     /**
      * Validates a GraphQL query file (document) with the given GraphQL schema (SDL).
      *
-     * @param graphQLSchema                         the GraphQL schema instance
-     * @param document                              the GraphQL query document value
-     * @param projectName                           the name of the project
-     * @throws QueryValidationException             If a GraphQL queries related error occurs
-     * @throws IOException                          If an I/O error occurs
+     * @param graphQLSchema the GraphQL schema instance
+     * @param document      the GraphQL query document value
+     * @param projectName   the name of the project
+     * @throws QueryValidationException If a GraphQL queries related error occurs
+     * @throws IOException              If an I/O error occurs
      */
     private void validateDocument(GraphQLSchema graphQLSchema, String document, String projectName)
             throws QueryValidationException, IOException {
         Document parsedDocument = Utils.getGraphQLQueryDocument(document);
 
         Validator validator = new Validator();
-        List<ValidationError> validationErrors = validator.validateDocument(graphQLSchema, parsedDocument);
+        List<ValidationError> validationErrors = validator.validateDocument(graphQLSchema, parsedDocument,
+                Locale.ENGLISH);
         if (validationErrors.size() > 0) {
             throw new QueryValidationException("Graph query validation failed.", validationErrors, projectName);
         }

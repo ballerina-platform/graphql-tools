@@ -1,0 +1,30 @@
+type Query {
+    student(id: Int!): Student
+}
+
+interface AddressInfo implements ContactInfo & Info {
+    address: String!
+    email: String!
+    name: String!
+}
+
+interface ContactInfo implements Info {
+    email: String!
+    name: String!
+}
+
+interface Info {
+    name: String!
+}
+
+type Student implements Info {
+    id: Int!
+    name: String!
+}
+
+type Teacher implements AddressInfo & ContactInfo & Info {
+    id: Int!
+    name: String!
+    email: String!
+    address: String!
+}

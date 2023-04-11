@@ -1,0 +1,9 @@
+schema: https://api.github.com/graphql
+documents:
+  - src/test/resources/specs/queries/git-queries.graphql
+extensions:
+  endpoints:
+    default:
+      url: https://api.github.com/graphql
+      headers:
+        { "Authorization": "Bearer token", "Header1": "Header1Value", "Header2": "Header2Value" }

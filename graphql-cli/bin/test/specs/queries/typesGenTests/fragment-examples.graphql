@@ -1,0 +1,126 @@
+query fragmentExample1($code1: ID!, $code2: ID!, $code3: ID!) {
+  a: country(code: $code1) {
+     ... countryFields
+  }
+  b: country(code: $code2) {
+     ... countryFields
+     native
+  }
+  continent(code: $code3) {
+    code
+    name
+  }
+}
+
+fragment countryFields on Country {
+  code
+  name
+}
+
+query fragmentExample2($code1: ID!, $code2: ID!, $code3: ID!) {
+  a: country(code: $code1) {
+     ... countryFields2
+  }
+  b: country(code: $code2) {
+     ... countryFields2
+     native
+  }
+  continent(code: $code3) {
+    code
+    name
+  }
+}
+
+fragment countryFields2 on Country {
+  code
+  name
+  continent {
+    name
+    code
+  }
+  languages {
+      code
+      name
+      native
+  }
+}
+
+fragment countryFields3 on Country {
+  code
+  name
+  continent {
+    name
+    countries {
+      native
+    }
+  }
+}
+
+query fragmentExample3($code1: ID!, $code2: ID!, $code3: ID!) {
+  a: country(code: $code1) {
+     ... countryFields3
+  }
+  b: country(code: $code2) {
+     ... countryFields3
+     native
+  }
+  continent(code: $code3) {
+    code
+    name
+  }
+}
+
+query inlineFragmentExample1($code1: ID!, $code2: ID!, $code3: ID!) {
+  a: country(code: $code1) {
+     ... on Country {
+        states {
+          name
+          country {
+            capital
+          }
+        }
+        continent {
+          name
+          code
+        }
+        capital
+     }
+  }
+  b: country(code: $code2) {
+     native
+  }
+  continent(code: $code3) {
+    code
+    name
+  }
+}
+
+query inlineFragmentExample2($code1: ID!, $code2: ID!) {
+  a: country(code: $code1) {
+     ... on Country {
+        states {
+          name
+          country {
+            capital
+            continent {
+              ... on Continent {
+                code
+                name
+              }
+            }
+          }
+        }
+        continent {
+          ... on Continent {
+            code
+            name
+          }
+        }
+        capital
+     }
+  }
+  continent(code: $code2) {
+    code
+    name
+  }
+}

@@ -19,16 +19,18 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
-import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.GeneratorContext;
-import io.ballerina.graphql.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
+import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
+import io.ballerina.graphql.generator.client.generator.ballerina.ClientGenerator;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.utils.GeneratorContext;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -45,9 +47,8 @@ public class ClientGeneratorTest extends GraphqlTest {
     @Test(description = "Test the successful generation of client code")
     public void testGenerateSrc() throws CmdException, IOException, ParseException, ValidationException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                    this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
-                    this.tmpDir);
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
+                    this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
 
             Extension extensions = projects.get(0).getExtensions();
             List<String> documents = projects.get(0).getDocuments();
@@ -57,12 +58,11 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-            String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(documents, schema, authConfig, GeneratorContext.CLI)
-                    .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
+            String generatedClientContent =
+                    ClientGenerator.getInstance().generateSrc(documents, schema, authConfig, GeneratorContext.CLI)
+                            .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
-            Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
+            Path expectedClientFile = resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
             String expectedClientContent = readContent(expectedClientFile);
 
             Assert.assertEquals(expectedClientContent, generatedClientContent);
@@ -76,10 +76,9 @@ public class ClientGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithApiKeysConfig()
             throws CmdException, IOException, ParseException, ValidationException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                    this.resourceDir.resolve(Paths.get("specs",
-                            "graphql-config-with-auth-apikeys-config.yaml")).toString(),
-                    this.tmpDir);
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
+                    this.resourceDir.resolve(Paths.get("specs", "graphql-config-with-auth-apikeys-config.yaml"))
+                            .toString(), this.tmpDir);
 
             Extension extensions = projects.get(0).getExtensions();
             List<String> documents = projects.get(0).getDocuments();
@@ -89,13 +88,12 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-            String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(documents, schema, authConfig, GeneratorContext.CLI)
-                    .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
+            String generatedClientContent =
+                    ClientGenerator.getInstance().generateSrc(documents, schema, authConfig, GeneratorContext.CLI)
+                            .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "client", "apiKeysConfig",
-                            "client.bal"));
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client", "apiKeysConfig", "client.bal"));
             String expectedClientContent = readContent(expectedClientFile);
 
             Assert.assertEquals(expectedClientContent, generatedClientContent);
@@ -109,10 +107,9 @@ public class ClientGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithClientConfig()
             throws CmdException, IOException, ParseException, ValidationException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                    this.resourceDir.resolve(Paths.get("specs",
-                            "graphql-config-with-auth-client-config.yaml")).toString(),
-                    this.tmpDir);
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
+                    this.resourceDir.resolve(Paths.get("specs", "graphql-config-with-auth-client-config.yaml"))
+                            .toString(), this.tmpDir);
 
             Extension extensions = projects.get(0).getExtensions();
             List<String> documents = projects.get(0).getDocuments();
@@ -122,13 +119,12 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-            String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(documents, schema, authConfig, GeneratorContext.CLI)
-                    .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
+            String generatedClientContent =
+                    ClientGenerator.getInstance().generateSrc(documents, schema, authConfig, GeneratorContext.CLI)
+                            .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "client", "clientConfig",
-                            "client.bal"));
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client", "clientConfig", "client.bal"));
             String expectedClientContent = readContent(expectedClientFile);
 
             Assert.assertEquals(expectedClientContent, generatedClientContent);
@@ -142,9 +138,8 @@ public class ClientGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithClientConfigAndAPIKeysConfig()
             throws CmdException, IOException, ParseException, ValidationException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
-                    this.resourceDir.resolve(Paths.get("specs",
-                            "graphql-config-with-auth-apikeys-and-client-config.yaml")).toString(),
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(this.resourceDir.resolve(
+                            Paths.get("specs", "graphql-config-with-auth-apikeys-and-client-config.yaml")).toString(),
                     this.tmpDir);
 
             Extension extensions = projects.get(0).getExtensions();
@@ -155,13 +150,12 @@ public class ClientGeneratorTest extends GraphqlTest {
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
             AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-            String generatedClientContent = ClientGenerator.getInstance().
-                    generateSrc(documents, schema, authConfig, GeneratorContext.CLI)
-                    .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
+            String generatedClientContent =
+                    ClientGenerator.getInstance().generateSrc(documents, schema, authConfig, GeneratorContext.CLI)
+                            .trim().replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedClientFile =
-                    resourceDir.resolve(Paths.get("expectedGenCode", "client", "clientAndAPIKeysConfig",
-                            "client.bal"));
+                    resourceDir.resolve(Paths.get("expectedGenCode", "client", "clientAndAPIKeysConfig", "client.bal"));
             String expectedClientContent = readContent(expectedClientFile);
 
             Assert.assertEquals(expectedClientContent, generatedClientContent);

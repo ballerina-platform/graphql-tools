@@ -31,20 +31,24 @@ configurations {
 
 dependencies {
     implementation project(':graphql-schema-file-generator')
+    implementation project(':graphql-code-generator')
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
     implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
     implementation "info.picocli:picocli:${picocliVersion}"
+//    implementation "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
     testImplementation "org.testng:testng:${testngVersion}"
     testImplementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
     implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
     implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    implementation "com.graphql-java:graphql-java-extended-scalars:${graphqlJavaExtendedScalarVersion}" // NEW
     implementation "org.json:json:${orgJsonVersion}" // NEW
     dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    dist "com.graphql-java:graphql-java-extended-scalars:${graphqlJavaExtendedScalarVersion}" // NEW
     dist "com.google.guava:guava:${googleGuavaVersion}" // NEW
     dist "org.json:json:${orgJsonVersion}" // NEW
     dist "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
@@ -99,6 +103,7 @@ task copyStdlibs(type: Copy) {
 
 task copyJar(type: Copy) {
     from "$project.rootDir/graphql-schema-file-generator/build/libs/graphql-schema-file-generator-${version}.jar"
+    from "$project.rootDir/graphql-code-generator/build/libs/graphql-code-generator-${version}.jar"
     from "$project.buildDir/libs/graphql-cli-${version}.jar"
     into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
 }
@@ -169,6 +174,7 @@ compileJava {
 def packageName = "graphql"
 
 jBallerinaPack.dependsOn ":${packageName}-schema-file-generator:build"
+jBallerinaPack.dependsOn ":${packageName}-code-generator:build"
 unpackStdLibs.dependsOn jBallerinaPack
 copyStdlibs.dependsOn unpackStdLibs
 shadowJar.dependsOn copyStdlibs

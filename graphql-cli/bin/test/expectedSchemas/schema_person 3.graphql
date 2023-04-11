@@ -1,0 +1,7 @@
+type Query {
+  name: String!
+  birthdate: String!
+  ids: [Int!]!
+  idsWithErrors: [Int!]!
+  friends: [String]!
+}
