@@ -56,6 +56,7 @@ import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
+import io.ballerina.compiler.syntax.tree.StreamTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -73,6 +74,7 @@ import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -501,10 +503,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
         NodeList<Node> serviceClassTypeMembers = createNodeList(serviceClassTypeMembersList);
         return createClassDefinitionNode(generateMetadataForDescription(type.getDescription()),
-                createToken(SyntaxKind.PUBLIC_KEYWORD), classTypeQualifiers,
-                createToken(SyntaxKind.CLASS_KEYWORD), createIdentifierToken(type.getName()),
-                createToken(SyntaxKind.OPEN_BRACE_TOKEN), serviceClassTypeMembers,
-                createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
+                createToken(SyntaxKind.PUBLIC_KEYWORD), classTypeQualifiers, createToken(SyntaxKind.CLASS_KEYWORD),
+                createIdentifierToken(type.getName()), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
+                serviceClassTypeMembers, createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
 
     private MetadataNode generateMetadataForDescription(String description) {
@@ -531,11 +532,10 @@ public class ServiceTypesGenerator extends TypesGenerator {
             throws ServiceTypesGenerationException {
         NodeList<Token> memberQualifiers = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD));
         NodeList<Node> memberRelativeResourcePaths = createNodeList(createIdentifierToken(fieldDefinition.getName()));
-        FunctionSignatureNode functionSignature =
-                createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
-                        generateMethodSignatureParams(fieldDefinition.getArguments()),
-                        createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
-                        generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType()));
+        FunctionSignatureNode functionSignature = createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
+                generateMethodSignatureParams(fieldDefinition.getArguments()),
+                createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
+                generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType()));
         FunctionBodyBlockNode functionBody =
                 createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
                         createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
@@ -724,7 +724,12 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private List<Node> generateMarkdownDocumentationLines(String description) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
         if (description != null) {
-            String[] lines = description.split("\n");
+            description =
+                    description.replaceAll(CodeGeneratorConstants.CARRIAGE_RETURN, CodeGeneratorConstants.EMPTY_STRING);
+            String[] lines = description.split(System.lineSeparator());
+            if (CodeGeneratorConstants.EMPTY_STRING.equals(lines[0])) {
+                lines = Arrays.copyOfRange(lines, 1, lines.length);
+            }
             for (String line : lines) {
                 MarkdownDocumentationLineNode markdownDocumentationLine = generateMarkdownDocumentationLine(line);
                 markdownDocumentationLines.add(markdownDocumentationLine);
@@ -745,12 +750,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
             throws ServiceTypesGenerationException {
         TypeDescriptorNode typeDescriptor = generateTypeDescriptor(type);
         if (isStream) {
-            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), createEmptyNodeList(),
+            StreamTypeDescriptorNode streamTypeDescriptor =
                     createStreamTypeDescriptorNode(createToken(SyntaxKind.STREAM_KEYWORD),
                             createStreamTypeParamsNode(createToken(SyntaxKind.LT_TOKEN), typeDescriptor, null, null,
-                                    createToken(SyntaxKind.GT_TOKEN))));
+                                    createToken(SyntaxKind.GT_TOKEN)));
+            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), createEmptyNodeList(),
+                    streamTypeDescriptor);
         } else {
-
             return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), createEmptyNodeList(),
                     typeDescriptor);
         }
@@ -949,8 +955,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    private TypeDescriptorNode generateTypeDescriptor(GraphQLType argumentType)
-            throws ServiceTypesGenerationException {
+    private TypeDescriptorNode generateTypeDescriptor(GraphQLType argumentType) throws ServiceTypesGenerationException {
         return generateTypeDescriptor(argumentType, false);
     }
 

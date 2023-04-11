@@ -47,6 +47,7 @@ public class CodeGeneratorConstants {
     public static final String EQUAL = "=";
     public static final String COMMA = ",";
     public static final String NEW_LINE = "\n";
+    public static final String CARRIAGE_RETURN = "\r";
     public static final String QUESTION_MARK = "?";
     public static final String EMPTY_EXPRESSION = "{}";
     public static final String NULLABLE_EXPRESSION = "()";
