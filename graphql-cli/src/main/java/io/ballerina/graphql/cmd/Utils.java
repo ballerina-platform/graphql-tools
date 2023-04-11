@@ -27,11 +27,16 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.errors.SchemaProblem;
 import io.ballerina.graphql.cmd.pojo.Config;
+import io.ballerina.graphql.exception.SDLValidationException;
+import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.Introspector;
 import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.pojo.Default;
 import io.ballerina.graphql.generator.client.pojo.Endpoints;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.utils.GenerationType;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
@@ -161,6 +166,32 @@ public class Utils {
         @Override
         public TextRange textRange() {
             return TextRange.from(0, 0);
+        }
+    }
+
+    /**
+     * Validates the GraphQL schema (SDL) of the given project.
+     *
+     * @param project the instance of the Graphql project
+     * @throws ValidationException when a validation error occurs
+     * @throws IOException         If an I/O error occurs
+     */
+    public static void validateGraphqlProject(GraphqlProject project) throws ValidationException, IOException {
+        String schema = project.getSchema();
+
+        Extension extensions = null;
+        if (project.getGenerationType() == GenerationType.CLIENT) {
+            GraphqlClientProject clientProject = (GraphqlClientProject) project;
+            extensions = clientProject.getExtensions();
+        }
+
+        try {
+            GraphQLSchema graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
+            project.setGraphQLSchema(graphQLSchema);
+        } catch (IntospectionException e) {
+            throw new ValidationException(e.getMessage(), project.getName());
+        } catch (SchemaProblem e) {
+            throw new SDLValidationException("GraphQL SDL validation failed.", e.getErrors(), project.getName());
         }
     }
 }

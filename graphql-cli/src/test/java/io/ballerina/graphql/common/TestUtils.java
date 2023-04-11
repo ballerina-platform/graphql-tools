@@ -31,7 +31,6 @@ import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
-import io.ballerina.graphql.validator.SDLValidator;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.BuildProject;
@@ -151,7 +150,7 @@ public class TestUtils {
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = TestUtils.populateProjects(config, outputPath);
         for (GraphqlClientProject project : projects) {
-            SDLValidator.getInstance().validate(project);
+            Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
         return projects;
@@ -161,7 +160,7 @@ public class TestUtils {
             throws ValidationException, IOException {
         GraphqlServiceProject graphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, outputPath.toString());
-        SDLValidator.getInstance().validate(graphqlProject);
+        Utils.validateGraphqlProject(graphqlProject);
         return graphqlProject;
     }
 

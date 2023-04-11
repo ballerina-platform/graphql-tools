@@ -37,7 +37,6 @@ import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
 import io.ballerina.graphql.schema.generator.SdlSchemaGenerator;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
-import io.ballerina.graphql.validator.SDLValidator;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
@@ -283,7 +282,7 @@ public class GraphqlCmd implements BLauncherCmd {
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = populateProjects(config);
         for (GraphqlClientProject project : projects) {
-            SDLValidator.getInstance().validate(project);
+            Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
         for (GraphqlProject project : projects) {
@@ -301,7 +300,7 @@ public class GraphqlCmd implements BLauncherCmd {
         }
         GraphqlServiceProject graphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());
-        SDLValidator.getInstance().validate(graphqlProject);
+        Utils.validateGraphqlProject(graphqlProject);
         if (useRecordsForObjectsFlag) {
             this.serviceCodeGenerator.enableRecordForced();
         }

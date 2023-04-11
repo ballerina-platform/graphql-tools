@@ -1,6 +1,7 @@
 package io.ballerina.graphql.generator.ballerina;
 
 
+import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
@@ -11,7 +12,6 @@ import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationExce
 import io.ballerina.graphql.generator.client.generator.ballerina.ClientTypesGenerator;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
-import io.ballerina.graphql.validator.SDLValidator;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class TypesGeneratorTest {
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
         for (GraphqlClientProject project : projects) {
-            SDLValidator.getInstance().validate(project);
+            Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
         String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
@@ -49,7 +49,7 @@ public class TypesGeneratorTest {
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
         for (GraphqlClientProject project : projects) {
-            SDLValidator.getInstance().validate(project);
+            Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
         String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
@@ -67,7 +67,7 @@ public class TypesGeneratorTest {
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
         for (GraphqlClientProject project : projects) {
-            SDLValidator.getInstance().validate(project);
+            Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
         String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
@@ -84,7 +84,7 @@ public class TypesGeneratorTest {
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = TestUtils.populateProjects(config, Paths.get(""));
         for (GraphqlClientProject project : projects) {
-            SDLValidator.getInstance().validate(project);
+            Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
         String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
