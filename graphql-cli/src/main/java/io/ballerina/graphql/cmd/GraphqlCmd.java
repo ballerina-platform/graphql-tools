@@ -142,8 +142,6 @@ public class GraphqlCmd implements BLauncherCmd {
         this.outStream = outStream;
         this.executionPath = executionDir;
         this.exitWhenFinish = exitWhenFinish;
-        this.clientCodeGenerator = new ClientCodeGenerator();
-        this.serviceCodeGenerator = new ServiceCodeGenerator();
     }
 
     /**
@@ -256,10 +254,12 @@ public class GraphqlCmd implements BLauncherCmd {
         String filePath = argList.get(0);
 
         if (mode == null || MODE_CLIENT.equals(mode)) {
+            setClientCodeGenerator(new ClientCodeGenerator());
             generateClient(filePath);
         } else if (MODE_SCHEMA.equals(mode)) {
             generateSchema(filePath);
         } else if (MODE_SERVICE.equals(mode)) {
+            setServiceCodeGenerator(new ServiceCodeGenerator());
             generateService(filePath);
         }
     }
@@ -391,6 +391,15 @@ public class GraphqlCmd implements BLauncherCmd {
             }
         }
         return targetOutputPath;
+    }
+
+    public void setClientCodeGenerator(ClientCodeGenerator clientCodeGenerator) {
+        this.clientCodeGenerator = clientCodeGenerator;
+    }
+
+    public void setServiceCodeGenerator(
+            ServiceCodeGenerator serviceCodeGenerator) {
+        this.serviceCodeGenerator = serviceCodeGenerator;
     }
 
     @Override
