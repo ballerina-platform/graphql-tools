@@ -1,4 +1,4 @@
-{
+isolated resource function get @{query}(graphql:Field 'field @{params}) returns @{responseType}|error{
     QueryFieldClassifier classifier = new ('field, queryPlan, @{clientName});
     string fieldString = classifier.getFieldString();
     UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();

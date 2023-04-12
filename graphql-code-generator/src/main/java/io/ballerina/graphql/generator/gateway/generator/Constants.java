@@ -5,12 +5,14 @@ package io.ballerina.graphql.generator.gateway.generator;
  */
 public class Constants {
     public static final String QUERY_PLACEHOLDER = "@\\{query}";
+    public static final String FUNCTION_PARAM_PLACEHOLDER = "@\\{params}";
     public static final String RESPONSE_TYPE_PLACEHOLDER = "@\\{responseType}";
     public static final String BASIC_RESPONSE_TYPE_PLACEHOLDER = "@\\{basicResponseType}";
     public static final String CLIENT_NAME_PLACEHOLDER = "@\\{clientName}";
     public static final String CLIENT_NAME_VALUE_PLACEHOLDER = "@\\{clientNameValue}";
     public static final String QUERY_ARGS_PLACEHOLDER = "@\\{queryArgs}";
     public static final String URL_PLACEHOLDER = "@\\{url}";
+    public static final String RESOURCE_FUNCTIONS_PLACEHOLDER = "@\\{resourceFunctions}";
 
     // Constants for the gateway service generation.
     public static final String CLIENT_NOT_FOUND_PANIC_BLOCK = "{ panic error(\"Client not found\"); }";
@@ -23,4 +25,8 @@ public class Constants {
     // Constants for the gateway query plan generation.
     public static final String CLIENT_NAME_DECLARATION = "public const string " + CLIENT_NAME_PLACEHOLDER
             + " = \"" + CLIENT_NAME_VALUE_PLACEHOLDER + "\";";
+
+    public static final String ISOLATED_SERVICE_TEMPLATE = "isolated service on new graphql:Listener(PORT) {" +
+            RESOURCE_FUNCTIONS_PLACEHOLDER +
+            "}";
 }
