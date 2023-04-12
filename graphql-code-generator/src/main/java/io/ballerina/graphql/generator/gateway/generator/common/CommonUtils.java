@@ -18,6 +18,16 @@
 
 package io.ballerina.graphql.generator.gateway.generator.common;
 
+import graphql.language.Argument;
+import graphql.language.BooleanValue;
+import graphql.language.Directive;
+import graphql.language.EnumValue;
+import graphql.language.FieldDefinition;
+import graphql.language.ListType;
+import graphql.language.NonNullType;
+import graphql.language.TypeName;
+import graphql.schema.GraphQLAppliedDirective;
+import graphql.schema.GraphQLAppliedDirectiveArgument;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
@@ -38,6 +48,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -83,6 +94,53 @@ public class CommonUtils {
         } else {
             throw new GatewayGenerationException("Unsupported type: " + queryType);
         }
+    }
+
+    /**
+     * Return the type name of the GraphQL type.
+     *
+     * @param definition GraphQL field definition
+     * @return Type name
+     */
+    public static String getTypeFromFieldDefinition(FieldDefinition definition) {
+        if (definition.getType() instanceof NonNullType) {
+            return ((TypeName) ((NonNullType) definition.getType()).getType()).getName();
+        } else if (definition.getType() instanceof ListType) {
+            return ((TypeName) ((ListType) definition.getType()).getType()).getName();
+        } else {
+            return ((TypeName) definition.getType()).getName();
+        }
+    }
+
+    public static String getClientFromFieldDefinition(FieldDefinition definition,
+                                                      List<GraphQLAppliedDirective> joinTypeDirectivesOnParent) {
+        for (Directive directive : definition.getDirectives()) {
+            if (directive.getName().equals("join__field")) {
+                String graph = null;
+                Boolean external = null;
+                for (Argument argument : directive.getArguments()) {
+                    if (argument.getName().equals("graph")) {
+                        graph = ((EnumValue) argument.getValue()).getName();
+                    } else if (argument.getName().equals("external")) {
+                        external = ((BooleanValue) argument.getValue()).isValue();
+                    }
+                }
+
+                if (graph != null && (external == null || !external)) {
+                    return graph;
+                }
+            }
+        }
+
+        if (joinTypeDirectivesOnParent.size() == 1) {
+            for (GraphQLAppliedDirectiveArgument argument : joinTypeDirectivesOnParent.get(0).getArguments()) {
+                if (argument.getName().equals("graph")) {
+                    return ((EnumValue) Objects.requireNonNull(argument.getArgumentValue().getValue())).getName();
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

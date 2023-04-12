@@ -1,19 +1,7 @@
 package io.ballerina.graphql.generator.gateway.generator;
 
-import graphql.language.Argument;
-import graphql.language.BooleanValue;
-import graphql.language.Directive;
-import graphql.language.Document;
 import graphql.language.EnumValue;
-import graphql.language.Field;
-import graphql.language.FieldDefinition;
-import graphql.language.ListType;
-import graphql.language.NonNullType;
-import graphql.language.OperationDefinition;
-import graphql.language.Selection;
 import graphql.language.StringValue;
-import graphql.language.TypeName;
-import graphql.parser.Parser;
 import graphql.schema.GraphQLAppliedDirective;
 import graphql.schema.GraphQLAppliedDirectiveArgument;
 import graphql.schema.GraphQLSchema;
@@ -29,7 +17,9 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
+import io.ballerina.graphql.generator.gateway.generator.common.FieldData;
 import io.ballerina.graphql.generator.gateway.generator.common.JoinGraph;
+import io.ballerina.graphql.generator.gateway.generator.common.SchemaTypes;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
@@ -41,7 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
@@ -100,17 +89,13 @@ public class GatewayQueryPlanGenerator {
 
     private final GraphQLSchema graphQLSchema;
     private final Map<String, JoinGraph> joinGraphs;
-    private final Map<String, List<FieldData>> fieldDataMap;
+    private final SchemaTypes schemaTypes;
 
     public GatewayQueryPlanGenerator(GraphQLSchema graphQLSchema) {
         this.graphQLSchema = graphQLSchema;
         this.joinGraphs = getJoinGraphs(graphQLSchema);
-        this.fieldDataMap = new HashMap<>();
+        this.schemaTypes = new SchemaTypes(graphQLSchema);
         List<String> names = CommonUtils.getCustomDefinedObjectTypeNames(graphQLSchema);
-
-        for (String name : names) {
-            fieldDataMap.put(name, getFieldsOfType(name));
-        }
 
     }
 
@@ -335,7 +320,7 @@ public class GatewayQueryPlanGenerator {
             }
         } catch (NullPointerException e) {
             for (FieldData field :
-                    this.fieldDataMap.get(name)) {
+                    schemaTypes.getFieldsOfType(name)) {
                 if (field.isID()) {
                     return field.getFieldName();
                 }
@@ -346,7 +331,7 @@ public class GatewayQueryPlanGenerator {
 
     private SeparatedNodeList<Node> getFieldTableRows(String name) {
         List<Node> nodeList = new ArrayList<>();
-        List<FieldData> fields = this.fieldDataMap.get(name);
+        List<FieldData> fields = schemaTypes.getFieldsOfType(name);
 
         int fieldsLength = fields.size();
         int i = 0;
@@ -500,127 +485,6 @@ public class GatewayQueryPlanGenerator {
         return createSeparatedNodeList(nodeList);
     }
 
-    private static String getTypeFromFieldDefinition(FieldDefinition definition) {
-        if (definition.getType() instanceof NonNullType) {
-            return ((TypeName) ((NonNullType) definition.getType()).getType()).getName();
-        } else if (definition.getType() instanceof ListType) {
-            return ((TypeName) ((ListType) definition.getType()).getType()).getName();
-        } else {
-            return ((TypeName) definition.getType()).getName();
-        }
-    }
-
-    private Map<String, String> getRequiresFromFieldDefinition(FieldDefinition definition,
-                                                               String parentType) {
-        for (Directive directive : definition.getDirectives()) {
-            if (directive.getName().equals("join__field")) {
-                for (Argument argument : directive.getArguments()) {
-                    if (argument.getName().equals("requires")) {
-                        String requiresString = ((StringValue) argument.getValue()).getValue();
-                        return getClassifiedRequiresString(requiresString, parentType);
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Map<String, String> getClassifiedRequiresString(String requiresString,
-                                                            String parentType) {
-        Map<String, List<Selection>> clientToFieldMap = new HashMap<>();
-        Document document = Parser.parse("query{ Document {" + requiresString + "} }");
-        List<Selection> requires =
-                ((Field) ((OperationDefinition) document.getDefinitions().get(0)).getSelectionSet().
-                        getSelections().get(0)).getSelectionSet().getSelections();
-        List<FieldData> fields = this.fieldDataMap.get(parentType);
-        for (Selection selection : requires) {
-            if (selection instanceof Field) {
-                String field = ((Field) selection).getName();
-                for (FieldData fieldData : fields) {
-                    if (fieldData.getFieldName().equals(field)) {
-                        clientToFieldMap.computeIfAbsent(fieldData.getClient(), k -> new ArrayList<>()).add(selection);
-                    }
-                    // TODO: if the field is an selection set handle it. Currently checking only parent field
-                    //  resolving client
-                }
-            }
-        }
-
-        Map<String, String> classifiedRequires = new HashMap<>();
-        for (Map.Entry<String, List<Selection>> entry : clientToFieldMap.entrySet()) {
-            classifiedRequires.put(entry.getKey(), getFieldAsString(entry.getValue()));
-        }
-        return classifiedRequires;
-    }
-
-    private static String getFieldAsString(List<Selection> fields) {
-        List<String> fieldStrings = new ArrayList<>();
-        for (Selection selection : fields) {
-
-            if (selection instanceof Field) {
-                if (((Field) selection).getSelectionSet() != null) {
-                    fieldStrings.add(((Field) selection).getName() + " {" +
-                            getFieldAsString(((Field) selection).getSelectionSet().getSelections()) + "}");
-                } else {
-                    fieldStrings.add(((Field) selection).getName());
-                }
-            }
-        }
-
-        return String.join(" ", fieldStrings);
-    }
-
-
-    private static String getClientFromFieldDefinition(FieldDefinition definition,
-                                                       List<GraphQLAppliedDirective> joinTypeDirectivesOnParent) {
-        for (Directive directive : definition.getDirectives()) {
-            if (directive.getName().equals("join__field")) {
-                String graph = null;
-                Boolean external = null;
-                for (Argument argument : directive.getArguments()) {
-                    if (argument.getName().equals("graph")) {
-                        graph = ((EnumValue) argument.getValue()).getName();
-                    } else if (argument.getName().equals("external")) {
-                        external = ((BooleanValue) argument.getValue()).isValue();
-                    }
-                }
-
-                if (graph != null && (external == null || !external)) {
-                    return graph;
-                }
-            }
-        }
-
-        if (joinTypeDirectivesOnParent.size() == 1) {
-            for (GraphQLAppliedDirectiveArgument argument : joinTypeDirectivesOnParent.get(0).getArguments()) {
-                if (argument.getName().equals("graph")) {
-                    return ((EnumValue) Objects.requireNonNull(argument.getArgumentValue().getValue())).getName();
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private List<FieldData> getFieldsOfType(String typeName) {
-        List<FieldData> fields = new ArrayList<>();
-
-        List<GraphQLAppliedDirective> joinTypeDirectives =
-                SpecReader.getObjectTypeDirectives(this.graphQLSchema, typeName).stream().filter(
-                        directive -> directive.getName().equals("join__type")
-                ).collect(Collectors.toList());
-        for (Map.Entry<String, FieldDefinition> entry :
-                SpecReader.getObjectTypeFieldDefinitionMap(this.graphQLSchema, typeName).entrySet()) {
-            FieldData field = new FieldData(this,
-                    entry.getKey(), entry.getValue(), joinTypeDirectives, typeName);
-            if (field.getClient() != null) {
-                fields.add(field);
-            }
-        }
-
-        return fields;
-    }
-
     private void addClientConstantDeclarations(List<ModuleMemberDeclarationNode> nodeList) {
         for (Map.Entry<String, JoinGraph> entry :
                 getJoinGraphs(this.graphQLSchema).entrySet()) {
@@ -630,47 +494,5 @@ public class GatewayQueryPlanGenerator {
             ));
         }
     }
-
-    static class FieldData {
-        private final String fieldName;
-        private final String type;
-        private final String client;
-        private final String typename;
-        private final FieldDefinition fieldDefinition;
-
-        private final GatewayQueryPlanGenerator generator;
-
-        public FieldData(GatewayQueryPlanGenerator generator, String fieldName, FieldDefinition fieldDefinition,
-                         List<GraphQLAppliedDirective> joinTypeDirectivesOnParent, String parentType) {
-            this.fieldName = fieldName;
-            this.type = getTypeFromFieldDefinition(fieldDefinition);
-            this.client = getClientFromFieldDefinition(fieldDefinition, joinTypeDirectivesOnParent);
-            this.typename = parentType;
-            this.fieldDefinition = fieldDefinition;
-            this.generator = generator;
-        }
-
-        public String getFieldName() {
-            return fieldName;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public String getClient() {
-            return client;
-        }
-
-        public Map<String, String> getRequires() {
-            return generator.getRequiresFromFieldDefinition(fieldDefinition, typename);
-        }
-
-        public boolean isID() {
-            return this.type.equals("ID");
-        }
-
-    }
-
 
 }
