@@ -14,6 +14,7 @@ public class Constants {
     public static final String URL_PLACEHOLDER = "@\\{url}";
     public static final String RESOURCE_FUNCTIONS_PLACEHOLDER = "@\\{resourceFunctions}";
 
+    public static final String MATCH_CLIENT_STATEMENTS_PLACEHOLDER = "@\\{matchClientStatements}";
     // Constants for the gateway service generation.
     public static final String CLIENT_NOT_FOUND_PANIC_BLOCK = "{ panic error(\"Client not found\"); }";
     public static final String CONFIGURABLE_PORT_STATEMENT = "configurable int PORT = 9000;";
@@ -29,4 +30,11 @@ public class Constants {
     public static final String ISOLATED_SERVICE_TEMPLATE = "isolated service on new graphql:Listener(PORT) {" +
             RESOURCE_FUNCTIONS_PLACEHOLDER +
             "}";
+    public static final String MATCH_CLIENT_STATEMENT_TEMPLATE =
+            "\"" + CLIENT_NAME_VALUE_PLACEHOLDER + "\" => {return " + CLIENT_NAME_PLACEHOLDER + "_CLIENT;}";
+
+    // File names for templates
+    public static final String RESOURCE_FUNCTION_TEMPLATE_FILE = "resource_function.bal.partial";
+    public static final String GET_CLIENT_FUNCTION_TEMPLATE_FILE = "get_client_function.bal.partial";
+
 }

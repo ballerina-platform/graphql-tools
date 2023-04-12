@@ -6,18 +6,24 @@ final graphql:Client ACCOUNTS_CLIENT = check new graphql:Client("http://localhos
 final graphql:Client PRODUCTS_CLIENT = check new graphql:Client("http://localhost:4003");
 
 isolated function getClient(string clientName) returns graphql:Client {
-    if (clientName == "reviews") {
-        return REVIEWS_CLIENT;
-    } else if (clientName == "inventory") {
-        return INVENTORY_CLIENT;
-    } else if (clientName == "accounts") {
-        return ACCOUNTS_CLIENT;
-    } else if (clientName == "products") {
-        return PRODUCTS_CLIENT;
-    } else {
-        panic error("Client not found");
+    match clientName {
+        "reviews" => {
+            return REVIEWS_CLIENT;
+        }
+        "inventory" => {
+            return INVENTORY_CLIENT;
+        }
+        "accounts" => {
+            return ACCOUNTS_CLIENT;
+        }
+        "products" => {
+            return PRODUCTS_CLIENT;
+        }
+        _ => {
+            panic error("Client not found");
+        }
     }
-};
+}
 
 configurable int PORT = 9000;
 

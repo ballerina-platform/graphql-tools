@@ -28,7 +28,13 @@ import graphql.schema.GraphQLSchemaElement;
 import graphql.schema.GraphQLType;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
+import org.apache.commons.io.IOUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,6 +117,30 @@ public class CommonUtils {
             }
         }
         return joinGraphs;
+    }
+
+    /**
+     * Gets the path of the  file after copying it to the specified tmpDir. Used to read resources.
+     *
+     * @param tmpDir   Temporary directory
+     * @param filename Name of the file
+     * @return Path to file in the temporary directory created
+     * @throws IOException When failed to get the gateway_templates/resource_function_body.bal.partial file
+     *                     from resources
+     */
+    public static Path getResourceTemplateFilePath(Path tmpDir, String filename) throws IOException {
+        Path path = null;
+        ClassLoader classLoader = CommonUtils.class.getClassLoader();
+        InputStream inputStream =
+                classLoader.getResourceAsStream("gateway_templates/" + filename);
+        if (inputStream != null) {
+            String resource = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            path = tmpDir.resolve(filename);
+            try (PrintWriter writer = new PrintWriter(path.toString(), StandardCharsets.UTF_8)) {
+                writer.print(resource);
+            }
+        }
+        return path;
     }
 
 }

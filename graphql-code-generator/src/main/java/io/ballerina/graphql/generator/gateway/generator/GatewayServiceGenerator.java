@@ -11,14 +11,11 @@ import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLSchemaElement;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeParser;
-import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
@@ -29,15 +26,11 @@ import io.ballerina.graphql.generator.utils.model.FieldType;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.ballerinalang.formatter.core.Formatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -45,66 +38,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
-import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createIdentifierToken;
-import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createLiteralValueToken;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
-import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createSeparatedNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createBasicLiteralNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createBinaryExpressionNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createBlockStatementNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createBracedExpressionNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createBuiltinSimpleNameReferenceNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createDefaultableParameterNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createElseBlockNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionBodyBlockNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionDefinitionNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionSignatureNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createIfElseStatementNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createQualifiedNameReferenceNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createRequiredParameterNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createReturnStatementNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createReturnTypeDescriptorNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createSimpleNameReferenceNode;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.BINARY_EXPRESSION;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.BRACED_EXPRESSION;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_BRACE_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_PAREN_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.COMMA_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.DOUBLE_EQUAL_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.ELSE_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.EQUAL_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.FUNCTION_DEFINITION;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.FUNCTION_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.IF_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.ISOLATED_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_BRACE_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_PAREN_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.RETURNS_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.RETURN_KEYWORD;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL_TOKEN;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_TYPE_DESC;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.BALLERINA_GRAPHQL_IMPORT_STATEMENT;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.BASIC_RESPONSE_TYPE_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NOT_FOUND_PANIC_BLOCK;
+import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_VALUE_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.CONFIGURABLE_PORT_STATEMENT;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.FUNCTION_PARAM_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.Constants.GET_CLIENT_FUNCTION_TEMPLATE_FILE;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.GRAPHQL_CLIENT_DECLARATION_STATEMENT;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.ISOLATED_SERVICE_TEMPLATE;
+import static io.ballerina.graphql.generator.gateway.generator.Constants.MATCH_CLIENT_STATEMENTS_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.Constants.MATCH_CLIENT_STATEMENT_TEMPLATE;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.QUERY_ARGS_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.QUERY_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.RESOURCE_FUNCTIONS_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.Constants.RESOURCE_FUNCTION_TEMPLATE_FILE;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.RESPONSE_TYPE_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.Constants.URL_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtils.getJoinGraphs;
+import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtils.getResourceTemplateFilePath;
 
 /**
  * Class to generate service code for the gateway.
@@ -113,9 +70,22 @@ public class GatewayServiceGenerator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GatewayServiceGenerator.class);
     private final GraphQLSchema graphQLSchema;
+    private final Map<String, JoinGraph> joinGraphs;
 
-    public GatewayServiceGenerator(GraphQLSchema graphQLSchema) {
+    Path tmpDir;
+
+    public GatewayServiceGenerator(GraphQLSchema graphQLSchema) throws IOException {
         this.graphQLSchema = graphQLSchema;
+        joinGraphs = getJoinGraphs(graphQLSchema);
+        tmpDir = Files.createTempDirectory(".gateway-tmp" + System.nanoTime());
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                FileUtils.deleteDirectory(tmpDir.toFile());
+            } catch (IOException ex) {
+                LOGGER.error("Unable to delete the temporary directory : " + tmpDir, ex);
+            }
+        }));
     }
 
     public String generateSrc() throws GatewayServiceGenerationException {
@@ -166,61 +136,10 @@ public class GatewayServiceGenerator {
         return resourceFunctions;
     }
 
-    private List<Node> getResourceFunctionArguments(GraphQLSchemaElement graphQLObjectType) {
-        List<Node> nodes = new ArrayList<>();
-        nodes.add(
-                createRequiredParameterNode(
-                        createSeparatedNodeList(),
-                        createQualifiedNameReferenceNode(
-                                createIdentifierToken("graphql"),
-                                createToken(COLON_TOKEN),
-                                createIdentifierToken("Field")
-                        ),
-                        createIdentifierToken("'field")
-                )
-        );
-        for (GraphQLArgument argument : ((GraphQLFieldDefinition) graphQLObjectType).getArguments()) {
-            nodes.add(createToken(COMMA_TOKEN));
-            FieldType fieldType = Utils.getFieldType(graphQLSchema,
-                    Objects.requireNonNull(argument.getDefinition()).getType());
-            if (argument.getDefinition().getDefaultValue() != null) {
-                nodes.add(
-                        createDefaultableParameterNode(
-                                createSeparatedNodeList(),
-                                createSimpleNameReferenceNode(
-                                        createIdentifierToken(fieldType.getName() + fieldType.getTokens())
-                                ),
-                                createIdentifierToken(argument.getName()),
-                                createToken(EQUAL_TOKEN),
-                                createBasicLiteralNode(
-                                        STRING_LITERAL,
-                                        createLiteralValueToken(
-                                                STRING_LITERAL_TOKEN,
-                                                getValue(argument.getDefinition().getDefaultValue()),
-                                                createEmptyMinutiaeList(),
-                                                createEmptyMinutiaeList()
-                                        )
-                                )
-                        )
-                );
-            } else {
-                nodes.add(
-                        createRequiredParameterNode(
-                                createSeparatedNodeList(),
-                                createSimpleNameReferenceNode(
-                                        createIdentifierToken(fieldType.getName() + fieldType.getTokens())
-                                ),
-                                createIdentifierToken(argument.getName())
-                        )
-                );
-            }
-        }
-        return nodes;
-    }
-
     private String getResourceFunction(GraphQLSchemaElement graphQLSchemaElement)
             throws IOException, GatewayGenerationException {
-        String functionTemplate = Files.readString(getResourceFunctionTemplateFilePath());
+        String functionTemplate = Files.readString(getResourceTemplateFilePath(tmpDir,
+                RESOURCE_FUNCTION_TEMPLATE_FILE));
         functionTemplate = functionTemplate.replaceAll(QUERY_PLACEHOLDER,
                 ((GraphQLFieldDefinition) graphQLSchemaElement).getName());
         functionTemplate = functionTemplate.replaceAll(FUNCTION_PARAM_PLACEHOLDER,
@@ -236,101 +155,28 @@ public class GatewayServiceGenerator {
         return functionTemplate;
     }
 
-    private FunctionDefinitionNode getGetClientFunction() {
-        return createFunctionDefinitionNode(
-                FUNCTION_DEFINITION,
-                null,
-                createSeparatedNodeList(createToken(ISOLATED_KEYWORD)),
-                createToken(FUNCTION_KEYWORD),
-                createIdentifierToken("getClient"),
-                createSeparatedNodeList(),
-                createFunctionSignatureNode(
-                        createToken(OPEN_PAREN_TOKEN),
-                        createSeparatedNodeList(
-                                createRequiredParameterNode(
-                                        createSeparatedNodeList(),
-                                        createBuiltinSimpleNameReferenceNode(
-                                                STRING_TYPE_DESC,
-                                                createIdentifierToken("string")
-                                        ),
-                                        createIdentifierToken("clientName")
-                                )
-                        ),
-                        createToken(CLOSE_PAREN_TOKEN),
-                        createReturnTypeDescriptorNode(
-                                createToken(RETURNS_KEYWORD),
-                                createNodeList(),
-                                createQualifiedNameReferenceNode(
-                                        createIdentifierToken("graphql"),
-                                        createToken(COLON_TOKEN),
-                                        createIdentifierToken("Client")
-                                )
-                        )
-                ),
-                createFunctionBodyBlockNode(
-                        createToken(OPEN_BRACE_TOKEN),
-                        null,
-                        createNodeList(
-                                getClientFunctionBody(getJoinGraphs(graphQLSchema))
-                        ),
-                        createToken(CLOSE_BRACE_TOKEN),
-                        createToken(SEMICOLON_TOKEN)
-                )
-        );
-    }
-
-    private StatementNode getClientFunctionBody(Map<String, JoinGraph> joinGraphs) {
-        int size = joinGraphs.size();
-        if (size == 0) {
-            return NodeParser.parseBlockStatement(CLIENT_NOT_FOUND_PANIC_BLOCK);
+    private ModuleMemberDeclarationNode getGetClientFunction()
+            throws IOException {
+        List<String> matchClientCases = new ArrayList<>();
+        for (Map.Entry<String, JoinGraph> entry : joinGraphs.entrySet()) {
+            matchClientCases.add(
+                    MATCH_CLIENT_STATEMENT_TEMPLATE
+                            .replace(CLIENT_NAME_PLACEHOLDER, entry.getKey())
+                            .replace(CLIENT_NAME_VALUE_PLACEHOLDER, entry.getValue().getName())
+            );
         }
-
-        String clientName = joinGraphs.keySet().iterator().next();
-        JoinGraph joinGraph = joinGraphs.remove(clientName);
-
-        return createIfElseStatementNode(
-                createToken(IF_KEYWORD),
-                createBracedExpressionNode(
-                        BRACED_EXPRESSION,
-                        createToken(OPEN_PAREN_TOKEN),
-                        createBinaryExpressionNode(
-                                BINARY_EXPRESSION,
-                                createSimpleNameReferenceNode(
-                                        createIdentifierToken("clientName")
-                                ),
-                                createToken(DOUBLE_EQUAL_TOKEN),
-                                createSimpleNameReferenceNode(
-                                        createIdentifierToken("\"" + joinGraph.getName() + "\"")
-                                )
-                        ),
-                        createToken(CLOSE_PAREN_TOKEN)
-                ),
-                createBlockStatementNode(
-                        createToken(OPEN_BRACE_TOKEN),
-                        createNodeList(
-                                createReturnStatementNode(
-                                        createToken(RETURN_KEYWORD),
-                                        createSimpleNameReferenceNode(
-                                                createIdentifierToken(clientName + "_CLIENT")
-                                        ),
-                                        createToken(SEMICOLON_TOKEN)
-                                )
-                        ),
-                        createToken(CLOSE_BRACE_TOKEN)
-                ),
-                createElseBlockNode(
-                        createToken(ELSE_KEYWORD),
-                        getClientFunctionBody(joinGraphs)
-                )
+        String functionTemplate = Files.readString(getResourceTemplateFilePath(tmpDir,
+                GET_CLIENT_FUNCTION_TEMPLATE_FILE));
+        functionTemplate = functionTemplate.replaceAll(
+                MATCH_CLIENT_STATEMENTS_PLACEHOLDER,
+                String.join(System.lineSeparator(), matchClientCases)
         );
+
+        return NodeParser.parseModuleMemberDeclaration(functionTemplate);
     }
 
     private List<ModuleMemberDeclarationNode> getClientDeclarations() {
         List<ModuleMemberDeclarationNode> nodes = new ArrayList<>();
-
-        Map<String, JoinGraph> joinGraphs
-                = getJoinGraphs(graphQLSchema);
-
         for (Map.Entry<String, JoinGraph> entry : joinGraphs.entrySet()) {
             String key = entry.getKey();
             JoinGraph value = entry.getValue();
@@ -368,9 +214,6 @@ public class GatewayServiceGenerator {
         }
     }
 
-    /**
-     * Can be used Node parser supports function Declaration to be parsed.
-     */
     private String getArgumentString(GraphQLSchemaElement graphQLObjectType) {
         StringBuilder arguments = new StringBuilder();
         for (GraphQLArgument argument : ((GraphQLFieldDefinition) graphQLObjectType).getArguments()) {
@@ -414,36 +257,5 @@ public class GatewayServiceGenerator {
             }
         }
         return argumentList.toString();
-    }
-
-    /**
-     * Gets the path of the  resource_function_body.bal.partial template at the time of execution.
-     *
-     * @return Path to resource_function_body.bal.partial file in the temporary directory created
-     * @throws IOException When failed to get the gateway_templates/resource_function_body.bal.partial file
-     *                     from resources
-     */
-    private Path getResourceFunctionTemplateFilePath() throws IOException {
-        Path path = null;
-        String filename = "resource_function.bal.partial";
-        ClassLoader classLoader = getClass().getClassLoader();
-        InputStream inputStream =
-                classLoader.getResourceAsStream("gateway_templates/" + filename);
-        if (inputStream != null) {
-            String resource = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-            Path tmpDir = Files.createTempDirectory(".gateway-tmp" + System.nanoTime());
-            path = tmpDir.resolve(filename);
-            try (PrintWriter writer = new PrintWriter(path.toString(), StandardCharsets.UTF_8)) {
-                writer.print(resource);
-            }
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    FileUtils.deleteDirectory(tmpDir.toFile());
-                } catch (IOException ex) {
-                    LOGGER.error("Unable to delete the temporary directory : " + tmpDir, ex);
-                }
-            }));
-        }
-        return path;
     }
 }

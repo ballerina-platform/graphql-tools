@@ -4,14 +4,18 @@ final graphql:Client MISSIONS_CLIENT = check new graphql:Client("http://localhos
 final graphql:Client ASTRONAUTS_CLIENT = check new graphql:Client("http://localhost:4001");
 
 isolated function getClient(string clientName) returns graphql:Client {
-    if (clientName == "missions") {
-        return MISSIONS_CLIENT;
-    } else if (clientName == "astronauts") {
-        return ASTRONAUTS_CLIENT;
-    } else {
-        panic error("Client not found");
+    match clientName {
+        "missions" => {
+            return MISSIONS_CLIENT;
+        }
+        "astronauts" => {
+            return ASTRONAUTS_CLIENT;
+        }
+        _ => {
+            panic error("Client not found");
+        }
     }
-};
+}
 
 configurable int PORT = 9000;
 
