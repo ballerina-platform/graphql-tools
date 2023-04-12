@@ -212,9 +212,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private void addTypeDefinitions(GraphQLSchema schema, List<ModuleMemberDeclarationNode> moduleMembers)
             throws ServiceTypesGenerationException {
         this.canRecordFromObject = new LinkedHashMap<>();
-        Iterator<Map.Entry<String, GraphQLNamedType>> typesIterator = schema.getTypeMap().entrySet().iterator();
-        while (typesIterator.hasNext()) {
-            Map.Entry<String, GraphQLNamedType> typeEntry = typesIterator.next();
+        for (Map.Entry<String, GraphQLNamedType> typeEntry : schema.getTypeMap().entrySet()) {
             String key = typeEntry.getKey();
             GraphQLNamedType type = typeEntry.getValue();
             if (type instanceof GraphQLInputObjectType) {
@@ -247,10 +245,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private void populateObjectTypesModuleMembers() throws ServiceTypesGenerationException {
-        Iterator<Map.Entry<GraphQLObjectType, Boolean>> canRecordFromObjectIterator =
-                canRecordFromObject.entrySet().iterator();
-        while (canRecordFromObjectIterator.hasNext()) {
-            Map.Entry<GraphQLObjectType, Boolean> canRecordFromObjectItem = canRecordFromObjectIterator.next();
+        for (Map.Entry<GraphQLObjectType, Boolean> canRecordFromObjectItem : canRecordFromObject.entrySet()) {
             GraphQLObjectType nextObjectType = canRecordFromObjectItem.getKey();
             Boolean isPossible = canRecordFromObjectItem.getValue();
             if (isPossible && recordForced) {
