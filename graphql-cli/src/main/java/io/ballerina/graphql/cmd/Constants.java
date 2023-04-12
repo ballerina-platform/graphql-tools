@@ -27,17 +27,17 @@ public class Constants {
     public static final String MESSAGE_FOR_MISSING_INPUT_ARGUMENT = "The input file path argument is missing. " +
             "Please provide the path of the GraphQL config file, Ballerina service file or GraphQL schema file " +
             "with -i or --input flag. \ne.g: bal graphql --input <GraphQL configuration file>";
-    public static final String MESSAGE_FOR_INVALID_FILE_EXTENSION = "A GraphQL configuration file " +
+    public static final String MESSAGE_FOR_INVALID_FILE_EXTENSION =
+            "File \"%s\" is invalid. Supported files are,\nA GraphQL configuration file " +
             "with .yaml/.yml extension, a Ballerina service file with .bal or a GraphQL schema file with .graphql is " +
-            "required to generate the artifacts. " +
-            "\nPlease provide the path of the GraphQL config file with -i or --input flag." +
+            "required as the input. \nPlease provide the path of the GraphQL config file with -i or --input flag." +
             "\ne.g: bal graphql --input <GraphQL configuration file>";
-    public static final String MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION = "The mode flag value should be client, " +
-            "service or schema and the input file should be a GraphQL configuration file with .yaml/.yml " +
-            "extension, " + "a Ballerina service file with .bal or a GraphQL schema file with .graphql respectively.";
-    public static final String MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE = "The use-records-for-objects flag is" +
-            " only used for service code generation. Therefore it must be used with graphql file with .graphql " +
-            "extension. If mode flag is available, argument must be service. ";
+    public static final String MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION =
+            "\"%s\" mode is not allowed to used with file \"%s\".\nThe mode flag value should be client, " +
+                "service or schema. Input file should be a GraphQL configuration file with .yaml/.yml " +
+                "extension, a Ballerina service file with .bal or a GraphQL schema file with .graphql respectively.";
+    public static final String MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE =
+            "The use-records-for-objects flag is incompatible with: \"%s\"";
     public static final String MESSAGE_FOR_EMPTY_CONFIGURATION_FILE =
             "The GraphQL " + "configuration YAML file is empty. \nPlease provide a valid content in the YAML file.";
     public static final String MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT =
@@ -60,12 +60,13 @@ public class Constants {
             "\nPlease provide a valid file path for the schema section " +
             "under each project in the YAML file. \nInvalid file path ";
 
-    public static final String MESSAGE_MISSING_SCHEMA_FILE = "- Provided Schema file path does not exist.";
-    public static final String MESSAGE_CAN_NOT_READ_SCHEMA_FILE = "- Provided Schema is not allowed to be read";
+    public static final String MESSAGE_MISSING_SCHEMA_FILE = "Provided Schema file \"%s\" does not exist.";
+    public static final String MESSAGE_CAN_NOT_READ_SCHEMA_FILE =
+            "Provided Schema file \"%s\" is not allowed to be read";
 
     public static final String MESSAGE_FOR_INVALID_MODE =
-            " is not a supported argument for mode flag. The mode flag argument should be one of these " +
-                    "(client," + "service, schema)";
+            "\"%s\" is not a supported argument for mode flag. The mode flag argument should be one of " +
+                    "these (client, service, schema)";
     // GraphQL config file extensions supported
     public static final String YAML_EXTENSION = ".yaml";
     public static final String YML_EXTENSION = ".yml";

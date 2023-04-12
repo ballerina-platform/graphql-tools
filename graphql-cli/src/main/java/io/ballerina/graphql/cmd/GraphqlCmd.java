@@ -201,15 +201,15 @@ public class GraphqlCmd implements BLauncherCmd {
 
         String filePath = argList.get(0);
         if (!validInputFileExtension(filePath)) {
-            throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+            throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, filePath));
         }
 
         if (!isModeCompatible()) {
-            throw new CmdException(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION);
+            throw new CmdException(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, filePath));
         }
 
         if (useRecordsForObjectsFlag && !MODE_SERVICE.equals(mode)) {
-            throw new CmdException(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE);
+            throw new CmdException(String.format(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE, mode));
         }
     }
 
@@ -227,7 +227,7 @@ public class GraphqlCmd implements BLauncherCmd {
         } else if (MODE_SERVICE.equals(mode)) {
             return filePath.endsWith(Constants.GRAPHQL_EXTENSION);
         } else {
-            throw new CmdException(mode.concat(MESSAGE_FOR_INVALID_MODE));
+            throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
         }
     }
 
@@ -289,10 +289,10 @@ public class GraphqlCmd implements BLauncherCmd {
     private void generateService(String filePath) throws IOException, ValidationException, GenerationException {
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
-            throw new ServiceGenerationException(filePath.concat(Constants.MESSAGE_MISSING_SCHEMA_FILE));
+            throw new ServiceGenerationException(String.format(Constants.MESSAGE_MISSING_SCHEMA_FILE, filePath));
         }
         if (!graphqlFile.canRead()) {
-            throw new ServiceGenerationException(filePath.concat(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE));
+            throw new ServiceGenerationException(String.format(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE, filePath));
         }
         GraphqlServiceProject graphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());

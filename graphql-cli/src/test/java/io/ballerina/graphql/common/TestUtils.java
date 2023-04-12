@@ -99,7 +99,7 @@ public class TestUtils {
                 }
                 return config;
             } else {
-                throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
+                throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, filePath));
             }
         } catch (YAMLException e) {
             throw new ParseException(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT + e.getMessage());

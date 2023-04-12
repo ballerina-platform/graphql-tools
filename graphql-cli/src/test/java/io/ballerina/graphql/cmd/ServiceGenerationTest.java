@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
+
 /**
  * This class includes tests for Ballerina Graphql service generation.
  */
@@ -131,12 +133,12 @@ public class ServiceGenerationTest extends GraphqlTest {
         String[] args = {"-i", invalidPath.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-
+        String message = String.format(MESSAGE_MISSING_SCHEMA_FILE, invalidPath);
         String output = "";
         try {
             graphqlCmd.execute();
             output = readOutput(true);
-            Assert.assertTrue(output.contains("Provided Schema file path does not exist"));
+            Assert.assertTrue(output.contains(message));
         } catch (BLauncherException | IOException e) {
             output = e.toString();
             Assert.fail(output);
