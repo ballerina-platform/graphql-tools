@@ -52,7 +52,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -96,7 +96,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -124,7 +124,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -152,7 +152,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -180,7 +180,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -208,7 +208,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -237,7 +237,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -265,7 +265,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -293,7 +293,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -321,7 +321,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -349,7 +349,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -377,7 +377,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -405,7 +405,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -441,7 +441,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
 
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
 
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -468,7 +468,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
@@ -495,7 +495,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
@@ -520,7 +520,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
@@ -594,7 +594,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
@@ -619,7 +619,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
@@ -644,7 +644,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
@@ -669,7 +669,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
@@ -701,7 +701,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
@@ -727,7 +727,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
         Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         String generatedServiceTypesContentTrimmed =
-                serviceTypesGenerator.generateSrc(graphQLSchema).trim().replaceAll("\\s+", "")
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
                         .replaceAll(System.lineSeparator(), "");
         Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);

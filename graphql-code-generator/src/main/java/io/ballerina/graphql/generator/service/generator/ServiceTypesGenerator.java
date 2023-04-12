@@ -133,11 +133,6 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private String fileName;
     private boolean recordForced;
-    private boolean serviceObjectsAdded;
-    private boolean typesAdded;
-
-    private HashMap<String, List<GraphQLNamedType>> schemaNamedTypes;
-
     private HashMap<GraphQLObjectType, Boolean> canRecordFromObject;
 
     private List<ModuleMemberDeclarationNode> moduleMembers;
@@ -147,28 +142,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private List<ModuleMemberDeclarationNode> unionTypesModuleMembers;
     private List<ModuleMemberDeclarationNode> objectTypesModuleMembers;
 
-
     public ServiceTypesGenerator() {
-        this.schemaNamedTypes = initializeSchemaNamedTypes();
         this.moduleMembers = new LinkedList<>();
         this.inputObjectTypesModuleMembers = new ArrayList<>();
         this.interfaceTypesModuleMembers = new ArrayList<>();
         this.enumTypesModuleMembers = new ArrayList<>();
         this.unionTypesModuleMembers = new ArrayList<>();
         this.objectTypesModuleMembers = new ArrayList<>();
-
-        this.serviceObjectsAdded = false;
-        this.typesAdded = false;
-    }
-
-    private HashMap<String, List<GraphQLNamedType>> initializeSchemaNamedTypes() {
-        HashMap<String, List<GraphQLNamedType>> schemaNamedTypes = new HashMap<>();
-        schemaNamedTypes.put(Constants.GRAPHQL_OBJECT_TYPE, new ArrayList<>());
-        schemaNamedTypes.put(Constants.GRAPHQL_INTERFACE_TYPE, new ArrayList<>());
-        schemaNamedTypes.put(Constants.GRAPHQL_INPUT_OBJECT_TYPE, new ArrayList<>());
-        schemaNamedTypes.put(Constants.GRAPHQL_ENUM_TYPE, new ArrayList<>());
-        schemaNamedTypes.put(Constants.GRAPHQL_UNION_TYPE, new ArrayList<>());
-        return schemaNamedTypes;
     }
 
     public void setRecordForced(boolean recordForced) {
@@ -190,14 +170,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceTypesGenerationException {
         NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
-        if (!serviceObjectsAdded) {
-            addServiceType(schema);
-            serviceObjectsAdded = true;
-        }
-        if (!typesAdded) {
-            addTypeDefinitions(schema);
-            typesAdded = true;
-        }
+        addServiceType(schema);
+        addTypeDefinitions(schema);
+
         NodeList<ModuleMemberDeclarationNode> moduleMemberNodes = createNodeList(moduleMembers);
         ModulePartNode modulePartNode =
                 createModulePartNode(imports, moduleMemberNodes, createToken(SyntaxKind.EOF_TOKEN));
