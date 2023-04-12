@@ -74,10 +74,8 @@ import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -193,11 +191,11 @@ public class ServiceTypesGenerator extends TypesGenerator {
     public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceTypesGenerationException {
         NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
         if (!serviceObjectsAdded) {
-            addServiceObjectTypeDefinitionNode(schema, moduleMembers);
+            addServiceType(schema);
             serviceObjectsAdded = true;
         }
         if (!typesAdded) {
-            addTypeDefinitions(schema, moduleMembers);
+            addTypeDefinitions(schema);
             typesAdded = true;
         }
         NodeList<ModuleMemberDeclarationNode> moduleMemberNodes = createNodeList(moduleMembers);
@@ -209,7 +207,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         return syntaxTree.modifyWith(modulePartNode);
     }
 
-    private void addTypeDefinitions(GraphQLSchema schema, List<ModuleMemberDeclarationNode> moduleMembers)
+    private void addTypeDefinitions(GraphQLSchema schema)
             throws ServiceTypesGenerationException {
         this.canRecordFromObject = new LinkedHashMap<>();
         for (Map.Entry<String, GraphQLNamedType> typeEntry : schema.getTypeMap().entrySet()) {
@@ -542,8 +540,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         return functionDefinition;
     }
 
-    private void addServiceObjectTypeDefinitionNode(GraphQLSchema schema,
-                                                    List<ModuleMemberDeclarationNode> typeDefinitionNodes)
+    private void addServiceType(GraphQLSchema schema)
             throws ServiceTypesGenerationException {
         ObjectTypeDescriptorNode serviceObjectTypeDescriptor =
                 createObjectTypeDescriptorNode(createNodeList(createToken(SyntaxKind.SERVICE_KEYWORD)),
@@ -553,7 +550,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 createTypeDefinitionNode(null, createToken(SyntaxKind.PUBLIC_KEYWORD),
                         createToken(SyntaxKind.TYPE_KEYWORD), createIdentifierToken(this.fileName),
                         serviceObjectTypeDescriptor, createToken(SyntaxKind.SEMICOLON_TOKEN));
-        typeDefinitionNodes.add(serviceObjectTypeDefinition);
+        moduleMembers.add(serviceObjectTypeDefinition);
     }
 
     private NodeList<Node> generateServiceObjectTypeMembers(GraphQLSchema schema)
@@ -979,5 +976,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
         } else {
             throw new ServiceTypesGenerationException("Should be a scalar type name but found: " + argumentTypeName);
         }
+    }
+
+    private void addToModuleMembers(ModuleMemberDeclarationNode moduleMember) {
+        this.moduleMembers.add(moduleMember);
     }
 }
