@@ -124,7 +124,7 @@ public class Utils {
     public static String extractSchemaContent(String schema) throws IOException {
         File schemaFile = new File(schema);
         Path schemaPath = Paths.get(schemaFile.getCanonicalPath());
-        return Files.readString(schemaPath);
+        return String.join(System.lineSeparator(), Files.readAllLines(schemaPath));
     }
 
     /**
