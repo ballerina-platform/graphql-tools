@@ -965,8 +965,4 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, argumentTypeName));
         }
     }
-
-    private void addToModuleMembers(ModuleMemberDeclarationNode moduleMember) {
-        this.moduleMembers.add(moduleMember);
-    }
 }
