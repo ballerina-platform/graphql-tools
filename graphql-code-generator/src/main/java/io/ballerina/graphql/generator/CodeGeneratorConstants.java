@@ -41,6 +41,8 @@ public class CodeGeneratorConstants {
     public static final String ID = "id";
 
     public static final String SLASH = "/";
+    public static final String QUOTE = "\"";
+    public static final String DOUBLE_UNDERSCORE = "__";
     public static final String SEMICOLON = ";";
     public static final String WHITESPACE = " ";
     public static final String EMPTY_STRING = "";
@@ -77,6 +79,7 @@ public class CodeGeneratorConstants {
     public static final String QUERY = "Query";
     public static final String SUBSCRIPTION = "Subscription";
     public static final String REPRESENTS = "# Represents ";
+    public static final String HASH_DEPRECATED = "# Deprecated ";
     public static final String RESPONSE = "Response";
     public static final String HTTP_CLIENT_CONFIG_TYPE_NAME = "graphql:ClientConfiguration";
     public static final String CONNECTION_CONFIG_PARAM_NAME = "connectionConfig";
@@ -112,6 +115,8 @@ public class CodeGeneratorConstants {
     public static final String PORT = "port";
     public static final String PORT_NUMBER_DEFAULT = "9090";
     public static final String DEPRECATED = "deprecated";
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
 
     // OS specific line separator
     public static final String LINE_SEPARATOR = System.lineSeparator();
