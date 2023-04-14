@@ -64,9 +64,9 @@ public class ServiceGenerator {
 
     private SyntaxTree generateSyntaxTree() throws IOException {
         NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
-        NodeList<ModuleMemberDeclarationNode> moduleMemberDeclarationNodes = generateMembers();
+        NodeList<ModuleMemberDeclarationNode> serviceBody = generateMembers();
         ModulePartNode modulePartNode =
-                createModulePartNode(imports, moduleMemberDeclarationNodes, createToken(SyntaxKind.EOF_TOKEN));
+                createModulePartNode(imports, serviceBody, createToken(SyntaxKind.EOF_TOKEN));
 
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);

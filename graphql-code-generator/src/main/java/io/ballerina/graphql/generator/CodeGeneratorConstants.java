@@ -42,6 +42,7 @@ public class CodeGeneratorConstants {
 
     public static final String SLASH = "/";
     public static final String QUOTE = "\"";
+    public static final String WRITE_STRING_FORMAT = "\"%s\"";
     public static final String DOUBLE_UNDERSCORE = "__";
     public static final String SEMICOLON = ";";
     public static final String WHITESPACE = " ";
