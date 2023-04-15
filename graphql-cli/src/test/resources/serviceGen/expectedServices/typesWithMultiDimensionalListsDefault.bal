@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-public type SchemaWithMultiDimensionalListsApi service object {
+type SchemaWithMultiDimensionalListsApi service object {
     *graphql:Service;
 
     resource function get book(int id, string? title) returns Book?;

@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-public type SchemaWithInputsApi service object {
+type SchemaWithInputsApi service object {
     *graphql:Service;
 
     resource function get book(int id, string? title) returns Book?;

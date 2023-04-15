@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-public type SchemaWithBasic03Api service object {
+type SchemaWithBasic03Api service object {
     *graphql:Service;
 
     resource function get dog(string name) returns Dog?;

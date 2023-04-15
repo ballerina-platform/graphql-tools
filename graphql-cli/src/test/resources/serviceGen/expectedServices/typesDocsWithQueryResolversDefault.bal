@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-public type SchemaDocsWithQueryResolversApi service object {
+type SchemaDocsWithQueryResolversApi service object {
     *graphql:Service;
 
     # Fetch all the books from database

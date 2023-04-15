@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-public type SchemaWithMutationApi service object {
+type SchemaWithMutationApi service object {
     *graphql:Service;
 
     resource function get book(int id, string? title) returns Book?;

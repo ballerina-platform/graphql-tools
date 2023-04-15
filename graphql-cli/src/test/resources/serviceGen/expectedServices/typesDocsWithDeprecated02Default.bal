@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-public type SchemaDocsWithDeprecated02Api service object {
+type SchemaDocsWithDeprecated02Api service object {
     *graphql:Service;
 
     # Fetch all the books from database

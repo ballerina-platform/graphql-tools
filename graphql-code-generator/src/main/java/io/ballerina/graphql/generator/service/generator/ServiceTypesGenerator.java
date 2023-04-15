@@ -519,7 +519,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         createToken(SyntaxKind.OBJECT_KEYWORD), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
                         generateServiceObjectMembers(schema), createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
         TypeDefinitionNode serviceObjectDefinition =
-                createTypeDefinitionNode(null, createToken(SyntaxKind.PUBLIC_KEYWORD),
+                createTypeDefinitionNode(null, null,
                         createToken(SyntaxKind.TYPE_KEYWORD), createIdentifierToken(this.fileName), serviceObject,
                         createToken(SyntaxKind.SEMICOLON_TOKEN));
         moduleMembers.add(serviceObjectDefinition);
