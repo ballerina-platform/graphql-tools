@@ -291,7 +291,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                             generateMethodSignatureReturnType(field.getType()));
             MethodDeclarationNode methodDeclaration =
-                    createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, generateMetadataForField(field),
+                    createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION,
+                            generateMetadataForField(field.getDescription(), field.getArguments(),
+                                    field.isDeprecated(), field.getDeprecationReason()),
                             methodQualifiers, createToken(SyntaxKind.FUNCTION_KEYWORD),
                             createIdentifierToken(CodeGeneratorConstants.GET), methodRelativeResourcePaths,
                             methodSignatureNode, createToken(SyntaxKind.SEMICOLON_TOKEN));
@@ -396,12 +398,10 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 createRecordTypeDescriptorNode(createToken(SyntaxKind.RECORD_KEYWORD),
                         createToken(SyntaxKind.OPEN_BRACE_PIPE_TOKEN), recordTypeFields, null,
                         createToken(SyntaxKind.CLOSE_BRACE_PIPE_TOKEN));
-        TypeDefinitionNode typeDefinition =
-                createTypeDefinitionNode(generateMetadataForDescription(type.getDescription()),
-                        createToken(SyntaxKind.PUBLIC_KEYWORD), createToken(SyntaxKind.TYPE_KEYWORD),
-                        createIdentifierToken(type.getName()), recordTypeDescriptor,
-                        createToken(SyntaxKind.SEMICOLON_TOKEN));
-        return typeDefinition;
+        return createTypeDefinitionNode(generateMetadataForDescription(type.getDescription()),
+                createToken(SyntaxKind.PUBLIC_KEYWORD), createToken(SyntaxKind.TYPE_KEYWORD),
+                createIdentifierToken(type.getName()), recordTypeDescriptor,
+                createToken(SyntaxKind.SEMICOLON_TOKEN));
     }
 
     private ModuleMemberDeclarationNode generateRecordType(GraphQLObjectType type)
@@ -425,7 +425,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLInputObjectField> inputTypeFields) throws ServiceTypesGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLInputObjectField field : inputTypeFields) {
-            fields.add(createRecordFieldNode(generateMetadataForInputObjectField(field), null,
+            fields.add(createRecordFieldNode(generateMetadataForField(field.getDescription(), null,
+                            field.isDeprecated(), field.getDeprecationReason()), null,
                     generateTypeDescriptor(field.getType()), createIdentifierToken(field.getName()), null,
                     createToken(SyntaxKind.SEMICOLON_TOKEN)));
         }
@@ -436,7 +437,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLFieldDefinition> typeInputFields) throws ServiceTypesGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLFieldDefinition field : typeInputFields) {
-            fields.add(createRecordFieldNode(generateMetadataForField(field), null,
+            fields.add(createRecordFieldNode(generateMetadataForField(field.getDescription(), field.getArguments(),
+                            field.isDeprecated(), field.getDeprecationReason()), null,
                     generateTypeDescriptor(field.getType()), createIdentifierToken(field.getName()), null,
                     createToken(SyntaxKind.SEMICOLON_TOKEN)));
         }
@@ -507,7 +509,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
         FunctionDefinitionNode functionDefinition =
                 createFunctionDefinitionNode(SyntaxKind.RESOURCE_ACCESSOR_DEFINITION,
-                        generateMetadataForField(fieldDefinition), memberQualifiers,
+                        generateMetadataForField(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
+                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason()), memberQualifiers,
                         createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
                         memberRelativeResourcePaths, functionSignature, functionBody);
         return functionDefinition;
@@ -548,7 +551,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             generateMethodSignatureParams(field.getArguments()),
                             createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                             generateMethodSignatureReturnType(field.getType(), false));
-            MetadataNode metadata = generateMetadataForField(field);
+            MetadataNode metadata = generateMetadataForField(field.getDescription(), field.getArguments(),
+                    field.isDeprecated(), field.getDeprecationReason());
             MethodDeclarationNode methodDeclaration =
                     createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
                             createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
@@ -564,7 +568,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                                 generateMethodSignatureReturnType(fieldDefinition.getType(), false));
-                MetadataNode metadata = generateMetadataForField(fieldDefinition);
+                MetadataNode metadata = generateMetadataForField(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
+                        fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
                                 createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD)),
@@ -582,7 +587,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                                 generateMethodSignatureReturnType(fieldDefinition.getType(), true));
-                MetadataNode metadata = generateMetadataForField(fieldDefinition);
+                MetadataNode metadata = generateMetadataForField(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
+                        fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, metadata,
                                 createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
@@ -610,34 +616,20 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 createNodeList(annotations));
     }
 
-    private MetadataNode generateMetadataForInputObjectField(GraphQLInputObjectField field) {
+    private MetadataNode generateMetadataForField(String description, List<GraphQLArgument> arguments,
+                                                  boolean isDeprecated, String deprecationReason) {
         List<AnnotationNode> annotations = new ArrayList<>();
         List<Node> markdownDocumentationLines =
-                new ArrayList<>(generateMarkdownDocumentationLines(field.getDescription()));
-        if (field.isDeprecated()) {
-            AnnotationNode annotation = createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
-                    createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null);
-            annotations.add(annotation);
-            markdownDocumentationLines.addAll(
-                    generateMarkdownDocumentationLinesForDeprecated(field.getDeprecationReason()));
-        }
-        return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
-                createNodeList(annotations));
-    }
-
-    private MetadataNode generateMetadataForField(GraphQLFieldDefinition fieldDefinition) {
-        List<AnnotationNode> annotations = new ArrayList<>();
-        List<Node> markdownDocumentationLines =
-                new ArrayList<>(generateMarkdownDocumentationLines(fieldDefinition.getDescription()));
-        for (GraphQLArgument argument : fieldDefinition.getArguments()) {
+                new ArrayList<>(generateMarkdownDocumentationLines(description));
+        for (GraphQLArgument argument : arguments) {
             markdownDocumentationLines.addAll(generateMarkdownParameterDocumentationLines(argument));
         }
-        if (fieldDefinition.isDeprecated()) {
+        if (isDeprecated) {
             AnnotationNode annotation = createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
                     createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null);
             annotations.add(annotation);
             markdownDocumentationLines.addAll(
-                    generateMarkdownDocumentationLinesForDeprecated(fieldDefinition.getDeprecationReason()));
+                    generateMarkdownDocumentationLinesForDeprecated(deprecationReason));
         }
         return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
                 createNodeList(annotations));
