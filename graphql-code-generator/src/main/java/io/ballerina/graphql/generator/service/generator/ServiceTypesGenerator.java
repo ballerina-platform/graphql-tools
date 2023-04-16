@@ -519,9 +519,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         createToken(SyntaxKind.OBJECT_KEYWORD), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
                         generateServiceObjectMembers(schema), createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
         TypeDefinitionNode serviceObjectDefinition =
-                createTypeDefinitionNode(null, null,
-                        createToken(SyntaxKind.TYPE_KEYWORD), createIdentifierToken(this.fileName), serviceObject,
-                        createToken(SyntaxKind.SEMICOLON_TOKEN));
+                createTypeDefinitionNode(null, null, createToken(SyntaxKind.TYPE_KEYWORD),
+                        createIdentifierToken(this.fileName), serviceObject, createToken(SyntaxKind.SEMICOLON_TOKEN));
         moduleMembers.add(serviceObjectDefinition);
     }
 
@@ -709,8 +708,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE)))));
     }
 
-    private ReturnTypeDescriptorNode generateMethodSignatureReturnType(GraphQLOutputType type,
-                                                                       boolean isStream)
+    private ReturnTypeDescriptorNode generateMethodSignatureReturnType(GraphQLOutputType type, boolean isStream)
             throws ServiceTypesGenerationException {
         TypeDescriptorNode typeDescriptor = generateTypeDescriptor(type);
         if (isStream) {
@@ -790,9 +788,10 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             createEmptyMinutiaeList(), createEmptyMinutiaeList()));
         } else if (value instanceof BooleanValue) {
             BooleanValue booleanValue = (BooleanValue) value;
-            return createBasicLiteralNode(SyntaxKind.BOOLEAN_LITERAL, createLiteralValueToken(SyntaxKind.TRUE_KEYWORD,
-                    booleanValue.isValue() ? CodeGeneratorConstants.TRUE : CodeGeneratorConstants.FALSE,
-                    createEmptyMinutiaeList(), createEmptyMinutiaeList()));
+            return createBasicLiteralNode(SyntaxKind.BOOLEAN_LITERAL,
+                    createLiteralValueToken(booleanValue.isValue() ? SyntaxKind.TRUE_KEYWORD : SyntaxKind.FALSE_KEYWORD,
+                            booleanValue.isValue() ? CodeGeneratorConstants.TRUE : CodeGeneratorConstants.FALSE,
+                            createEmptyMinutiaeList(), createEmptyMinutiaeList()));
         } else if (value instanceof EnumValue) {
             EnumValue enumValue = (EnumValue) value;
             return createSimpleNameReferenceNode(createIdentifierToken(enumValue.getName()));
@@ -841,8 +840,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             if (nonNull) {
                 return scalarName;
             } else {
-                return createOptionalTypeDescriptorNode(scalarName,
-                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
+                return createOptionalTypeDescriptorNode(scalarName, createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         } else if (type instanceof GraphQLObjectType) {
             GraphQLObjectType objectType = (GraphQLObjectType) type;
@@ -851,8 +849,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             if (nonNull) {
                 return objectName;
             } else {
-                return createOptionalTypeDescriptorNode(objectName,
-                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
+                return createOptionalTypeDescriptorNode(objectName, createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         } else if (type instanceof GraphQLInputObjectType) {
             GraphQLInputObjectType inputObjectType = (GraphQLInputObjectType) type;
@@ -861,18 +858,15 @@ public class ServiceTypesGenerator extends TypesGenerator {
             if (nonNull) {
                 return inputObjectName;
             } else {
-                return createOptionalTypeDescriptorNode(inputObjectName,
-                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
+                return createOptionalTypeDescriptorNode(inputObjectName, createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         } else if (type instanceof GraphQLEnumType) {
             GraphQLEnumType enumType = (GraphQLEnumType) type;
-            SimpleNameReferenceNode enumName =
-                    createSimpleNameReferenceNode(createIdentifierToken(enumType.getName()));
+            SimpleNameReferenceNode enumName = createSimpleNameReferenceNode(createIdentifierToken(enumType.getName()));
             if (nonNull) {
                 return enumName;
             } else {
-                return createOptionalTypeDescriptorNode(enumName,
-                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
+                return createOptionalTypeDescriptorNode(enumName, createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         } else if (type instanceof GraphQLInterfaceType) {
             GraphQLInterfaceType interfaceType = (GraphQLInterfaceType) type;
@@ -881,8 +875,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             if (nonNull) {
                 return interfaceName;
             } else {
-                return createOptionalTypeDescriptorNode(interfaceName,
-                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
+                return createOptionalTypeDescriptorNode(interfaceName, createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         } else if (type instanceof GraphQLUnionType) {
             GraphQLUnionType unionType = (GraphQLUnionType) type;
@@ -891,8 +884,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             if (nonNull) {
                 return unionName;
             } else {
-                return createOptionalTypeDescriptorNode(unionName,
-                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
+                return createOptionalTypeDescriptorNode(unionName, createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         } else if (type instanceof GraphQLNonNull) {
             GraphQLNonNull nonNullType = (GraphQLNonNull) type;
@@ -902,15 +894,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
             ArrayDimensionNode arrayDimension =
                     createArrayDimensionNode(createToken(SyntaxKind.OPEN_BRACKET_TOKEN), null,
                             createToken(SyntaxKind.CLOSE_BRACKET_TOKEN));
-            TypeDescriptorNode wrappedType =
-                    generateTypeDescriptor(listType.getWrappedType());
+            TypeDescriptorNode wrappedType = generateTypeDescriptor(listType.getWrappedType());
             ArrayTypeDescriptorNode arrayTypeNode =
                     createArrayTypeDescriptorNode(wrappedType, createNodeList(arrayDimension));
             if (nonNull) {
                 return arrayTypeNode;
             } else {
-                return createOptionalTypeDescriptorNode(arrayTypeNode,
-                        createToken(SyntaxKind.QUESTION_MARK_TOKEN));
+                return createOptionalTypeDescriptorNode(arrayTypeNode, createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         } else {
             throw new ServiceTypesGenerationException(
@@ -934,8 +924,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         } else if (Constants.GRAPHQL_ID_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_KEYWORD;
         } else {
-            throw new ServiceTypesGenerationException(
-                    String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
+            throw new ServiceTypesGenerationException(String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
         }
     }
 
@@ -951,8 +940,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         } else if (Constants.GRAPHQL_ID_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_TYPE_DESC;
         } else {
-            throw new ServiceTypesGenerationException(
-                    String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
+            throw new ServiceTypesGenerationException(String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
         }
     }
 }
