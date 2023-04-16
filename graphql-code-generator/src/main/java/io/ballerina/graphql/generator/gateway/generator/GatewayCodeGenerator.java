@@ -53,7 +53,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
             copyTemplateFiles((GraphqlGatewayProject) project);
             Path outputDirectoryPath = Path.of(outputPath);
             List<SrcFilePojo> genSources = generateBalSources(project);
-            writeGeneratedSources(genSources, outputDirectoryPath);
+            writeGeneratedSources(genSources, ((GraphqlGatewayProject) project).getTempDir());
 
             //Generating the executable
             BuildOptions buildOptions = BuildOptions.builder().build();
