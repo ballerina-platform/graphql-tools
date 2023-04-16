@@ -17,6 +17,11 @@ import io.ballerina.graphql.generator.service.exception.ServiceGenerationExcepti
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import io.ballerina.projects.BuildOptions;
+import io.ballerina.projects.JBallerinaBackend;
+import io.ballerina.projects.JvmTarget;
+import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.directory.BuildProject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -59,14 +64,14 @@ public class GatewayCodeGenerator extends CodeGenerator {
 
             //Generating the executable
             // TODO: Generating executable is not working due to the issue with graphql module.
-//            BuildOptions buildOptions = BuildOptions.builder().build();
-//            BuildProject buildProject = BuildProject.load(outputDirectoryPath, buildOptions);
-//            PackageCompilation packageCompilation = buildProject.currentPackage().getCompilation();
-//            JBallerinaBackend jBallerinaBackend = JBallerinaBackend.from(packageCompilation, JvmTarget.JAVA_11);
-//            if (jBallerinaBackend.diagnosticResult().hasErrors()) {
-//                throw new GatewayGenerationException("Error while generating the executable.");
-//            }
-//            jBallerinaBackend.emit(JBallerinaBackend.OutputType.EXEC, outputDirectoryPath.resolve("gateway.jar"));
+            BuildOptions buildOptions = BuildOptions.builder().build();
+            BuildProject buildProject = BuildProject.load(outputDirectoryPath, buildOptions);
+            PackageCompilation packageCompilation = buildProject.currentPackage().getCompilation();
+            JBallerinaBackend jBallerinaBackend = JBallerinaBackend.from(packageCompilation, JvmTarget.JAVA_11);
+            if (jBallerinaBackend.diagnosticResult().hasErrors()) {
+                throw new GatewayGenerationException("Error while generating the executable.");
+            }
+            jBallerinaBackend.emit(JBallerinaBackend.OutputType.EXEC, outputDirectoryPath.resolve("gateway.jar"));
 
         } catch (GatewayGenerationException | IOException | GatewayTypeGenerationException |
                  GatewayQueryPlanGenerationException | URISyntaxException e) {
