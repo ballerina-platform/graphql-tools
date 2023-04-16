@@ -1,30 +1,26 @@
 import ballerina/graphql;
 
-type SchemaWithUnionApi service object {
+type SchemaWithDefaultParameters04Api service object {
     *graphql:Service;
-    resource function get student(int id) returns Profile?;
-    resource function get teacher(int id) returns Profile?;
+    resource function get book(int id) returns Book?;
+    remote function createBook(CreateBookInput input = {id: 1, title: "no title"}) returns Book?;
+    remote function createBookWithAuthor(CreateBookInput input = {id: 1, title: "no title", author: {id: 1, name: "no name"}}) returns Book?;
 };
 
-public type Profile Student|Teacher|Clerk;
+public type CreateAuthorInput record {|
+    int id;
+    string name;
+|};
 
-public distinct service class Clerk {
+public type CreateBookInput record {|
+    int id;
+    string title;
+    CreateAuthorInput? author;
+|};
+
+public distinct service class Book {
     resource function get id() returns int {
     }
-    resource function get name() returns string {
-    }
-}
-
-public distinct service class Student {
-    resource function get id() returns int {
-    }
-    resource function get name() returns string {
-    }
-}
-
-public distinct service class Teacher {
-    resource function get id() returns int {
-    }
-    resource function get name() returns string {
+    resource function get title() returns string {
     }
 }
