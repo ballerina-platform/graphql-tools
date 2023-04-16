@@ -28,7 +28,6 @@ import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationEx
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
-import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -79,16 +78,5 @@ public abstract class CodeGenerator {
                 }
             }
         }
-    }
-
-    /**
-     * Copies the template project files to the specified {@code outputPath}.
-     *
-     * @param templateProjectPath the path of the template project
-     * @param outputPath          the target output path for the code generation
-     * @throws IOException If an I/O error occurs
-     */
-    protected void copyTemplateProjectFiles(Path templateProjectPath, Path outputPath) throws IOException {
-        FileUtils.copyDirectory(templateProjectPath.toFile(), outputPath.toFile());
     }
 }

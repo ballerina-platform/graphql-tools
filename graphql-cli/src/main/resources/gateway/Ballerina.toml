@@ -9,7 +9,7 @@ observabilityIncluded = true
 [[dependency]]
 name = "graphql"
 org = "ballerina"
-version = "1.6.2"
+version = "1.8.0"
 repository = "local"
 
 [[platform.java11.dependency]]

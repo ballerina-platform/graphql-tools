@@ -1,0 +1,6 @@
+isolated function getClient(string clientName) returns graphql:Client {
+    match clientName {
+        @{matchClientStatements}
+        _ => {panic error("Client not found");}
+    }
+}
