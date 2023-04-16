@@ -9,7 +9,6 @@ import graphql.language.Value;
 import graphql.schema.GraphQLAppliedDirective;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLSchemaElement;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
@@ -17,6 +16,7 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
@@ -25,14 +25,10 @@ import io.ballerina.graphql.generator.utils.graphql.Utils;
 import io.ballerina.graphql.generator.utils.model.FieldType;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
-import org.apache.commons.io.FileUtils;
 import org.ballerinalang.formatter.core.Formatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,25 +63,12 @@ import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtil
  * Class to generate service code for the gateway.
  */
 public class GatewayServiceGenerator {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GatewayServiceGenerator.class);
-    private final GraphQLSchema graphQLSchema;
+    private final GraphqlGatewayProject project;
     private final Map<String, JoinGraph> joinGraphs;
 
-    Path tmpDir;
-
-    public GatewayServiceGenerator(GraphQLSchema graphQLSchema) throws IOException {
-        this.graphQLSchema = graphQLSchema;
-        joinGraphs = getJoinGraphs(graphQLSchema);
-        tmpDir = Files.createTempDirectory(".gateway-tmp" + System.nanoTime());
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                FileUtils.deleteDirectory(tmpDir.toFile());
-            } catch (IOException ex) {
-                LOGGER.error("Unable to delete the temporary directory : " + tmpDir, ex);
-            }
-        }));
+    public GatewayServiceGenerator(GraphqlGatewayProject project) throws IOException {
+        this.project = project;
+        joinGraphs = getJoinGraphs(project.getGraphQLSchema());
     }
 
     public String generateSrc() throws GatewayServiceGenerationException {
@@ -130,7 +113,7 @@ public class GatewayServiceGenerator {
 
     private List<String> getResourceFunctions() throws GatewayGenerationException, IOException {
         List<String> resourceFunctions = new ArrayList<>();
-        for (GraphQLSchemaElement graphQLObjectType : CommonUtils.getQueryTypes(graphQLSchema)) {
+        for (GraphQLSchemaElement graphQLObjectType : CommonUtils.getQueryTypes(project.getGraphQLSchema())) {
             resourceFunctions.add(getResourceFunction(graphQLObjectType));
         }
         return resourceFunctions;
@@ -138,7 +121,7 @@ public class GatewayServiceGenerator {
 
     private String getResourceFunction(GraphQLSchemaElement graphQLSchemaElement)
             throws IOException, GatewayGenerationException {
-        String functionTemplate = Files.readString(getResourceTemplateFilePath(tmpDir,
+        String functionTemplate = Files.readString(getResourceTemplateFilePath(project.getTempDir(),
                 RESOURCE_FUNCTION_TEMPLATE_FILE));
         functionTemplate = functionTemplate.replaceAll(QUERY_PLACEHOLDER,
                 ((GraphQLFieldDefinition) graphQLSchemaElement).getName());
@@ -165,7 +148,7 @@ public class GatewayServiceGenerator {
                             .replace(CLIENT_NAME_VALUE_PLACEHOLDER, entry.getValue().getName())
             );
         }
-        String functionTemplate = Files.readString(getResourceTemplateFilePath(tmpDir,
+        String functionTemplate = Files.readString(getResourceTemplateFilePath(project.getTempDir(),
                 GET_CLIENT_FUNCTION_TEMPLATE_FILE));
         functionTemplate = functionTemplate.replaceAll(
                 MATCH_CLIENT_STATEMENTS_PLACEHOLDER,
@@ -218,7 +201,7 @@ public class GatewayServiceGenerator {
         StringBuilder arguments = new StringBuilder();
         for (GraphQLArgument argument : ((GraphQLFieldDefinition) graphQLObjectType).getArguments()) {
             arguments.append(", ");
-            FieldType fieldType = Utils.getFieldType(graphQLSchema,
+            FieldType fieldType = Utils.getFieldType(project.getGraphQLSchema(),
                     Objects.requireNonNull(argument.getDefinition()).getType());
             if (argument.getDefinition().getDefaultValue() != null) {
                 arguments.append(fieldType.getName()).append(fieldType.getTokens()).append(" ")
