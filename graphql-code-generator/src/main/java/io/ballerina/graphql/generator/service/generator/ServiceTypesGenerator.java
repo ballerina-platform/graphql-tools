@@ -132,7 +132,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createUnionTypeDescr
 public class ServiceTypesGenerator extends TypesGenerator {
 
     private String fileName;
-    private boolean recordForced;
+    private boolean useRecordsForObjects;
     private HashMap<GraphQLObjectType, Boolean> canRecordFromObject;
 
     private List<ModuleMemberDeclarationNode> moduleMembers;
@@ -151,8 +151,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
         this.objectTypesModuleMembers = new ArrayList<>();
     }
 
-    public void setRecordForced(boolean recordForced) {
-        this.recordForced = recordForced;
+    public void setUseRecordsForObjects(boolean useRecordsForObjects) {
+        this.useRecordsForObjects = useRecordsForObjects;
     }
 
     public String generateSrc(GraphQLSchema schema) throws ServiceTypesGenerationException {
@@ -220,7 +220,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         for (Map.Entry<GraphQLObjectType, Boolean> canRecordFromObjectItem : canRecordFromObject.entrySet()) {
             GraphQLObjectType nextObjectType = canRecordFromObjectItem.getKey();
             Boolean isPossible = canRecordFromObjectItem.getValue();
-            if (isPossible && recordForced) {
+            if (isPossible && useRecordsForObjects) {
                 objectTypesModuleMembers.add(generateRecordType(nextObjectType));
             } else {
                 objectTypesModuleMembers.add(generateServiceClassType(nextObjectType));
@@ -289,7 +289,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
                             generateMethodSignatureParams(field.getArguments()),
                             createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
-                            generateMethodSignatureReturnTypeDescriptor(field.getType()));
+                            generateMethodSignatureReturnType(field.getType()));
             MethodDeclarationNode methodDeclaration =
                     createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, generateMetadataForField(field),
                             methodQualifiers, createToken(SyntaxKind.FUNCTION_KEYWORD),
@@ -501,7 +501,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         FunctionSignatureNode functionSignature = createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
-                generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType()));
+                generateMethodSignatureReturnType(fieldDefinition.getType()));
         FunctionBodyBlockNode functionBody =
                 createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
                         createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
@@ -548,7 +548,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
                             generateMethodSignatureParams(field.getArguments()),
                             createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
-                            generateMethodSignatureReturnTypeDescriptor(field.getType(), false));
+                            generateMethodSignatureReturnType(field.getType(), false));
             MetadataNode metadata = generateMetadataForField(field);
             MethodDeclarationNode methodDeclaration =
                     createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
@@ -564,7 +564,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
                                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
-                                generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType(), false));
+                                generateMethodSignatureReturnType(fieldDefinition.getType(), false));
                 MetadataNode metadata = generateMetadataForField(fieldDefinition);
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
@@ -582,7 +582,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
                                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
-                                generateMethodSignatureReturnTypeDescriptor(fieldDefinition.getType(), true));
+                                generateMethodSignatureReturnType(fieldDefinition.getType(), true));
                 MetadataNode metadata = generateMetadataForField(fieldDefinition);
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, metadata,
@@ -709,8 +709,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE)))));
     }
 
-    private ReturnTypeDescriptorNode generateMethodSignatureReturnTypeDescriptor(GraphQLOutputType type,
-                                                                                 boolean isStream)
+    private ReturnTypeDescriptorNode generateMethodSignatureReturnType(GraphQLOutputType type,
+                                                                       boolean isStream)
             throws ServiceTypesGenerationException {
         TypeDescriptorNode typeDescriptor = generateTypeDescriptor(type);
         if (isStream) {
@@ -726,9 +726,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    private ReturnTypeDescriptorNode generateMethodSignatureReturnTypeDescriptor(GraphQLOutputType type)
+    private ReturnTypeDescriptorNode generateMethodSignatureReturnType(GraphQLOutputType type)
             throws ServiceTypesGenerationException {
-        return generateMethodSignatureReturnTypeDescriptor(type, false);
+        return generateMethodSignatureReturnType(type, false);
     }
 
     private SeparatedNodeList<ParameterNode> generateMethodSignatureParams(List<GraphQLArgument> arguments)

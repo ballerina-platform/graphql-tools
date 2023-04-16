@@ -229,7 +229,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setRecordForced(true);
+        serviceTypesGenerator.setUseRecordsForObjects(true);
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
         writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
@@ -563,7 +563,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setRecordForced(true);
+        serviceTypesGenerator.setUseRecordsForObjects(true);
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
         writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
@@ -720,7 +720,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setRecordForced(true);
+        serviceTypesGenerator.setUseRecordsForObjects(true);
         serviceTypesGenerator.setFileName(fileName);
         String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
         writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);

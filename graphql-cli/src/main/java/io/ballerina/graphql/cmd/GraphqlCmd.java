@@ -298,7 +298,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());
         Utils.validateGraphqlProject(graphqlProject);
         if (useRecordsForObjectsFlag) {
-            this.serviceCodeGenerator.enableRecordForced();
+            this.serviceCodeGenerator.enableToUseRecords();
         }
         this.serviceCodeGenerator.generate(graphqlProject);
     }

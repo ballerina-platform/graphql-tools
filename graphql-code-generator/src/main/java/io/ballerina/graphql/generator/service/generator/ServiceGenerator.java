@@ -48,7 +48,6 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createQualifiedNameR
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createServiceDeclarationNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypedBindingPatternNode;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.INT_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.NEW_KEYWORD;
@@ -84,42 +83,42 @@ public class ServiceGenerator {
     }
 
     private ModuleVariableDeclarationNode generatePortModuleVariableDeclaration(String portNumberStr) {
-        NodeList<Token> qualifierList = createNodeList(createToken(SyntaxKind.CONFIGURABLE_KEYWORD));
+        NodeList<Token> configurableQualifier = createNodeList(createToken(SyntaxKind.CONFIGURABLE_KEYWORD));
         TypedBindingPatternNode portTypeBinding =
                 createTypedBindingPatternNode(createBuiltinSimpleNameReferenceNode(null, createToken(INT_KEYWORD)),
                         createCaptureBindingPatternNode(createIdentifierToken(CodeGeneratorConstants.PORT)));
-        BasicLiteralNode portBasicLiteral =
+        BasicLiteralNode portNumber =
                 NodeFactory.createBasicLiteralNode(SyntaxKind.NUMERIC_LITERAL, createIdentifierToken(portNumberStr));
-        return createModuleVariableDeclarationNode(null, null, qualifierList, portTypeBinding,
-                createToken(SyntaxKind.EQUAL_TOKEN), portBasicLiteral, createToken(SEMICOLON_TOKEN));
+        return createModuleVariableDeclarationNode(null, null, configurableQualifier, portTypeBinding,
+                createToken(SyntaxKind.EQUAL_TOKEN), portNumber, createToken(SEMICOLON_TOKEN));
     }
 
     private ServiceDeclarationNode generateServiceDeclaration() {
-        NodeList<Token> serviceQualifiers = createEmptyNodeList();
-        SimpleNameReferenceNode serviceObjectTypeDescriptor =
+        NodeList<Token> qualifiers = createEmptyNodeList();
+        SimpleNameReferenceNode fileName =
                 createSimpleNameReferenceNode(createIdentifierToken(this.fileName));
         NodeList<Node> absoluteResourcePath = createEmptyNodeList();
-        ExplicitNewExpressionNode serviceExpression = generateServiceExpression();
-        return createServiceDeclarationNode(null, serviceQualifiers, createToken(SERVICE_KEYWORD),
-                serviceObjectTypeDescriptor, absoluteResourcePath, createToken(ON_KEYWORD),
-                createSeparatedNodeList(serviceExpression), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
+        ExplicitNewExpressionNode graphqlListener = generateGraphqlListener();
+        return createServiceDeclarationNode(null, qualifiers, createToken(SERVICE_KEYWORD),
+                fileName, absoluteResourcePath, createToken(ON_KEYWORD),
+                createSeparatedNodeList(graphqlListener), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
                 createEmptyNodeList(), createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
 
-    private ExplicitNewExpressionNode generateServiceExpression() {
-        QualifiedNameReferenceNode expressionQualifiedNameReference =
+    private ExplicitNewExpressionNode generateGraphqlListener() {
+        QualifiedNameReferenceNode graphqlListenerName =
                 createQualifiedNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
                         createToken(COLON_TOKEN), createIdentifierToken(CodeGeneratorConstants.LISTENER));
 
-        PositionalArgumentNode expressionPositionalArgument = createPositionalArgumentNode(
+        PositionalArgumentNode argumentPort = createPositionalArgumentNode(
                 createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.PORT)));
-        SeparatedNodeList<FunctionArgumentNode> expressionArguments =
-                createSeparatedNodeList(expressionPositionalArgument);
-        ParenthesizedArgList expressionParenthesizedArgList =
-                createParenthesizedArgList(createToken(SyntaxKind.OPEN_PAREN_TOKEN), expressionArguments,
-                        createToken(CLOSE_PAREN_TOKEN));
-        return createExplicitNewExpressionNode(createToken(NEW_KEYWORD), expressionQualifiedNameReference,
-                expressionParenthesizedArgList);
+        SeparatedNodeList<FunctionArgumentNode> arguments =
+                createSeparatedNodeList(argumentPort);
+        ParenthesizedArgList parenthesizedArguments =
+                createParenthesizedArgList(createToken(SyntaxKind.OPEN_PAREN_TOKEN), arguments,
+                        createToken(SyntaxKind.CLOSE_PAREN_TOKEN));
+        return createExplicitNewExpressionNode(createToken(NEW_KEYWORD), graphqlListenerName,
+                parenthesizedArguments);
     }
 
     public void setFileName(String fileName) {

@@ -69,7 +69,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
                         typesFileContent));
     }
 
-    public void enableRecordForced() {
-        this.serviceTypesGenerator.setRecordForced(true);
+    public void enableToUseRecords() {
+        this.serviceTypesGenerator.setUseRecordsForObjects(true);
     }
 }

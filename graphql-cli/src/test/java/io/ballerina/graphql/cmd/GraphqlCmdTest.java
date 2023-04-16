@@ -154,7 +154,8 @@ public class GraphqlCmdTest extends GraphqlTest {
         ModulePartNode modulePartNode = NodeParser.parseModulePart(
                 "import ballerina/graphql;\n" + "\n" + "type Schema09Api service object {\n" +
                         "    *graphql:Service;\n" + "\n" +
-                        "    resource function get studentInfo(int id) returns Info?;\n" + "};\n" + "\n" +
+                        "    resource function get studentInfo(int id, boolean pass=false) returns Info?;\n" + "};\n" +
+                        "\n" +
                         "type Info distinct service object {\n" + "    resource function get name() returns string;\n" +
                         "};\n" + "\n" + "service class Book {\n" +
                         "    resource function get name() returns string {}\n" + "}\n" + "\n" +
