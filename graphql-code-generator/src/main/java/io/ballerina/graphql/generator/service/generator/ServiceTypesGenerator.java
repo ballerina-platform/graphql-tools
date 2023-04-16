@@ -239,30 +239,30 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private void addUnionSubObjectTypesToMap(GraphQLUnionType unionType) throws ServiceTypesGenerationException {
-        for (GraphQLNamedOutputType namedOutputType : unionType.getTypes()) {
-            if (namedOutputType instanceof GraphQLObjectType) {
-                GraphQLObjectType namedOutputObjectType = (GraphQLObjectType) namedOutputType;
-                canRecordFromObject.put(namedOutputObjectType, false);
+        for (GraphQLNamedOutputType subType : unionType.getTypes()) {
+            if (subType instanceof GraphQLObjectType) {
+                GraphQLObjectType subObjectType = (GraphQLObjectType) subType;
+                canRecordFromObject.put(subObjectType, false);
             } else {
                 throw new ServiceTypesGenerationException(
-                        String.format(Constants.NOT_ALLOWED_UNION_SUB_TYPE, namedOutputType.getName()));
+                        String.format(Constants.NOT_ALLOWED_UNION_SUB_TYPE, subType.getName()));
             }
         }
     }
 
     private ModuleMemberDeclarationNode generateInterfaceType(GraphQLInterfaceType interfaceType)
             throws ServiceTypesGenerationException {
-        ObjectTypeDescriptorNode interfaceObjectTypeDescriptor =
+        ObjectTypeDescriptorNode interfaceObjectType =
                 createObjectTypeDescriptorNode(createNodeList(createToken(SyntaxKind.SERVICE_KEYWORD)),
                         createToken(SyntaxKind.OBJECT_KEYWORD), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
                         generateInterfaceTypeDescriptorMembers(interfaceType.getInterfaces(),
                                 interfaceType.getFields()), createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
-        DistinctTypeDescriptorNode interfaceTypeDescriptorNode =
+        DistinctTypeDescriptorNode distinctInterfaceObjectType =
                 createDistinctTypeDescriptorNode(createToken(SyntaxKind.DISTINCT_KEYWORD),
-                        interfaceObjectTypeDescriptor);
+                        interfaceObjectType);
         return createTypeDefinitionNode(generateMetadataForDescription(interfaceType.getDescription()),
                 createToken(SyntaxKind.PUBLIC_KEYWORD), createToken(SyntaxKind.TYPE_KEYWORD),
-                createIdentifierToken(interfaceType.getName()), interfaceTypeDescriptorNode,
+                createIdentifierToken(interfaceType.getName()), distinctInterfaceObjectType,
                 createToken(SyntaxKind.SEMICOLON_TOKEN));
     }
 
@@ -274,15 +274,15 @@ public class ServiceTypesGenerator extends TypesGenerator {
         List<GraphQLFieldDefinition> filteredFields = getFieldsToBeWritten(fields, filteredInterfaces);
 
         for (GraphQLNamedOutputType filteredInterface : filteredInterfaces) {
-            TypeReferenceNode filteredInterfaceTypeReferenceNode =
+            TypeReferenceNode filteredInterfaceReference =
                     createTypeReferenceNode(createToken(SyntaxKind.ASTERISK_TOKEN),
                             createSimpleNameReferenceNode(createIdentifierToken(filteredInterface.getName())),
                             createToken(SyntaxKind.SEMICOLON_TOKEN));
-            members.add(filteredInterfaceTypeReferenceNode);
+            members.add(filteredInterfaceReference);
         }
         for (GraphQLFieldDefinition field : filteredFields) {
-            NodeList<Token> methodQualifiers = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD));
-            NodeList<Node> methodRelativeResourcePaths =
+            NodeList<Token> resourceQualifier = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD));
+            NodeList<Node> fieldName =
                     createNodeList(createIdentifierToken(field.getDefinition().getName()));
 
             FunctionSignatureNode methodSignatureNode =
@@ -294,8 +294,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION,
                             generateMetadataForField(field.getDescription(), field.getArguments(),
                                     field.isDeprecated(), field.getDeprecationReason()),
-                            methodQualifiers, createToken(SyntaxKind.FUNCTION_KEYWORD),
-                            createIdentifierToken(CodeGeneratorConstants.GET), methodRelativeResourcePaths,
+                            resourceQualifier, createToken(SyntaxKind.FUNCTION_KEYWORD),
+                            createIdentifierToken(CodeGeneratorConstants.GET), fieldName,
                             methodSignatureNode, createToken(SyntaxKind.SEMICOLON_TOKEN));
             members.add(methodDeclaration);
         }
@@ -394,13 +394,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
             throws ServiceTypesGenerationException {
         List<GraphQLInputObjectField> typeFields = type.getFields();
         NodeList<Node> recordTypeFields = generateRecordTypeFieldsForGraphQLInputObjectFields(typeFields);
-        RecordTypeDescriptorNode recordTypeDescriptor =
+        RecordTypeDescriptorNode recordType =
                 createRecordTypeDescriptorNode(createToken(SyntaxKind.RECORD_KEYWORD),
                         createToken(SyntaxKind.OPEN_BRACE_PIPE_TOKEN), recordTypeFields, null,
                         createToken(SyntaxKind.CLOSE_BRACE_PIPE_TOKEN));
         return createTypeDefinitionNode(generateMetadataForDescription(type.getDescription()),
                 createToken(SyntaxKind.PUBLIC_KEYWORD), createToken(SyntaxKind.TYPE_KEYWORD),
-                createIdentifierToken(type.getName()), recordTypeDescriptor,
+                createIdentifierToken(type.getName()), recordType,
                 createToken(SyntaxKind.SEMICOLON_TOKEN));
     }
 
@@ -408,17 +408,15 @@ public class ServiceTypesGenerator extends TypesGenerator {
             throws ServiceTypesGenerationException {
         List<GraphQLFieldDefinition> typeFields = type.getFields();
         NodeList<Node> recordTypeFields = generateRecordTypeFieldsForGraphQLFieldDefinitions(typeFields);
-        RecordTypeDescriptorNode recordTypeDescriptor =
+        RecordTypeDescriptorNode recordType =
                 createRecordTypeDescriptorNode(createToken(SyntaxKind.RECORD_KEYWORD),
                         createToken(SyntaxKind.OPEN_BRACE_TOKEN), recordTypeFields, null,
                         createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
 
-        TypeDefinitionNode typeDefinition =
-                createTypeDefinitionNode(generateMetadataForDescription(type.getDescription()),
-                        createToken(SyntaxKind.PUBLIC_KEYWORD), createToken(SyntaxKind.TYPE_KEYWORD),
-                        createIdentifierToken(type.getName()), recordTypeDescriptor,
-                        createToken(SyntaxKind.SEMICOLON_TOKEN));
-        return typeDefinition;
+        return createTypeDefinitionNode(generateMetadataForDescription(type.getDescription()),
+                createToken(SyntaxKind.PUBLIC_KEYWORD), createToken(SyntaxKind.TYPE_KEYWORD),
+                createIdentifierToken(type.getName()), recordType,
+                createToken(SyntaxKind.SEMICOLON_TOKEN));
     }
 
     private NodeList<Node> generateRecordTypeFieldsForGraphQLInputObjectFields(
@@ -457,7 +455,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private ClassDefinitionNode generateServiceClassType(GraphQLObjectType type)
             throws ServiceTypesGenerationException {
-        NodeList<Token> classTypeQualifiers = createNodeList(new ArrayList<>(
+        NodeList<Token> qualifierDistinctService = createNodeList(new ArrayList<>(
                 List.of(createToken(SyntaxKind.DISTINCT_KEYWORD), createToken(SyntaxKind.SERVICE_KEYWORD))));
         List<Node> serviceClassTypeMembersList = new ArrayList<>();
         for (GraphQLNamedOutputType typeInterface : getInterfacesToBeWritten(type.getInterfaces())) {
@@ -471,7 +469,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
         NodeList<Node> serviceClassTypeMembers = createNodeList(serviceClassTypeMembersList);
         return createClassDefinitionNode(generateMetadataForDescription(type.getDescription()),
-                createToken(SyntaxKind.PUBLIC_KEYWORD), classTypeQualifiers, createToken(SyntaxKind.CLASS_KEYWORD),
+                createToken(SyntaxKind.PUBLIC_KEYWORD), qualifierDistinctService, createToken(SyntaxKind.CLASS_KEYWORD),
                 createIdentifierToken(type.getName()), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
                 serviceClassTypeMembers, createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
@@ -498,8 +496,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private FunctionDefinitionNode generateServiceClassTypeMember(GraphQLFieldDefinition fieldDefinition)
             throws ServiceTypesGenerationException {
-        NodeList<Token> memberQualifiers = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD));
-        NodeList<Node> memberRelativeResourcePaths = createNodeList(createIdentifierToken(fieldDefinition.getName()));
+        NodeList<Token> qualifierResource = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD));
+        NodeList<Node> fieldName = createNodeList(createIdentifierToken(fieldDefinition.getName()));
         FunctionSignatureNode functionSignature = createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
@@ -507,13 +505,11 @@ public class ServiceTypesGenerator extends TypesGenerator {
         FunctionBodyBlockNode functionBody =
                 createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
                         createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
-        FunctionDefinitionNode functionDefinition =
-                createFunctionDefinitionNode(SyntaxKind.RESOURCE_ACCESSOR_DEFINITION,
-                        generateMetadataForField(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason()), memberQualifiers,
-                        createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
-                        memberRelativeResourcePaths, functionSignature, functionBody);
-        return functionDefinition;
+        return createFunctionDefinitionNode(SyntaxKind.RESOURCE_ACCESSOR_DEFINITION,
+                generateMetadataForField(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
+                        fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason()), qualifierResource,
+                createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
+                fieldName, functionSignature, functionBody);
     }
 
     private void addServiceType(GraphQLSchema schema) throws ServiceTypesGenerationException {
