@@ -292,7 +292,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             generateMethodSignatureReturnType(field.getType()));
             MethodDeclarationNode methodDeclaration =
                     createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION,
-                            generateMetadataForField(field.getDescription(), field.getArguments(),
+                            generateMetadata(field.getDescription(), field.getArguments(),
                                     field.isDeprecated(), field.getDeprecationReason()),
                             resourceQualifier, createToken(SyntaxKind.FUNCTION_KEYWORD),
                             createIdentifierToken(CodeGeneratorConstants.GET), fieldName,
@@ -376,7 +376,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
         List<GraphQLEnumValueDefinition> enumValues = enumType.getValues();
         for (int i = 0; i < enumValues.size(); i++) {
             GraphQLEnumValueDefinition enumValue = enumValues.get(i);
-            EnumMemberNode enumMember = createEnumMemberNode(generateMetadataForEnumValue(enumValue),
+            EnumMemberNode enumMember = createEnumMemberNode(generateMetadata(enumValue.getDescription(), null,
+                            enumValue.isDeprecated(), enumValue.getDeprecationReason()),
                     createIdentifierToken(enumValue.getName()), null, null);
             enumMembers.add(enumMember);
             if (i != enumValues.size() - 1) {
@@ -423,7 +424,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLInputObjectField> inputTypeFields) throws ServiceTypesGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLInputObjectField field : inputTypeFields) {
-            fields.add(createRecordFieldNode(generateMetadataForField(field.getDescription(), null,
+            fields.add(createRecordFieldNode(generateMetadata(field.getDescription(), null,
                             field.isDeprecated(), field.getDeprecationReason()), null,
                     generateTypeDescriptor(field.getType()), createIdentifierToken(field.getName()), null,
                     createToken(SyntaxKind.SEMICOLON_TOKEN)));
@@ -435,7 +436,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLFieldDefinition> typeInputFields) throws ServiceTypesGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLFieldDefinition field : typeInputFields) {
-            fields.add(createRecordFieldNode(generateMetadataForField(field.getDescription(), field.getArguments(),
+            fields.add(createRecordFieldNode(generateMetadata(field.getDescription(), field.getArguments(),
                             field.isDeprecated(), field.getDeprecationReason()), null,
                     generateTypeDescriptor(field.getType()), createIdentifierToken(field.getName()), null,
                     createToken(SyntaxKind.SEMICOLON_TOKEN)));
@@ -506,7 +507,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
                         createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
         return createFunctionDefinitionNode(SyntaxKind.RESOURCE_ACCESSOR_DEFINITION,
-                generateMetadataForField(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
+                generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
                         fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason()), qualifierResource,
                 createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
                 fieldName, functionSignature, functionBody);
@@ -547,7 +548,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             generateMethodSignatureParams(field.getArguments()),
                             createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                             generateMethodSignatureReturnType(field.getType(), false));
-            MetadataNode metadata = generateMetadataForField(field.getDescription(), field.getArguments(),
+            MetadataNode metadata = generateMetadata(field.getDescription(), field.getArguments(),
                     field.isDeprecated(), field.getDeprecationReason());
             MethodDeclarationNode methodDeclaration =
                     createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
@@ -564,8 +565,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                                 generateMethodSignatureReturnType(fieldDefinition.getType(), false));
-                MetadataNode metadata = generateMetadataForField(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                        fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
+                MetadataNode metadata =
+                        generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
+                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
                                 createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD)),
@@ -583,8 +585,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureParams(fieldDefinition.getArguments()),
                                 createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                                 generateMethodSignatureReturnType(fieldDefinition.getType(), true));
-                MetadataNode metadata = generateMetadataForField(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                        fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
+                MetadataNode metadata =
+                        generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
+                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, metadata,
                                 createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
@@ -598,27 +601,15 @@ public class ServiceTypesGenerator extends TypesGenerator {
         return methodDeclarations;
     }
 
-    private MetadataNode generateMetadataForEnumValue(GraphQLEnumValueDefinition enumValue) {
-        List<AnnotationNode> annotations = new ArrayList<>();
-        List<Node> markdownDocumentationLines =
-                new ArrayList<>(generateMarkdownDocumentationLines(enumValue.getDescription()));
-        if (enumValue.isDeprecated()) {
-            annotations.add(createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
-                    createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null));
-            markdownDocumentationLines.addAll(
-                    generateMarkdownDocumentationLinesForDeprecated(enumValue.getDeprecationReason()));
-        }
-        return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
-                createNodeList(annotations));
-    }
-
-    private MetadataNode generateMetadataForField(String description, List<GraphQLArgument> arguments,
-                                                  boolean isDeprecated, String deprecationReason) {
+    private MetadataNode generateMetadata(String description, List<GraphQLArgument> arguments,
+                                          boolean isDeprecated, String deprecationReason) {
         List<AnnotationNode> annotations = new ArrayList<>();
         List<Node> markdownDocumentationLines =
                 new ArrayList<>(generateMarkdownDocumentationLines(description));
-        for (GraphQLArgument argument : arguments) {
-            markdownDocumentationLines.addAll(generateMarkdownParameterDocumentationLines(argument));
+        if (arguments != null) {
+            for (GraphQLArgument argument : arguments) {
+                markdownDocumentationLines.addAll(generateMarkdownParameterDocumentationLines(argument));
+            }
         }
         if (isDeprecated) {
             AnnotationNode annotation = createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
