@@ -70,9 +70,9 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.FRAGMENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MUTATION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.NEW_LINE;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.RESPONSE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
-import static io.ballerina.graphql.generator.Constants.QUERY;
 import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.escapeIdentifier;
 
 

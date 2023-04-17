@@ -32,10 +32,10 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static io.ballerina.graphql.generator.Constants.APPLICATION_JSON;
-import static io.ballerina.graphql.generator.Constants.CONTENT_TYPE;
-import static io.ballerina.graphql.generator.Constants.INTROSPECTION_QUERY;
-import static io.ballerina.graphql.generator.Constants.QUERY;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.APPLICATION_JSON;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONTENT_TYPE;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.INTROSPECTION_QUERY;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
 
 /**
  * This class is used to introspect a GraphQL API.
