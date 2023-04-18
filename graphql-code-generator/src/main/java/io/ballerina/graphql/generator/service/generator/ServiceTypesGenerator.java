@@ -543,42 +543,15 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                                          GraphQLObjectType subscriptionType)
             throws ServiceTypesGenerationException {
         List<Node> methodDeclarations = new ArrayList<>();
-        for (GraphQLFieldDefinition field : queryType.getFieldDefinitions()) {
-            FunctionSignatureNode methodSignature =
-                    createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
-                            generateMethodSignatureParams(field.getArguments()),
-                            createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
-                            generateMethodSignatureReturnType(field.getType(), false));
-            MetadataNode metadata = generateMetadata(field.getDescription(), field.getArguments(),
-                    field.isDeprecated(), field.getDeprecationReason());
-            MethodDeclarationNode methodDeclaration =
-                    createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
-                            createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
-                            createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
-                            createNodeList(createIdentifierToken(field.getName())), methodSignature,
-                            createToken(SyntaxKind.SEMICOLON_TOKEN));
-            methodDeclarations.add(methodDeclaration);
-        }
-        if (mutationType != null) {
-            for (GraphQLFieldDefinition fieldDefinition : mutationType.getFieldDefinitions()) {
-                FunctionSignatureNode methodSignatureNode =
-                        createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
-                                generateMethodSignatureParams(fieldDefinition.getArguments()),
-                                createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
-                                generateMethodSignatureReturnType(fieldDefinition.getType(), false));
-                MetadataNode metadata =
-                        generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
-                MethodDeclarationNode methodDeclaration =
-                        createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
-                                createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD)),
-                                createToken(SyntaxKind.FUNCTION_KEYWORD),
-                                createIdentifierToken(CodeGeneratorConstants.EMPTY_STRING),
-                                createNodeList(createIdentifierToken(fieldDefinition.getName())), methodSignatureNode,
-                                createToken(SyntaxKind.SEMICOLON_TOKEN));
-                methodDeclarations.add(methodDeclaration);
-            }
-        }
+        handleQueryTypeMethodDeclarations(queryType, methodDeclarations);
+        handleMutationTypeMethodDeclarations(mutationType, methodDeclarations);
+        handleSubscriptionTypeMethodDeclarations(subscriptionType, methodDeclarations);
+        return methodDeclarations;
+    }
+
+    private void handleSubscriptionTypeMethodDeclarations(GraphQLObjectType subscriptionType,
+                                                          List<Node> methodDeclarations)
+            throws ServiceTypesGenerationException {
         if (subscriptionType != null) {
             for (GraphQLFieldDefinition fieldDefinition : subscriptionType.getFieldDefinitions()) {
                 FunctionSignatureNode methodSignatureNode =
@@ -599,7 +572,50 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 methodDeclarations.add(methodDeclaration);
             }
         }
-        return methodDeclarations;
+    }
+
+    private void handleMutationTypeMethodDeclarations(GraphQLObjectType mutationType, List<Node> methodDeclarations)
+            throws ServiceTypesGenerationException {
+        if (mutationType != null) {
+            for (GraphQLFieldDefinition fieldDefinition : mutationType.getFieldDefinitions()) {
+                FunctionSignatureNode methodSignatureNode =
+                        createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
+                                generateMethodSignatureParams(fieldDefinition.getArguments()),
+                                createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
+                                generateMethodSignatureReturnType(fieldDefinition.getType(), false));
+                MetadataNode metadata =
+                        generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
+                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
+                MethodDeclarationNode methodDeclaration =
+                        createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
+                                createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD)),
+                                createToken(SyntaxKind.FUNCTION_KEYWORD),
+                                createIdentifierToken(CodeGeneratorConstants.EMPTY_STRING),
+                                createNodeList(createIdentifierToken(fieldDefinition.getName())), methodSignatureNode,
+                                createToken(SyntaxKind.SEMICOLON_TOKEN));
+                methodDeclarations.add(methodDeclaration);
+            }
+        }
+    }
+
+    private void handleQueryTypeMethodDeclarations(GraphQLObjectType queryType, List<Node> methodDeclarations)
+            throws ServiceTypesGenerationException {
+        for (GraphQLFieldDefinition field : queryType.getFieldDefinitions()) {
+            FunctionSignatureNode methodSignature =
+                    createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
+                            generateMethodSignatureParams(field.getArguments()),
+                            createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
+                            generateMethodSignatureReturnType(field.getType(), false));
+            MetadataNode metadata = generateMetadata(field.getDescription(), field.getArguments(),
+                    field.isDeprecated(), field.getDeprecationReason());
+            MethodDeclarationNode methodDeclaration =
+                    createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
+                            createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
+                            createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
+                            createNodeList(createIdentifierToken(field.getName())), methodSignature,
+                            createToken(SyntaxKind.SEMICOLON_TOKEN));
+            methodDeclarations.add(methodDeclaration);
+        }
     }
 
     private MetadataNode generateMetadata(String description, List<GraphQLArgument> arguments,
