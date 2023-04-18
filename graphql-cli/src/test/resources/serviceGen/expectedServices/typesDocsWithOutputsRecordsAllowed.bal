@@ -11,10 +11,10 @@ type SchemaDocsWithOutputsApi service object {
 };
 
 # Represents a book written by an author
-public type Book record {
+public type Book record {|
     # The id of the book,
     # unique identifier
     int id;
     # The title of the book
     string title;
-};
+|};

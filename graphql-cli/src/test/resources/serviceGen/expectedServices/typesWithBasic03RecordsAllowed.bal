@@ -7,10 +7,10 @@ type SchemaWithBasic03Api service object {
 	resource function get cat(string name) returns Cat?;
 };
 
-public type Cat record {
+public type Cat record {|
     string name;
     int age;
-};
+|};
 
 public distinct service class Dog {
     resource function get name() returns string {}
