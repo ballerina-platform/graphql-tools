@@ -1,6 +1,7 @@
 package io.ballerina.graphql.generator.service.generator;
 
 import graphql.schema.GraphQLSchema;
+import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.GenerationException;
@@ -21,6 +22,7 @@ import java.util.List;
 public class ServiceCodeGenerator extends CodeGenerator {
     private ServiceGenerator serviceGenerator;
     private ServiceTypesGenerator serviceTypesGenerator;
+    private List<MethodDeclarationNode> serviceMethodDeclarations;
 
     public ServiceCodeGenerator() {
         this.serviceGenerator = new ServiceGenerator();
@@ -45,15 +47,15 @@ public class ServiceCodeGenerator extends CodeGenerator {
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
         List<SrcFilePojo> sourceFiles = Collections.synchronizedList(new ArrayList<>());
-        generateServices(projectName, fileName, sourceFiles);
         generateServiceTypes(projectName, fileName, graphQLSchema, sourceFiles);
+        generateServices(projectName, fileName, sourceFiles);
         return sourceFiles;
     }
 
     private void generateServices(String projectName, String fileName, List<SrcFilePojo> sourceFiles)
             throws ServiceGenerationException {
         this.serviceGenerator.setFileName(fileName);
-        String serviceSrc = this.serviceGenerator.generateSrc();
+        String serviceSrc = this.serviceGenerator.generateSrc(this.serviceMethodDeclarations);
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName, CodeGeneratorConstants.SERVICE_FILE_NAME,
                         serviceSrc));
@@ -64,6 +66,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
             throws ServiceTypesGenerationException {
         this.serviceTypesGenerator.setFileName(fileName);
         String typesFileContent = this.serviceTypesGenerator.generateSrc(graphQLSchema);
+        setServiceMethodDeclarations(this.serviceTypesGenerator.getServiceMethodDeclarations());
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
                         typesFileContent));
@@ -71,5 +74,9 @@ public class ServiceCodeGenerator extends CodeGenerator {
 
     public void enableToUseRecords() {
         this.serviceTypesGenerator.setUseRecordsForObjects(true);
+    }
+
+    public void setServiceMethodDeclarations(List<MethodDeclarationNode> serviceMethodDeclarations) {
+        this.serviceMethodDeclarations = serviceMethodDeclarations;
     }
 }

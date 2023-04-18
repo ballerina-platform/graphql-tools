@@ -3,7 +3,10 @@ package io.ballerina.graphql.generator.service.generator;
 import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
@@ -40,6 +43,8 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createBuiltinSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createCaptureBindingPatternNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createExplicitNewExpressionNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionBodyBlockNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionDefinitionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModuleVariableDeclarationNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createParenthesizedArgList;
@@ -61,9 +66,9 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.SERVICE_KEYWORD;
 public class ServiceGenerator {
     private String fileName;
 
-    private SyntaxTree generateSyntaxTree() throws IOException {
+    private SyntaxTree generateSyntaxTree(List<MethodDeclarationNode> serviceMethodDeclarations) throws IOException {
         NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
-        NodeList<ModuleMemberDeclarationNode> serviceBody = generateMembers();
+        NodeList<ModuleMemberDeclarationNode> serviceBody = generateMembers(serviceMethodDeclarations);
         ModulePartNode modulePartNode =
                 createModulePartNode(imports, serviceBody, createToken(SyntaxKind.EOF_TOKEN));
 
@@ -72,12 +77,13 @@ public class ServiceGenerator {
         return syntaxTree.modifyWith(modulePartNode);
     }
 
-    private NodeList<ModuleMemberDeclarationNode> generateMembers() {
+    private NodeList<ModuleMemberDeclarationNode> generateMembers(
+            List<MethodDeclarationNode> serviceMethodDeclarations) {
         List<ModuleMemberDeclarationNode> members = new ArrayList<>();
         ModuleVariableDeclarationNode portVariable =
                 generatePortModuleVariableDeclaration(CodeGeneratorConstants.PORT_NUMBER_DEFAULT);
         members.add(portVariable);
-        ServiceDeclarationNode serviceDeclaration = generateServiceDeclaration();
+        ServiceDeclarationNode serviceDeclaration = generateServiceDeclaration(serviceMethodDeclarations);
         members.add(serviceDeclaration);
         return createNodeList(members);
     }
@@ -93,16 +99,35 @@ public class ServiceGenerator {
                 createToken(SyntaxKind.EQUAL_TOKEN), portNumber, createToken(SEMICOLON_TOKEN));
     }
 
-    private ServiceDeclarationNode generateServiceDeclaration() {
+    private ServiceDeclarationNode generateServiceDeclaration(List<MethodDeclarationNode> serviceMethodDeclarations) {
         NodeList<Token> qualifiers = createEmptyNodeList();
         SimpleNameReferenceNode fileName =
                 createSimpleNameReferenceNode(createIdentifierToken(this.fileName));
         NodeList<Node> absoluteResourcePath = createEmptyNodeList();
         ExplicitNewExpressionNode graphqlListener = generateGraphqlListener();
+        NodeList<Node> functionDefinitions = generateServiceFunctionDefinitions(serviceMethodDeclarations);
         return createServiceDeclarationNode(null, qualifiers, createToken(SERVICE_KEYWORD),
                 fileName, absoluteResourcePath, createToken(ON_KEYWORD),
                 createSeparatedNodeList(graphqlListener), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
-                createEmptyNodeList(), createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
+                functionDefinitions, createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
+    }
+
+    private NodeList<Node> generateServiceFunctionDefinitions(List<MethodDeclarationNode> serviceMethodDeclarations) {
+        List<Node> functionDefinitions = new ArrayList<>();
+        for (MethodDeclarationNode serviceMethodDeclaration : serviceMethodDeclarations) {
+            FunctionBodyBlockNode emptyFunctionBody =
+                    createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
+                            createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
+            FunctionDefinitionNode functionDefinition =
+                    createFunctionDefinitionNode(serviceMethodDeclaration.kind(),
+                            serviceMethodDeclaration.metadata().get(),
+                            serviceMethodDeclaration.qualifierList(), serviceMethodDeclaration.functionKeyword(),
+                            serviceMethodDeclaration
+                                    .methodName(), serviceMethodDeclaration.relativeResourcePath(),
+                            serviceMethodDeclaration.methodSignature(), emptyFunctionBody);
+            functionDefinitions.add(functionDefinition);
+        }
+        return createNodeList(functionDefinitions);
     }
 
     private ExplicitNewExpressionNode generateGraphqlListener() {
@@ -125,9 +150,9 @@ public class ServiceGenerator {
         this.fileName = fileName;
     }
 
-    public String generateSrc() throws ServiceGenerationException {
+    public String generateSrc(List<MethodDeclarationNode> serviceMethodDeclarations) throws ServiceGenerationException {
         try {
-            return Formatter.format(generateSyntaxTree()).toString();
+            return Formatter.format(generateSyntaxTree(serviceMethodDeclarations)).toString();
         } catch (FormatterException | IOException e) {
             throw new ServiceGenerationException(e.getMessage());
         }

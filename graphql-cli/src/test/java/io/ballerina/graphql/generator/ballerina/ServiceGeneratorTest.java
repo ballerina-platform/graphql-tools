@@ -1,11 +1,14 @@
 package io.ballerina.graphql.generator.ballerina;
 
+import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceGenerator;
+import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -20,17 +23,21 @@ import java.nio.file.Paths;
 public class ServiceGeneratorTest extends GraphqlTest {
     @Test(description = "Test the successful generation of service code")
     public void testGenerateSrc()
-            throws IOException, ValidationException {
+            throws IOException, ValidationException, ServiceTypesGenerationException {
         try {
             String fileName = "SchemaWithBasic01Api";
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setFileName(fileName);
+            serviceTypesGenerator.generateSrc(graphQLSchema);
             ServiceGenerator serviceGenerator = new ServiceGenerator();
             serviceGenerator.setFileName(fileName);
             String generatedServiceContent =
-                    serviceGenerator.generateSrc().trim()
+                    serviceGenerator.generateSrc(serviceTypesGenerator.getServiceMethodDeclarations()).trim()
                             .replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedServiceFile =

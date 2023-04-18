@@ -8,7 +8,6 @@ import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
-import io.ballerina.tools.diagnostics.Diagnostic;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -18,9 +17,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
+import static io.ballerina.graphql.common.TestUtils.hasOnlyResourceFuncMustReturnResultErrors;
 
 /**
  * This class includes tests for Ballerina Graphql service generation.
@@ -91,10 +90,10 @@ public class ServiceGenerationTest extends GraphqlTest {
             String expectedTypesContent = readContent(expectedTypesFile);
 
             if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent = readContent(this.tmpDir.resolve("service.bal"));
+                String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
                 String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
-                Assert.assertEquals(expectedServiceContent, generatedClientContent);
+                Assert.assertEquals(expectedServiceContent, generatedServiceContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
             } else {
                 Assert.fail("Code generation failed. : " + readOutput(true));
@@ -171,7 +170,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
+            Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         } catch (BLauncherException e) {
             String output = e.toString();
             Assert.fail(output);
@@ -211,7 +210,7 @@ public class ServiceGenerationTest extends GraphqlTest {
             graphqlCmd.execute();
 
             DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
+            Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         } catch (BLauncherException e) {
             String output = e.toString();
             Assert.fail(output);
@@ -233,22 +232,11 @@ public class ServiceGenerationTest extends GraphqlTest {
             graphqlCmd.execute();
 
             DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyNoMethodImplErrorsOfServiceObj(diagnosticResult.errors()));
+            Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
         } catch (BLauncherException e) {
             String output = e.toString();
             Assert.fail(output);
         }
-    }
-
-    private boolean hasOnlyNoMethodImplErrorsOfServiceObj(Collection<Diagnostic> errors) {
-        for (Diagnostic error : errors) {
-            boolean containsNoImpl = error.message().contains("no implementation found for the method");
-            boolean containsServiceObj = error.message().contains("of service declaration \'object");
-            if (!containsNoImpl || !containsServiceObj) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private DiagnosticResult getDiagnosticResult(String packagePath) {

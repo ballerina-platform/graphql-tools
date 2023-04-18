@@ -36,6 +36,7 @@ import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.Assert;
 import org.yaml.snakeyaml.Yaml;
@@ -54,6 +55,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -269,5 +271,14 @@ public class TestUtils {
                         TestUtils.TEST_DISTRIBUTION_PATH.resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME))
                                 .toAbsolutePath()).build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
+    }
+
+    public static boolean hasOnlyResourceFuncMustReturnResultErrors(Collection<Diagnostic> errors) {
+        for (Diagnostic error : errors) {
+            if (!error.message().contains("this resource_func must return a result")) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -9,7 +9,6 @@ import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationEx
 import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import io.ballerina.projects.DiagnosticResult;
-import io.ballerina.tools.diagnostics.Diagnostic;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -18,10 +17,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static io.ballerina.graphql.common.TestUtils.getDiagnosticResult;
+import static io.ballerina.graphql.common.TestUtils.hasOnlyResourceFuncMustReturnResultErrors;
 import static io.ballerina.graphql.common.TestUtils.writeSources;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 
@@ -66,15 +65,6 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         List<SrcFilePojo> srcFiles = new ArrayList<>();
         srcFiles.add(srcFile);
         writeSources(srcFiles, projectDir);
-    }
-
-    private boolean hasOnlyResourceFuncMustReturnResultErrors(Collection<Diagnostic> errors) {
-        for (Diagnostic error : errors) {
-            if (!error.message().contains("this resource_func must return a result")) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Test(description = "Test for schema with more types, method - default")

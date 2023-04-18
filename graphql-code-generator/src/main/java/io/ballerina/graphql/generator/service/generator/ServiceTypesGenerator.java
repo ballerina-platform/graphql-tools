@@ -135,6 +135,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private boolean useRecordsForObjects;
     private HashMap<GraphQLObjectType, Boolean> canRecordFromObject;
 
+    private List<MethodDeclarationNode> serviceMethodDeclarations;
     private List<ModuleMemberDeclarationNode> moduleMembers;
     private List<ModuleMemberDeclarationNode> inputObjectTypesModuleMembers;
     private List<ModuleMemberDeclarationNode> interfaceTypesModuleMembers;
@@ -166,6 +167,14 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public List<MethodDeclarationNode> getServiceMethodDeclarations() {
+        return serviceMethodDeclarations;
+    }
+
+    public void setServiceMethodDeclarations(List<MethodDeclarationNode> serviceMethodDeclarations) {
+        this.serviceMethodDeclarations = serviceMethodDeclarations;
     }
 
     public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceTypesGenerationException {
@@ -532,17 +541,19 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 createToken(SyntaxKind.SEMICOLON_TOKEN));
         members.add(graphqlService);
 
-        List<Node> serviceMethodDeclarations =
+        List<MethodDeclarationNode> serviceMethodDeclarations =
                 generateServiceMethodDeclarations(schema.getQueryType(), schema.getMutationType(),
                         schema.getSubscriptionType());
+        setServiceMethodDeclarations(serviceMethodDeclarations);
         members.addAll(serviceMethodDeclarations);
         return createNodeList(members);
     }
 
-    private List<Node> generateServiceMethodDeclarations(GraphQLObjectType queryType, GraphQLObjectType mutationType,
-                                                         GraphQLObjectType subscriptionType)
+    private List<MethodDeclarationNode> generateServiceMethodDeclarations(GraphQLObjectType queryType,
+                                                                          GraphQLObjectType mutationType,
+                                                                          GraphQLObjectType subscriptionType)
             throws ServiceTypesGenerationException {
-        List<Node> methodDeclarations = new ArrayList<>();
+        List<MethodDeclarationNode> methodDeclarations = new ArrayList<>();
         handleQueryTypeMethodDeclarations(queryType, methodDeclarations);
         handleMutationTypeMethodDeclarations(mutationType, methodDeclarations);
         handleSubscriptionTypeMethodDeclarations(subscriptionType, methodDeclarations);
@@ -550,7 +561,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private void handleSubscriptionTypeMethodDeclarations(GraphQLObjectType subscriptionType,
-                                                          List<Node> methodDeclarations)
+                                                          List<MethodDeclarationNode> methodDeclarations)
             throws ServiceTypesGenerationException {
         if (subscriptionType != null) {
             for (GraphQLFieldDefinition fieldDefinition : subscriptionType.getFieldDefinitions()) {
@@ -574,7 +585,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    private void handleMutationTypeMethodDeclarations(GraphQLObjectType mutationType, List<Node> methodDeclarations)
+    private void handleMutationTypeMethodDeclarations(GraphQLObjectType mutationType,
+                                                      List<MethodDeclarationNode> methodDeclarations)
             throws ServiceTypesGenerationException {
         if (mutationType != null) {
             for (GraphQLFieldDefinition fieldDefinition : mutationType.getFieldDefinitions()) {
@@ -598,7 +610,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    private void handleQueryTypeMethodDeclarations(GraphQLObjectType queryType, List<Node> methodDeclarations)
+    private void handleQueryTypeMethodDeclarations(GraphQLObjectType queryType,
+                                                   List<MethodDeclarationNode> methodDeclarations)
             throws ServiceTypesGenerationException {
         for (GraphQLFieldDefinition field : queryType.getFieldDefinitions()) {
             FunctionSignatureNode methodSignature =
