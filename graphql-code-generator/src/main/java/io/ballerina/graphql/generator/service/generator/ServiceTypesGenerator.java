@@ -412,8 +412,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
         NodeList<Node> recordTypeFields = generateRecordTypeFieldsForGraphQLFieldDefinitions(typeFields);
         RecordTypeDescriptorNode recordType =
                 createRecordTypeDescriptorNode(createToken(SyntaxKind.RECORD_KEYWORD),
-                        createToken(SyntaxKind.OPEN_BRACE_TOKEN), recordTypeFields, null,
-                        createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
+                        createToken(SyntaxKind.OPEN_BRACE_PIPE_TOKEN), recordTypeFields, null,
+                        createToken(SyntaxKind.CLOSE_BRACE_PIPE_TOKEN));
 
         return createTypeDefinitionNode(generateMetadataForDescription(type.getDescription()),
                 createToken(SyntaxKind.PUBLIC_KEYWORD), createToken(SyntaxKind.TYPE_KEYWORD),
