@@ -381,7 +381,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     createIdentifierToken(enumValue.getName()), null, null);
             enumMembers.add(enumMember);
             if (i != enumValues.size() - 1) {
-                enumMembers.add(createToken(SyntaxKind.COMMA_TOKEN));
+                enumMembers.add(createToken(SyntaxKind.COMMA_TOKEN, createEmptyMinutiaeList(),
+                        createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE))));
             }
         }
         SeparatedNodeList<Node> enumMemberNodes = createSeparatedNodeList(enumMembers);
