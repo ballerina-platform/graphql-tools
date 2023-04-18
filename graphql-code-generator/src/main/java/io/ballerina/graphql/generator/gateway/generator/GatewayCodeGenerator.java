@@ -14,11 +14,13 @@ import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationExcepti
 import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayTypeGenerationException;
+import io.ballerina.graphql.generator.gateway.generator.common.Constants;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import io.ballerina.projects.BuildOptions;
+import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.JBallerinaBackend;
 import io.ballerina.projects.JvmTarget;
 import io.ballerina.projects.PackageCompilation;
@@ -58,11 +60,10 @@ public class GatewayCodeGenerator extends CodeGenerator {
             //Generating the executable
             BuildOptions buildOptions = BuildOptions.builder().build();
             BuildProject buildProject = BuildProject.load(((GraphqlGatewayProject) project).getTempDir(), buildOptions);
+            checkDiagnosticResultsForErrors(buildProject.currentPackage().runCodeGenAndModifyPlugins());
             PackageCompilation packageCompilation = buildProject.currentPackage().getCompilation();
             JBallerinaBackend jBallerinaBackend = JBallerinaBackend.from(packageCompilation, JvmTarget.JAVA_11);
-            if (jBallerinaBackend.diagnosticResult().hasErrors()) {
-                throw new GatewayGenerationException("Error while generating the executable.");
-            }
+            checkDiagnosticResultsForErrors(jBallerinaBackend.diagnosticResult());
             jBallerinaBackend.emit(JBallerinaBackend.OutputType.EXEC, outputDirectoryPath.resolve("gateway.jar"));
 
         } catch (GatewayGenerationException | IOException | GatewayTypeGenerationException |
@@ -118,20 +119,35 @@ public class GatewayCodeGenerator extends CodeGenerator {
             GatewayGenerationException {
         ClassLoader classLoader = getClass().getClassLoader();
 
-        for (String fileName : Constants.TEMPLATE_FILES) {
-            InputStream inputStream =
-                    classLoader.getResourceAsStream("gateway/" + fileName);
+        InputStream stream = classLoader.getResourceAsStream(Constants.GATEWAY_PROJECT_TEMPLATE_DIRECTORY);
+        checkInputStream(stream);
 
-            if (inputStream != null) {
-                String resource = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-                Path path = project.getTempDir().resolve(fileName);
-                try (PrintWriter writer = new PrintWriter(path.toString(), StandardCharsets.UTF_8)) {
-                    writer.print(resource);
-                } catch (IOException e) {
-                    throw new GatewayGenerationException("Error while copying the template files.");
-                }
+        String[] templateFileNames = IOUtils.toString(stream, StandardCharsets.UTF_8).split("\\n");
+
+        for (String fileName : templateFileNames) {
+            InputStream inputStream = classLoader.getResourceAsStream(
+                    Constants.GATEWAY_PROJECT_TEMPLATE_DIRECTORY + "/" + fileName);
+
+            checkInputStream(inputStream);
+            String resource = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            Path path = project.getTempDir().resolve(fileName);
+            try (PrintWriter writer = new PrintWriter(path.toString(), StandardCharsets.UTF_8)) {
+                writer.print(resource);
+            } catch (IOException e) {
+                throw new GatewayGenerationException("Error while copying the template files.");
             }
+        }
+    }
 
+    private void checkDiagnosticResultsForErrors(DiagnosticResult diagnosticResult) throws GatewayGenerationException {
+        if (diagnosticResult.hasErrors()) {
+            throw new GatewayGenerationException("Error while generating the executable.");
+        }
+    }
+
+    private void checkInputStream(InputStream inputStream) throws GatewayGenerationException {
+        if (inputStream == null) {
+            throw new GatewayGenerationException("Error while copying the template files.");
         }
     }
 

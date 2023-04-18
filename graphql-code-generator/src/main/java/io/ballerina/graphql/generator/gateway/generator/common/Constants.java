@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.gateway.generator;
+package io.ballerina.graphql.generator.gateway.generator.common;
 
 /**
  * Class to store constants used in gateway generation.
@@ -18,6 +18,7 @@ public class Constants {
     // Constants for the gateway service generation.
     public static final String CONFIGURABLE_PORT_STATEMENT = "configurable int PORT = 9000;";
     public static final String BALLERINA_GRAPHQL_IMPORT_STATEMENT = "import ballerina/graphql;";
+    public static final String BALLERINA_LOG_IMPORT_STATEMENT = "import ballerina/log;";
     public static final String GRAPHQL_CLIENT_DECLARATION_STATEMENT =
             "final graphql:Client " + CLIENT_NAME_PLACEHOLDER +
                     "_CLIENT = check new graphql:Client(\"" + URL_PLACEHOLDER + "\");";
@@ -35,14 +36,8 @@ public class Constants {
     // File names for templates
     public static final String RESOURCE_FUNCTION_TEMPLATE_FILE = "resource_function.bal.partial";
     public static final String GET_CLIENT_FUNCTION_TEMPLATE_FILE = "get_client_function.bal.partial";
-    public static final String[] TEMPLATE_FILES = {
-            "Ballerina.toml",
-            "Dependencies.toml",
-            "devcontainer.json",
-            "records.bal",
-            "resolver.bal",
-            "utils.bal",
-            "queryFieldClassifier.bal"
-    };
+    public static final String SERVICE_DECLARATION_TEMPLATE_FILE = "service_declaration.bal.partial";
+    public static final String GATEWAY_PROJECT_TEMPLATE_DIRECTORY = "gateway";
+    public static final String GATEWAY_TEMPLATE_FILES_DIRECTORY = "gateway_templates";
 
 }

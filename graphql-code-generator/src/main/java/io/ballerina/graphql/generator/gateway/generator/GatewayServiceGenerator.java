@@ -39,25 +39,26 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.BALLERINA_GRAPHQL_IMPORT_STATEMENT;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.BASIC_RESPONSE_TYPE_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_VALUE_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.CONFIGURABLE_PORT_STATEMENT;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.FUNCTION_PARAM_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.GET_CLIENT_FUNCTION_TEMPLATE_FILE;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.GRAPHQL_CLIENT_DECLARATION_STATEMENT;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.ISOLATED_SERVICE_TEMPLATE;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.MATCH_CLIENT_STATEMENTS_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.MATCH_CLIENT_STATEMENT_TEMPLATE;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.QUERY_ARGS_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.QUERY_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.RESOURCE_FUNCTIONS_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.RESOURCE_FUNCTION_TEMPLATE_FILE;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.RESPONSE_TYPE_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.URL_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtils.getJoinGraphs;
 import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtils.getResourceTemplateFilePath;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.BALLERINA_GRAPHQL_IMPORT_STATEMENT;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.BALLERINA_LOG_IMPORT_STATEMENT;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.BASIC_RESPONSE_TYPE_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.CLIENT_NAME_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.CLIENT_NAME_VALUE_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.CONFIGURABLE_PORT_STATEMENT;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.FUNCTION_PARAM_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.GET_CLIENT_FUNCTION_TEMPLATE_FILE;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.GRAPHQL_CLIENT_DECLARATION_STATEMENT;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.MATCH_CLIENT_STATEMENTS_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.MATCH_CLIENT_STATEMENT_TEMPLATE;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.QUERY_ARGS_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.QUERY_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.RESOURCE_FUNCTIONS_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.RESOURCE_FUNCTION_TEMPLATE_FILE;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.RESPONSE_TYPE_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.SERVICE_DECLARATION_TEMPLATE_FILE;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.URL_PLACEHOLDER;
 
 /**
  * Class to generate service code for the gateway.
@@ -82,7 +83,8 @@ public class GatewayServiceGenerator {
 
     private SyntaxTree generateSyntaxTree() throws GatewayGenerationException, IOException {
         NodeList<ImportDeclarationNode> importsList = createNodeList(
-                NodeParser.parseImportDeclaration(BALLERINA_GRAPHQL_IMPORT_STATEMENT)
+                NodeParser.parseImportDeclaration(BALLERINA_GRAPHQL_IMPORT_STATEMENT),
+                NodeParser.parseImportDeclaration(BALLERINA_LOG_IMPORT_STATEMENT)
         );
 
         List<ModuleMemberDeclarationNode> nodes = new ArrayList<>(getClientDeclarations());
@@ -107,7 +109,8 @@ public class GatewayServiceGenerator {
 
     private ModuleMemberDeclarationNode getServiceDeclaration() throws GatewayGenerationException, IOException {
         String resourceFunctions = String.join(System.lineSeparator(), getResourceFunctions());
-        String serviceTemplate = ISOLATED_SERVICE_TEMPLATE.replace(RESOURCE_FUNCTIONS_PLACEHOLDER, resourceFunctions);
+        String serviceTemplate = Files.readString(getResourceTemplateFilePath(project.getTempDir(),
+                SERVICE_DECLARATION_TEMPLATE_FILE)).replaceAll(RESOURCE_FUNCTIONS_PLACEHOLDER, resourceFunctions);
         return NodeParser.parseModuleMemberDeclaration(serviceTemplate);
     }
 
@@ -121,21 +124,20 @@ public class GatewayServiceGenerator {
 
     private String getResourceFunction(GraphQLSchemaElement graphQLSchemaElement)
             throws IOException, GatewayGenerationException {
-        String functionTemplate = Files.readString(getResourceTemplateFilePath(project.getTempDir(),
-                RESOURCE_FUNCTION_TEMPLATE_FILE));
-        functionTemplate = functionTemplate.replaceAll(QUERY_PLACEHOLDER,
-                ((GraphQLFieldDefinition) graphQLSchemaElement).getName());
-        functionTemplate = functionTemplate.replaceAll(FUNCTION_PARAM_PLACEHOLDER,
-                getArgumentString(graphQLSchemaElement));
-        functionTemplate = functionTemplate.replaceAll(RESPONSE_TYPE_PLACEHOLDER,
-                CommonUtils.getTypeNameFromGraphQLType(((GraphQLFieldDefinition) graphQLSchemaElement).getType()));
-        functionTemplate = functionTemplate.replaceAll(BASIC_RESPONSE_TYPE_PLACEHOLDER,
-                CommonUtils.getBasicTypeNameFromGraphQLType(((GraphQLFieldDefinition) graphQLSchemaElement).getType()));
-        functionTemplate = functionTemplate.replaceAll(CLIENT_NAME_PLACEHOLDER,
-                getClientNameFromFieldDefinition((GraphQLFieldDefinition) graphQLSchemaElement));
-        functionTemplate = functionTemplate.replaceAll(QUERY_ARGS_PLACEHOLDER, getQueryArguments(graphQLSchemaElement));
-
-        return functionTemplate;
+        return Files.readString(getResourceTemplateFilePath(project.getTempDir(),
+                        RESOURCE_FUNCTION_TEMPLATE_FILE)).replaceAll(QUERY_PLACEHOLDER,
+                        ((GraphQLFieldDefinition) graphQLSchemaElement).getName())
+                .replaceAll(FUNCTION_PARAM_PLACEHOLDER,
+                        getArgumentString(graphQLSchemaElement))
+                .replaceAll(RESPONSE_TYPE_PLACEHOLDER,
+                        CommonUtils.getTypeNameFromGraphQLType(
+                                ((GraphQLFieldDefinition) graphQLSchemaElement).getType()))
+                .replaceAll(BASIC_RESPONSE_TYPE_PLACEHOLDER,
+                        CommonUtils.getBasicTypeNameFromGraphQLType(
+                                ((GraphQLFieldDefinition) graphQLSchemaElement).getType()))
+                .replaceAll(CLIENT_NAME_PLACEHOLDER,
+                        getClientNameFromFieldDefinition((GraphQLFieldDefinition) graphQLSchemaElement))
+                .replaceAll(QUERY_ARGS_PLACEHOLDER, getQueryArguments(graphQLSchemaElement));
     }
 
     private ModuleMemberDeclarationNode getGetClientFunction()

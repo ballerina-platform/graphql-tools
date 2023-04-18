@@ -1,4 +1,5 @@
 import ballerina/graphql;
+import ballerina/log;
 
 final graphql:Client REVIEWS_CLIENT = check new graphql:Client("http://localhost:4002");
 final graphql:Client INVENTORY_CLIENT = check new graphql:Client("http://localhost:4004");
@@ -28,6 +29,9 @@ isolated function getClient(string clientName) returns graphql:Client {
 configurable int PORT = 9000;
 
 isolated service on new graphql:Listener(PORT) {
+    isolated function init() {
+        log:printInfo(string `💃 Server ready at port: ${PORT}`);
+    }
     isolated resource function get me(graphql:Field 'field) returns User|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, ACCOUNTS);
         string fieldString = classifier.getFieldString();

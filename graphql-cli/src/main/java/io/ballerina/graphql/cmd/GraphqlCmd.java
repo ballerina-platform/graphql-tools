@@ -87,6 +87,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final String CMD_NAME = "graphql";
     private PrintStream outStream;
     private boolean exitWhenFinish;
+    private int exitStatusCode;
     private Path executionPath = Paths.get(System.getProperty("user.dir"));
 
     @CommandLine.Option(names = {"-h", "--help"}, hidden = true)
@@ -159,8 +160,9 @@ public class GraphqlCmd implements BLauncherCmd {
      *
      * @param exit Whether to exit or not.
      */
-    private static void exitError(boolean exit) {
+    private void exitError(boolean exit) {
         if (exit) {
+            exitStatusCode = 1;
             Runtime.getRuntime().exit(1);
         }
     }
@@ -178,6 +180,7 @@ public class GraphqlCmd implements BLauncherCmd {
 
         // Successfully exit if no error occurs
         if (this.exitWhenFinish) {
+            exitStatusCode = 0;
             Runtime.getRuntime().exit(0);
         }
     }
@@ -442,5 +445,9 @@ public class GraphqlCmd implements BLauncherCmd {
 
     @Override
     public void setParentCmdParser(picocli.CommandLine commandLine) {
+    }
+
+    public int getExitStatusCode() {
+        return exitStatusCode;
     }
 }

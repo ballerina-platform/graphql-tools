@@ -1,4 +1,5 @@
 import ballerina/graphql;
+import ballerina/log;
 
 final graphql:Client MISSIONS_CLIENT = check new graphql:Client("http://localhost:4002");
 final graphql:Client ASTRONAUTS_CLIENT = check new graphql:Client("http://localhost:4001");
@@ -20,6 +21,9 @@ isolated function getClient(string clientName) returns graphql:Client {
 configurable int PORT = 9000;
 
 isolated service on new graphql:Listener(PORT) {
+    isolated function init() {
+        log:printInfo(string `💃 Server ready at port: ${PORT}`);
+    }
     isolated resource function get astronaut(graphql:Field 'field, string id) returns Astronaut|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, ASTRONAUTS);
         string fieldString = classifier.getFieldString();

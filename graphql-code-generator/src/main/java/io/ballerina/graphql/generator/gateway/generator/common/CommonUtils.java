@@ -190,7 +190,7 @@ public class CommonUtils {
         Path path = null;
         ClassLoader classLoader = CommonUtils.class.getClassLoader();
         InputStream inputStream =
-                classLoader.getResourceAsStream("gateway_templates/" + filename);
+                classLoader.getResourceAsStream(Constants.GATEWAY_TEMPLATE_FILES_DIRECTORY + "/" + filename);
         if (inputStream != null) {
             String resource = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             path = tmpDir.resolve(filename);

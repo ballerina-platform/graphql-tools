@@ -77,10 +77,10 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TABLE_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_DECLARATION;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_PLACEHOLDER;
-import static io.ballerina.graphql.generator.gateway.generator.Constants.CLIENT_NAME_VALUE_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtils.getJoinGraphs;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.CLIENT_NAME_DECLARATION;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.CLIENT_NAME_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.CLIENT_NAME_VALUE_PLACEHOLDER;
 
 /**
  * Class to generate the query plan for the gateway.
