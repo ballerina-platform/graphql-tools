@@ -104,7 +104,7 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = {"-m", "--mode"}, description = "Ballerina source [service]")
     private String mode;
 
-    @CommandLine.Option(names = {"--use-records-for-objects"},
+    @CommandLine.Option(names = {"-r", "--use-records-for-objects"},
             description = "Force the generator to generate records" + " types where ever possible")
     private boolean useRecordsForObjectsFlag;
 
