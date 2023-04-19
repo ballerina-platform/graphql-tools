@@ -26,6 +26,8 @@ import java.util.List;
  * This class represents GraphQL client code generation related constants.
  */
 public class CodeGeneratorConstants {
+    public static final String GRAPHQL_UPLOAD_TYPE = "Upload";
+
     public static final String GRAPHQL_API = "GraphqlApi";
     public static final String ROOT_PROJECT_NAME = "root";
     public static final String MODULES_PATH = "/modules/";

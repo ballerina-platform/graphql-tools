@@ -22,8 +22,7 @@ import java.nio.file.Paths;
  */
 public class ServiceGeneratorTest extends GraphqlTest {
     @Test(description = "Test the successful generation of service code")
-    public void testGenerateSrc()
-            throws IOException, ValidationException, ServiceTypesGenerationException {
+    public void testGenerateSrc() throws IOException, ValidationException, ServiceTypesGenerationException {
         try {
             String fileName = "SchemaWithBasic01Api";
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(

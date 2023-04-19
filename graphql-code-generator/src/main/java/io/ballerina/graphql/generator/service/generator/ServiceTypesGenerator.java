@@ -29,7 +29,6 @@ import graphql.schema.GraphQLUnionType;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ArrayDimensionNode;
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
-import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
@@ -47,6 +46,7 @@ import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MinutiaeList;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NameReferenceNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
@@ -115,6 +115,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createMethodDeclarat
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createObjectTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createOptionalTypeDescriptorNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createQualifiedNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordFieldNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRequiredParameterNode;
@@ -846,9 +847,15 @@ public class ServiceTypesGenerator extends TypesGenerator {
             throws ServiceTypesGenerationException {
         if (type instanceof GraphQLScalarType) {
             GraphQLScalarType scalarType = (GraphQLScalarType) type;
-            BuiltinSimpleNameReferenceNode scalarName =
-                    createBuiltinSimpleNameReferenceNode(getTypeDescFor(scalarType.getName()),
-                            createToken(getTypeKeywordFor(scalarType.getName())));
+            NameReferenceNode scalarName;
+            if (CodeGeneratorConstants.GRAPHQL_UPLOAD_TYPE.equals(scalarType.getName())) {
+                scalarName = createQualifiedNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
+                        createToken(SyntaxKind.COLON_TOKEN),
+                        createIdentifierToken(CodeGeneratorConstants.GRAPHQL_UPLOAD_TYPE));
+            } else {
+                scalarName = createBuiltinSimpleNameReferenceNode(getTypeDescFor(scalarType.getName()),
+                        createToken(getTypeKeywordFor(scalarType.getName())));
+            }
             if (nonNull) {
                 return scalarName;
             } else {

@@ -723,4 +723,29 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
+
+    @Test(description = "Test for schema with file upload fields")
+    public void testGenerateSrcForSchemaWithFileUploadFields()
+            throws ValidationException, IOException, ServiceTypesGenerationException {
+        String fileName = "SchemaWithFileUploadApi";
+        String expectedFile = "typesWithFileUploadDefault.bal";
+
+        GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                        .toString(), this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(fileName);
+        String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
+        writeContentTo(generatedServiceTypesContent, typesCheckProjectDir);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(typesCheckProjectDir);
+        Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+        String generatedServiceTypesContentTrimmed =
+                generatedServiceTypesContent.trim().replaceAll("\\s+", "")
+                        .replaceAll(System.lineSeparator(), "");
+        Path expectedServiceTypesFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+        String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
+        Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
+    }
 }
