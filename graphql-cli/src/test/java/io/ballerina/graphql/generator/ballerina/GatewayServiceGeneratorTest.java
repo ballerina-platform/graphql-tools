@@ -60,7 +60,7 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
                                 "supergraphSchemas", fileName + ".graphql"))
                         .toString(), this.tmpDir);
         String generatedSrc = (new GatewayServiceGenerator(project)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("service02.bal"));
+        String expectedSrc = Files.readString(resources.resolve("service03.bal"));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
 }

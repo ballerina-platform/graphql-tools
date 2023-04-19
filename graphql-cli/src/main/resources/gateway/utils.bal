@@ -59,3 +59,7 @@ isolated function convertPathToStringArray((string|int)[] path) returns string[]
         return element is int ? "@" : element;
     });
 }
+
+isolated function compose(map<json> initialResult, map<json> resultToCompose, string element) = @java:Method {
+    'class: "io.ballerina.stdlib.NativeImpl"
+} external;
