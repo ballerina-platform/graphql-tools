@@ -35,7 +35,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
             List<SrcFilePojo> genSources = generateBalSources(project);
             writeGeneratedSources(genSources, Path.of(outputPath));
         } catch (ServiceGenerationException | IOException e) {
-            throw new GenerationException(e.getMessage());
+            throw new GenerationException(e.getMessage(), project.getName());
         }
     }
 
