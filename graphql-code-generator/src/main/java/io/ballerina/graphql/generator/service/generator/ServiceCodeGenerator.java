@@ -46,7 +46,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
         String fileName = project.getFileName();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
-        List<SrcFilePojo> sourceFiles = Collections.synchronizedList(new ArrayList<>());
+        List<SrcFilePojo> sourceFiles = new ArrayList<>();
         generateServiceTypes(projectName, fileName, graphQLSchema, sourceFiles);
         generateServices(projectName, fileName, sourceFiles);
         return sourceFiles;
