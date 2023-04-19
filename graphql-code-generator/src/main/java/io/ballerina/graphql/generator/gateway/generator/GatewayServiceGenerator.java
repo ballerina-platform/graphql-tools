@@ -234,8 +234,8 @@ public class GatewayServiceGenerator {
         int size = arguments.size();
         int count = 0;
         for (GraphQLArgument argument : arguments) {
-            argumentList.append("\"").append(argument.getName()).append("\": ").append(argument.getName())
-                    .append(".").append("toString()");
+            argumentList.append("\"").append(argument.getName()).append("\": self.getParamAsString(")
+                    .append(argument.getName()).append(")");
 
             if (size < ++count) {
                 argumentList.append(", ");
