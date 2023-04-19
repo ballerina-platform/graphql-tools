@@ -48,8 +48,13 @@ isolated service on new graphql:Listener(PORT) {
         string queryString = wrapwithQuery("me", fieldString);
         meResponse response = check ACCOUNTS_CLIENT->execute(queryString);
         User result = response.data.me;
-        Resolver resolver = new (queryPlan, result, "User", propertiesNotResolved, ["me"]);
-        return resolver.getResult().ensureType();
+        Resolver resolver = new (queryPlan, result.toJson(), "User", propertiesNotResolved, ["me"]);
+        json|error finalResult = resolver.getResult();
+        if finalResult is error {
+            return finalResult;
+        } else {
+            return finalResult.cloneWithType();
+        }
     }
     isolated resource function get topProducts(graphql:Field 'field, int? first = 5) returns Product[]|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, PRODUCTS);
@@ -58,7 +63,12 @@ isolated service on new graphql:Listener(PORT) {
         string queryString = wrapwithQuery("topProducts", fieldString, {"first": self.getParamAsString(first)});
         topProductsResponse response = check PRODUCTS_CLIENT->execute(queryString);
         Product[] result = response.data.topProducts;
-        Resolver resolver = new (queryPlan, result, "Product", propertiesNotResolved, ["topProducts"]);
-        return resolver.getResult().ensureType();
+        Resolver resolver = new (queryPlan, result.toJson(), "Product", propertiesNotResolved, ["topProducts"]);
+        json|error finalResult = resolver.getResult();
+        if finalResult is error {
+            return finalResult;
+        } else {
+            return finalResult.cloneWithType();
+        }
     }
 }

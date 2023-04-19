@@ -440,15 +440,16 @@ public class GraphqlCmdTest extends GraphqlTest {
         String filename = "Supergraph02";
         Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
                 filename + ".graphql"));
+        Path outDir = Path.of("C:\\Users\\Mohamed Ishad\\Desktop");
 
-        String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
+        String[] args = {"-i", supergraphSdl.toString(), "-o", outDir.toString(), "-m",
                 CodeGeneratorConstants.MODE_GATEWAY};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, outDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
         try {
             graphqlCmd.execute();
-            File generatedGateway = new File(tmpDir.toString() + File.separator + filename + "-gateway.jar");
+            File generatedGateway = new File(outDir.toString() + File.separator + filename + "-gateway.jar");
             Assert.assertTrue(generatedGateway.exists());
         } catch (BLauncherException e) {
             String output = e.toString();
@@ -462,14 +463,16 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
                 filename + ".graphql"));
 
-        String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
+        Path outDir = Path.of("C:\\Users\\Mohamed Ishad\\Desktop");
+
+        String[] args = {"-i", supergraphSdl.toString(), "-o", outDir.toString(), "-m",
                 CodeGeneratorConstants.MODE_GATEWAY};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, outDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
         try {
             graphqlCmd.execute();
-            File generatedGateway = new File(tmpDir.toString() + File.separator + filename + "-gateway.jar");
+            File generatedGateway = new File(outDir.toString() + File.separator + filename + "-gateway.jar");
             Assert.assertTrue(generatedGateway.exists());
         } catch (BLauncherException e) {
             String output = e.toString();

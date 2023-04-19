@@ -64,8 +64,7 @@ public class GatewayQueryPlanGenerationTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayQueryPlanGenerator(graphQLSchema)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("queryPlan02.bal"));
+        String expectedSrc = Files.readString(resources.resolve("queryPlan03.bal"));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
-
 }

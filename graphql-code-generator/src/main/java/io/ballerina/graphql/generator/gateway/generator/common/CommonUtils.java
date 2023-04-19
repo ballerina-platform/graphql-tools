@@ -107,14 +107,14 @@ public class CommonUtils {
      * @return Type name
      */
     public static String getTypeFromFieldDefinition(FieldDefinition definition) throws GatewayGenerationException {
-        return getTypeNameFromGraphQLType(definition.getType());
+        return getTypeNameFromType(definition.getType());
     }
 
-    private static String getTypeNameFromGraphQLType(Type type) throws GatewayGenerationException {
+    private static String getTypeNameFromType(Type type) throws GatewayGenerationException {
         if (type instanceof NonNullType) {
-            return getTypeNameFromGraphQLType(((NonNullType) type).getType());
+            return getTypeNameFromType(((NonNullType) type).getType());
         } else if (type instanceof ListType) {
-            return getTypeNameFromGraphQLType(((ListType) type).getType()) + "[]";
+            return getTypeNameFromType(((ListType) type).getType());
         } else if (type instanceof TypeName) {
             return ((TypeName) type).getName();
         } else {

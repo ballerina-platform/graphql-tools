@@ -1,5 +1,3 @@
-import ballerina/jballerina.java;
-
 // Prepare query string to resolve by reference.
 isolated function wrapWithEntityRepresentation(string typename, map<json>[] fieldsRequiredToFetch, string fieldQuery) returns string {
     string[] representations = [];
@@ -24,8 +22,7 @@ isolated function getKeyValueString(map<json> fieldMap) returns string {
     foreach var [key, value] in fieldMap.entries() {
         if value is map<json> {
             keyValueString = keyValueString + string `${key}: { ${getKeyValueString(value)} } `;
-        }
-        else {
+        } else {
             keyValueString = keyValueString + string `${key}: "${value.toString()}" `;
         }
     }
@@ -41,8 +38,7 @@ public isolated function wrapwithQuery(string root, string fieldQuery, map<strin
                 ${fieldQuery}
             }
         }`;
-    }
-    else {
+    } else {
         string[] argsList = [];
         foreach var [key, value] in args.entries() {
             argsList.push(string `${key}: ${value}`);
@@ -61,7 +57,3 @@ isolated function convertPathToStringArray((string|int)[] path) returns string[]
         return element is int ? "@" : element;
     });
 }
-
-isolated function compose(map<json> initialResult, map<json> resultToCompose, string element) = @java:Method {
-    'class: "io.ballerina.stdlib.NativeImpl"
-} external;

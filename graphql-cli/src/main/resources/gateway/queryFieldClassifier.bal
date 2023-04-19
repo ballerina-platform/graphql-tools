@@ -42,8 +42,7 @@ public class QueryFieldClassifier {
         foreach var subfield in subfields {
             if self.isResolvable(subfield, fieldTypeName, clientName) {
                 self.resolvableFields.push(subfield);
-            }
-            else {
+            } else {
                 self.unresolvableFields.push({
                     'field: subfield,
                     parent: fieldTypeName
@@ -62,8 +61,7 @@ public class QueryFieldClassifier {
             // if scalar push name to properties array.
             if 'field.getUnwrappedType().kind == "SCALAR" {
                 properties.push('field.getName());
-            }
-            else {
+            } else {
                 // Create a new classifier for the field.
                 // classify and expand the unResolvableFields with the inner level.
                 QueryFieldClassifier classifier = new ('field, self.queryPlan, self.clientName);
@@ -104,8 +102,7 @@ public class QueryFieldClassifier {
         if 'field.getName() == self.queryPlan.get(parentType).keys[clientName] ||
             self.queryPlan.get(parentType).fields.get('field.getName()).'client == clientName {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }

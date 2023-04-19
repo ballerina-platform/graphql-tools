@@ -6,7 +6,7 @@ public final readonly & table<QueryPlanEntry> key(typename) queryPlan = table [
             {name: "title", 'type: "String", 'client: PRODUCT}
         ]},
     {typename: "Product", keys: {"product": "id", "reviews": "id"}, fields: table [
-            {name: "reviews", 'type: "Review[]", 'client: REVIEWS},
+            {name: "reviews", 'type: "Review", 'client: REVIEWS},
             {name: "price", 'type: "Int", 'client: PRODUCT},
             {name: "description", 'type: "String", 'client: PRODUCT},
             {name: "title", 'type: "String", 'client: PRODUCT},
