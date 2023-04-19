@@ -19,8 +19,6 @@
 package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.launcher.BLauncherException;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.graphql.common.GraphqlTest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -147,25 +145,6 @@ public class GraphqlCmdTest extends GraphqlTest {
             String output = e.toString();
             Assert.fail(output);
         }
-    }
-
-    @Test(description = "Test NodeParser")
-    public void testNodeParser() {
-        ModulePartNode modulePartNode = NodeParser.parseModulePart(
-                "import ballerina/graphql;\n" + "\n" + "type Schema09Api service object {\n" +
-                        "    *graphql:Service;\n" + "\n" +
-                        "    resource function get studentInfo(int id, boolean pass=false) returns Info?;\n" + "};\n" +
-                        "\n" +
-                        "type Info distinct service object {\n" + "    resource function get name() returns string;\n" +
-                        "};\n" + "\n" + "service class Book {\n" +
-                        "    resource function get name() returns string {}\n" + "}\n" + "\n" +
-                        "distinct service class Student {\n" + "    *Info;\n" + "\n" +
-                        "    resource function get id() returns int {}\n" +
-                        "    resource function get name() returns string {}\n" + "}\n" + "\n" +
-                        "distinct service class Teacher {\n" + "    *Info;\n" + "\n" +
-                        "    resource function get id() returns int {}\n" +
-                        "    resource function get name() returns string {}\n" + "}\n");
-        modulePartNode.toString();
     }
 
     @Test(description = "Test graphql command execution without input file path argument")
