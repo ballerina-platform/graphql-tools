@@ -38,6 +38,13 @@ public class Constants {
     public static final String GET_CLIENT_FUNCTION_TEMPLATE_FILE = "get_client_function.bal.partial";
     public static final String SERVICE_DECLARATION_TEMPLATE_FILE = "service_declaration.bal.partial";
     public static final String GATEWAY_PROJECT_TEMPLATE_DIRECTORY = "gateway";
+    public static final String[] GATEWAY_PROJECT_TEMPLATE_FILES = {
+            "Ballerina.toml",
+            "resolver.bal",
+            "utils.bal",
+            "records.bal",
+            "queryFieldClassifier.bal"
+    };
     public static final String GATEWAY_TEMPLATE_FILES_DIRECTORY = "gateway_templates";
 
 }
