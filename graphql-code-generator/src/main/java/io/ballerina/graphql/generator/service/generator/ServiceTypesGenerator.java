@@ -174,7 +174,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         return serviceMethodDeclarations;
     }
 
-    public void setServiceMethodDeclarations(List<MethodDeclarationNode> serviceMethodDeclarations) {
+    private void setServiceMethodDeclarations(List<MethodDeclarationNode> serviceMethodDeclarations) {
         this.serviceMethodDeclarations = serviceMethodDeclarations;
     }
 
