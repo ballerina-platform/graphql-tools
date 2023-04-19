@@ -13,7 +13,6 @@ import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
