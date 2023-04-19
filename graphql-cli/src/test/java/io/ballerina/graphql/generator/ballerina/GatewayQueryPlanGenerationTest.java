@@ -9,6 +9,7 @@ import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationExcepti
 import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.GatewayQueryPlanGenerator;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -23,48 +24,25 @@ public class GatewayQueryPlanGenerationTest extends GraphqlTest {
     private final Path resources = this.resourceDir.resolve(Paths.get("federationGatewayGen",
             "expectedResults", "queryPlans"));
 
-    @Test(description = "Test query plan for gateway 01")
-    public void testQueryPlanGeneration01()
+    @Test(description = "Test query plan for gateway", dataProvider = "GatewayQueryPlanGenerationDataProvider")
+    public void testQueryPlanGeneration(String supergraphFileName, String expectedFileName)
             throws ValidationException, IOException, GatewayQueryPlanGenerationException, GatewayGenerationException {
-        String fileName = "Supergraph01";
-
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 this.resourceDir.resolve(Paths.get("federationGatewayGen",
-                                "supergraphSchemas", fileName + ".graphql"))
+                                "supergraphSchemas", supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayQueryPlanGenerator(graphQLSchema)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("queryPlan01.bal"));
+        String expectedSrc = Files.readString(resources.resolve(expectedFileName));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
 
-    @Test(description = "Test query plan for gateway 02")
-    public void testQueryPlanGeneration02()
-            throws ValidationException, IOException, GatewayQueryPlanGenerationException, GatewayGenerationException {
-        String fileName = "Supergraph02";
-
-        GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                this.resourceDir.resolve(Paths.get("federationGatewayGen",
-                                "supergraphSchemas", fileName + ".graphql"))
-                        .toString(), this.tmpDir);
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
-        String generatedSrc = (new GatewayQueryPlanGenerator(graphQLSchema)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("queryPlan02.bal"));
-        Assert.assertEquals(generatedSrc, expectedSrc);
-    }
-
-    @Test(description = "Test query plan for gateway 03")
-    public void testQueryPlanGeneration03()
-            throws ValidationException, IOException, GatewayQueryPlanGenerationException, GatewayGenerationException {
-        String fileName = "Supergraph03";
-
-        GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                this.resourceDir.resolve(Paths.get("federationGatewayGen",
-                                "supergraphSchemas", fileName + ".graphql"))
-                        .toString(), this.tmpDir);
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
-        String generatedSrc = (new GatewayQueryPlanGenerator(graphQLSchema)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("queryPlan03.bal"));
-        Assert.assertEquals(generatedSrc, expectedSrc);
+    @DataProvider(name = "GatewayQueryPlanGenerationDataProvider")
+    public Object[][] getGatewayQueryPlanGenerationTestData() {
+        return new Object[][]{
+                {"Supergraph01", "queryPlan01.bal"},
+                {"Supergraph02", "queryPlan02.bal"},
+                {"Supergraph03", "queryPlan03.bal"},
+        };
     }
 }

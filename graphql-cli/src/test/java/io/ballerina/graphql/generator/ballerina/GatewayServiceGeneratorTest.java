@@ -7,6 +7,7 @@ import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.GatewayServiceGenerator;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -22,45 +23,26 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
     private final Path resources = this.resourceDir.resolve(Paths.get("federationGatewayGen",
             "expectedResults", "services"));
 
-    @Test(description = "Test service generation for gateway 01")
-    public void testGatewayServiceGeneration01()
+    @Test(description = "Test service generation for gateway", dataProvider = "serviceGenerationDataProvider")
+    public void testGatewayServiceGeneration(String supergraphFileName, String expectedFileName)
             throws ValidationException, IOException, GatewayServiceGenerationException {
         String fileName = "Supergraph01";
 
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 this.resourceDir.resolve(Paths.get("federationGatewayGen",
-                                "supergraphSchemas", fileName + ".graphql"))
+                                "supergraphSchemas", supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);
         String generatedSrc = (new GatewayServiceGenerator(project)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("service01.bal"));
+        String expectedSrc = Files.readString(resources.resolve(expectedFileName));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
 
-    @Test(description = "Test service generation for gateway 02")
-    public void testGatewayServiceGeneration02()
-            throws ValidationException, IOException, GatewayServiceGenerationException {
-        String fileName = "Supergraph02";
-
-        GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                this.resourceDir.resolve(Paths.get("federationGatewayGen",
-                                "supergraphSchemas", fileName + ".graphql"))
-                        .toString(), this.tmpDir);
-        String generatedSrc = (new GatewayServiceGenerator(project)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("service02.bal"));
-        Assert.assertEquals(generatedSrc, expectedSrc);
-    }
-
-    @Test(description = "Test service generation for gateway 03")
-    public void testGatewayServiceGeneration03()
-            throws ValidationException, IOException, GatewayServiceGenerationException {
-        String fileName = "Supergraph03";
-
-        GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                this.resourceDir.resolve(Paths.get("federationGatewayGen",
-                                "supergraphSchemas", fileName + ".graphql"))
-                        .toString(), this.tmpDir);
-        String generatedSrc = (new GatewayServiceGenerator(project)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("service03.bal"));
-        Assert.assertEquals(generatedSrc, expectedSrc);
+    @DataProvider(name = "serviceGenerationDataProvider")
+    public Object[][] getServiceGenerationDataProvider() {
+        return new Object[][]{
+                {"Supergraph01", "service01.bal"},
+                {"Supergraph02", "service02.bal"},
+                {"Supergraph03", "service03.bal"},
+        };
     }
 }

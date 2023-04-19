@@ -8,6 +8,7 @@ import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.gateway.exception.GatewayTypeGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.GatewayTypeGenerator;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -23,48 +24,27 @@ public class GatewayTypeGenerationTest extends GraphqlTest {
     private final Path resources = this.resourceDir.resolve(Paths.get("federationGatewayGen",
             "expectedResults", "types"));
 
-    @Test(description = "Test supergraph types generation 01")
-    public void testSupergraphTypeGeneration01()
+    @Test(description = "Test supergraph types generation", dataProvider = "GatewayTypeGenerationDataProvider")
+    public void testSupergraphTypeGeneration(String supergraphFileName, String expectedFileName)
             throws IOException, ValidationException, GatewayTypeGenerationException {
         String fileName = "Supergraph01";
 
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                this.resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas", fileName +
-                                ".graphql"))
+                this.resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
+                                supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayTypeGenerator(graphQLSchema)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("types01.bal"));
+        String expectedSrc = Files.readString(resources.resolve(expectedFileName));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
 
-    @Test(description = "Test supergraph types generation 02")
-    public void testSupergraphTypeGeneration02()
-            throws IOException, ValidationException, GatewayTypeGenerationException {
-        String fileName = "Supergraph02";
-
-        GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                this.resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas", fileName +
-                                ".graphql"))
-                        .toString(), this.tmpDir);
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
-        String generatedSrc = (new GatewayTypeGenerator(graphQLSchema)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("types02.bal"));
-        Assert.assertEquals(generatedSrc, expectedSrc);
-    }
-
-    @Test(description = "Test supergraph types generation 03")
-    public void testSupergraphTypeGeneration03()
-            throws IOException, ValidationException, GatewayTypeGenerationException {
-        String fileName = "Supergraph03";
-
-        GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                this.resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas", fileName +
-                                ".graphql"))
-                        .toString(), this.tmpDir);
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
-        String generatedSrc = (new GatewayTypeGenerator(graphQLSchema)).generateSrc();
-        String expectedSrc = Files.readString(resources.resolve("types03.bal"));
-        Assert.assertEquals(generatedSrc, expectedSrc);
+    @DataProvider(name = "GatewayTypeGenerationDataProvider")
+    public Object[][] getGatewayTypeGenerationTestData() {
+        return new Object[][] {
+                {"Supergraph01", "types01.bal"},
+                {"Supergraph02", "types02.bal"},
+                {"Supergraph03", "types03.bal"},
+        };
     }
 }
