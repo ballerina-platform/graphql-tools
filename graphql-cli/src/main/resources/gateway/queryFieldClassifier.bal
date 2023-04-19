@@ -75,10 +75,12 @@ public class QueryFieldClassifier {
             }
         }
 
-        // Push the key field even it is not requested.
-        string key = self.queryPlan.get(self.fieldTypeName).keys.get(self.clientName);
-        if properties.indexOf(key) is () {
-            properties.push(key);
+        // Push the key field even it is not requested if a key exists.
+        string|error key = trap self.queryPlan.get(self.fieldTypeName).keys.get(self.clientName);
+        if !(key is error) {
+            if properties.indexOf(key) is () {
+                properties.push(key);
+            }
         }
 
         return string:'join(" ", ...properties);
