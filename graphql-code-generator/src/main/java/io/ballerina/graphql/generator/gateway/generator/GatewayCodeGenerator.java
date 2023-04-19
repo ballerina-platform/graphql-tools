@@ -64,7 +64,8 @@ public class GatewayCodeGenerator extends CodeGenerator {
             PackageCompilation packageCompilation = buildProject.currentPackage().getCompilation();
             JBallerinaBackend jBallerinaBackend = JBallerinaBackend.from(packageCompilation, JvmTarget.JAVA_11);
             checkDiagnosticResultsForErrors(jBallerinaBackend.diagnosticResult());
-            jBallerinaBackend.emit(JBallerinaBackend.OutputType.EXEC, outputDirectoryPath.resolve("gateway.jar"));
+            jBallerinaBackend.emit(JBallerinaBackend.OutputType.EXEC,
+                    outputDirectoryPath.resolve(project.getFileName() + "-gateway.jar"));
 
         } catch (GatewayGenerationException | IOException | GatewayTypeGenerationException |
                  GatewayQueryPlanGenerationException | URISyntaxException e) {

@@ -1,3 +1,5 @@
+import ballerina/jballerina.java;
+
 // Prepare query string to resolve by reference.
 isolated function wrapWithEntityRepresentation(string typename, map<json>[] fieldsRequiredToFetch, string fieldQuery) returns string {
     string[] representations = [];

@@ -30,6 +30,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -416,8 +417,9 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test successful graphql federation gateway code generation 01")
     public void testGatewayCodeGeneration1() {
+        String filename = "Supergraph01";
         Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
-                "Supergraph01.graphql"));
+                filename + ".graphql"));
 
         String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
                 CodeGeneratorConstants.MODE_GATEWAY};
@@ -425,6 +427,8 @@ public class GraphqlCmdTest extends GraphqlTest {
         new CommandLine(graphqlCmd).parseArgs(args);
         try {
             graphqlCmd.execute();
+            File generatedGateway = new File(tmpDir.toString() + File.separator + filename + "-gateway.jar");
+            Assert.assertTrue(generatedGateway.exists());
         } catch (BLauncherException e) {
             String output = e.toString();
             Assert.fail(output);
@@ -433,8 +437,9 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test successful graphql federation gateway code generation 02")
     public void testGatewayCodeGeneration2() {
+        String filename = "Supergraph02";
         Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
-                "Supergraph02.graphql"));
+                filename + ".graphql"));
 
         String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
                 CodeGeneratorConstants.MODE_GATEWAY};
@@ -443,6 +448,8 @@ public class GraphqlCmdTest extends GraphqlTest {
 
         try {
             graphqlCmd.execute();
+            File generatedGateway = new File(tmpDir.toString() + File.separator + filename + "-gateway.jar");
+            Assert.assertTrue(generatedGateway.exists());
         } catch (BLauncherException e) {
             String output = e.toString();
             Assert.fail(output);
@@ -451,8 +458,9 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test successful graphql federation gateway code generation 03")
     public void testGatewayCodeGeneration3() {
+        String filename = "Supergraph03";
         Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
-                "Supergraph03.graphql"));
+                filename + ".graphql"));
 
         String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
                 CodeGeneratorConstants.MODE_GATEWAY};
@@ -461,6 +469,8 @@ public class GraphqlCmdTest extends GraphqlTest {
 
         try {
             graphqlCmd.execute();
+            File generatedGateway = new File(tmpDir.toString() + File.separator + filename + "-gateway.jar");
+            Assert.assertTrue(generatedGateway.exists());
         } catch (BLauncherException e) {
             String output = e.toString();
             Assert.fail(output);

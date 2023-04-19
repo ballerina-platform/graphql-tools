@@ -13,7 +13,7 @@ public class Resolver {
     // Query plan used to classify the fields.
     private final readonly & table<QueryPlanEntry> key(typename) queryPlan;
 
-    public isolated function init( readonly & table<QueryPlanEntry> key(typename) queryPlan, json result, string resultType, UnResolvableField[] unResolvableFields, string[] currentPath) {
+    public isolated function init(readonly & table<QueryPlanEntry> key(typename) queryPlan, json result, string resultType, UnResolvableField[] unResolvableFields, string[] currentPath) {
         self.queryPlan = queryPlan;
         self.result = result;
         self.resultType = resultType;
