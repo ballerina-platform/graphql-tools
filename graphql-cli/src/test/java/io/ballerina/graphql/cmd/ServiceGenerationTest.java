@@ -13,11 +13,13 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
 import static io.ballerina.graphql.common.TestUtils.hasOnlyResourceFuncMustReturnResultErrors;
 
@@ -141,6 +143,47 @@ public class ServiceGenerationTest extends GraphqlTest {
         } catch (BLauncherException | IOException e) {
             output = e.toString();
             Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test GraphQL command execution with readonly output path")
+    public void testExecuteWithReadOnlyOutputPath() {
+        Path graphqlSchema =
+                this.resourceDir.resolve(
+                        Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic01Api.graphql"));
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        try {
+            Path outputPath = Paths.get(tmpDir.toString(), "new");
+            Files.createDirectories(outputPath);
+            File file = new File(outputPath.toString());
+            file.setReadOnly();
+            String message = String.format("%s/types.bal (Permission denied)", outputPath);
+            String[] args = {"-i", graphqlSchema.toString(), "-o", outputPath.toString(), "-m", "service"};
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains(message));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test(description = "Test GraphQL command execution with schema file without read permission")
+    public void testExecuteWithSchemaFileWithoutReadPermission() {
+        Path graphqlSchema = Paths.get(tmpDir.toString(), "schema.graphql");
+        try {
+            Files.createFile(graphqlSchema);
+            File file = new File(graphqlSchema.toString());
+            file.setReadable(false);
+            String[] args = {"-i", graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            String message = String.format(MESSAGE_CAN_NOT_READ_SCHEMA_FILE, graphqlSchema.toString());
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains(message));
+        }  catch (BLauncherException | IOException e) {
+            Assert.fail(e.toString());
         }
     }
 
