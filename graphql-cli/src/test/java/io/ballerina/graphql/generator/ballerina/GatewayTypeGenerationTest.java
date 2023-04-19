@@ -52,4 +52,19 @@ public class GatewayTypeGenerationTest extends GraphqlTest {
         String expectedSrc = Files.readString(resources.resolve("types02.bal"));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
+
+    @Test(description = "Test supergraph types generation 03")
+    public void testSupergraphTypeGeneration03()
+            throws IOException, ValidationException, GatewayTypeGenerationException {
+        String fileName = "Supergraph03";
+
+        GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
+                this.resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas", fileName +
+                                ".graphql"))
+                        .toString(), this.tmpDir);
+        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+        String generatedSrc = (new GatewayTypeGenerator(graphQLSchema)).generateSrc();
+        String expectedSrc = Files.readString(resources.resolve("types03.bal"));
+        Assert.assertEquals(generatedSrc, expectedSrc);
+    }
 }

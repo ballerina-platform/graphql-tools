@@ -2,6 +2,7 @@ package io.ballerina.graphql.generator.gateway.generator.common;
 
 import graphql.language.FieldDefinition;
 import graphql.schema.GraphQLAppliedDirective;
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,7 @@ import static io.ballerina.graphql.generator.gateway.generator.common.CommonUtil
 
 /**
  * Class to hold data related to a graphql type field.
- * */
+ */
 public class FieldData {
     private final String fieldName;
     private final String type;
@@ -22,7 +23,8 @@ public class FieldData {
 
 
     FieldData(SchemaTypes schemaTypes, String fieldName, FieldDefinition fieldDefinition,
-              List<GraphQLAppliedDirective> joinTypeDirectivesOnParent, String parentType) {
+              List<GraphQLAppliedDirective> joinTypeDirectivesOnParent, String parentType)
+            throws GatewayGenerationException {
         this.schemaTypes = schemaTypes;
         this.fieldName = fieldName;
         this.type = getTypeFromFieldDefinition(fieldDefinition);

@@ -11,6 +11,7 @@ import graphql.language.StringValue;
 import graphql.parser.Parser;
 import graphql.schema.GraphQLAppliedDirective;
 import graphql.schema.GraphQLSchema;
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
 
 import java.util.ArrayList;
@@ -21,11 +22,11 @@ import java.util.stream.Collectors;
 
 /**
  * Class to hold data related to graphql types in a given graphql schema.
- * */
+ */
 public class SchemaTypes {
     private final Map<String, List<FieldData>> fieldDataMap;
 
-    public SchemaTypes(GraphQLSchema graphQLSchema) {
+    public SchemaTypes(GraphQLSchema graphQLSchema) throws GatewayGenerationException {
         List<String> names = CommonUtils.getCustomDefinedObjectTypeNames(graphQLSchema);
 
         this.fieldDataMap = new HashMap<>();
@@ -90,7 +91,8 @@ public class SchemaTypes {
      * @param graphQLSchema GraphQL schema
      * @return List of fields
      */
-    private List<FieldData> getFieldsOfType(String typeName, GraphQLSchema graphQLSchema) {
+    private List<FieldData> getFieldsOfType(String typeName, GraphQLSchema graphQLSchema)
+            throws GatewayGenerationException {
         List<FieldData> fields = new ArrayList<>();
 
         List<GraphQLAppliedDirective> joinTypeDirectives =

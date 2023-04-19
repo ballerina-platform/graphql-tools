@@ -49,4 +49,18 @@ public class GatewayServiceGeneratorTest extends GraphqlTest {
         String expectedSrc = Files.readString(resources.resolve("service02.bal"));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
+
+    @Test(description = "Test service generation for gateway 03")
+    public void testGatewayServiceGeneration03()
+            throws ValidationException, IOException, GatewayServiceGenerationException {
+        String fileName = "Supergraph03";
+
+        GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
+                this.resourceDir.resolve(Paths.get("federationGatewayGen",
+                                "supergraphSchemas", fileName + ".graphql"))
+                        .toString(), this.tmpDir);
+        String generatedSrc = (new GatewayServiceGenerator(project)).generateSrc();
+        String expectedSrc = Files.readString(resources.resolve("service02.bal"));
+        Assert.assertEquals(generatedSrc, expectedSrc);
+    }
 }

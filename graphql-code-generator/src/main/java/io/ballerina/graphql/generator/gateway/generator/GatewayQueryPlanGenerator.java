@@ -15,6 +15,7 @@ import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.gateway.generator.common.FieldData;
@@ -91,12 +92,10 @@ public class GatewayQueryPlanGenerator {
     private final Map<String, JoinGraph> joinGraphs;
     private final SchemaTypes schemaTypes;
 
-    public GatewayQueryPlanGenerator(GraphQLSchema graphQLSchema) {
+    public GatewayQueryPlanGenerator(GraphQLSchema graphQLSchema) throws GatewayGenerationException {
         this.graphQLSchema = graphQLSchema;
         this.joinGraphs = getJoinGraphs(graphQLSchema);
         this.schemaTypes = new SchemaTypes(graphQLSchema);
-        List<String> names = CommonUtils.getCustomDefinedObjectTypeNames(graphQLSchema);
-
     }
 
     public String generateSrc() throws GatewayQueryPlanGenerationException {
@@ -289,9 +288,13 @@ public class GatewayQueryPlanGenerator {
 
         for (GraphQLAppliedDirective directive : directives) {
             if (directive.getName().equals("join__type")) {
-                String graph = getGraphOfJoinTypeArgument(directive);
-                String key = getKeyOfJoinTypeArgument(name, directive);
-                keys.put(graph, key);
+                try {
+                    String graph = getGraphOfJoinTypeArgument(directive);
+                    String key = getKeyOfJoinTypeArgument(name, directive);
+                    keys.put(graph, key);
+                } catch (GatewayQueryPlanGenerationException ignored) {
+
+                }
             }
         }
 

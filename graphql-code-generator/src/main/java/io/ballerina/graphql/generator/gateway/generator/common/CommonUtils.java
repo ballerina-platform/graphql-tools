@@ -25,6 +25,7 @@ import graphql.language.EnumValue;
 import graphql.language.FieldDefinition;
 import graphql.language.ListType;
 import graphql.language.NonNullType;
+import graphql.language.Type;
 import graphql.language.TypeName;
 import graphql.schema.GraphQLAppliedDirective;
 import graphql.schema.GraphQLAppliedDirectiveArgument;
@@ -32,6 +33,7 @@ import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLSchemaElement;
@@ -91,6 +93,8 @@ public class CommonUtils {
             return ((GraphQLObjectType) queryType).getName();
         } else if (queryType instanceof GraphQLList) {
             return getTypeNameFromGraphQLType(((GraphQLList) queryType).getOriginalWrappedType()) + "[]";
+        } else if (queryType instanceof GraphQLNonNull) {
+            return getTypeNameFromGraphQLType(((GraphQLNonNull) queryType).getOriginalWrappedType());
         } else {
             throw new GatewayGenerationException("Unsupported type: " + queryType);
         }
@@ -102,13 +106,19 @@ public class CommonUtils {
      * @param definition GraphQL field definition
      * @return Type name
      */
-    public static String getTypeFromFieldDefinition(FieldDefinition definition) {
-        if (definition.getType() instanceof NonNullType) {
-            return ((TypeName) ((NonNullType) definition.getType()).getType()).getName();
-        } else if (definition.getType() instanceof ListType) {
-            return ((TypeName) ((ListType) definition.getType()).getType()).getName();
+    public static String getTypeFromFieldDefinition(FieldDefinition definition) throws GatewayGenerationException {
+        return getTypeNameFromGraphQLType(definition.getType());
+    }
+
+    private static String getTypeNameFromGraphQLType(Type type) throws GatewayGenerationException {
+        if (type instanceof NonNullType) {
+            return getTypeNameFromGraphQLType(((NonNullType) type).getType());
+        } else if (type instanceof ListType) {
+            return getTypeNameFromGraphQLType(((ListType) type).getType()) + "[]";
+        } else if (type instanceof TypeName) {
+            return ((TypeName) type).getName();
         } else {
-            return ((TypeName) definition.getType()).getName();
+            throw new GatewayGenerationException("Unsupported type: " + type);
         }
     }
 
@@ -155,6 +165,8 @@ public class CommonUtils {
             return ((GraphQLObjectType) queryType).getName();
         } else if (queryType instanceof GraphQLList) {
             return getBasicTypeNameFromGraphQLType(((GraphQLList) queryType).getOriginalWrappedType());
+        } else if (queryType instanceof GraphQLNonNull) {
+            return getBasicTypeNameFromGraphQLType(((GraphQLNonNull) queryType).getOriginalWrappedType());
         } else {
             throw new GatewayGenerationException("Unsupported type: " + queryType);
         }

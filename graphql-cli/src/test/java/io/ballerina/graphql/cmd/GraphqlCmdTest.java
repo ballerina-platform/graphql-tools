@@ -448,4 +448,22 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.fail(output);
         }
     }
+
+    @Test(description = "Test successful graphql federation gateway code generation 03")
+    public void testGatewayCodeGeneration3() {
+        Path supergraphSdl = resourceDir.resolve(Paths.get("federationGatewayGen", "supergraphSchemas",
+                "Supergraph03.graphql"));
+
+        String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
+                CodeGeneratorConstants.MODE_GATEWAY};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        try {
+            graphqlCmd.execute();
+        } catch (BLauncherException e) {
+            String output = e.toString();
+            Assert.fail(output);
+        }
+    }
 }

@@ -97,7 +97,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
 
     private void generateQueryPlan(String projectName, GraphQLSchema graphQLSchema,
                                    List<SrcFilePojo> sourceFiles)
-            throws GatewayQueryPlanGenerationException {
+            throws GatewayQueryPlanGenerationException, GatewayGenerationException {
         GatewayQueryPlanGenerator gatewayQueryPlanGenerator = new GatewayQueryPlanGenerator(graphQLSchema);
         String queryPlanFileContent = gatewayQueryPlanGenerator.generateSrc();
         sourceFiles.add(

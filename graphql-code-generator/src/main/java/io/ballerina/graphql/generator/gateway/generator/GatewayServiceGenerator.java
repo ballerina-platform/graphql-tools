@@ -77,7 +77,7 @@ public class GatewayServiceGenerator {
             SyntaxTree syntaxTree = generateSyntaxTree();
             return Formatter.format(syntaxTree).toString();
         } catch (Exception e) {
-            throw new GatewayServiceGenerationException("Error while generating the gateway types", e);
+            throw new GatewayServiceGenerationException("Error while generating the gateway services", e);
         }
     }
 
