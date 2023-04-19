@@ -381,13 +381,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private ModuleMemberDeclarationNode generateEnumType(GraphQLEnumType enumType) {
         List<Node> enumMembers = new ArrayList<>();
         List<GraphQLEnumValueDefinition> enumValues = enumType.getValues();
-        for (int valueInd = 0; valueInd < enumValues.size(); valueInd++) {
-            GraphQLEnumValueDefinition enumValue = enumValues.get(valueInd);
+        for (int valueIdx = 0; valueIdx < enumValues.size(); valueIdx++) {
+            GraphQLEnumValueDefinition enumValue = enumValues.get(valueIdx);
             EnumMemberNode enumMember = createEnumMemberNode(
                     generateMetadata(enumValue.getDescription(), null, enumValue.isDeprecated(),
                             enumValue.getDeprecationReason()), createIdentifierToken(enumValue.getName()), null, null);
             enumMembers.add(enumMember);
-            if (valueInd != enumValues.size() - 1) {
+            if (valueIdx != enumValues.size() - 1) {
                 enumMembers.add(createToken(SyntaxKind.COMMA_TOKEN, createEmptyMinutiaeList(),
                         createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE))));
             }
@@ -492,10 +492,10 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private NodeList<Node> generateServiceClassTypeMembers(List<GraphQLFieldDefinition> fields)
             throws ServiceTypesGenerationException {
         List<Node> members = new ArrayList<>();
-        for (int fieldInd = 0; fieldInd < fields.size(); fieldInd++) {
-            GraphQLFieldDefinition field = fields.get(fieldInd);
+        for (int fieldIdx = 0; fieldIdx < fields.size(); fieldIdx++) {
+            GraphQLFieldDefinition field = fields.get(fieldIdx);
             boolean addAdditionalNewLine = true;
-            if (fieldInd == fields.size() - 1) {
+            if (fieldIdx == fields.size() - 1) {
                 addAdditionalNewLine = false;
             }
             FunctionDefinitionNode functionDefinition = generateServiceClassTypeMember(field, addAdditionalNewLine);
@@ -674,9 +674,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
         List<Node> markdownDocumentationLines = new ArrayList<>();
         if (argument.getDescription() != null) {
             String[] lines = argument.getDescription().split(CodeGeneratorConstants.NEW_LINE);
-            for (int lineInd = 0; lineInd < lines.length; lineInd++) {
-                String line = lines[lineInd];
-                if (lineInd == 0) {
+            for (int lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+                String line = lines[lineIdx];
+                if (lineIdx == 0) {
                     markdownDocumentationLines.add(
                             generateMarkdownParameterDocumentationLine(line, argument.getName()));
                 } else {
@@ -765,16 +765,16 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 requiredParams.add(requiredParameterNode);
             }
         }
-        for (int requiredParamInd = 0; requiredParamInd < requiredParams.size(); requiredParamInd++) {
-            RequiredParameterNode requireParam = requiredParams.get(requiredParamInd);
+        for (int requiredParamIdx = 0; requiredParamIdx < requiredParams.size(); requiredParamIdx++) {
+            RequiredParameterNode requireParam = requiredParams.get(requiredParamIdx);
             params.add(requireParam);
-            if (requiredParamInd != requiredParams.size() - 1) {
+            if (requiredParamIdx != requiredParams.size() - 1) {
                 params.add(createToken(SyntaxKind.COMMA_TOKEN));
             }
         }
-        for (int defaultParamInd = 0; defaultParamInd < defaultParams.size(); defaultParamInd++) {
-            DefaultableParameterNode defaultParam = defaultParams.get(defaultParamInd);
-            if (defaultParamInd != 0 || requiredParams.size() != 0) {
+        for (int defaultParamIdx = 0; defaultParamIdx < defaultParams.size(); defaultParamIdx++) {
+            DefaultableParameterNode defaultParam = defaultParams.get(defaultParamIdx);
+            if (defaultParamIdx != 0 || requiredParams.size() != 0) {
                 params.add(createToken(SyntaxKind.COMMA_TOKEN));
             }
             params.add(defaultParam);
@@ -812,13 +812,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
             ObjectValue objectValue = (ObjectValue) value;
             List<ObjectField> objectFields = objectValue.getObjectFields();
             List<Node> mappedNodeFields = new ArrayList<>();
-            for (int objectFiledInd = 0; objectFiledInd < objectFields.size(); objectFiledInd++) {
-                ObjectField objectField = objectFields.get(objectFiledInd);
+            for (int objectFiledIdx = 0; objectFiledIdx < objectFields.size(); objectFiledIdx++) {
+                ObjectField objectField = objectFields.get(objectFiledIdx);
                 SpecificFieldNode specificField =
                         createSpecificFieldNode(null, createIdentifierToken(objectField.getName()),
                                 createToken(SyntaxKind.COLON_TOKEN), generateArgDefaultValue(objectField.getValue()));
                 mappedNodeFields.add(specificField);
-                if (objectFiledInd != objectFields.size() - 1) {
+                if (objectFiledIdx != objectFields.size() - 1) {
                     mappedNodeFields.add(createToken(SyntaxKind.COMMA_TOKEN));
                 }
             }
@@ -828,10 +828,10 @@ public class ServiceTypesGenerator extends TypesGenerator {
             ArrayValue arrayValue = (ArrayValue) value;
             List<Value> arrayElements = arrayValue.getValues();
             List<Node> arrayElementExpressions = new ArrayList<>();
-            for (int elementInd = 0; elementInd < arrayElements.size(); elementInd++) {
-                Value arrayElementValue = arrayElements.get(elementInd);
+            for (int elementIdx = 0; elementIdx < arrayElements.size(); elementIdx++) {
+                Value arrayElementValue = arrayElements.get(elementIdx);
                 arrayElementExpressions.add(generateArgDefaultValue(arrayElementValue));
-                if (elementInd != arrayElements.size() - 1) {
+                if (elementIdx != arrayElements.size() - 1) {
                     arrayElementExpressions.add(createToken(SyntaxKind.COMMA_TOKEN));
                 }
             }
