@@ -55,7 +55,8 @@ public class ServiceCodeGenerator extends CodeGenerator {
     private void generateServices(String projectName, String fileName, List<SrcFilePojo> sourceFiles)
             throws ServiceGenerationException {
         this.serviceGenerator.setFileName(fileName);
-        String serviceSrc = this.serviceGenerator.generateSrc(this.serviceMethodDeclarations);
+        this.serviceGenerator.setMethodDeclarations(this.serviceMethodDeclarations);
+        String serviceSrc = this.serviceGenerator.generateSrc();
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName, CodeGeneratorConstants.SERVICE_FILE_NAME,
                         serviceSrc));

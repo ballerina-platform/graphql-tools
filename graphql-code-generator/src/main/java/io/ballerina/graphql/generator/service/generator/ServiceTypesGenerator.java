@@ -628,7 +628,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             MetadataNode metadata = generateMetadata(field.getDescription(), field.getArguments(), field.isDeprecated(),
                     field.getDeprecationReason());
             MethodDeclarationNode methodDeclaration =
-                    createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
+                    createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, metadata,
                             createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
                             createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET),
                             createNodeList(createIdentifierToken(field.getName())), methodSignature,

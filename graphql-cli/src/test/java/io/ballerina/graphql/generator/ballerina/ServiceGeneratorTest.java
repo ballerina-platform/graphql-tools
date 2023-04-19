@@ -36,8 +36,9 @@ public class ServiceGeneratorTest extends GraphqlTest {
             serviceTypesGenerator.generateSrc(graphQLSchema);
             ServiceGenerator serviceGenerator = new ServiceGenerator();
             serviceGenerator.setFileName(fileName);
+            serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
             String generatedServiceContent =
-                    serviceGenerator.generateSrc(serviceTypesGenerator.getServiceMethodDeclarations()).trim()
+                    serviceGenerator.generateSrc().trim()
                             .replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
 
             Path expectedServiceFile =
