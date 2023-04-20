@@ -13,7 +13,6 @@ public class GraphqlServiceProject extends GraphqlProject {
         super(name, schema, outputPath);
     }
 
-
     public GenerationType getGenerationType() {
         return generationType;
     }

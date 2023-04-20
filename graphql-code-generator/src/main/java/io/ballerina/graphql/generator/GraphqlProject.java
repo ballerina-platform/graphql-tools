@@ -25,7 +25,6 @@ import io.ballerina.graphql.generator.utils.GenerationType;
  * Represents a GraphQL project in GraphQL config file.
  */
 public abstract class GraphqlProject {
-
     private String name;
     private String schema; // Web URL or File URL
     private String outputPath;
