@@ -129,10 +129,9 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypeReferenceN
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createUnionTypeDescriptorNode;
 
 /**
- * Generates the Ballerina syntax tree for the service types.
+ * This class is used to generate ballerina service types file according to the GraphQL schema.
  */
 public class ServiceTypesGenerator extends TypesGenerator {
-
     private String fileName;
     private boolean useRecordsForObjects;
     private HashMap<GraphQLObjectType, Boolean> canRecordFromObject;

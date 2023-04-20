@@ -11,6 +11,7 @@ public type Profile Student|Teacher|Clerk;
 public distinct service class Clerk {
     resource function get id() returns int {
     }
+
     resource function get name() returns string {
     }
 }
@@ -18,6 +19,7 @@ public distinct service class Clerk {
 public distinct service class Student {
     resource function get id() returns int {
     }
+
     resource function get name() returns string {
     }
 }
@@ -25,6 +27,7 @@ public distinct service class Student {
 public distinct service class Teacher {
     resource function get id() returns int {
     }
+
     resource function get name() returns string {
     }
 }

@@ -4,7 +4,7 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 
 /**
- * Constants used in the code generation.
+ * This {@code DiagnosticMessages} enum class represents the error messages related to service generation.
  */
 public enum DiagnosticMessages {
     GRAPHQL_GEN_100("GRAPHQL_GEN_100", "Ballerina service code generation related error occurred. %s",
