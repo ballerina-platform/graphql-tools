@@ -25,16 +25,16 @@ import graphql.language.TypeName;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.client.generator.model.FieldType;
 
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_BOOLEAN_TYPE;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_FLOAT_TYPE;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_ID_TYPE;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_INT_TYPE;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_STRING_TYPE;
 import static io.ballerina.graphql.generator.client.generator.graphql.Constants.BALLERINA_ANYDATA_TYPE;
 import static io.ballerina.graphql.generator.client.generator.graphql.Constants.BALLERINA_BOOLEAN_TYPE;
 import static io.ballerina.graphql.generator.client.generator.graphql.Constants.BALLERINA_FLOAT_TYPE;
 import static io.ballerina.graphql.generator.client.generator.graphql.Constants.BALLERINA_INT_TYPE;
 import static io.ballerina.graphql.generator.client.generator.graphql.Constants.BALLERINA_STRING_TYPE;
-import static io.ballerina.graphql.generator.client.generator.graphql.Constants.GRAPHQL_BOOLEAN_TYPE;
-import static io.ballerina.graphql.generator.client.generator.graphql.Constants.GRAPHQL_FLOAT_TYPE;
-import static io.ballerina.graphql.generator.client.generator.graphql.Constants.GRAPHQL_ID_TYPE;
-import static io.ballerina.graphql.generator.client.generator.graphql.Constants.GRAPHQL_INT_TYPE;
-import static io.ballerina.graphql.generator.client.generator.graphql.Constants.GRAPHQL_STRING_TYPE;
 
 /**
  * Utility class for GraphQL schema (SDL) reader & GraphQL query reader.

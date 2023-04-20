@@ -227,7 +227,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     @DataProvider(name = "mismatchModeAndFile")
     public Object[][] createMismatchModeAndFileData() {
         return new Object[][]{{"service", "graphql.config.yaml"}, {"client", "service.bal"},
-                {"schema", "schema" + ".graphql"}};
+                {"schema", "schema.graphql"}};
     }
 
     @Test(description = "Test graphql command execution with mismatch mode and file extension",

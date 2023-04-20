@@ -66,7 +66,7 @@ import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.generator.ballerina.TypesGenerator;
-import io.ballerina.graphql.generator.client.generator.graphql.Constants;
+import io.ballerina.graphql.generator.service.Constants;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.tools.text.TextDocument;
@@ -931,15 +931,15 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private SyntaxKind getTypeKeywordFor(String typeName) throws ServiceTypesGenerationException {
-        if (Constants.GRAPHQL_STRING_TYPE.equals(typeName)) {
+        if (CodeGeneratorConstants.GRAPHQL_STRING_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_KEYWORD;
-        } else if (Constants.GRAPHQL_INT_TYPE.equals(typeName)) {
+        } else if (CodeGeneratorConstants.GRAPHQL_INT_TYPE.equals(typeName)) {
             return SyntaxKind.INT_KEYWORD;
-        } else if (Constants.GRAPHQL_FLOAT_TYPE.equals(typeName)) {
+        } else if (CodeGeneratorConstants.GRAPHQL_FLOAT_TYPE.equals(typeName)) {
             return SyntaxKind.FLOAT_KEYWORD;
-        } else if (Constants.GRAPHQL_BOOLEAN_TYPE.equals(typeName)) {
+        } else if (CodeGeneratorConstants.GRAPHQL_BOOLEAN_TYPE.equals(typeName)) {
             return SyntaxKind.BOOLEAN_KEYWORD;
-        } else if (Constants.GRAPHQL_ID_TYPE.equals(typeName)) {
+        } else if (CodeGeneratorConstants.GRAPHQL_ID_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_KEYWORD;
         } else {
             throw new ServiceTypesGenerationException(String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
@@ -947,15 +947,15 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private SyntaxKind getTypeDescFor(String typeName) throws ServiceTypesGenerationException {
-        if (Constants.GRAPHQL_STRING_TYPE.equals(typeName)) {
+        if (CodeGeneratorConstants.GRAPHQL_STRING_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_TYPE_DESC;
-        } else if (Constants.GRAPHQL_INT_TYPE.equals(typeName)) {
+        } else if (CodeGeneratorConstants.GRAPHQL_INT_TYPE.equals(typeName)) {
             return SyntaxKind.INT_TYPE_DESC;
-        } else if (Constants.GRAPHQL_FLOAT_TYPE.equals(typeName)) {
+        } else if (CodeGeneratorConstants.GRAPHQL_FLOAT_TYPE.equals(typeName)) {
             return SyntaxKind.FLOAT_TYPE_DESC;
-        } else if (Constants.GRAPHQL_BOOLEAN_TYPE.equals(typeName)) {
+        } else if (CodeGeneratorConstants.GRAPHQL_BOOLEAN_TYPE.equals(typeName)) {
             return SyntaxKind.BOOLEAN_TYPE_DESC;
-        } else if (Constants.GRAPHQL_ID_TYPE.equals(typeName)) {
+        } else if (CodeGeneratorConstants.GRAPHQL_ID_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_TYPE_DESC;
         } else {
             throw new ServiceTypesGenerationException(String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));

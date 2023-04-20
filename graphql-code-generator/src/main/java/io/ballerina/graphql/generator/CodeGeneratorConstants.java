@@ -26,6 +26,13 @@ import java.util.List;
  * This class represents GraphQL client code generation related constants.
  */
 public class CodeGeneratorConstants {
+    // The GraphQL scalar types
+    public static final String GRAPHQL_ID_TYPE = "ID";
+    public static final String GRAPHQL_STRING_TYPE = "String";
+    public static final String GRAPHQL_INT_TYPE = "Int";
+    public static final String GRAPHQL_FLOAT_TYPE = "Float";
+    public static final String GRAPHQL_BOOLEAN_TYPE = "Boolean";
+
     public static final String GRAPHQL_UPLOAD_TYPE = "Upload";
     public static final String GRAPHQL_API = "GraphqlApi";
     public static final String ROOT_PROJECT_NAME = "root";

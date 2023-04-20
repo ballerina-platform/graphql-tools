@@ -105,7 +105,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private String mode;
 
     @CommandLine.Option(names = {"-r", "--use-records-for-objects"},
-            description = "Force the generator to generate records" + " types where ever possible")
+            description = "Force the generator to generate records types where ever possible")
     private boolean useRecordsForObjectsFlag;
 
     @CommandLine.Parameters

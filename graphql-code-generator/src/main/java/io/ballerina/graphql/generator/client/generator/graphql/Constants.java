@@ -22,22 +22,6 @@ package io.ballerina.graphql.generator.client.generator.graphql;
  * This class represents GraphQL schema (SDL) reader & GraphQL query reader related constants.
  */
 public class Constants {
-    // The GraphQL scalar types
-    public static final String GRAPHQL_ID_TYPE = "ID";
-    public static final String GRAPHQL_STRING_TYPE = "String";
-    public static final String GRAPHQL_INT_TYPE = "Int";
-    public static final String GRAPHQL_FLOAT_TYPE = "Float";
-    public static final String GRAPHQL_BOOLEAN_TYPE = "Boolean";
-
-    // The GraphQL named types
-    public static final String GRAPHQL_INPUT_OBJECT_TYPE = "GraphQLInputObjectType";
-    public static final String GRAPHQL_OBJECT_TYPE = "GraphQLObjectType";
-    public static final String GRAPHQL_INTERFACE_TYPE = "GraphQLInterfaceType";
-    public static final String GRAPHQL_UNION_TYPE = "GraphQLUnionType";
-    public static final String GRAPHQL_ENUM_TYPE = "GraphQLEnumType";
-    public static final String GRAPHQL_SCALAR_TYPE = "GraphQLScalarType";
-    public static final String GRAPHQL_TYPE_REFERENCE = "GraphQLTypeReference";
-
     // The Ballerina types
     public static final String BALLERINA_STRING_TYPE = "string";
     public static final String BALLERINA_INT_TYPE = "int";
@@ -45,13 +29,4 @@ public class Constants {
     public static final String BALLERINA_BOOLEAN_TYPE = "boolean";
     public static final String BALLERINA_ANYDATA_TYPE = "anydata";
 
-    // GraphQL directives
-    public static final String GRAPHQL_DEPRECATED_DIRECTIVE = "deprecated";
-
-    public static final String UNSUPPORTED_DEFAULT_ARGUMENT_VALUE =
-            "Type \"%s\" is an unsupported default argument " + "value type.";
-    public static final String UNSUPPORTED_TYPE = "Type \"%s\" is not supported.";
-    public static final String ONLY_SCALAR_TYPE_ALLOWED = "Should be a scalar type but found \"%s\".";
-    public static final String NOT_ALLOWED_UNION_SUB_TYPE =
-            "Union type can only have object types as members. But " + "found: \"%s\" with different type.";
 }

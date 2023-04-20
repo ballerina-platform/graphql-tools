@@ -407,10 +407,10 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     @DataProvider(name = "schemasWithDefaultParameterValuesAndExpectedFiles")
     public Object[][] createSchemasWithDefaultParameterValuesAndExpectedFilesData() {
         return new Object[][]{{"SchemaWithDefaultParameters01Api", "typesWithDefaultParameters01Default.bal"}, {
-            "SchemaWithDefaultParameters02Api",
+                "SchemaWithDefaultParameters02Api",
                 "typesWithDefaultParameters02Default.bal"},
                 {"SchemaWithDefaultParameters03Api", "typesWithDefaultParameters03Default.bal"}, {
-            "SchemaWithDefaultParameters04Api",
+                "SchemaWithDefaultParameters04Api",
                 "typesWithDefaultParameters04Default.bal"}};
     }
 
@@ -464,7 +464,6 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         String expectedServiceTypesContent = readContent(expectedServiceTypesFile);
         Assert.assertEquals(expectedServiceTypesContent, generatedServiceTypesContentTrimmed);
     }
-
 
 
     @Test(description = "Test for schema with docs in arguments in resolver functions, method - default")
@@ -670,9 +669,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     public Object[][] getSchemaFileNamesWithDeprecationAndExpectedFiles() {
         return new Object[][]{{"SchemaDocsWithDeprecated01Api", "typesDocsWithDeprecated01Default.bal"},
                 {"SchemaDocsWithDeprecated02Api", "typesDocsWithDeprecated02Default.bal"}, {
-            "SchemaDocsWithDeprecated03Api",
-                "typesDocsWithDeprecated03Default" +
-                ".bal"}};
+                "SchemaDocsWithDeprecated03Api", "typesDocsWithDeprecated03Default.bal"}};
     }
 
     @Test(description = "Test for schema with deprecated directive fields",

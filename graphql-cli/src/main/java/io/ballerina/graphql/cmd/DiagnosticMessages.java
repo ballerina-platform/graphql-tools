@@ -55,7 +55,6 @@ public enum DiagnosticMessages {
     GRAPHQL_CLI_114("GRAPHQL_CLI_114", "Ballerina service code generation related error occurred.",
             DiagnosticSeverity.ERROR);
 
-
     private final String code;
     private final String description;
     private final DiagnosticSeverity severity;
