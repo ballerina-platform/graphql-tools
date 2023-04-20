@@ -73,11 +73,11 @@ import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
 
 /**
  * Main class to implement "graphql" command for Ballerina.
- * Commands for Client and SDL Schema file generation.
+ * Commands for Client, Service and SDL Schema file generation.
  */
 @CommandLine.Command(name = "graphql",
-        description = "Generates Ballerina clients for GraphQL queries with GraphQL SDL and " +
-                "SDL schema for the given Ballerina GraphQL service.")
+        description = "Generates Ballerina clients for GraphQL queries with GraphQL SDL, Ballerina services for " +
+                "GraphQL schema and SDL schema for the given Ballerina GraphQL service.")
 public class GraphqlCmd implements BLauncherCmd {
     private static final String CMD_NAME = "graphql";
     private PrintStream outStream;
@@ -88,12 +88,12 @@ public class GraphqlCmd implements BLauncherCmd {
     private boolean helpFlag;
 
     @CommandLine.Option(names = {"-i", "--input"},
-            description = "File path to the GraphQL configuration file or Ballerina service file.")
+            description = "File path to the GraphQL configuration file, GraphQL schema file or Ballerina service file.")
     private boolean inputPathFlag;
 
     @CommandLine.Option(names = {"-o", "--output"},
-            description = "Directory to store the generated Ballerina clients or SDL schema file. " +
-                    "If this is not provided, the generated files will be stored in the current execution directory.")
+            description = "Directory to store the generated Ballerina clients, Ballerina services or SDL schema file." +
+                    " If this is not provided, the generated files will be stored in the current execution directory.")
     private String outputPath;
 
     @CommandLine.Option(names = {"-s", "--service"},
@@ -101,11 +101,12 @@ public class GraphqlCmd implements BLauncherCmd {
                     "If this is not provided, generate the SDL schema for each GraphQL service in the source file.")
     private String serviceBasePath;
 
-    @CommandLine.Option(names = {"-m", "--mode"}, description = "Ballerina source [service]")
+    @CommandLine.Option(names = {"-m", "--mode"}, description = "Ballerina operation mode. It can be client, service " +
+            "or schema.")
     private String mode;
 
     @CommandLine.Option(names = {"-r", "--use-records-for-objects"},
-            description = "Force the generator to generate records types where ever possible")
+            description = "Inform the generator to generate records types where ever possible")
     private boolean useRecordsForObjectsFlag;
 
     @CommandLine.Parameters

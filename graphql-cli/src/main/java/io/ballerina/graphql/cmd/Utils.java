@@ -60,7 +60,7 @@ import java.util.Map;
 import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
 
 /**
- * Utility class for GraphQL client generation command line tool.
+ * Utility class for GraphQL code generation command line tool.
  */
 public class Utils {
 
