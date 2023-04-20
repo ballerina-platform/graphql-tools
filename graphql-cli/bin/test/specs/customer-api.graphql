@@ -1,9 +1,0 @@
-type Query{
-    book(bookId: Int!): Book
-    books: [Book!]
-}
-
-type Book{
-    title: String!
-    bookId: Int!
-}
