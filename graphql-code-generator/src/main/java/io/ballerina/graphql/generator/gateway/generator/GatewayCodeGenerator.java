@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +57,9 @@ public class GatewayCodeGenerator extends CodeGenerator {
             Path outputDirectoryPath = Path.of(outputPath);
             List<SrcFilePojo> genSources = generateBalSources(project);
             writeGeneratedSources(genSources, ((GraphqlGatewayProject) project).getTempDir());
+
+            // Delete partial files
+            deletePartialFiles(((GraphqlGatewayProject) project).getTempDir());
 
             //Generating the executable
             BuildOptions buildOptions = BuildOptions.builder().build();
@@ -148,6 +152,22 @@ public class GatewayCodeGenerator extends CodeGenerator {
     private void checkInputStream(InputStream inputStream) throws GatewayGenerationException {
         if (inputStream == null) {
             throw new GatewayGenerationException("Error while copying the template files.");
+        }
+    }
+
+    private void deletePartialFiles(Path directoryPath) {
+        try {
+            Files.walk(directoryPath)
+                    .filter(path -> path.toString().endsWith(".partial"))
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            // Ignore
+                        }
+                    });
+        } catch (IOException e) {
+            // Ignore
         }
     }
 
