@@ -165,7 +165,8 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with invalid mode argument")
     public void testExecuteWithInvalidModeArgument() {
-        Path filePath = resourceDir.resolve(Paths.get("specs", "CustomerApi.graphql"));
+        Path filePath =
+                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic01Api.graphql"));
         String mode = "invalid-service";
         String[] args = {"-i", filePath.toString(), "--mode", mode, "--use-records-for-objects"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
