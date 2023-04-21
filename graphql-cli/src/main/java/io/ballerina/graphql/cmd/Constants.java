@@ -73,4 +73,6 @@ public class Constants {
 
     // Constants related to HTTP request
     public static final String URL_RECOGNIZER = "http";
+
+    public static final String NEW_LINE = "\n";
 }

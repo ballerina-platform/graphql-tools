@@ -703,7 +703,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private List<Node> generateMarkdownDocumentationLines(String description) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
         if (description != null) {
-            String[] lines = description.split(System.lineSeparator());
+            String[] lines = description.split(CodeGeneratorConstants.NEW_LINE);
             for (String line : lines) {
                 MarkdownDocumentationLineNode markdownDocumentationLine = generateMarkdownDocumentationLine(line);
                 markdownDocumentationLines.add(markdownDocumentationLine);
