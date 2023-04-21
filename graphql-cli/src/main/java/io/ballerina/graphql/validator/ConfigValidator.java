@@ -18,7 +18,6 @@
 
 package io.ballerina.graphql.validator;
 
-
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.DocumentPathValidationException;
