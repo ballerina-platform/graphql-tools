@@ -101,8 +101,8 @@ public class GraphqlCmd implements BLauncherCmd {
                     "If this is not provided, generate the SDL schema for each GraphQL service in the source file.")
     private String serviceBasePath;
 
-    @CommandLine.Option(names = {"-m", "--mode"}, description = "Ballerina operation mode. It can be client, service " +
-            "or schema.")
+    @CommandLine.Option(names = {"-m", "--mode"},
+            description = "Ballerina operation mode. It can be client, service or schema.")
     private String mode;
 
     @CommandLine.Option(names = {"-r", "--use-records-for-objects"},
@@ -235,16 +235,7 @@ public class GraphqlCmd implements BLauncherCmd {
      *
      * @throws CmdException                  when a graphql command related error occurs
      * @throws ParseException                when a parsing related error occurs
-     *                                       if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION))
-     *                                       {
-     *                                       generateClient(filePath);
-     *                                       } else if (filePath.endsWith(BAL_EXTENSION)) {
-     *                                       generateSchema(filePath);
-     *                                       } else if (filePath.endsWith(GRAPHQL_EXTENSION)) {
-     *                                       generateService(filePath);
-     *                                       } else {
-     *                                       throw new CmdException(MESSAGE_FOR_INVALID_FILE_EXTENSION);
-     *                                       }@throws IOException                   If an I/O error occurs
+     * @throws IOException                   If an I/O error occurs
      * @throws GenerationException           when a graphql client generation related error occurs
      * @throws ValidationException           when validation related error occurs
      * @throws SchemaFileGenerationException when a SDL schema generation related error occurs
@@ -400,8 +391,7 @@ public class GraphqlCmd implements BLauncherCmd {
         this.clientCodeGenerator = clientCodeGenerator;
     }
 
-    public void setServiceCodeGenerator(
-            ServiceCodeGenerator serviceCodeGenerator) {
+    public void setServiceCodeGenerator(ServiceCodeGenerator serviceCodeGenerator) {
         this.serviceCodeGenerator = serviceCodeGenerator;
     }
 
