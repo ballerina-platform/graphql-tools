@@ -4,7 +4,7 @@ type SchemaWithBasic03Api service object {
     *graphql:Service;
 
     resource function get dog(string name) returns Dog?;
-	resource function get cat(string name) returns Cat?;
+    resource function get cat(string name) returns Cat?;
 };
 
 public type Cat record {|

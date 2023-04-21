@@ -4,7 +4,7 @@ type SchemaWithDefaultParameters04Api service object {
     *graphql:Service;
 
     resource function get book(int id) returns Book?;
-	remote function createBookWithAuthor(CreateBookInput input = { id: 1, title: "no title", author: {id: 1, name: "no name"}}) returns Book?;
+    remote function createBookWithAuthor(CreateBookInput input = { id: 1, title: "no title", author: {id: 1, name: "no name"}}) returns Book?;
 };
 
 public type CreateAuthorInput record {|
@@ -19,6 +19,6 @@ public type CreateBookInput record {|
 |};
 
 public distinct service class Book {
-	resource function get id() returns int {}
-	resource function get title() returns string {}
+    resource function get id() returns int {}
+    resource function get title() returns string {}
 }
