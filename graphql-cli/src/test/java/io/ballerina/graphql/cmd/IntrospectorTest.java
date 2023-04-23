@@ -16,7 +16,6 @@
  *  under the License.
  */
 
-
 package io.ballerina.graphql.cmd;
 
 import io.ballerina.graphql.common.GraphqlTest;

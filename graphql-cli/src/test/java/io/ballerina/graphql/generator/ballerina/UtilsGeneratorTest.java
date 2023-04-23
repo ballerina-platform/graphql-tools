@@ -1,6 +1,5 @@
 package io.ballerina.graphql.generator.ballerina;
 
-
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;

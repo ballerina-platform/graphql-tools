@@ -18,7 +18,6 @@
 
 package io.ballerina.graphql.generator.client.generator.ballerina;
 
-
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.client.pojo.Extension;

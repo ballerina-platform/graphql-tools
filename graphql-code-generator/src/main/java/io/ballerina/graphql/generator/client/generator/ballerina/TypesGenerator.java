@@ -75,7 +75,6 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.RESPONSE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
 import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.escapeIdentifier;
 
-
 /**
  * This class is used to generate ballerina types file according to given SDL and query files.
  */

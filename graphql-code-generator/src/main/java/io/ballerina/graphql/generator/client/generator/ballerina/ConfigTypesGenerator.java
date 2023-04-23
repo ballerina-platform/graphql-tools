@@ -103,7 +103,6 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNO
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.getMetadataNode;
 
-
 /**
  * This class is used to generate connection config related types in the ballerina config types file.
  */

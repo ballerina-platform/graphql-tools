@@ -71,7 +71,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.SPECIAL_CHAR
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
 
 /**
- * Utility class for GraphQL client code generation.
+ * Utility class for GraphQL code generation.
  */
 public class CodeGeneratorUtils {
     /**
@@ -246,7 +246,7 @@ public class CodeGeneratorUtils {
     /**
      * Generates the imports for client and service files.
      *
-     * @return                          the node list which represent imports in the client file
+     * @return the node list which represent imports
      */
     public static NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();

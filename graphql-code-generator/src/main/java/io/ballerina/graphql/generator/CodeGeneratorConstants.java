@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This class represents GraphQL client code generation related constants.
+ * This class represents GraphQL code generation related constants.
  */
 public class CodeGeneratorConstants {
     // The GraphQL scalar types
@@ -99,7 +99,6 @@ public class CodeGeneratorConstants {
     public static final String TARGET_TYPE_PARAM_NAME = "targetType";
     public static final String GRAPHQL_CLIENT_TYPE_NAME = "graphql:Client";
     public static final String GRAPHQL_SERVICE_TYPE_NAME = "graphql:Service";
-    public static final String GRAPHQL_LISTENER_TYPE_NAME = "graphql:Listener";
     public static final String GRAPHQL_CLIENT_VAR_NAME = "clientEp";
     public static final String GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME = "graphqlClientConfig";
     public static final String GRAPHQL_VARIABLES_TYPE_NAME = "map<anydata>";

@@ -1,6 +1,5 @@
 package io.ballerina.graphql.generator.ballerina;
 
-
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.common.TestUtils;
