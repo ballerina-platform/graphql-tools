@@ -63,7 +63,7 @@ public class Constants {
             "Provided Schema file \"%s\" is not allowed to be read";
     public static final String MESSAGE_FOR_INVALID_MODE =
             "\"%s\" is not a supported argument for mode flag. The mode flag argument should be one of " +
-                    "these (client, service, schema)";
+                    "these \"client\", \"service\" or \"schema\"";
     public static final String MESSAGE_FOR_GRAPHQL_FILE_WITH_NO_MODE = "File \"%s\" can not be executed without the " +
             "mode flag. Mode flag value should be \"service\" to execute a .graphql file.";
 
