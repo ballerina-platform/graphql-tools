@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_GRAPHQL_FILE_WITH_NO_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
@@ -215,6 +216,25 @@ public class GraphqlCmdTest extends GraphqlTest {
         new CommandLine(graphqlCmd).parseArgs(args);
         String output = "";
         String message = String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, filePath);
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(message));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test graphql command execution with graphql file path without mode flag")
+    public void testExecuteForGraphqlFileWithModeFlag() {
+        Path filePath = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
+                "SchemaWithBasic01Api.graphql"));
+        String[] args = {"-i", filePath.toString(), "-o", this.tmpDir.toString()};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
+        String message = String.format(MESSAGE_FOR_GRAPHQL_FILE_WITH_NO_MODE, filePath);
         try {
             graphqlCmd.execute();
             output = readOutput(true);
