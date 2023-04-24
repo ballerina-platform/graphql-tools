@@ -87,7 +87,7 @@ public class CodeGeneratorConstants {
     public static final String QUERY = "Query";
     public static final String SUBSCRIPTION = "Subscription";
     public static final String REPRESENTS = "# Represents ";
-    public static final String HASH_DEPRECATED = "# Deprecated ";
+    public static final String HASH_DEPRECATED = "# Deprecated";
     public static final String RESPONSE = "Response";
     public static final String HTTP_CLIENT_CONFIG_TYPE_NAME = "graphql:ClientConfiguration";
     public static final String CONNECTION_CONFIG_PARAM_NAME = "connectionConfig";

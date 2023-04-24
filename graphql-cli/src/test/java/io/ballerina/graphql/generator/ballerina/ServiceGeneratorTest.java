@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static io.ballerina.graphql.common.TestUtils.writeContentTo;
+
 /**
  * Test class for ServiceGenerator.
  * Test the successful generation of service file code
@@ -43,6 +45,8 @@ public class ServiceGeneratorTest extends GraphqlTest {
     public void testGenerateSrc() throws IOException, ValidationException, ServiceTypesGenerationException {
         try {
             String fileName = "SchemaWithBasic01Api";
+            String expectedFile = "serviceForBasicSchema01.bal";
+
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
@@ -54,15 +58,14 @@ public class ServiceGeneratorTest extends GraphqlTest {
             ServiceGenerator serviceGenerator = new ServiceGenerator();
             serviceGenerator.setFileName(fileName);
             serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
-            String generatedServiceContent =
-                    serviceGenerator.generateSrc().trim()
-                            .replaceAll("\\s+", "").replaceAll(System.lineSeparator(), "");
+            String generatedServiceContent = serviceGenerator.generateSrc();
+            writeContentTo(generatedServiceContent, Paths.get(project.getOutputPath()));
 
-            Path expectedServiceFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema01.bal"));
-            String expectedServiceContent = readContent(expectedServiceFile);
-
-            Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+            Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceContent = readContentWithFormat(expectedServiceFile);
+            String writtenServiceTypesContent =
+                    readContentWithFormat(Paths.get(project.getOutputPath()).resolve("types.bal"));
+            Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
         } catch (ServiceGenerationException e) {
             Assert.fail("Error while generating the service code. " + e.getMessage());
         }
