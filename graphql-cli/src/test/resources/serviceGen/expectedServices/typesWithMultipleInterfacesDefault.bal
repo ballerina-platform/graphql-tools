@@ -2,7 +2,6 @@ import ballerina/graphql;
 
 type SchemaWithMultipleInterfacesApi service object {
     *graphql:Service;
-
     resource function get student(int id) returns Student?;
 };
 
@@ -21,17 +20,25 @@ public type Info distinct service object {
 public distinct service class Student {
     *Info;
     *ExamInfo;
+    resource function get id() returns int {
+    }
 
-    resource function get id() returns int {}
-    resource function get name() returns string {}
-    resource function get pass(int marks) returns boolean {}
+    resource function get name() returns string {
+    }
+
+    resource function get pass(int marks) returns boolean {
+    }
 }
 
 public distinct service class Teacher {
     *Info;
     *ContactInfo;
+    resource function get id() returns int {
+    }
 
-    resource function get id() returns int {}
-    resource function get name() returns string {}
-    resource function get email() returns string {}
+    resource function get name() returns string {
+    }
+
+    resource function get email() returns string {
+    }
 }

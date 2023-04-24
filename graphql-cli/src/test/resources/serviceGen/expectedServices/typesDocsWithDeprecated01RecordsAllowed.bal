@@ -2,7 +2,6 @@ import ballerina/graphql;
 
 type SchemaDocsWithDeprecated01Api service object {
     *graphql:Service;
-
     # Fetch all the books from database
     resource function get books() returns Book?[]?;
     # Fetch a book by its id

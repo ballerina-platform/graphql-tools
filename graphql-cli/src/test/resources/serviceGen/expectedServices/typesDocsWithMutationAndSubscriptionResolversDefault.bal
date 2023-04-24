@@ -2,7 +2,6 @@ import ballerina/graphql;
 
 type SchemaDocsWithMutationAndSubscriptionResolversApi service object {
     *graphql:Service;
-
     # Fetch a book by its id
     resource function get book(int id) returns Book?;
     # Fetch all the books
@@ -16,11 +15,17 @@ type SchemaDocsWithMutationAndSubscriptionResolversApi service object {
 };
 
 public distinct service class Author {
-    resource function get id() returns int {}
-    resource function get name() returns string {}
+    resource function get id() returns int {
+    }
+
+    resource function get name() returns string {
+    }
 }
 
 public distinct service class Book {
-    resource function get id() returns int {}
-    resource function get title() returns string {}
+    resource function get id() returns int {
+    }
+
+    resource function get title() returns string {
+    }
 }

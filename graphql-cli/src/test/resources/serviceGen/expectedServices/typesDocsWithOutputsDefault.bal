@@ -2,7 +2,6 @@ import ballerina/graphql;
 
 type SchemaDocsWithOutputsApi service object {
     *graphql:Service;
-
     # Fetch all the books from database
     resource function get books() returns Book?[]?;
     # Fetch a book by its id
@@ -14,7 +13,10 @@ type SchemaDocsWithOutputsApi service object {
 public distinct service class Book {
     # The id of the book,
     # unique identifier
-    resource function get id() returns int {}
+    resource function get id() returns int {
+    }
+
     # The title of the book
-    resource function get title() returns string {}
+    resource function get title() returns string {
+    }
 }

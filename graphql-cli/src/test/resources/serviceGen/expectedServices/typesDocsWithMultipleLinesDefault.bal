@@ -2,7 +2,6 @@ import ballerina/graphql;
 
 type SchemaDocsWithMultipleLinesApi service object {
     *graphql:Service;
-
     # Fetch all the books from database
     resource function get books() returns Book?[]?;
     # Fetch a book
@@ -15,6 +14,9 @@ type SchemaDocsWithMultipleLinesApi service object {
 };
 
 public distinct service class Book {
-    resource function get id() returns int {}
-    resource function get title() returns string {}
+    resource function get id() returns int {
+    }
+
+    resource function get title() returns string {
+    }
 }
