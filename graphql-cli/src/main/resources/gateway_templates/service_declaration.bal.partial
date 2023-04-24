@@ -3,13 +3,5 @@ isolated service on new graphql:Listener(PORT) {
         log:printInfo(string `💃 Server ready at port: ${PORT}`);
     }
 
-    private isolated function getParamAsString(any param) returns string {
-        if param is string {
-            return "\"" + param + "\"";
-        } else {
-            return param.toString();
-        }
-    }
-
     @{resourceFunctions}
 }

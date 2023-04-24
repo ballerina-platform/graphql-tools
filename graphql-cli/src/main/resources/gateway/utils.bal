@@ -23,14 +23,14 @@ isolated function getKeyValueString(map<json> fieldMap) returns string {
         if value is map<json> {
             keyValueString = keyValueString + string `${key}: { ${getKeyValueString(value)} } `;
         } else {
-            keyValueString = keyValueString + string `${key}: "${value.toString()}" `;
+            keyValueString = keyValueString + string `${key}: ${getParamAsString(value)} `;
         }
     }
     return keyValueString;
 }
 
 // Prepare query string to resolve by query.
-public isolated function wrapwithQuery(string root, string fieldQuery, map<string>? args = ()) returns string {
+isolated function wrapwithQuery(string root, string fieldQuery, map<string>? args = ()) returns string {
     if args is () {
         return string `query
             {   
@@ -56,4 +56,12 @@ isolated function convertPathToStringArray((string|int)[] path) returns string[]
     return path.'map(isolated function(string|int element) returns string {
         return element is int ? "@" : element;
     });
+}
+
+isolated function getParamAsString(any param) returns string {
+    if param is string {
+        return "\"" + param + "\"";
+    } else {
+        return param.toString();
+    }
 }
