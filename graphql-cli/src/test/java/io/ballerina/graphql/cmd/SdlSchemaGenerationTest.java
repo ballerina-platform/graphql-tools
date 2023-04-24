@@ -42,8 +42,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution")
     public void testSdlGeneration() {
-        String[] args = {"-i", "valid/service_1.bal", "-o", this.tmpDir.toString(), "-m",
-                "schema"};
+        String[] args = {"-i", "valid/service_1.bal", "-o", this.tmpDir.toString()};
         try {
             executeCommand(args);
             Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_graphql.graphql"));
@@ -58,7 +57,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution")
     public void testSdlGenerationWithProject() {
-        String[] args = {"-i", "valid/project_1/main.bal", "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {"-i", "valid/project_1/main.bal", "-o", this.tmpDir.toString()};
         try {
             executeCommand(args);
             Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_graphql.graphql"));
@@ -73,8 +72,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution with service name")
     public void testSdlGenerationWithServiceBasePath() {
-        String[] args =
-                {"-i", "valid/service_2.bal", "-o", this.tmpDir.toString(), "-s", "/service/gql", "-m", "schema"};
+        String[] args = {"-i", "valid/service_2.bal", "-o", this.tmpDir.toString(), "-s", "/service/gql"};
         try {
             executeCommand(args);
             Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_gql.graphql"));
@@ -89,7 +87,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution with multiple services")
     public void testSdlGenerationWithMultipleServices1() {
-        String[] args = {"-i", "valid/service_3.bal", "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {"-i", "valid/service_3.bal", "-o", this.tmpDir.toString()};
         try {
             executeCommand(args);
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_3.graphql")));
@@ -116,7 +114,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution with multiple services")
     public void testSdlGenerationWithMultipleServices2() {
-        String[] args = {"-i", "valid/service_4.bal", "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {"-i", "valid/service_4.bal", "-o", this.tmpDir.toString()};
         try {
             executeCommand(args);
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_4.graphql")));
@@ -143,7 +141,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution with multiple services in a bal project")
     public void testSdlGenerationWithMultipleServicesInProject() {
-        String[] args = {"-i", "valid/project_2/main.bal", "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {"-i", "valid/project_2/main.bal", "-o", this.tmpDir.toString()};
         try {
             executeCommand(args);
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_main.graphql")));
@@ -170,7 +168,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution with module-level variable service declaration")
     public void testExecuteWithModuleLevelVariableDeclaration() {
-        String[] args = {"-i", "valid/service_6.bal", "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {"-i", "valid/service_6.bal", "-o", this.tmpDir.toString()};
         try {
             executeCommand(args);
             Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_6.graphql"));
@@ -185,7 +183,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution with multiple types services")
     public void testSdlGenerationForGraphqlServiceWithHttService() {
-        String[] args = {"-i", "valid/service_7.bal", "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {"-i", "valid/service_7.bal", "-o", this.tmpDir.toString()};
         try {
             executeCommand(args);
             Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_query.graphql"));
@@ -200,7 +198,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution with services include custom scalars")
     public void testSdlGenerationWithCustomScalars() {
-        String[] args = {"-i", "valid/service_8.bal", "-o", this.tmpDir.toString(), "-s", "/gql", "-m", "schema"};
+        String[] args = {"-i", "valid/service_8.bal", "-o", this.tmpDir.toString(), "-s", "/gql"};
         try {
             executeCommand(args);
             Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_gql.graphql"));
@@ -215,7 +213,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution with multiple services in same listener")
     public void testSdlGenerationWithMultipleServicesInSameListener() {
-        String[] args = {"-i", "valid/service_9.bal", "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {"-i", "valid/service_9.bal", "-o", this.tmpDir.toString()};
         try {
             executeCommand(args);
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_person.graphql")));
@@ -242,8 +240,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test successful GraphQL command execution with documentation")
     public void testSdlGenerationWithDocumentation() {
-        String[] args =
-                {"-i", "valid/service_10.bal", "-o", this.tmpDir.toString(), "-s", "/graphql_docs", "-m", "schema"};
+        String[] args = {"-i", "valid/service_10.bal", "-o", this.tmpDir.toString(), "-s", "/graphql_docs"};
         try {
             executeCommand(args);
             String fileName = "schema_graphql_docs.graphql";
@@ -259,7 +256,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test GraphQL command execution with service includes compilation errors")
     public void testExecuteWithBalFileIncludeCompilationErrors() {
-        String[] args = {"-i", "invalid/service_1.bal", "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {"-i", "invalid/service_1.bal", "-o", this.tmpDir.toString()};
         try {
             InputStream output = executeCommandWithErrors(args);
             String message = "ERROR [:(-1:-1,-1:-1)] Given Ballerina file contains compilation error(s).";
@@ -278,8 +275,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test GraphQL command execution with invalid service base path")
     public void testExecuteWithInvalidServiceName() {
-        String[] args =
-                {"-i", "invalid/service_2.bal", "-o", this.tmpDir.toString(), "-s", "/service/gql", "-m", "schema"};
+        String[] args = {"-i", "invalid/service_2.bal", "-o", this.tmpDir.toString(), "-s", "/service/gql"};
         try {
             InputStream output = executeCommandWithErrors(args);
             String message = "ERROR [:(-1:-1,-1:-1)] No Ballerina services found with name \"/service/gql\" to " +
@@ -299,7 +295,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @Test(description = "Test GraphQL command execution with invalid input file path")
     public void testExecuteWithInvalidBalFilePath() {
-        String[] args = {"-i", "/service.bal", "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {"-i", "/service.bal", "-o", this.tmpDir.toString()};
         try {
             InputStream output = executeCommandWithErrors(args);
             String message =
@@ -327,7 +323,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             Files.createDirectories(outPath);
             File file = new File(outPath.toString());
             file.setReadOnly();
-            String[] args = {"-i", "invalid/service_2.bal", "-o", outPath.toString(), "-m", "schema"};
+            String[] args = {"-i", "invalid/service_2.bal", "-o", outPath.toString()};
             InputStream output = executeCommandWithErrors(args);
             String message = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " + outPath +
                     "/schema_graphql_new.graphql (Permission denied)";
@@ -351,7 +347,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             Files.createFile(graphqlService);
             File file = new File(graphqlService.toString());
             file.setReadable(false);
-            String[] args = {"-i", "service.bal", "-o", tmpDir.toString(), "-m", "schema"};
+            String[] args = {"-i", "service.bal", "-o", tmpDir.toString()};
             InputStream output = executeCommandWithErrors(tmpDir, args);
             String message = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " +
                     "Cannot read provided Ballerina file (Permission denied)";
