@@ -25,19 +25,11 @@ isolated service on new graphql:Listener(PORT) {
         log:printInfo(string `💃 Server ready at port: ${PORT}`);
     }
 
-    private isolated function getParamAsString(any param) returns string {
-        if param is string {
-            return "\"" + param + "\"";
-        } else {
-            return param.toString();
-        }
-    }
-
     isolated resource function get product(graphql:Field 'field, string id) returns Product|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, PRODUCT);
         string fieldString = classifier.getFieldString();
         UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
-        string queryString = wrapwithQuery("product", fieldString, {"id": self.getParamAsString(id)});
+        string queryString = wrapwithQuery("product", fieldString, {"id": getParamAsString(id)});
         productResponse response = check PRODUCT_CLIENT->execute(queryString);
         Product result = response.data.product;
         Resolver resolver = new (queryPlan, result.toJson(), "Product", propertiesNotResolved, ["product"]);
@@ -67,7 +59,7 @@ isolated service on new graphql:Listener(PORT) {
         QueryFieldClassifier classifier = new ('field, queryPlan, REVIEWS);
         string fieldString = classifier.getFieldString();
         UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
-        string queryString = wrapwithQuery("reviews", fieldString, {"productId": self.getParamAsString(productId)});
+        string queryString = wrapwithQuery("reviews", fieldString, {"productId": getParamAsString(productId)});
         reviewsResponse response = check REVIEWS_CLIENT->execute(queryString);
         Review[] result = response.data.reviews;
         Resolver resolver = new (queryPlan, result.toJson(), "Review", propertiesNotResolved, ["reviews"]);

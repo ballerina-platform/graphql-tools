@@ -33,14 +33,6 @@ isolated service on new graphql:Listener(PORT) {
         log:printInfo(string `💃 Server ready at port: ${PORT}`);
     }
 
-    private isolated function getParamAsString(any param) returns string {
-        if param is string {
-            return "\"" + param + "\"";
-        } else {
-            return param.toString();
-        }
-    }
-
     isolated resource function get me(graphql:Field 'field) returns User|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, ACCOUNTS);
         string fieldString = classifier.getFieldString();
@@ -60,7 +52,7 @@ isolated service on new graphql:Listener(PORT) {
         QueryFieldClassifier classifier = new ('field, queryPlan, PRODUCTS);
         string fieldString = classifier.getFieldString();
         UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
-        string queryString = wrapwithQuery("topProducts", fieldString, {"first": self.getParamAsString(first)});
+        string queryString = wrapwithQuery("topProducts", fieldString, {"first": getParamAsString(first)});
         topProductsResponse response = check PRODUCTS_CLIENT->execute(queryString);
         Product[] result = response.data.topProducts;
         Resolver resolver = new (queryPlan, result.toJson(), "Product", propertiesNotResolved, ["topProducts"]);

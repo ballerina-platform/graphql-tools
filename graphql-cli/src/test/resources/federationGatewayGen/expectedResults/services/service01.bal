@@ -25,19 +25,11 @@ isolated service on new graphql:Listener(PORT) {
         log:printInfo(string `💃 Server ready at port: ${PORT}`);
     }
 
-    private isolated function getParamAsString(any param) returns string {
-        if param is string {
-            return "\"" + param + "\"";
-        } else {
-            return param.toString();
-        }
-    }
-
     isolated resource function get astronaut(graphql:Field 'field, string id) returns Astronaut|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, ASTRONAUTS);
         string fieldString = classifier.getFieldString();
         UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
-        string queryString = wrapwithQuery("astronaut", fieldString, {"id": self.getParamAsString(id)});
+        string queryString = wrapwithQuery("astronaut", fieldString, {"id": getParamAsString(id)});
         astronautResponse response = check ASTRONAUTS_CLIENT->execute(queryString);
         Astronaut result = response.data.astronaut;
         Resolver resolver = new (queryPlan, result.toJson(), "Astronaut", propertiesNotResolved, ["astronaut"]);
@@ -67,7 +59,7 @@ isolated service on new graphql:Listener(PORT) {
         QueryFieldClassifier classifier = new ('field, queryPlan, MISSIONS);
         string fieldString = classifier.getFieldString();
         UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
-        string queryString = wrapwithQuery("mission", fieldString, {"id": self.getParamAsString(id)});
+        string queryString = wrapwithQuery("mission", fieldString, {"id": getParamAsString(id)});
         missionResponse response = check MISSIONS_CLIENT->execute(queryString);
         Mission result = response.data.mission;
         Resolver resolver = new (queryPlan, result.toJson(), "Mission", propertiesNotResolved, ["mission"]);

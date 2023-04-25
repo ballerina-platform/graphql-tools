@@ -26,6 +26,7 @@ import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
@@ -414,7 +415,6 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.fail(output);
         }
     }
-
     @Test(description = "Test successful graphql federation gateway code generation",
             dataProvider = "gatewayCmdTestDataProvider")
     public void testGatewayCodeGeneration(String supergraph) {

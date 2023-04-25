@@ -1,5 +1,5 @@
 [package]
-org = "ballerina"
+org = "wso2"
 name = "fedration_gateway"
 version = "0.1.0"
 
