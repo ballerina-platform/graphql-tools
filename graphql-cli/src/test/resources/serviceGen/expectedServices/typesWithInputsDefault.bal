@@ -5,7 +5,7 @@ type SchemaWithInputsApi service object {
     resource function get book(int id, string? title) returns Book?;
     resource function get books() returns Book?[]?;
     resource function get authors() returns Author[];
-    remote function createBook(CreateBookInput input) returns Book?;
+    remote function createBook(CreateBookInput input) returns Book;
     remote function createAuthor(CreateAuthorInput? input) returns Author?;
 };
 

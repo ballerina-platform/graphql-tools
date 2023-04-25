@@ -5,7 +5,7 @@ type Query{
 }
 
 type Mutation{
-    createBook(input: CreateBookInput!): Book
+    createBook(input: CreateBookInput!): Book!
     createAuthor(input: CreateAuthorInput): Author
 }
 
