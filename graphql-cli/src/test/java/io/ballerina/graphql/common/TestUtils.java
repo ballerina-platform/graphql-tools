@@ -80,6 +80,8 @@ public class TestUtils {
     public static final String DISTRIBUTION_FILE_NAME = System.getProperty("ballerina.version");
     private static String balFile = "bal";
     public static final String WHITESPACE_REGEX = "\\s+";
+    public static final String ERROR_FOR_RESOURCE_FUNCTION_NO_RETURN = "this resource_func must return a result";
+    public static final String ERROR_FOR_REMOTE_FUNCTION_NO_RETURN = "this function must return a result";
 
     /**
      * Constructs an instance of the `Config` reading the given GraphQL config file.
@@ -274,9 +276,10 @@ public class TestUtils {
         return ProjectEnvironmentBuilder.getBuilder(environment);
     }
 
-    public static boolean hasOnlyResourceFuncMustReturnResultErrors(Collection<Diagnostic> errors) {
+    public static boolean hasOnlyFuncMustReturnResultErrors(Collection<Diagnostic> errors) {
         for (Diagnostic error : errors) {
-            if (!error.message().contains("this resource_func must return a result")) {
+            if (!error.message().contains(ERROR_FOR_RESOURCE_FUNCTION_NO_RETURN) &&
+                    !error.message().contains(ERROR_FOR_REMOTE_FUNCTION_NO_RETURN)) {
                 return false;
             }
         }

@@ -59,12 +59,12 @@ public class ServiceGeneratorTest extends GraphqlTest {
             serviceGenerator.setFileName(fileName);
             serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
             String generatedServiceContent = serviceGenerator.generateSrc();
-            writeContentTo(generatedServiceContent, Paths.get(project.getOutputPath()));
+            writeContentTo(generatedServiceContent, this.tmpDir);
 
             Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);
             String writtenServiceTypesContent =
-                    readContentWithFormat(Paths.get(project.getOutputPath()).resolve("types.bal"));
+                    readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
         } catch (ServiceGenerationException e) {
             Assert.fail("Error while generating the service code. " + e.getMessage());

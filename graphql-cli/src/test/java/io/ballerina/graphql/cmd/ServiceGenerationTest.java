@@ -27,6 +27,8 @@ import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
@@ -39,12 +41,24 @@ import java.nio.file.Paths;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
-import static io.ballerina.graphql.common.TestUtils.hasOnlyResourceFuncMustReturnResultErrors;
+import static io.ballerina.graphql.common.TestUtils.hasOnlyFuncMustReturnResultErrors;
 
 /**
  * This class includes tests for Ballerina Graphql service generation.
  */
 public class ServiceGenerationTest extends GraphqlTest {
+    private final Path balTomlPath = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "Ballerina.toml"));
+
+    @BeforeClass
+    public void copyBalTomlFile() throws IOException {
+        Files.copy(balTomlPath, this.tmpDir.resolve(balTomlPath.getFileName()));
+    }
+
+    @AfterClass
+    public void removeBalTomlFile() throws IOException {
+        Files.deleteIfExists(this.tmpDir.resolve(balTomlPath.getFileName()));
+    }
+
     private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
         Environment environment = EnvironmentBuilder
                 .getBuilder()
@@ -137,7 +151,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
-        String output = "";
+        String output;
         try {
             graphqlCmd.execute();
             output = readOutput(true);
@@ -156,7 +170,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
         String message = String.format(MESSAGE_MISSING_SCHEMA_FILE, invalidPath);
-        String output = "";
+        String output;
         try {
             graphqlCmd.execute();
             output = readOutput(true);
@@ -205,7 +219,7 @@ public class ServiceGenerationTest extends GraphqlTest {
             String[] args = {"-i", graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
             new CommandLine(graphqlCmd).parseArgs(args);
-            String message = String.format(MESSAGE_CAN_NOT_READ_SCHEMA_FILE, graphqlSchema.toString());
+            String message = String.format(MESSAGE_CAN_NOT_READ_SCHEMA_FILE, graphqlSchema);
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
@@ -229,17 +243,15 @@ public class ServiceGenerationTest extends GraphqlTest {
     @Test(description = "Test compilation for all schemas, method - default", dataProvider = "schemaFiles")
     public void testCompilationForAllSchemas(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
-        String packagePath = "project";
-        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
+        String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
         try {
             graphqlCmd.execute();
-            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+            DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
         } catch (BLauncherException e) {
             String output = e.toString();
             Assert.fail(output);
@@ -259,20 +271,18 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @Test(description = "Test compilation for schemas with documentation", dataProvider = "schemaFilesWithDoc")
     public void testCompilationForSchemasWithDocumentation(String schemaFileWithDoc) {
-        String packagePath = "project";
         Path schemaPath =
                 this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFileWithDoc));
-        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
+        String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
         try {
             graphqlCmd.execute();
 
-            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+            DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
         } catch (BLauncherException e) {
             String output = e.toString();
             Assert.fail(output);
@@ -282,28 +292,25 @@ public class ServiceGenerationTest extends GraphqlTest {
     @Test(description = "Test compilation for complete schema", enabled = false)
     public void testCompilationForCompleteSchema() {
         String schemaFile = "SchemaCompleteApi.graphql";
-        String packagePath = "project";
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
-        Path projectDir = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
 
-        String[] args = {"-i", schemaPath.toString(), "-o", projectDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, projectDir, false);
+        String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
 
         try {
             graphqlCmd.execute();
 
-            DiagnosticResult diagnosticResult = getDiagnosticResult(packagePath);
-            Assert.assertTrue(hasOnlyResourceFuncMustReturnResultErrors(diagnosticResult.errors()));
+            DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
         } catch (BLauncherException e) {
             String output = e.toString();
             Assert.fail(output);
         }
     }
 
-    private DiagnosticResult getDiagnosticResult(String packagePath) {
-        Path projectDirPath = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", packagePath));
-        BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath);
+    private DiagnosticResult getDiagnosticResult(Path packagePath) {
+        BuildProject project = BuildProject.load(getEnvironmentBuilder(), packagePath);
         return project.currentPackage().getCompilation().diagnosticResult();
     }
 }
