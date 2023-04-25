@@ -3,7 +3,6 @@ schema
 @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
 {
     query: Query
-    mutation: Mutation
 }
 
 directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
@@ -48,12 +47,6 @@ enum link__Purpose {
     EXECUTION
 }
 
-type Mutation
-@join__type(graph: REVIEWS)
-{
-    addReview(reviewInput: ReviewInput!): Review!
-}
-
 type Product
 @join__type(graph: PRODUCT, key: "id", resolvable: false)
 @join__type(graph: REVIEWS, key: "id")
@@ -79,15 +72,6 @@ type Review
 @join__type(graph: REVIEWS)
 {
     id: String!
-    rating: Float!
-    comment: String!
-    author: String!
-}
-
-input ReviewInput
-@join__type(graph: REVIEWS)
-{
-    productId: String!
     rating: Float!
     comment: String!
     author: String!

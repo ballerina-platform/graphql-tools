@@ -1,3 +1,21 @@
+/*
+ *  Copyright (c) 2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
 package io.ballerina.graphql.generator.gateway;
 
 import graphql.schema.GraphQLSchema;
@@ -21,9 +39,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class GatewayCodeGenerationTest extends GraphqlTest {
-    private final Path schemaFiles = this.resourceDir.resolve(Paths.get("federationGatewayGen",
+    private final Path schemaFiles = this.resourceDir.resolve(Paths.get("federationGateway",
             "supergraphSchemas"));
-    private final Path expectedResources = this.resourceDir.resolve(Paths.get("federationGatewayGen",
+    private final Path expectedResources = this.resourceDir.resolve(Paths.get("federationGateway",
             "expectedResults"));
 
     @Test(description = "Test query plan generation for gateway", dataProvider =
@@ -43,9 +61,10 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
     @DataProvider(name = "GatewayQueryPlanGenerationDataProvider")
     public Object[][] getGatewayQueryPlanGenerationTestData() {
         return new Object[][] {
+                {"Supergraph", "queryPlan.bal"},
                 {"Supergraph01", "queryPlan01.bal"},
                 {"Supergraph02", "queryPlan02.bal"},
-                {"Supergraph03", "queryPlan03.bal"},
+                {"Supergraph03", "queryPlan03.bal"}
         };
     }
 
@@ -65,9 +84,10 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
     @DataProvider(name = "serviceGenerationDataProvider")
     public Object[][] getServiceGenerationDataProvider() {
         return new Object[][]{
+                {"Supergraph", "service.bal"},
                 {"Supergraph01", "service01.bal"},
                 {"Supergraph02", "service02.bal"},
-                {"Supergraph03", "service03.bal"},
+                {"Supergraph03", "service03.bal"}
         };
     }
 
@@ -89,9 +109,10 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
     @DataProvider(name = "GatewayTypeGenerationDataProvider")
     public Object[][] getGatewayTypeGenerationTestData() {
         return new Object[][] {
+                {"Supergraph", "types.bal"},
                 {"Supergraph01", "types01.bal"},
                 {"Supergraph02", "types02.bal"},
-                {"Supergraph03", "types03.bal"},
+                {"Supergraph03", "types03.bal"}
         };
     }
 }
