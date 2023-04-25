@@ -46,7 +46,8 @@ import static io.ballerina.graphql.common.TestUtils.writeContentTo;
  * Test the successful generation of service types file code
  */
 public class ServiceTypesGeneratorTest extends GraphqlTest {
-    private final Path balTomlPath = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "Ballerina.toml"));
+    private final Path balTomlPath =
+            this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "Ballerina.toml"));
 
     @BeforeClass
     public void copyBalTomlFile() throws IOException {
