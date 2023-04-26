@@ -28,7 +28,7 @@ public class QueryFieldClassifier {
 
         graphql:Field[]? subfields = 'field.getSubfields();
 
-        string? fieldTypeName = 'field.getUnwrappedType().name;
+        string? fieldTypeName = getOfType('field.getType()).name;
 
         // Panic if field object has no subfields or the unwrapped type has no name.
         if subfields is () || fieldTypeName is () {
@@ -38,7 +38,7 @@ public class QueryFieldClassifier {
         self.fieldTypeName = fieldTypeName;
         self.fieldName = 'field.getName();
 
-        // iterate through all the 
+        // iterate through all the
         foreach var subfield in subfields {
             if self.isResolvable(subfield, fieldTypeName, clientName) {
                 self.resolvableFields.push(subfield);
@@ -59,7 +59,7 @@ public class QueryFieldClassifier {
         string[] properties = [];
         foreach var 'field in self.resolvableFields {
             // if scalar push name to properties array.
-            if 'field.getUnwrappedType().kind == "SCALAR" {
+            if getOfType('field.getType()).kind == "SCALAR" {
                 properties.push('field.getName());
             } else {
                 // Create a new classifier for the field.

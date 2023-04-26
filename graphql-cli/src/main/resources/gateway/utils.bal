@@ -1,3 +1,5 @@
+import ballerina/graphql;
+
 // Prepare query string to resolve by reference.
 isolated function wrapWithEntityRepresentation(string typename, map<json>[] fieldsRequiredToFetch, string fieldQuery) returns string {
     string[] representations = [];
@@ -16,7 +18,7 @@ isolated function wrapWithEntityRepresentation(string typename, map<json>[] fiel
     }`;
 }
 
-// Prepare key value string. 
+// Prepare key value string.
 isolated function getKeyValueString(map<json> fieldMap) returns string {
     string keyValueString = "";
     foreach var [key, value] in fieldMap.entries() {
@@ -30,10 +32,10 @@ isolated function getKeyValueString(map<json> fieldMap) returns string {
 }
 
 // Prepare query string to resolve by query.
-isolated function wrapwithQuery(string root, string fieldQuery, map<string>? args = ()) returns string {
+public isolated function wrapwithQuery(string root, string fieldQuery, map<string>? args = ()) returns string {
     if args is () {
         return string `query
-            {   
+            {
                 ${root}{
                 ${fieldQuery}
             }
@@ -56,6 +58,15 @@ isolated function convertPathToStringArray((string|int)[] path) returns string[]
     return path.'map(isolated function(string|int element) returns string {
         return element is int ? "@" : element;
     });
+}
+
+isolated function getOfType(graphql:__Type schemaType) returns graphql:__Type {
+    graphql:__Type? ofType = schemaType?.ofType;
+    if ofType is () {
+        return schemaType;
+    } else {
+        return getOfType(ofType);
+    }
 }
 
 isolated function getParamAsString(any param) returns string {

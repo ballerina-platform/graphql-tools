@@ -49,7 +49,7 @@ public class Resolver {
                 RequiresFieldRecord[]? requiredFields = self.queryPlan.get('record.parent).fields.get('record.'field.getName()).requires;
                 map<json>[] requiredFieldWithValues = check self.getRequiredFieldsInPath(self.result, self.resultType, clientName, path, requiredFields);
 
-                if 'record.'field.getUnwrappedType().kind == "SCALAR" {
+                if getOfType('record.'field.getType()).kind == "SCALAR" {
                     // If the field type is a scalar type, just pass the field name wrapped with entity representation.
                     string queryString = wrapWithEntityRepresentation('record.parent, requiredFieldWithValues, 'record.'field.getName());
                     EntityResponse result = check 'client->execute(queryString);
