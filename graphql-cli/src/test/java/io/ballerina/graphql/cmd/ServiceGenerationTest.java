@@ -171,7 +171,8 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "SchemaDocsWithResolverMultipleLinesApi.graphql", "SchemaDocsWithResolverArgumentsApi.graphql",
                 "SchemaDocsWithMultipleLinesApi.graphql", "SchemaDocsWithOutputsApi.graphql",
                 "SchemaDocsWithUnionApi.graphql", "SchemaDocsWithEnumApi.graphql", "SchemaDocsWithInputsApi.graphql",
-                "SchemaDocsWithInterfacesApi.graphql", "SchemaDocsWithDeprecated01Api.graphql"};
+                "SchemaDocsWithInterfacesApi.graphql", "SchemaDocsWithDeprecated01Api.graphql",
+                "SchemaCompleteApi.graphql"};
     }
 
     @Test(description = "Test compilation for all schemas, method - default", dataProvider = "schemaFiles")
@@ -205,26 +206,6 @@ public class ServiceGenerationTest extends GraphqlTest {
 
         try {
             graphqlCmd.execute();
-            DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
-            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
-        } catch (BLauncherException e) {
-            String output = e.toString();
-            Assert.fail(output);
-        }
-    }
-
-    @Test(description = "Test compilation for complete schema", enabled = false)
-    public void testCompilationForCompleteSchema() {
-        String schemaFile = "SchemaCompleteApi.graphql";
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", schemaFile));
-
-        String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
-        try {
-            graphqlCmd.execute();
-
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
             Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
         } catch (BLauncherException e) {
