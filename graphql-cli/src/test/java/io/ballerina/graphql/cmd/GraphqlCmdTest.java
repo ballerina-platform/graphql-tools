@@ -96,16 +96,14 @@ public class GraphqlCmdTest extends GraphqlTest {
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
-                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
 
-                Assert.assertEquals(expectedServiceContent, generatedServiceContent);
-                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
-            } else {
-                Assert.fail("Code generation failed. : " + readOutput(true));
-            }
+            String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
+            String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
+            Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
         } catch (BLauncherException | IOException e) {
             String output = e.toString();
             Assert.fail(output);
@@ -132,15 +130,14 @@ public class GraphqlCmdTest extends GraphqlTest {
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
-            if (Files.exists(this.tmpDir.resolve("service.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent = readContent(this.tmpDir.resolve("service.bal"));
-                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
 
-                Assert.assertEquals(expectedServiceContent, generatedClientContent);
-                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
-            } else {
-                Assert.fail("Code generation failed. : " + readOutput(true));
-            }
+            String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
+            String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
+
+            Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
 
         } catch (BLauncherException | IOException e) {
             String output = e.toString();
