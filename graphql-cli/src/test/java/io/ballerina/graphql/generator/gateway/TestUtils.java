@@ -12,9 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
@@ -24,12 +26,13 @@ import java.nio.file.Path;
 import java.util.Comparator;
 
 /**
- *  Utility class for gateway tests.
+ * Utility class for gateway tests.
  */
 public class TestUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestUtils.class);
     private static final Path resourceDir =
             Path.of("src", "test", "resources", "federationGateway", "sampleRequests").toAbsolutePath();
+
     public static File generateGatewayJar(Path supergraphSdl, Path tmpDir) {
         String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
                 CodeGeneratorConstants.MODE_GATEWAY};
@@ -99,10 +102,30 @@ public class TestUtils {
     }
 
     public static String getRequestContent(String filename) throws IOException {
-        return Files.readString(resourceDir.resolve(filename+".graphql"));
+        return Files.readString(resourceDir.resolve(filename + ".graphql"));
     }
 
     public static String getResponseContent(String filename) throws IOException {
-        return Files.readString(resourceDir.resolve(filename+".json"));
+        return Files.readString(resourceDir.resolve(filename + ".json"));
+    }
+
+    public static String getGraphqlQueryResponse(String graphqlUrl, String query) throws IOException {
+        URL url = new URL(graphqlUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
+        byte[] body = ("{\"query\":\"{" + query + "}\"}").getBytes();
+        connection.getOutputStream().write(body);
+
+        // read and assert the response from the server
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuilder response = new StringBuilder();
+        String line;
+        while ((line = in.readLine()) != null) {
+            response.append(line);
+        }
+        in.close();
+        return response.toString();
     }
 }

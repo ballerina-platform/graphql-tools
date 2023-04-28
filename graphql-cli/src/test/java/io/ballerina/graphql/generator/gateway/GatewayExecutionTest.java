@@ -24,12 +24,8 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -80,33 +76,17 @@ public class GatewayExecutionTest {
     }
 
     @Test(description = "Test gateway execution",
-    dataProvider = "RequestResponseDataProvider")
+            dataProvider = "RequestResponseDataProvider")
     public void testGatewayExecution(String requestFile, String responseFile) throws IOException {
         String query = TestUtils.getRequestContent(requestFile);
         String expectedResponse = TestUtils.getResponseContent(responseFile);
-
-        URL url = new URL(GATEWAY_URL);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setDoOutput(true);
-        byte[] body = ("{\"query\":\"{" + query + "}\"}").getBytes();
-        connection.getOutputStream().write(body);
-
-        // read and assert the response from the server
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        StringBuilder response = new StringBuilder();
-        String line;
-        while ((line = in.readLine()) != null) {
-            response.append(line);
-        }
-        in.close();
+        String response = TestUtils.getGraphqlQueryResponse(GATEWAY_URL, query);
         Assert.assertEquals(response.toString(), expectedResponse);
     }
 
     @DataProvider(name = "RequestResponseDataProvider")
-    public Object[][] getData(){
-        return new Object[][]{
+    public Object[][] getFileNames() {
+        return new Object[][] {
                 {"request1", "response1"},
                 {"request2", "response2"},
         };
