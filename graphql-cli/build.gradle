@@ -171,6 +171,11 @@ compileJava {
     }
 }
 
+clean {
+    delete("${projectDir}/src/test/resources/federationGateway/subgraphServices/astronautService/target")
+    delete("${projectDir}/src/test/resources/federationGateway/subgraphServices/missionsService/target")
+}
+
 def packageName = "graphql"
 
 jBallerinaPack.dependsOn ":${packageName}-schema-file-generator:build"

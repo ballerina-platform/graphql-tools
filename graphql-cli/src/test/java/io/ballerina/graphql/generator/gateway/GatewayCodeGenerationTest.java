@@ -38,6 +38,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Class to test code generation related to gateway.
+ */
 public class GatewayCodeGenerationTest extends GraphqlTest {
     private final Path schemaFiles = this.resourceDir.resolve(Paths.get("federationGateway",
             "supergraphSchemas"));
@@ -49,7 +52,7 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
     public void testQueryPlanGeneration(String supergraphFileName, String expectedFileName)
             throws ValidationException, IOException, GatewayQueryPlanGenerationException, GatewayGenerationException {
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                schemaFiles.resolve(Paths.get( supergraphFileName + ".graphql"))
+                schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayQueryPlanGenerator(graphQLSchema)).generateSrc();
@@ -73,7 +76,7 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
             throws ValidationException, IOException, GatewayServiceGenerationException {
 
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
-                schemaFiles.resolve(Paths.get( supergraphFileName + ".graphql"))
+                schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);
         String generatedSrc = (new GatewayServiceGenerator(project)).generateSrc();
         String expectedSrc = Files.readString(expectedResources.resolve(
@@ -83,7 +86,7 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
 
     @DataProvider(name = "serviceGenerationDataProvider")
     public Object[][] getServiceGenerationDataProvider() {
-        return new Object[][]{
+        return new Object[][] {
                 {"Supergraph", "service.bal"},
                 {"Supergraph01", "service01.bal"},
                 {"Supergraph02", "service02.bal"},
