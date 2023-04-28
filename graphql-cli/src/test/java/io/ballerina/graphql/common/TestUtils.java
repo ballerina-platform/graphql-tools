@@ -251,7 +251,6 @@ public class TestUtils {
         }
     }
 
-    // there is a similar func in CodeGenerator...
     public static void writeSources(List<SrcFilePojo> sources, Path outputPath) throws IOException {
         if (!sources.isEmpty()) {
             for (SrcFilePojo file : sources) {
