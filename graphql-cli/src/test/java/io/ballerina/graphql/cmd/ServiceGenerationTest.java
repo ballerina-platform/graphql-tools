@@ -20,12 +20,7 @@ package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.launcher.BLauncherException;
 import io.ballerina.graphql.common.GraphqlTest;
-import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.projects.DiagnosticResult;
-import io.ballerina.projects.ProjectEnvironmentBuilder;
-import io.ballerina.projects.directory.BuildProject;
-import io.ballerina.projects.environment.Environment;
-import io.ballerina.projects.environment.EnvironmentBuilder;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -41,6 +36,7 @@ import java.nio.file.Paths;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
+import static io.ballerina.graphql.common.TestUtils.getDiagnosticResult;
 import static io.ballerina.graphql.common.TestUtils.hasOnlyFuncMustReturnResultErrors;
 
 /**
@@ -49,17 +45,6 @@ import static io.ballerina.graphql.common.TestUtils.hasOnlyFuncMustReturnResultE
 public class ServiceGenerationTest extends GraphqlTest {
     private final Path balTomlPath =
             this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "Ballerina.toml"));
-
-    private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
-        Environment environment = EnvironmentBuilder
-                .getBuilder()
-                .setBallerinaHome(
-                        TestUtils.TEST_DISTRIBUTION_PATH.resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME))
-                                .toAbsolutePath()
-                )
-                .build();
-        return ProjectEnvironmentBuilder.getBuilder(environment);
-    }
 
     @BeforeClass
     public void copyBalTomlFile() throws IOException {
@@ -212,10 +197,5 @@ public class ServiceGenerationTest extends GraphqlTest {
             String output = e.toString();
             Assert.fail(output);
         }
-    }
-
-    private DiagnosticResult getDiagnosticResult(Path packagePath) {
-        BuildProject project = BuildProject.load(getEnvironmentBuilder(), packagePath);
-        return project.currentPackage().getCompilation().diagnosticResult();
     }
 }
