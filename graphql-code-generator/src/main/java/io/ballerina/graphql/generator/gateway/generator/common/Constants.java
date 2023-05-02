@@ -35,6 +35,7 @@ public class Constants {
 
     // File names for templates
     public static final String RESOURCE_FUNCTION_TEMPLATE_FILE = "resource_function.bal.partial";
+    public static final String REMOTE_FUNCTION_TEMPLATE_FILE = "remote_function.bal.partial";
     public static final String GET_CLIENT_FUNCTION_TEMPLATE_FILE = "get_client_function.bal.partial";
     public static final String SERVICE_DECLARATION_TEMPLATE_FILE = "service_declaration.bal.partial";
     public static final String GATEWAY_PROJECT_TEMPLATE_DIRECTORY = "gateway";
