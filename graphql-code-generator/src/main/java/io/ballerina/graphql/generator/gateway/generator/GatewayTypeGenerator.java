@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
@@ -181,15 +180,8 @@ public class GatewayTypeGenerator {
     private void addQueryResponseTypes(List<TypeDefinitionNode> typeDefinitionNodeList) throws
             GatewayGenerationException {
         List<GraphQLSchemaElement> queryTypes = new ArrayList<>();
-        if (graphQLSchema.getQueryType() != null) {
-            queryTypes.addAll(graphQLSchema.getQueryType().getChildren().stream()
-                    .filter(type -> type instanceof GraphQLFieldDefinition).collect(Collectors.toList()));
-        }
-
-        if (graphQLSchema.getMutationType() != null) {
-            queryTypes.addAll(graphQLSchema.getMutationType().getChildren().stream()
-                    .filter(type -> type instanceof GraphQLFieldDefinition).collect(Collectors.toList()));
-        }
+        queryTypes.addAll(CommonUtils.getQueryTypes(graphQLSchema));
+        queryTypes.addAll(CommonUtils.getMutationTypes(graphQLSchema));
 
         for (GraphQLSchemaElement queryType : queryTypes) {
             GraphQLFieldDefinition queryDefinition = (GraphQLFieldDefinition) queryType;

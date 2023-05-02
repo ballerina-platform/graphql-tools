@@ -47,6 +47,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +78,24 @@ public class CommonUtils {
      * @return List of query types
      */
     public static List<GraphQLSchemaElement> getQueryTypes(GraphQLSchema graphQLSchema) {
+        if (graphQLSchema.getQueryType() == null) {
+            return new ArrayList<>();
+        }
         return graphQLSchema.getQueryType().getChildren().stream().filter(
+                child -> child instanceof GraphQLFieldDefinition).collect(Collectors.toList());
+    }
+
+    /**
+     * Return list of mutation types.
+     *
+     * @param graphQLSchema GraphQL schema
+     * @return List of mutation types
+     */
+    public static List<GraphQLSchemaElement> getMutationTypes(GraphQLSchema graphQLSchema) {
+        if (graphQLSchema.getMutationType() == null) {
+            return new ArrayList<>();
+        }
+        return graphQLSchema.getMutationType().getChildren().stream().filter(
                 child -> child instanceof GraphQLFieldDefinition).collect(Collectors.toList());
     }
 
