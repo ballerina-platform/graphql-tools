@@ -91,6 +91,7 @@ public class GatewayTypeGenerator {
         NodeList<ImportDeclarationNode> importsList = createEmptyNodeList();
 
         addCustomDefinedTypes(typeDefinitionNodeList);
+        addInputTypes(typeDefinitionNodeList);
         addQueryResponseTypes(typeDefinitionNodeList);
 
         NodeList<ModuleMemberDeclarationNode> members =
@@ -141,10 +142,54 @@ public class GatewayTypeGenerator {
         }
     }
 
+    private void addInputTypes(List<TypeDefinitionNode> typeDefinitionNodeList) {
+        List<String> names = SpecReader.getInputObjectTypeNames(graphQLSchema);
+        for (String name : names) {
+            List<Node> fieldNodes = new ArrayList<>();
+            Map<String, FieldType> fields = SpecReader.getInputTypeFieldsMap(graphQLSchema, name);
+
+            for (Map.Entry<String, FieldType> field : fields.entrySet()) {
+                fieldNodes.add(createRecordFieldNode(
+                        null,
+                        null,
+                        createIdentifierToken(field.getValue().getName() + field.getValue().getTokens()),
+                        createIdentifierToken(field.getKey()),
+                        null,
+                        createToken(SEMICOLON_TOKEN)));
+            }
+
+            RecordTypeDescriptorNode recordTypeDescriptorNode =
+                    createRecordTypeDescriptorNode(
+                            createToken(RECORD_KEYWORD),
+                            createToken(OPEN_BRACE_PIPE_TOKEN),
+                            createNodeList(fieldNodes),
+                            null,
+                            createToken(CLOSE_BRACE_PIPE_TOKEN));
+
+
+            typeDefinitionNodeList.add(
+                    createTypeDefinitionNode(
+                            createMetadataNode(null, createEmptyNodeList()),
+                            createToken(PUBLIC_KEYWORD),
+                            createToken(TYPE_KEYWORD),
+                            createIdentifierToken(name),
+                            recordTypeDescriptorNode,
+                            createToken(SEMICOLON_TOKEN)));
+        }
+    }
+
     private void addQueryResponseTypes(List<TypeDefinitionNode> typeDefinitionNodeList) throws
             GatewayGenerationException {
-        List<GraphQLSchemaElement> queryTypes = graphQLSchema.getQueryType().getChildren().stream()
-                .filter(type -> type instanceof GraphQLFieldDefinition).collect(Collectors.toList());
+        List<GraphQLSchemaElement> queryTypes = new ArrayList<>();
+        if (graphQLSchema.getQueryType() != null) {
+            queryTypes.addAll(graphQLSchema.getQueryType().getChildren().stream()
+                    .filter(type -> type instanceof GraphQLFieldDefinition).collect(Collectors.toList()));
+        }
+
+        if (graphQLSchema.getMutationType() != null) {
+            queryTypes.addAll(graphQLSchema.getMutationType().getChildren().stream()
+                    .filter(type -> type instanceof GraphQLFieldDefinition).collect(Collectors.toList()));
+        }
 
         for (GraphQLSchemaElement queryType : queryTypes) {
             GraphQLFieldDefinition queryDefinition = (GraphQLFieldDefinition) queryType;

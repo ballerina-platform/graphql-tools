@@ -94,11 +94,9 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
         };
     }
 
-    @Test(description = "Test supergraph types generation", dataProvider = "GatewayTypeGenerationDataProvider")
-    public void testSupergraphTypeGeneration(String supergraphFileName, String expectedFileName)
+    @Test(description = "Test gateway types generation", dataProvider = "GatewayTypeGenerationDataProvider")
+    public void testGatewayTypeGeneration(String supergraphFileName, String expectedFileName)
             throws IOException, ValidationException, GatewayTypeGenerationException {
-        String fileName = "Supergraph01";
-
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);

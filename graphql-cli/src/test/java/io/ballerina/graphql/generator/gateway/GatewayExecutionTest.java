@@ -19,8 +19,8 @@
 package io.ballerina.graphql.generator.gateway;
 
 import org.testng.Assert;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -47,7 +47,7 @@ public class GatewayExecutionTest {
     Process missionsServiceProcess;
     Process gatewayProcess;
 
-    @BeforeSuite
+    @BeforeClass
     public void setup() throws IOException {
         this.tmpDir = Files.createTempDirectory("graphql-gateway-" + System.nanoTime());
         File gatewayExec = TestUtils.generateGatewayJar(supergraphSdl, tmpDir);
@@ -67,7 +67,7 @@ public class GatewayExecutionTest {
         TestUtils.waitTillUrlIsAvailable(missionsServiceProcess, GATEWAY_URL);
     }
 
-    @AfterSuite
+    @AfterClass
     public void cleanup() throws IOException {
         astronautServiceProcess.destroy();
         missionsServiceProcess.destroy();

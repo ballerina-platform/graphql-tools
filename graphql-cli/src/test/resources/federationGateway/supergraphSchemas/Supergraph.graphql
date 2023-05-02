@@ -2,6 +2,7 @@ schema
 @link(url: "https://specs.apollo.dev/link/v1.0")
 @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION) {
     query: Query
+    mutation: Mutation
 }
 
 directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
@@ -78,6 +79,17 @@ type Mission @join__type(graph: MISSIONS, key: "id", resolvable: false) {
     startDate: String
     endDate: String
     crew: [Astronaut!]!
+}
+
+input MissionInput @join__type(graph: MISSIONS) {
+    designation: String!
+    startDate: String
+    endDate: String
+    crewIds: [Int!]!
+}
+
+type Mutation @join__type(graph: MISSIONS) {
+    addMission(missionInput: MissionInput!): Mission!
 }
 
 type Query @join__type(graph: ASTRONAUTS) @join__type(graph: MISSIONS) {
