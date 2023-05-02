@@ -34,7 +34,6 @@ public class CodeGeneratorConstants {
     public static final String GRAPHQL_BOOLEAN_TYPE = "Boolean";
 
     public static final String GRAPHQL_UPLOAD_TYPE = "Upload";
-    public static final String GRAPHQL_API = "GraphqlApi";
     public static final String ROOT_PROJECT_NAME = "root";
     public static final String MODULES_PATH = "/modules/";
     public static final String CLIENT_FILE_NAME = "client.bal";
@@ -71,7 +70,7 @@ public class CodeGeneratorConstants {
     public static final String MODE_SERVICE = "service";
     public static final String MODE_SCHEMA = "schema";
     public static final String CLIENT = "Client";
-    public static final String SCHEMA = "schema";
+    public static final String SERVICE = "Service";
     public static final String LISTENER = "Listener";
     public static final String GRAPHQL_CLIENT = "graphqlClient";
     public static final String INIT = "init";
@@ -98,7 +97,6 @@ public class CodeGeneratorConstants {
     public static final String TARGET_TYPE_PARAM_TYPE_NAME = "typedesc<graphql:DataResponse>";
     public static final String TARGET_TYPE_PARAM_NAME = "targetType";
     public static final String GRAPHQL_CLIENT_TYPE_NAME = "graphql:Client";
-    public static final String GRAPHQL_SERVICE_TYPE_NAME = "graphql:Service";
     public static final String GRAPHQL_CLIENT_VAR_NAME = "clientEp";
     public static final String GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME = "graphqlClientConfig";
     public static final String GRAPHQL_VARIABLES_TYPE_NAME = "map<anydata>";

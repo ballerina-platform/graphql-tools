@@ -69,6 +69,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
@@ -559,9 +560,12 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private NodeList<Node> generateServiceObjectMembers(GraphQLSchema schema) throws ServiceTypesGenerationException {
         List<Node> members = new ArrayList<>();
+        QualifiedNameReferenceNode graphqlServiceName =
+                createQualifiedNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
+                        createToken(SyntaxKind.COLON_TOKEN),
+                        createIdentifierToken(CodeGeneratorConstants.SERVICE));
         TypeReferenceNode graphqlService = createTypeReferenceNode(createToken(SyntaxKind.ASTERISK_TOKEN),
-                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_SERVICE_TYPE_NAME),
-                createToken(SyntaxKind.SEMICOLON_TOKEN));
+                graphqlServiceName, createToken(SyntaxKind.SEMICOLON_TOKEN));
         members.add(graphqlService);
 
         List<MethodDeclarationNode> serviceMethodDeclarations =
