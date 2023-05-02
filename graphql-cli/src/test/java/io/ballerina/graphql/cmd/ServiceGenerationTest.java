@@ -62,17 +62,15 @@ public class ServiceGenerationTest extends GraphqlTest {
                 this.resourceDir.resolve(
                         Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
         String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
-        String output;
         try {
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            String output;
             graphqlCmd.execute();
             output = readOutput(true);
             Assert.assertTrue(output.contains("GraphQL SDL validation failed."));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.toString());
         }
     }
 
@@ -81,17 +79,16 @@ public class ServiceGenerationTest extends GraphqlTest {
         Path invalidPath =
                 this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid", "Schema.graphql"));
         String[] args = {"-i", invalidPath.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-        String message = String.format(MESSAGE_MISSING_SCHEMA_FILE, invalidPath);
-        String output;
         try {
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            String message = String.format(MESSAGE_MISSING_SCHEMA_FILE, invalidPath);
+            String output;
             graphqlCmd.execute();
             output = readOutput(true);
             Assert.assertTrue(output.contains(message));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.toString());
         }
     }
 
@@ -103,20 +100,20 @@ public class ServiceGenerationTest extends GraphqlTest {
         Path graphqlSchema =
                 this.resourceDir.resolve(
                         Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic01Api.graphql"));
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        Path outputPath = Paths.get(tmpDir.toString(), "new");
+        String[] args = {"-i", graphqlSchema.toString(), "-o", outputPath.toString(), "-m", "service"};
         try {
-            Path outputPath = Paths.get(tmpDir.toString(), "new");
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            String message = String.format("%s/types.bal (Permission denied)", outputPath);
             Files.createDirectories(outputPath);
             File file = new File(outputPath.toString());
             file.setReadOnly();
-            String message = String.format("%s/types.bal (Permission denied)", outputPath);
-            String[] args = {"-i", graphqlSchema.toString(), "-o", outputPath.toString(), "-m", "service"};
-            new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Assert.fail(e.toString());
         }
     }
 
@@ -126,14 +123,14 @@ public class ServiceGenerationTest extends GraphqlTest {
     )
     public void testExecuteWithSchemaFileWithoutReadPermission() {
         Path graphqlSchema = Paths.get(tmpDir.toString(), "schema.graphql");
+        String[] args = {"-i", graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
         try {
-            Files.createFile(graphqlSchema);
-            File file = new File(graphqlSchema.toString());
-            file.setReadable(false);
-            String[] args = {"-i", graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
             new CommandLine(graphqlCmd).parseArgs(args);
             String message = String.format(MESSAGE_CAN_NOT_READ_SCHEMA_FILE, graphqlSchema);
+            Files.createFile(graphqlSchema);
+            File file = new File(graphqlSchema.toString());
+            file.setReadable(false);
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
@@ -142,8 +139,8 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    @DataProvider(name = "schemaFiles")
-    public Object[] createSchemaFilesData() {
+    @DataProvider(name = "schemaFileNames")
+    public Object[] getSchemaFileNames() {
         return new Object[]{"SchemaWithBasic01Api.graphql", "SchemaWithBasic02Api.graphql",
                 "SchemaWithInputsApi.graphql", "SchemaWithMutationApi.graphql", "SchemaWithSubscriptionApi.graphql",
                 "SchemaWithBasic03Api.graphql", "SchemaWithEnumApi.graphql", "SchemaWithUnionApi.graphql",
@@ -160,42 +157,35 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "SchemaCompleteApi.graphql"};
     }
 
-    @Test(description = "Test compilation for all schemas, method - default", dataProvider = "schemaFiles")
+    @Test(description = "Test compilation for all schemas, method - default", dataProvider = "schemaFileNames")
     public void testCompilationForAllSchemas(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
-
         String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
         try {
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
             Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
         } catch (BLauncherException e) {
-            String output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.toString());
         }
-
     }
 
     @Test(description = "Test compilation for all schemas, method - use records for objects", dataProvider =
             "schemaFiles")
     public void testCompilationForAllSchemasWithUseRecordsForObjects(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
-
         String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
                 "--use-records-for-objects"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
-        new CommandLine(graphqlCmd).parseArgs(args);
-
         try {
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
             Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
         } catch (BLauncherException e) {
-            String output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.toString());
         }
     }
 }
