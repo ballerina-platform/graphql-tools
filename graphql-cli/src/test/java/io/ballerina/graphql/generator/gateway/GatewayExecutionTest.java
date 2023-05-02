@@ -75,20 +75,36 @@ public class GatewayExecutionTest {
         TestUtils.deleteDirectory(tmpDir);
     }
 
-    @Test(description = "Test gateway execution",
-            dataProvider = "RequestResponseDataProvider")
-    public void testGatewayExecution(String requestFile, String responseFile) throws IOException {
+    @Test(description = "Test gateway with query requests",
+            dataProvider = "QueryRequestResponseDataProvider")
+    public void testGatewayQueryExecution(String requestFile, String responseFile) throws IOException {
         String query = TestUtils.getRequestContent(requestFile);
         String expectedResponse = TestUtils.getResponseContent(responseFile);
         String response = TestUtils.getGraphqlQueryResponse(GATEWAY_URL, query);
         Assert.assertEquals(response.toString(), expectedResponse);
     }
 
-    @DataProvider(name = "RequestResponseDataProvider")
-    public Object[][] getFileNames() {
+    @DataProvider(name = "QueryRequestResponseDataProvider")
+    public Object[][] getQueryFileNames() {
         return new Object[][] {
                 {"request1", "response1"},
                 {"request2", "response2"},
+        };
+    }
+
+    @Test(description = "Test gateway with mutation requests",
+            dataProvider = "MutationRequestResponseDataProvider")
+    public void testGatewayMutationExecution(String requestFile, String responseFile) throws IOException {
+        String query = TestUtils.getRequestContent(requestFile);
+        String expectedResponse = TestUtils.getResponseContent(responseFile);
+        String response = TestUtils.getGraphqlMutationResponse(GATEWAY_URL, query);
+        Assert.assertEquals(response.toString(), expectedResponse);
+    }
+
+    @DataProvider(name = "MutationRequestResponseDataProvider")
+    public Object[][] getMutationFileNames() {
+        return new Object[][] {
+                {"request3", "response3"}
         };
     }
 
