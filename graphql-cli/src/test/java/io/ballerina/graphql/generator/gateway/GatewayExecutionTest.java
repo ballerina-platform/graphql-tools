@@ -19,8 +19,8 @@
 package io.ballerina.graphql.generator.gateway;
 
 import org.testng.Assert;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -47,7 +47,7 @@ public class GatewayExecutionTest {
     Process missionsServiceProcess;
     Process gatewayProcess;
 
-    @BeforeSuite
+    @BeforeClass
     public void setup() throws IOException {
         this.tmpDir = Files.createTempDirectory("graphql-gateway-" + System.nanoTime());
         File gatewayExec = TestUtils.generateGatewayJar(supergraphSdl, tmpDir);
@@ -67,7 +67,7 @@ public class GatewayExecutionTest {
         TestUtils.waitTillUrlIsAvailable(missionsServiceProcess, GATEWAY_URL);
     }
 
-    @AfterSuite
+    @AfterClass
     public void cleanup() throws IOException {
         astronautServiceProcess.destroy();
         missionsServiceProcess.destroy();
@@ -75,20 +75,36 @@ public class GatewayExecutionTest {
         TestUtils.deleteDirectory(tmpDir);
     }
 
-    @Test(description = "Test gateway execution",
-            dataProvider = "RequestResponseDataProvider")
-    public void testGatewayExecution(String requestFile, String responseFile) throws IOException {
+    @Test(description = "Test gateway with query requests",
+            dataProvider = "QueryRequestResponseDataProvider")
+    public void testGatewayQueryExecution(String requestFile, String responseFile) throws IOException {
         String query = TestUtils.getRequestContent(requestFile);
         String expectedResponse = TestUtils.getResponseContent(responseFile);
         String response = TestUtils.getGraphqlQueryResponse(GATEWAY_URL, query);
         Assert.assertEquals(response.toString(), expectedResponse);
     }
 
-    @DataProvider(name = "RequestResponseDataProvider")
-    public Object[][] getFileNames() {
+    @DataProvider(name = "QueryRequestResponseDataProvider")
+    public Object[][] getQueryFileNames() {
         return new Object[][] {
                 {"request1", "response1"},
                 {"request2", "response2"},
+        };
+    }
+
+    @Test(description = "Test gateway with mutation requests",
+            dataProvider = "MutationRequestResponseDataProvider")
+    public void testGatewayMutationExecution(String requestFile, String responseFile) throws IOException {
+        String query = TestUtils.getRequestContent(requestFile);
+        String expectedResponse = TestUtils.getResponseContent(responseFile);
+        String response = TestUtils.getGraphqlMutationResponse(GATEWAY_URL, query);
+        Assert.assertEquals(response.toString(), expectedResponse);
+    }
+
+    @DataProvider(name = "MutationRequestResponseDataProvider")
+    public Object[][] getMutationFileNames() {
+        return new Object[][] {
+                {"request3", "response3"}
         };
     }
 

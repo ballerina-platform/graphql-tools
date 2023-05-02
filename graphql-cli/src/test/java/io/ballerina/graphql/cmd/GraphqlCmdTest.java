@@ -414,7 +414,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.fail(output);
         }
     }
-    @Test(description = "Test successful graphql federation gateway code generation",
+    @Test(description = "Test successful graphql federation gateway executable generation",
             dataProvider = "gatewayCmdTestDataProvider")
     public void testGatewayCodeGeneration(String supergraph) {
         Path supergraphSdl = resourceDir.resolve(Paths.get("federationGateway", "supergraphSchemas",

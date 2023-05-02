@@ -21,6 +21,7 @@ import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationExcepti
 import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.gateway.generator.common.JoinGraph;
+import io.ballerina.graphql.generator.utils.graphql.SpecReader;
 import io.ballerina.graphql.generator.utils.graphql.Utils;
 import io.ballerina.graphql.generator.utils.model.FieldType;
 import io.ballerina.tools.text.TextDocument;
@@ -54,11 +55,17 @@ import static io.ballerina.graphql.generator.gateway.generator.common.Constants.
 import static io.ballerina.graphql.generator.gateway.generator.common.Constants.MATCH_CLIENT_STATEMENT_TEMPLATE;
 import static io.ballerina.graphql.generator.gateway.generator.common.Constants.QUERY_ARGS_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.common.Constants.QUERY_PLACEHOLDER;
+import static io.ballerina.graphql.generator.gateway.generator.common.Constants.REMOTE_FUNCTION_TEMPLATE_FILE;
 import static io.ballerina.graphql.generator.gateway.generator.common.Constants.RESOURCE_FUNCTIONS_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.common.Constants.RESOURCE_FUNCTION_TEMPLATE_FILE;
 import static io.ballerina.graphql.generator.gateway.generator.common.Constants.RESPONSE_TYPE_PLACEHOLDER;
 import static io.ballerina.graphql.generator.gateway.generator.common.Constants.SERVICE_DECLARATION_TEMPLATE_FILE;
 import static io.ballerina.graphql.generator.gateway.generator.common.Constants.URL_PLACEHOLDER;
+
+enum FunctionType {
+    QUERY,
+    MUTATION
+};
 
 /**
  * Class to generate service code for the gateway.
@@ -108,24 +115,39 @@ public class GatewayServiceGenerator {
     }
 
     private ModuleMemberDeclarationNode getServiceDeclaration() throws GatewayGenerationException, IOException {
-        String resourceFunctions = String.join(System.lineSeparator(), getResourceFunctions());
+        String resourceFunctions = String.join(System.lineSeparator(), getServiceFunctions());
         String serviceTemplate = Files.readString(getResourceTemplateFilePath(project.getTempDir(),
                 SERVICE_DECLARATION_TEMPLATE_FILE)).replaceAll(RESOURCE_FUNCTIONS_PLACEHOLDER, resourceFunctions);
         return NodeParser.parseModuleMemberDeclaration(serviceTemplate);
     }
 
-    private List<String> getResourceFunctions() throws GatewayGenerationException, IOException {
+    private List<String> getServiceFunctions() throws GatewayGenerationException, IOException {
         List<String> resourceFunctions = new ArrayList<>();
         for (GraphQLSchemaElement graphQLObjectType : CommonUtils.getQueryTypes(project.getGraphQLSchema())) {
-            resourceFunctions.add(getResourceFunction(graphQLObjectType));
+            resourceFunctions.add(getServiceFunction(FunctionType.QUERY, graphQLObjectType));
+        }
+        for (GraphQLSchemaElement graphQLObjectType : CommonUtils.getMutationTypes(project.getGraphQLSchema())) {
+            resourceFunctions.add(getServiceFunction(FunctionType.MUTATION, graphQLObjectType));
         }
         return resourceFunctions;
     }
 
-    private String getResourceFunction(GraphQLSchemaElement graphQLSchemaElement)
+    private String getServiceFunction(FunctionType functionType, GraphQLSchemaElement graphQLSchemaElement)
             throws IOException, GatewayGenerationException {
-        return Files.readString(getResourceTemplateFilePath(project.getTempDir(),
-                        RESOURCE_FUNCTION_TEMPLATE_FILE)).replaceAll(QUERY_PLACEHOLDER,
+        String template;
+        String type;
+        if (functionType == FunctionType.QUERY) {
+            template = Files.readString(getResourceTemplateFilePath(project.getTempDir(),
+                    RESOURCE_FUNCTION_TEMPLATE_FILE));
+            type = "Query";
+        } else if (functionType == FunctionType.MUTATION) {
+            template = Files.readString(getResourceTemplateFilePath(project.getTempDir(),
+                    REMOTE_FUNCTION_TEMPLATE_FILE));
+            type = "Mutation";
+        } else {
+            throw new GatewayServiceGenerationException("Unsupported function type");
+        }
+        return template.replaceAll(QUERY_PLACEHOLDER,
                         ((GraphQLFieldDefinition) graphQLSchemaElement).getName())
                 .replaceAll(FUNCTION_PARAM_PLACEHOLDER,
                         getArgumentString(graphQLSchemaElement))
@@ -136,7 +158,7 @@ public class GatewayServiceGenerator {
                         CommonUtils.getBasicTypeNameFromGraphQLType(
                                 ((GraphQLFieldDefinition) graphQLSchemaElement).getType()))
                 .replaceAll(CLIENT_NAME_PLACEHOLDER,
-                        getClientNameFromFieldDefinition((GraphQLFieldDefinition) graphQLSchemaElement))
+                        getClientNameFromFieldDefinition((GraphQLFieldDefinition) graphQLSchemaElement, type))
                 .replaceAll(QUERY_ARGS_PLACEHOLDER, getQueryArguments(graphQLSchemaElement));
     }
 
@@ -175,13 +197,24 @@ public class GatewayServiceGenerator {
         return nodes;
     }
 
-    private String getClientNameFromFieldDefinition(GraphQLFieldDefinition graphQLFieldDefinition) {
+    private String getClientNameFromFieldDefinition(GraphQLFieldDefinition graphQLFieldDefinition, String parentType)
+            throws GatewayServiceGenerationException {
         for (GraphQLAppliedDirective directive : graphQLFieldDefinition.getAppliedDirectives()) {
             if (directive.getName().equals("join__field")) {
                 return ((EnumValue) Objects.requireNonNull(
                         directive.getArgument("graph").getArgumentValue().getValue())).getName();
             }
         }
+
+        List<GraphQLAppliedDirective> appliedDirectivesOnParent =
+                SpecReader.getObjectTypeDirectives(project.getGraphQLSchema(), parentType);
+        for (GraphQLAppliedDirective directive : appliedDirectivesOnParent) {
+            if (directive.getName().equals("join__type")) {
+                return ((EnumValue) Objects.requireNonNull(
+                        directive.getArgument("graph").getArgumentValue().getValue())).getName();
+            }
+        }
+
         throw new GatewayServiceGenerationException("No client name found: " + graphQLFieldDefinition.getName());
     }
 

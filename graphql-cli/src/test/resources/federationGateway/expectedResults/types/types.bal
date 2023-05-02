@@ -12,6 +12,13 @@ public type Mission record {|
     Astronaut[] crew?;
 |};
 
+public type MissionInput record {|
+    int[] crewIds;
+    string? endDate;
+    string designation;
+    string? startDate;
+|};
+
 public type astronautsResponse record {
     record {|Astronaut[] astronauts;|} data;
 };
@@ -26,4 +33,8 @@ public type missionsResponse record {
 
 public type missionResponse record {
     record {|Mission mission;|} data;
+};
+
+public type addMissionResponse record {
+    record {|Mission addMission;|} data;
 };

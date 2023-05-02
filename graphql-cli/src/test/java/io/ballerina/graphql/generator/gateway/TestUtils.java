@@ -110,12 +110,20 @@ public class TestUtils {
     }
 
     public static String getGraphqlQueryResponse(String graphqlUrl, String query) throws IOException {
-        URL url = new URL(graphqlUrl);
+        return getGraphqlResponse(graphqlUrl, ("{\"query\":\"{" + query + "}\"}").getBytes());
+    }
+
+    public static String getGraphqlMutationResponse(String grapqlUrl, String query) throws IOException {
+        System.out.println("{\"query\":\"{" + query + "}\"}");
+        return getGraphqlResponse(grapqlUrl, ("{\"query\":\"" + query + "\"}").getBytes());
+    }
+
+    private static String getGraphqlResponse(String grapqlUrl, byte[] body) throws IOException {
+        URL url = new URL(grapqlUrl);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setDoOutput(true);
-        byte[] body = ("{\"query\":\"{" + query + "}\"}").getBytes();
         connection.getOutputStream().write(body);
 
         // read and assert the response from the server

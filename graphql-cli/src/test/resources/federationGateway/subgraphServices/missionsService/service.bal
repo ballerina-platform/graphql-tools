@@ -1,12 +1,30 @@
 import ballerina/graphql;
 import ballerina/graphql.subgraph;
 
+public type MissionInput record {|
+    string designation;
+    string? startDate;
+    string? endDate;
+    int[] crewIds;
+|};
+
 @subgraph:Subgraph
 isolated service on new graphql:Listener(5002) {
-    isolated resource function get missions() returns Mission[] {
+    resource function get missions() returns Mission[] {
         return missions;
     }
-    isolated resource function get mission(int id) returns Mission {
+    resource function get mission(int id) returns Mission {
+        return missions.filter(isolated function(Mission mission) returns boolean {
+            return mission.id == id;
+        })[0];
+    }
+
+    remote function addMission(MissionInput missionInput) returns Mission {
+        final int id = missions.length();
+        final readonly & int[] crewIds = missionInput.crewIds.cloneReadOnly();
+        missions.push(new Mission(id, missionInput.designation, missionInput.startDate,
+            missionInput.endDate, crewIds
+        ));
         return missions.filter(isolated function(Mission mission) returns boolean {
             return mission.id == id;
         })[0];
@@ -76,7 +94,7 @@ distinct isolated service readonly class Astronaut {
         return self.id;
     }
 
-    isolated resource function get missions() returns Mission[] {
+    resource function get missions() returns Mission[] {
         final int id = self.id;
         return missions.filter(isolated function(Mission mission) returns boolean {
             return mission.includes(id);
@@ -84,7 +102,7 @@ distinct isolated service readonly class Astronaut {
     }
 }
 
-final readonly & Mission[] missions = [
+final Mission[] missions = [
     new Mission(1, "Apollo 1", (), (), [14, 30, 7]),
     new Mission(2, "Apollo 4", "1967-11-09T12:00:01.000Z", "1967-11-09T20:37:00.000Z", []),
     new Mission(3, "Apollo 5", "1968-01-22T22:48:09.000Z", "1968-01-23T09:58:00.000Z", []),

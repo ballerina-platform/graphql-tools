@@ -85,4 +85,19 @@ isolated service on new graphql:Listener(PORT) {
             return finalResult.cloneWithType();
         }
     }
+    isolated remote function addMission(graphql:Field 'field, MissionInput missionInput) returns Mission|error {
+        QueryFieldClassifier classifier = new ('field, queryPlan, MISSIONS);
+        string fieldString = classifier.getFieldString();
+        UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+        string queryString = wrapwithMutation("addMission", fieldString, {"missionInput": getParamAsString(missionInput)});
+        addMissionResponse response = check MISSIONS_CLIENT->execute(queryString);
+        Mission result = response.data.addMission;
+        Resolver resolver = new (queryPlan, result.toJson(), "Mission", propertiesNotResolved, ["addMission"]);
+        json|error finalResult = resolver.getResult();
+        if finalResult is error {
+            return finalResult;
+        } else {
+            return finalResult.cloneWithType();
+        }
+    }
 }
