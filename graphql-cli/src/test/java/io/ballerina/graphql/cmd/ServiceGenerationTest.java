@@ -58,9 +58,8 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution for service generation with invalid schema")
     public void testExecuteWithInvalidSchemaForServiceGen() {
-        Path graphqlSchema =
-                this.resourceDir.resolve(
-                        Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
+        Path graphqlSchema = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
         String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
         try {
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
@@ -92,14 +91,10 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(
-            groups = {"invalid_permission"},
-            description = "Test GraphQL command execution with readonly output path"
-    )
+    @Test(groups = {"invalid_permission"}, description = "Test GraphQL command execution with readonly output path")
     public void testExecuteWithReadOnlyOutputPath() {
-        Path graphqlSchema =
-                this.resourceDir.resolve(
-                        Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic01Api.graphql"));
+        Path graphqlSchema = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         Path outputPath = Paths.get(tmpDir.toString(), "new");
         String[] args = {"-i", graphqlSchema.toString(), "-o", outputPath.toString(), "-m", "service"};
         try {
@@ -117,10 +112,8 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(
-            groups = {"invalid_permission"},
-            description = "Test GraphQL command execution with schema file without read permission"
-    )
+    @Test(groups = {"invalid_permission"},
+            description = "Test GraphQL command execution with schema file without read permission")
     public void testExecuteWithSchemaFileWithoutReadPermission() {
         Path graphqlSchema = Paths.get(tmpDir.toString(), "schema.graphql");
         String[] args = {"-i", graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
@@ -141,14 +134,14 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @DataProvider(name = "schemaFileNames")
     public Object[] getSchemaFileNames() {
-        return new Object[]{"SchemaWithBasic01Api.graphql", "SchemaWithBasic02Api.graphql",
+        return new Object[]{"SchemaWithSingleObjectApi.graphql", "SchemaWithMultipleObjectsApi.graphql",
                 "SchemaWithInputsApi.graphql", "SchemaWithMutationApi.graphql", "SchemaWithSubscriptionApi.graphql",
-                "SchemaWithBasic03Api.graphql", "SchemaWithEnumApi.graphql", "SchemaWithUnionApi.graphql",
-                "SchemaWithInterfaceApi.graphql", "SchemaWithMultipleInterfacesApi.graphql",
-                "SchemaWithInterfacesImplementingInterfacesApi.graphql", "SchemaWithMultiDimensionalListsApi.graphql",
-                "SchemaWithDefaultParameters01Api.graphql", "SchemaWithDefaultParameters02Api.graphql",
-                "SchemaWithDefaultParameters03Api.graphql", "SchemaWithDefaultParameters04Api.graphql",
-                "SchemaDocsWithQueryResolversApi.graphql",
+                "SchemaWithObjectTakingInputArgumentApi.graphql", "SchemaWithEnumApi.graphql",
+                "SchemaWithUnionApi.graphql", "SchemaWithInterfaceApi.graphql",
+                "SchemaWithMultipleInterfacesApi.graphql", "SchemaWithInterfacesImplementingInterfacesApi.graphql",
+                "SchemaWithMultiDimensionalListsApi.graphql", "SchemaWithDefaultParameters01Api.graphql",
+                "SchemaWithDefaultParameters02Api.graphql", "SchemaWithDefaultParameters03Api.graphql",
+                "SchemaWithDefaultParameters04Api.graphql", "SchemaDocsWithQueryResolversApi.graphql",
                 "SchemaDocsWithMutationAndSubscriptionResolversApi.graphql",
                 "SchemaDocsWithResolverMultipleLinesApi.graphql", "SchemaDocsWithResolverArgumentsApi.graphql",
                 "SchemaDocsWithMultipleLinesApi.graphql", "SchemaDocsWithOutputsApi.graphql",
@@ -172,8 +165,8 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test compilation for all schemas, method - use records for objects", dataProvider =
-            "schemaFiles")
+    @Test(description = "Test compilation for all schemas, method - use records for objects",
+            dataProvider = "schemaFileNames")
     public void testCompilationForAllSchemasWithUseRecordsForObjects(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
         String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service",

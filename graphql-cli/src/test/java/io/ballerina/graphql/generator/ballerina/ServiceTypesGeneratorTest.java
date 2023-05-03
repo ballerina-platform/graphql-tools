@@ -42,8 +42,8 @@ import static io.ballerina.graphql.common.TestUtils.writeContentTo;
 public class ServiceTypesGeneratorTest extends GraphqlTest {
     @Test(description = "Test for schema with basic, method - default")
     public void testGenerateSrc() {
-        String fileName = "SchemaWithBasic01Api";
-        String expectedFile = "typesWithBasic01Default.bal";
+        String fileName = "SchemaWithSingleObjectApi";
+        String expectedFile = "typesWithSingleObjectDefault.bal";
         try {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
@@ -67,8 +67,8 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
     @Test(description = "Test for schema with more types, method - default")
     public void testGenerateSrcForMoreTypes() {
-        String fileName = "SchemaWithBasic02Api";
-        String expectedFile = "typesWithBasic02Default.bal";
+        String fileName = "SchemaWithMultipleObjectsApi";
+        String expectedFile = "typesWithMultipleObjectsDefault.bal";
         try {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
@@ -192,8 +192,8 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
 
     @Test(description = "Test for simple schema, method - use record objects")
     public void testGenerateSrcForRecordForced() {
-        String fileName = "SchemaWithBasic03Api";
-        String expectedFile = "typesWithBasic03RecordsAllowed.bal";
+        String fileName = "SchemaWithObjectTakingInputArgumentApi";
+        String expectedFile = "typesWithObjectTakingInputArgumentRecordsAllowed.bal";
         try {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))

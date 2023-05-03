@@ -43,8 +43,8 @@ import static io.ballerina.graphql.common.TestUtils.writeContentTo;
 public class ServiceGeneratorTest extends GraphqlTest {
     @Test(description = "Test the successful generation of service code")
     public void testGenerateSrc() {
-        String fileName = "SchemaWithBasic01Api";
-        String expectedFile = "serviceForBasicSchema01.bal";
+        String fileName = "SchemaWithSingleObjectApi";
+        String expectedFile = "serviceForSchemaWithSingleObject.bal";
         try {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))

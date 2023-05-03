@@ -79,17 +79,17 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with mode flag")
     public void testExecuteWithModeFlag() {
-        Path graphql =
-                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic01Api.graphql"));
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
-            Path expectedServiceFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema01.bal"));
-            Path expectedTypesFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "typesWithBasic01Default.bal"));
+            Path expectedServiceFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "serviceForSchemaWithSingleObject.bal"));
+            Path expectedTypesFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "typesWithSingleObjectDefault.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
@@ -107,18 +107,19 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with mode and use-records-for-objects flags")
     public void testExecutionWithModeAndUseRecordsForObjectsFlags() {
-        Path graphql =
-                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic03Api.graphql"));
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithObjectTakingInputArgumentApi.graphql"));
         String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
                 "--use-records-for-objects"};
         try {
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
-            Path expectedServiceFile =
-                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "serviceForBasicSchema03.bal"));
+            Path expectedServiceFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "serviceForSchemaWithObjectTakingInputArgument.bal"));
             Path expectedTypesFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "typesWithBasic03RecordsAllowed.bal"));
+                    Paths.get("serviceGen", "expectedServices",
+                            "typesWithObjectTakingInputArgumentRecordsAllowed.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
 
@@ -152,8 +153,8 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with invalid mode argument")
     public void testExecuteWithInvalidModeArgument() {
-        Path filePath =
-                resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithBasic01Api.graphql"));
+        Path filePath = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         String mode = "invalid-service";
         String[] args = {"-i", filePath.toString(), "--mode", mode, "--use-records-for-objects"};
         try {
@@ -210,8 +211,8 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with graphql file path without mode flag")
     public void testExecuteForGraphqlFileWithModeFlag() {
-        Path filePath = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid",
-                "SchemaWithBasic01Api.graphql"));
+        Path filePath = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         String[] args = {"-i", filePath.toString(), "-o", this.tmpDir.toString()};
         try {
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
