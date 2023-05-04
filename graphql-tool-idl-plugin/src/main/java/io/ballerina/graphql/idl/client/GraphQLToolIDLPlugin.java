@@ -102,7 +102,7 @@ public class GraphQLToolIDLPlugin extends IDLGeneratorPlugin {
                             Constants.DiagnosticMessages.ERROR_MULTIPLE_PROJECT_AVAILABILITY.getDescription());
                 }
                 String moduleName = idlSourceGeneratorContext.clientNode().clientPrefix().text();
-                SDLValidator.getInstance().validate(projects.get(0));
+                Utils.validateGraphqlProject(projects.get(0));
                 QueryValidator.getInstance().validate(projects.get(0));
                 List<SrcFilePojo> genSrcFiles = CodeGenerator.getInstance().generateBalSources(projects.get(0),
                         GeneratorContext.IDL_PLUGIN);

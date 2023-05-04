@@ -31,11 +31,17 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.errors.SchemaProblem;
 import io.ballerina.graphql.cmd.pojo.Config;
+import io.ballerina.graphql.exception.SDLValidationException;
+import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.Introspector;
 import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.pojo.Default;
 import io.ballerina.graphql.generator.client.pojo.Endpoints;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
+import io.ballerina.graphql.generator.utils.GenerationType;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
@@ -59,7 +65,7 @@ import java.util.Map;
 import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
 
 /**
- * Utility class for GraphQL client generation command line tool.
+ * Utility class for GraphQL code generation command line tool.
  */
 public class Utils {
 
@@ -142,7 +148,7 @@ public class Utils {
         }
 
         // TODO: Find an alternative way for define custom scalar types
-        GraphQLScalarType joinFieldSet  = ExtendedScalars.newAliasedScalar("join__FieldSet")
+        GraphQLScalarType joinFieldSet = ExtendedScalars.newAliasedScalar("join__FieldSet")
                 .aliasedScalar(Scalars.GraphQLString).build();
         GraphQLScalarType linkImport = ExtendedScalars.newAliasedScalar("link__Import")
                 .aliasedScalar(Scalars.GraphQLString).build();
@@ -164,7 +170,7 @@ public class Utils {
     public static String extractSchemaContent(String schema) throws IOException {
         File schemaFile = new File(schema);
         Path schemaPath = Paths.get(schemaFile.getCanonicalPath());
-        return Files.readString(schemaPath);
+        return String.join(Constants.NEW_LINE, Files.readAllLines(schemaPath));
     }
 
     /**
@@ -233,6 +239,37 @@ public class Utils {
         @Override
         public TextRange textRange() {
             return TextRange.from(0, 0);
+        }
+    }
+
+    /**
+     * Validates the GraphQL schema (SDL) of the given project.
+     *
+     * @param project the instance of the Graphql project
+     * @throws ValidationException when a validation error occurs
+     * @throws IOException         If an I/O error occurs
+     */
+    public static void validateGraphqlProject(GraphqlProject project) throws ValidationException, IOException {
+        String schema = project.getSchema();
+
+        Extension extensions = null;
+        if (project.getGenerationType() == GenerationType.CLIENT) {
+            GraphqlClientProject clientProject = (GraphqlClientProject) project;
+            extensions = clientProject.getExtensions();
+        }
+
+        try {
+            GraphQLSchema graphQLSchema;
+            if (project instanceof GraphqlGatewayProject) {
+                graphQLSchema = getGraphQLFederatedSchemaDocument(schema, extensions);
+            } else {
+                graphQLSchema = getGraphQLSchemaDocument(schema, extensions);
+            }
+            project.setGraphQLSchema(graphQLSchema);
+        } catch (IntospectionException e) {
+            throw new ValidationException(e.getMessage(), project.getName());
+        } catch (SchemaProblem e) {
+            throw new SDLValidationException("GraphQL SDL validation failed.", e.getErrors(), project.getName());
         }
     }
 }

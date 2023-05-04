@@ -19,7 +19,7 @@
 package io.ballerina.graphql.generator.client;
 
 
-import io.ballerina.graphql.generator.Constants;
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.pojo.Default;
 import io.ballerina.graphql.generator.client.pojo.Endpoints;
@@ -104,13 +104,13 @@ public class Introspector {
         if (headers != null) {
             request = addHeaders(HttpRequest.newBuilder()
                     .uri(URI.create(endpoint))
-                    .headers(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON)
+                    .headers(CodeGeneratorConstants.CONTENT_TYPE, CodeGeneratorConstants.APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8)), headers)
                     .build();
         } else {
             request = HttpRequest.newBuilder()
                     .uri(URI.create(endpoint))
-                    .headers(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON)
+                    .headers(CodeGeneratorConstants.CONTENT_TYPE, CodeGeneratorConstants.APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8))
                     .build();
         }
@@ -127,7 +127,7 @@ public class Introspector {
         String graphqlPayload = getRequestPayload();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
-                .headers(Constants.CONTENT_TYPE, Constants.APPLICATION_JSON)
+                .headers(CodeGeneratorConstants.CONTENT_TYPE, CodeGeneratorConstants.APPLICATION_JSON)
                 .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8))
                 .build();
         return request;
@@ -140,7 +140,7 @@ public class Introspector {
      */
     private String getRequestPayload() {
         JSONObject graphqlJsonPayload = new JSONObject();
-        graphqlJsonPayload.put(Constants.QUERY, Constants.INTROSPECTION_QUERY);
+        graphqlJsonPayload.put(CodeGeneratorConstants.QUERY, CodeGeneratorConstants.INTROSPECTION_QUERY);
         return graphqlJsonPayload.toString();
     }
 

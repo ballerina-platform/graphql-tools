@@ -13,4 +13,3 @@ type Book{
     id: Int!
     title: String!
 }
-

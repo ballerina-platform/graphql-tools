@@ -23,9 +23,17 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This class represents GraphQL client code generation related constants.
+ * This class represents GraphQL code generation related constants.
  */
 public class CodeGeneratorConstants {
+    // The GraphQL scalar types
+    public static final String GRAPHQL_ID_TYPE = "ID";
+    public static final String GRAPHQL_STRING_TYPE = "String";
+    public static final String GRAPHQL_INT_TYPE = "Int";
+    public static final String GRAPHQL_FLOAT_TYPE = "Float";
+    public static final String GRAPHQL_BOOLEAN_TYPE = "Boolean";
+
+    public static final String GRAPHQL_UPLOAD_TYPE = "Upload";
     public static final String GRAPHQL_API = "GraphqlApi";
     public static final String ROOT_PROJECT_NAME = "root";
     public static final String MODULES_PATH = "/modules/";
@@ -42,6 +50,8 @@ public class CodeGeneratorConstants {
     public static final String ID = "id";
 
     public static final String SLASH = "/";
+    public static final String WRITE_STRING_FORMAT = "\"%s\"";
+    public static final String DOUBLE_UNDERSCORE = "__";
     public static final String SEMICOLON = ";";
     public static final String WHITESPACE = " ";
     public static final String EMPTY_STRING = "";
@@ -79,6 +89,7 @@ public class CodeGeneratorConstants {
     public static final String QUERY = "Query";
     public static final String SUBSCRIPTION = "Subscription";
     public static final String REPRESENTS = "# Represents ";
+    public static final String HASH_DEPRECATED = "# Deprecated";
     public static final String RESPONSE = "Response";
     public static final String HTTP_CLIENT_CONFIG_TYPE_NAME = "graphql:ClientConfiguration";
     public static final String CONNECTION_CONFIG_PARAM_NAME = "connectionConfig";
@@ -90,7 +101,6 @@ public class CodeGeneratorConstants {
     public static final String TARGET_TYPE_PARAM_NAME = "targetType";
     public static final String GRAPHQL_CLIENT_TYPE_NAME = "graphql:Client";
     public static final String GRAPHQL_SERVICE_TYPE_NAME = "graphql:Service";
-    public static final String GRAPHQL_LISTENER_TYPE_NAME = "graphql:Listener";
     public static final String GRAPHQL_CLIENT_VAR_NAME = "clientEp";
     public static final String GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME = "graphqlClientConfig";
     public static final String GRAPHQL_VARIABLES_TYPE_NAME = "map<anydata>";
@@ -114,6 +124,8 @@ public class CodeGeneratorConstants {
     public static final String PORT = "port";
     public static final String PORT_NUMBER_DEFAULT = "9090";
     public static final String DEPRECATED = "deprecated";
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
 
     // OS specific line separator
     public static final String LINE_SEPARATOR = System.lineSeparator();
@@ -170,4 +182,101 @@ public class CodeGeneratorConstants {
             return authType;
         }
     }
+
+    public static final String CONTENT_TYPE = "Content-Type";
+    public static final String APPLICATION_JSON = "application/json";
+
+    // GraphQL Introspection query
+    public static final String INTROSPECTION_QUERY =
+            "    query IntrospectionQuery {\n" +
+                    "      __schema {\n" +
+                    "        queryType { name }\n" +
+                    "        mutationType { name }\n" +
+                    "        subscriptionType { name }\n" +
+                    "        types {\n" +
+                    "          ...FullType\n" +
+                    "        }\n" +
+                    "        directives {\n" +
+                    "          name\n" +
+                    "          description\n" +
+                    "          locations\n" +
+                    "          args {\n" +
+                    "            ...InputValue\n" +
+                    "          }\n" +
+                    "        }\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  \n" +
+                    "    fragment FullType on __Type {\n" +
+                    "      kind\n" +
+                    "      name\n" +
+                    "      description\n" +
+                    "      fields(includeDeprecated: true) {\n" +
+                    "        name\n" +
+                    "        description\n" +
+                    "        args {\n" +
+                    "          ...InputValue\n" +
+                    "        }\n" +
+                    "        type {\n" +
+                    "          ...TypeRef\n" +
+                    "        }\n" +
+                    "        isDeprecated\n" +
+                    "        deprecationReason\n" +
+                    "      }\n" +
+                    "      inputFields {\n" +
+                    "        ...InputValue\n" +
+                    "      }\n" +
+                    "      interfaces {\n" +
+                    "        ...TypeRef\n" +
+                    "      }\n" +
+                    "      enumValues(includeDeprecated: true) {\n" +
+                    "        name\n" +
+                    "        description\n" +
+                    "        isDeprecated\n" +
+                    "        deprecationReason\n" +
+                    "      }\n" +
+                    "      possibleTypes {\n" +
+                    "        ...TypeRef\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  \n" +
+                    "    fragment InputValue on __InputValue {\n" +
+                    "      name\n" +
+                    "      description\n" +
+                    "      type { ...TypeRef }\n" +
+                    "      defaultValue\n" +
+                    "    }\n" +
+                    "  \n" +
+                    "    fragment TypeRef on __Type {\n" +
+                    "      kind\n" +
+                    "      name\n" +
+                    "      ofType {\n" +
+                    "        kind\n" +
+                    "        name\n" +
+                    "        ofType {\n" +
+                    "          kind\n" +
+                    "          name\n" +
+                    "          ofType {\n" +
+                    "            kind\n" +
+                    "            name\n" +
+                    "            ofType {\n" +
+                    "              kind\n" +
+                    "              name\n" +
+                    "              ofType {\n" +
+                    "                kind\n" +
+                    "                name\n" +
+                    "                ofType {\n" +
+                    "                  kind\n" +
+                    "                  name\n" +
+                    "                  ofType {\n" +
+                    "                    kind\n" +
+                    "                    name\n" +
+                    "                  }\n" +
+                    "                }\n" +
+                    "              }\n" +
+                    "            }\n" +
+                    "          }\n" +
+                    "        }\n" +
+                    "      }\n" +
+                    "    }\n";
 }

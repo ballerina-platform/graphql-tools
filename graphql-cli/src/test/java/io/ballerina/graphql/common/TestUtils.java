@@ -33,12 +33,12 @@ import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
-import io.ballerina.graphql.validator.SDLValidator;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.Assert;
 import org.yaml.snakeyaml.Yaml;
@@ -57,12 +57,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 
 /**
  * Utility class for tests.
@@ -75,6 +78,8 @@ public class TestUtils {
     public static final String WHITESPACE_REGEX = "\\s+";
     private static final String LINE_SEPARATOR = System.lineSeparator();
     private static String balFile = "bal";
+    public static final String ERROR_FOR_RESOURCE_FUNCTION_NO_RETURN = "this resource_func must return a result";
+    public static final String ERROR_FOR_REMOTE_FUNCTION_NO_RETURN = "this function must return a result";
 
     /**
      * Constructs an instance of the `Config` reading the given GraphQL config file.
@@ -97,7 +102,7 @@ public class TestUtils {
                 }
                 return config;
             } else {
-                throw new CmdException(Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION);
+                throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, filePath));
             }
         } catch (YAMLException e) {
             throw new ParseException(Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT + e.getMessage());
@@ -146,7 +151,7 @@ public class TestUtils {
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = TestUtils.populateProjects(config, outputPath);
         for (GraphqlClientProject project : projects) {
-            SDLValidator.getInstance().validate(project);
+            Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
         return projects;
@@ -156,7 +161,7 @@ public class TestUtils {
             throws ValidationException, IOException {
         GraphqlServiceProject graphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, outputPath.toString());
-        SDLValidator.getInstance().validate(graphqlProject);
+        Utils.validateGraphqlProject(graphqlProject);
         return graphqlProject;
     }
 
@@ -165,7 +170,7 @@ public class TestUtils {
             throws ValidationException, IOException {
         GraphqlGatewayProject graphqlProject =
                 new GraphqlGatewayProject(ROOT_PROJECT_NAME, filePath, outputPath.toString());
-        SDLValidator.getInstance().validate(graphqlProject);
+        Utils.validateGraphqlProject(graphqlProject);
         return graphqlProject;
     }
 
@@ -252,7 +257,6 @@ public class TestUtils {
         }
     }
 
-    // there is a similar func in CodeGenerator...
     public static void writeSources(List<SrcFilePojo> sources, Path outputPath) throws IOException {
         if (!sources.isEmpty()) {
             for (SrcFilePojo file : sources) {
@@ -275,5 +279,22 @@ public class TestUtils {
                         TestUtils.TEST_DISTRIBUTION_PATH.resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME))
                                 .toAbsolutePath()).build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
+    }
+
+    public static boolean hasOnlyFuncMustReturnResultErrors(Collection<Diagnostic> errors) {
+        for (Diagnostic error : errors) {
+            if (!error.message().contains(ERROR_FOR_RESOURCE_FUNCTION_NO_RETURN) &&
+                    !error.message().contains(ERROR_FOR_REMOTE_FUNCTION_NO_RETURN)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void writeContentTo(String content, Path projectDir) throws IOException {
+        SrcFilePojo srcFile = new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, "root", TYPES_FILE_NAME, content);
+        List<SrcFilePojo> srcFiles = new ArrayList<>();
+        srcFiles.add(srcFile);
+        writeSources(srcFiles, projectDir);
     }
 }

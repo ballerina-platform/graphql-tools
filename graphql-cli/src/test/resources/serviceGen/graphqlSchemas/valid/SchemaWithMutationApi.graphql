@@ -18,4 +18,3 @@ type Book{
     title: String!
     price: Float!
 }
-

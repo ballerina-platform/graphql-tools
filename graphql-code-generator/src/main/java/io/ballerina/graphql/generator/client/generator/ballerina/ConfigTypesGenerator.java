@@ -98,7 +98,6 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.AuthConfigType;
 
-
 /**
  * This class is used to generate connection config related types in the ballerina config types file.
  */

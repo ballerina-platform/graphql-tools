@@ -1,7 +1,7 @@
 /*
- *  Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License.
  *  You may obtain a copy of the License at
@@ -31,23 +31,23 @@ import io.ballerina.tools.text.TextRange;
 /**
  * Exception type definition for Ballerina code generation related errors.
  */
-public class GenerationException extends Exception {
-    private String message;
+public class GenerationException extends Exception  {
+    private String errMessage;
     private String projectName;
 
-    public GenerationException(String message, Throwable e) {
-        super(message, e);
-        this.message = message;
+    public GenerationException(String errMessage, Throwable e) {
+        super(errMessage, e);
+        this.errMessage = errMessage;
     }
 
-    public GenerationException(String message) {
-        super(message);
-        this.message = message;
+    public GenerationException(String errMessage) {
+        super(errMessage);
+        this.errMessage = errMessage;
     }
 
-    public GenerationException(String message, String projectName) {
-        super(message);
-        this.message = message;
+    public GenerationException(String errMessage, String projectName) {
+        super(errMessage);
+        this.errMessage = errMessage;
         this.projectName = projectName;
     }
 
@@ -66,25 +66,32 @@ public class GenerationException extends Exception {
         return diagnostic;
     }
 
+    public Location getLocation() {
+        return new Location() {
+            @Override
+            public LineRange lineRange() {
+                LinePosition from = LinePosition.from(0, 0);
+                return LineRange.from("(" + projectName + ":)", from, from);
+            }
+
+            @Override
+            public TextRange textRange() {
+                return TextRange.from(0, 0);
+            }
+        };
+    }
+
     public String getMessage() {
         if (this.projectName != null) {
-            Location location = new Location() {
-                @Override
-                public LineRange lineRange() {
-                    LinePosition from = LinePosition.from(0, 0);
-                    return LineRange.from("(" + projectName + ":)", from, from);
-                }
-
-                @Override
-                public TextRange textRange() {
-                    return TextRange.from(0, 0);
-                }
-            };
-            Diagnostic diagnostic = createDiagnostic(DiagnosticMessages.GRAPHQL_GEN_106, location,
-                    this.message + "\nPlease check project : " + projectName);
+            Diagnostic diagnostic = createDiagnostic(DiagnosticMessages.GRAPHQL_GEN_106, this.getLocation(),
+                    this.errMessage + "\nPlease check project : " + projectName);
             return diagnostic.toString();
         } else {
-            return this.message;
+            return this.errMessage;
         }
+    }
+
+    public String getErrMessage() {
+        return errMessage;
     }
 }

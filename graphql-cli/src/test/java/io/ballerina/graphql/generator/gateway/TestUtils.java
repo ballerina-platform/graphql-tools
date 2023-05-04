@@ -72,7 +72,7 @@ public class TestUtils {
                 connection.getResponseCode();
                 available = true;
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             } catch (ConnectException ignored) {
             }
 
@@ -114,7 +114,6 @@ public class TestUtils {
     }
 
     public static String getGraphqlMutationResponse(String grapqlUrl, String query) throws IOException {
-        System.out.println("{\"query\":\"{" + query + "}\"}");
         return getGraphqlResponse(grapqlUrl, ("{\"query\":\"" + query + "\"}").getBytes());
     }
 

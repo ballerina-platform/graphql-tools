@@ -1,9 +1,31 @@
+/*
+ *  Copyright (c) 2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
 package io.ballerina.graphql.generator.service.generator;
 
 import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
+import io.ballerina.compiler.syntax.tree.MinutiaeList;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
@@ -32,14 +54,19 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEndOfLineMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createIdentifierToken;
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createSeparatedNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createBuiltinSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createCaptureBindingPatternNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createExplicitNewExpressionNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionBodyBlockNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createFunctionDefinitionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModuleVariableDeclarationNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createParenthesizedArgList;
@@ -48,7 +75,6 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createQualifiedNameR
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createServiceDeclarationNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createSimpleNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypedBindingPatternNode;
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.CLOSE_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.COLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.INT_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.NEW_KEYWORD;
@@ -61,12 +87,12 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.SERVICE_KEYWORD;
  */
 public class ServiceGenerator {
     private String fileName;
+    private List<MethodDeclarationNode> methodDeclarations;
 
     private SyntaxTree generateSyntaxTree() throws IOException {
         NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
-        NodeList<ModuleMemberDeclarationNode> moduleMemberDeclarationNodes = generateMembers();
-        ModulePartNode modulePartNode =
-                createModulePartNode(imports, moduleMemberDeclarationNodes, createToken(SyntaxKind.EOF_TOKEN));
+        NodeList<ModuleMemberDeclarationNode> serviceBody = generateMembers();
+        ModulePartNode modulePartNode = createModulePartNode(imports, serviceBody, createToken(SyntaxKind.EOF_TOKEN));
 
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
@@ -84,46 +110,84 @@ public class ServiceGenerator {
     }
 
     private ModuleVariableDeclarationNode generatePortModuleVariableDeclaration(String portNumberStr) {
-        NodeList<Token> qualifierList = createNodeList(createToken(SyntaxKind.CONFIGURABLE_KEYWORD));
+        NodeList<Token> configurableQualifier = createNodeList(createToken(SyntaxKind.CONFIGURABLE_KEYWORD));
         TypedBindingPatternNode portTypeBinding =
                 createTypedBindingPatternNode(createBuiltinSimpleNameReferenceNode(null, createToken(INT_KEYWORD)),
                         createCaptureBindingPatternNode(createIdentifierToken(CodeGeneratorConstants.PORT)));
-        BasicLiteralNode portBasicLiteral =
+        BasicLiteralNode portNumber =
                 NodeFactory.createBasicLiteralNode(SyntaxKind.NUMERIC_LITERAL, createIdentifierToken(portNumberStr));
-        return createModuleVariableDeclarationNode(null, null, qualifierList, portTypeBinding,
-                createToken(SyntaxKind.EQUAL_TOKEN), portBasicLiteral, createToken(SEMICOLON_TOKEN));
+        return createModuleVariableDeclarationNode(null, null, configurableQualifier, portTypeBinding,
+                createToken(SyntaxKind.EQUAL_TOKEN), portNumber, createToken(SEMICOLON_TOKEN));
     }
 
     private ServiceDeclarationNode generateServiceDeclaration() {
-        NodeList<Token> serviceQualifiers = createEmptyNodeList();
-        SimpleNameReferenceNode serviceObjectTypeDescriptor =
-                createSimpleNameReferenceNode(createIdentifierToken(this.fileName));
+        NodeList<Token> qualifiers = createEmptyNodeList();
+        SimpleNameReferenceNode fileName = createSimpleNameReferenceNode(createIdentifierToken(this.fileName));
         NodeList<Node> absoluteResourcePath = createEmptyNodeList();
-        ExplicitNewExpressionNode serviceExpression = generateServiceExpression();
-        return createServiceDeclarationNode(null, serviceQualifiers, createToken(SERVICE_KEYWORD),
-                serviceObjectTypeDescriptor, absoluteResourcePath, createToken(ON_KEYWORD),
-                createSeparatedNodeList(serviceExpression), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
-                createEmptyNodeList(), createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
+        ExplicitNewExpressionNode graphqlListener = generateGraphqlListener();
+        NodeList<Node> functionDefinitions = generateServiceFunctionDefinitions();
+        return createServiceDeclarationNode(null, qualifiers, createToken(SERVICE_KEYWORD), fileName,
+                absoluteResourcePath, createToken(ON_KEYWORD), createSeparatedNodeList(graphqlListener),
+                createToken(SyntaxKind.OPEN_BRACE_TOKEN), functionDefinitions,
+                createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
 
-    private ExplicitNewExpressionNode generateServiceExpression() {
-        QualifiedNameReferenceNode expressionQualifiedNameReference =
+    private NodeList<Node> generateServiceFunctionDefinitions() {
+        List<Node> functionDefinitions = new ArrayList<>();
+        for (int methodDeclarationInd = 0; methodDeclarationInd < this.methodDeclarations.size();
+             methodDeclarationInd++) {
+            MethodDeclarationNode methodDeclaration = this.methodDeclarations.get(methodDeclarationInd);
+            MinutiaeList functionBodyTraillingMinutiaeList =
+                    createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
+            if (methodDeclarationInd != this.methodDeclarations.size() - 1) {
+                functionBodyTraillingMinutiaeList =
+                        functionBodyTraillingMinutiaeList.add(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
+            }
+            FunctionBodyBlockNode emptyFunctionBody =
+                    createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
+                            createToken(SyntaxKind.CLOSE_BRACE_TOKEN, createEmptyMinutiaeList(),
+                                    functionBodyTraillingMinutiaeList), null);
+            FunctionDefinitionNode functionDefinition =
+                    createFunctionDefinitionNode(getDefinitionKindFromDeclarationKind(methodDeclaration.kind()),
+                            methodDeclaration.metadata().orElse(null), methodDeclaration.qualifierList(),
+                            methodDeclaration.functionKeyword(), methodDeclaration.methodName(),
+                            methodDeclaration.relativeResourcePath(), methodDeclaration.methodSignature(),
+                            emptyFunctionBody);
+            functionDefinitions.add(functionDefinition);
+        }
+        return createNodeList(functionDefinitions);
+    }
+
+    private SyntaxKind getDefinitionKindFromDeclarationKind(SyntaxKind declarationKind) {
+        if (SyntaxKind.RESOURCE_ACCESSOR_DECLARATION.equals(declarationKind)) {
+            return SyntaxKind.RESOURCE_ACCESSOR_DEFINITION;
+        } else if (SyntaxKind.METHOD_DECLARATION.equals(declarationKind)) {
+            return SyntaxKind.OBJECT_METHOD_DEFINITION;
+        } else {
+            return null;
+        }
+    }
+
+    private ExplicitNewExpressionNode generateGraphqlListener() {
+        QualifiedNameReferenceNode graphqlListenerName =
                 createQualifiedNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
                         createToken(COLON_TOKEN), createIdentifierToken(CodeGeneratorConstants.LISTENER));
 
-        PositionalArgumentNode expressionPositionalArgument = createPositionalArgumentNode(
+        PositionalArgumentNode argumentPort = createPositionalArgumentNode(
                 createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.PORT)));
-        SeparatedNodeList<FunctionArgumentNode> expressionArguments =
-                createSeparatedNodeList(expressionPositionalArgument);
-        ParenthesizedArgList expressionParenthesizedArgList =
-                createParenthesizedArgList(createToken(SyntaxKind.OPEN_PAREN_TOKEN), expressionArguments,
-                        createToken(CLOSE_PAREN_TOKEN));
-        return createExplicitNewExpressionNode(createToken(NEW_KEYWORD), expressionQualifiedNameReference,
-                expressionParenthesizedArgList);
+        SeparatedNodeList<FunctionArgumentNode> arguments = createSeparatedNodeList(argumentPort);
+        ParenthesizedArgList parenthesizedArguments =
+                createParenthesizedArgList(createToken(SyntaxKind.OPEN_PAREN_TOKEN), arguments,
+                        createToken(SyntaxKind.CLOSE_PAREN_TOKEN));
+        return createExplicitNewExpressionNode(createToken(NEW_KEYWORD), graphqlListenerName, parenthesizedArguments);
     }
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public void setMethodDeclarations(List<MethodDeclarationNode> methodDeclarations) {
+        this.methodDeclarations = methodDeclarations;
     }
 
     public String generateSrc() throws ServiceGenerationException {

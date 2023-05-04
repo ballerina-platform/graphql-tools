@@ -22,10 +22,9 @@ import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.utils.GenerationType;
 
 /**
- * Represents a GraphQL project in GraphQL config file.
+ * Represents a GraphQL project in source file.
  */
 public abstract class GraphqlProject {
-
     private String name;
     private String schema; // Web URL or File URL
     private String outputPath;

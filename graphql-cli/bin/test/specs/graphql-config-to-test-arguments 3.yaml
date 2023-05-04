@@ -1,3 +1,0 @@
-schema: src/test/resources/specs/custom.schema.graphql
-documents:
-  - src/test/resources/specs/queries/queries-to-test-arguments.graphql
