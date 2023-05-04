@@ -144,13 +144,14 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "SchemaWithDefaultParameters04Api.graphql", "SchemaDocsWithQueryResolversApi.graphql",
                 "SchemaDocsWithMutationAndSubscriptionResolversApi.graphql",
                 "SchemaDocsWithResolverMultipleLinesApi.graphql", "SchemaDocsWithResolverArgumentsApi.graphql",
-                "SchemaDocsWithMultipleLinesApi.graphql", "SchemaDocsWithOutputsApi.graphql",
+                "SchemaDocsWithMultipleLinesApi.graphql", "SchemaDocsWithObjectsApi.graphql",
                 "SchemaDocsWithUnionApi.graphql", "SchemaDocsWithEnumApi.graphql", "SchemaDocsWithInputsApi.graphql",
                 "SchemaDocsWithInterfacesApi.graphql", "SchemaDocsWithDeprecated01Api.graphql",
                 "SchemaCompleteApi.graphql"};
     }
 
-    @Test(description = "Test compilation for all schemas, method - default", dataProvider = "schemaFileNames")
+    @Test(description = "Test compilation for all schemas without use-records-for-objects flag", dataProvider =
+            "schemaFileNames")
     public void testCompilationForAllSchemas(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
         String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
@@ -165,7 +166,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test compilation for all schemas, method - use records for objects",
+    @Test(description = "Test compilation for all schemas with use-records-for-objects flag",
             dataProvider = "schemaFileNames")
     public void testCompilationForAllSchemasWithUseRecordsForObjects(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
