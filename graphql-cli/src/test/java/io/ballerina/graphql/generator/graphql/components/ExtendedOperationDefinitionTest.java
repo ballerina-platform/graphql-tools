@@ -188,9 +188,11 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
     }
 
     @Test
-    public void testGetQueryString() throws ValidationException, CmdException, IOException, ParseException {
+    public void testGetQueryString()
+            throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", "graphql-config-to-test-arguments.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs",
+                        "graphql-config-to-test-arguments.yaml")).toString(),
                 this.tmpDir);
 
         Extension extensions = projects.get(0).getExtensions();
@@ -207,9 +209,9 @@ public class ExtendedOperationDefinitionTest extends GraphqlTest {
         String generatedQueryString = queryOperation1Definition.getQueryString();
         String expectedQueryString = "query operation1($argument1:Boolean!,$argument2:String!,$argument3:Int!," +
                 "$argument4:Float!,$argument5:ID!,$argument6:CustomScalar!,$argument7:CustomInput!," +
-                "$argument8:[CustomInput]!,$argument9:[CustomInput!]!) {operation1(argument1:$argument1," +
+                "$argument8:[CustomInput]!,$argument9:[CustomInput!]!){operation1(argument1:$argument1," +
                 "argument2:$argument2,argument3:$argument3,argument4:$argument4,argument5:$argument5," +
-                "argument6:$argument6,argument7:$argument7,argument8:$argument8,argument9:$argument9) {field1 field2}}";
+                "argument6:$argument6,argument7:$argument7,argument8:$argument8,argument9:$argument9){field1 field2}}";
         Assert.assertEquals(generatedQueryString, expectedQueryString);
     }
 }
