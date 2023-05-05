@@ -14,17 +14,12 @@ import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationExcepti
 import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayTypeGenerationException;
+import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.gateway.generator.common.Constants;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
-import io.ballerina.projects.BuildOptions;
-import io.ballerina.projects.DiagnosticResult;
-import io.ballerina.projects.JBallerinaBackend;
-import io.ballerina.projects.JvmTarget;
-import io.ballerina.projects.PackageCompilation;
-import io.ballerina.projects.directory.BuildProject;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -59,18 +54,14 @@ public class GatewayCodeGenerator extends CodeGenerator {
             writeGeneratedSources(genSources, ((GraphqlGatewayProject) project).getTempDir());
 
             // Delete partial files
-            deletePartialFiles(((GraphqlGatewayProject) project).getTempDir());
+            try {
+                deletePartialFiles(((GraphqlGatewayProject) project).getTempDir());
+            } catch (IOException ignored) {
 
+            }
             //Generating the executable
-            BuildOptions buildOptions = BuildOptions.builder().build();
-            BuildProject buildProject = BuildProject.load(((GraphqlGatewayProject) project).getTempDir(), buildOptions);
-            checkDiagnosticResultsForErrors(buildProject.currentPackage().runCodeGenAndModifyPlugins());
-            PackageCompilation packageCompilation = buildProject.currentPackage().getCompilation();
-            JBallerinaBackend jBallerinaBackend = JBallerinaBackend.from(packageCompilation, JvmTarget.JAVA_11);
-            checkDiagnosticResultsForErrors(jBallerinaBackend.diagnosticResult());
-            jBallerinaBackend.emit(JBallerinaBackend.OutputType.EXEC,
-                    outputDirectoryPath.resolve(project.getFileName() + "-gateway.jar"));
-
+            CommonUtils.getCompiledBallerinaProject(((GraphqlGatewayProject) project).getTempDir(),
+                    outputDirectoryPath, project.getFileName() + "-gateway");
         } catch (GatewayGenerationException | IOException | GatewayTypeGenerationException |
                  GatewayQueryPlanGenerationException | URISyntaxException e) {
             throw new GenerationException(e.getMessage(), e.getMessage());
@@ -143,31 +134,16 @@ public class GatewayCodeGenerator extends CodeGenerator {
         }
     }
 
-    private void checkDiagnosticResultsForErrors(DiagnosticResult diagnosticResult) throws GatewayGenerationException {
-        if (diagnosticResult.hasErrors()) {
-            throw new GatewayGenerationException("Error while generating the executable.");
-        }
-    }
-
     private void checkInputStream(InputStream inputStream) throws GatewayGenerationException {
         if (inputStream == null) {
             throw new GatewayGenerationException("Error while copying the template files.");
         }
     }
 
-    private void deletePartialFiles(Path directoryPath) {
-        try {
-            Files.walk(directoryPath)
-                    .filter(path -> path.toString().endsWith(".partial"))
-                    .forEach(path -> {
-                        try {
-                            Files.delete(path);
-                        } catch (IOException e) {
-                            // Ignore
-                        }
-                    });
-        } catch (IOException e) {
-            // Ignore
+    private void deletePartialFiles(Path directoryPath) throws IOException {
+        for (Path path : Files.walk(directoryPath)
+                .filter(path -> path.toString().endsWith(".partial")).toArray(Path[]::new)) {
+            Files.delete(path);
         }
     }
 

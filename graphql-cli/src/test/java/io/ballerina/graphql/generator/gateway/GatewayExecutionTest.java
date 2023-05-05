@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.generator.gateway;
 
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -48,11 +49,10 @@ public class GatewayExecutionTest {
     Process gatewayProcess;
 
     @BeforeClass
-    public void setup() throws IOException {
+    public void setup() throws IOException, GatewayGenerationException {
         this.tmpDir = Files.createTempDirectory("graphql-gateway-" + System.nanoTime());
         File gatewayExec = TestUtils.generateGatewayJar(supergraphSdl, tmpDir);
         gatewayProcess = new ProcessBuilder("java", "-jar", gatewayExec.getAbsolutePath()).start();
-
         astronautServiceProcess = new ProcessBuilder("java", "-jar",
                 TestUtils.getBallerinaExecutableJar(
                                 services.resolve("astronautService").toAbsolutePath(), tmpDir)

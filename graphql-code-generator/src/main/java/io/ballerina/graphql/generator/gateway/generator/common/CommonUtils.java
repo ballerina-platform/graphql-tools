@@ -40,8 +40,15 @@ import graphql.schema.GraphQLSchemaElement;
 import graphql.schema.GraphQLType;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
+import io.ballerina.projects.BuildOptions;
+import io.ballerina.projects.DiagnosticResult;
+import io.ballerina.projects.JBallerinaBackend;
+import io.ballerina.projects.JvmTarget;
+import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.directory.BuildProject;
 import org.apache.commons.io.IOUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -229,6 +236,34 @@ public class CommonUtils {
             }
         }
         return path;
+    }
+
+    /**
+     * Returns the compiled executable of given ballerina project.
+     *
+     * @param projectPath    Path to the project
+     * @param targetPath     Path to the target directory
+     * @param executableName Name of the executable
+     * @return Executable file (.jar)
+     */
+    public static File getCompiledBallerinaProject(Path projectPath, Path targetPath, String executableName)
+            throws GatewayGenerationException {
+        BuildOptions buildOptions = BuildOptions.builder().build();
+        BuildProject buildProject = BuildProject.load(projectPath, buildOptions);
+        checkDiagnosticResultsForErrors(buildProject.currentPackage().runCodeGenAndModifyPlugins());
+        PackageCompilation packageCompilation = buildProject.currentPackage().getCompilation();
+        JBallerinaBackend jBallerinaBackend = JBallerinaBackend.from(packageCompilation, JvmTarget.JAVA_11);
+        checkDiagnosticResultsForErrors(jBallerinaBackend.diagnosticResult());
+        Path executablePath = targetPath.resolve(executableName + ".jar");
+        jBallerinaBackend.emit(JBallerinaBackend.OutputType.EXEC, executablePath);
+        return executablePath.toFile();
+    }
+
+    private static void checkDiagnosticResultsForErrors(DiagnosticResult diagnosticResult)
+            throws GatewayGenerationException {
+        if (diagnosticResult.hasErrors()) {
+            throw new GatewayGenerationException("Error while generating the executable.");
+        }
     }
 
 }

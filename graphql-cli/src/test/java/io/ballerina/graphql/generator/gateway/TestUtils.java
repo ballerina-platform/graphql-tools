@@ -2,12 +2,9 @@ package io.ballerina.graphql.generator.gateway;
 
 import io.ballerina.graphql.cmd.GraphqlCmd;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.projects.BuildOptions;
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
+import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.projects.DiagnosticResult;
-import io.ballerina.projects.JBallerinaBackend;
-import io.ballerina.projects.JvmTarget;
-import io.ballerina.projects.PackageCompilation;
-import io.ballerina.projects.directory.BuildProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -47,18 +44,9 @@ public class TestUtils {
         throw new RuntimeException("Gateway jar not generated");
     }
 
-    public static File getBallerinaExecutableJar(Path file, Path tmpDir) {
-        BuildOptions buildOptions = BuildOptions.builder().build();
-        BuildProject buildProject = BuildProject.load(file.toAbsolutePath(), buildOptions);
-        checkDiagnosticResultsForErrors(buildProject.currentPackage().runCodeGenAndModifyPlugins());
-        PackageCompilation packageCompilation = buildProject.currentPackage().getCompilation();
-        JBallerinaBackend jBallerinaBackend = JBallerinaBackend.from(packageCompilation, JvmTarget.JAVA_11);
-        checkDiagnosticResultsForErrors(jBallerinaBackend.diagnosticResult());
-
-        String execFileName = file.getFileName().toString() + ".jar";
-        jBallerinaBackend.emit(JBallerinaBackend.OutputType.EXEC,
-                tmpDir.resolve(execFileName));
-        return tmpDir.resolve(execFileName).toFile();
+    public static File getBallerinaExecutableJar(Path projectDir, Path tmpDir) throws GatewayGenerationException {
+        return CommonUtils.getCompiledBallerinaProject(projectDir.toAbsolutePath(), tmpDir,
+                projectDir.getFileName().toString());
     }
 
     public static void waitTillUrlIsAvailable(Process process, String url) throws IOException {
