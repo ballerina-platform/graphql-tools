@@ -42,6 +42,7 @@
             <class name="io.ballerina.graphql.generator.ClientCodeGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.gateway.GatewayCodeGenerationTest"/>
             <class name="io.ballerina.graphql.generator.gateway.GatewayExecutionTest"/>
+            <class name="io.ballerina.graphql.generator.gateway.common.CommonUtilTest"/>
         </classes>
     </test>
 </suite>

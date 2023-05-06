@@ -336,7 +336,7 @@ public class GraphqlCmd implements BLauncherCmd {
         this.gatewayCodeGenerator.generate(graphqlProject);
         outStream.println("Gateway generation completed.("
                 + getTargetOutputPath().resolve(graphqlProject.getFileName() + "-gateway.jar").toAbsolutePath()
-                .toString() + ")");
+                + ")");
     }
 
     /**

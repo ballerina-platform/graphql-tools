@@ -1,6 +1,27 @@
+/*
+ *  Copyright (c) 2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
 package io.ballerina.graphql.generator.gateway;
 
+import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.cmd.GraphqlCmd;
+import io.ballerina.graphql.cmd.Utils;
+import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
@@ -27,8 +48,10 @@ import java.util.Comparator;
  */
 public class TestUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestUtils.class);
-    private static final Path resourceDir =
+    private static final Path sampleRequestResourceDir =
             Path.of("src", "test", "resources", "federationGateway", "sampleRequests").toAbsolutePath();
+    private static final Path schemaResourceDir =
+            Path.of("src", "test", "resources", "federationGateway", "supergraphSchemas").toAbsolutePath();
 
     public static File generateGatewayJar(Path supergraphSdl, Path tmpDir) {
         String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
@@ -90,11 +113,11 @@ public class TestUtils {
     }
 
     public static String getRequestContent(String filename) throws IOException {
-        return Files.readString(resourceDir.resolve(filename + ".graphql"));
+        return Files.readString(sampleRequestResourceDir.resolve(filename + ".graphql"));
     }
 
     public static String getResponseContent(String filename) throws IOException {
-        return Files.readString(resourceDir.resolve(filename + ".json"));
+        return Files.readString(sampleRequestResourceDir.resolve(filename + ".json"));
     }
 
     public static String getGraphqlQueryResponse(String graphqlUrl, String query) throws IOException {
@@ -123,4 +146,16 @@ public class TestUtils {
         in.close();
         return response.toString();
     }
+
+    /**
+     * @param files     List of files to be copied
+     * @param targetDir Target destination
+     * @throws IOException If an error occurs while copying files
+     */
+    public static void copyFilesToTarget(Path[] files, Path targetDir) throws IOException {
+        for (Path file : files) {
+            Files.copy(file, targetDir.resolve(file.getFileName()));
+        }
+    }
+
 }

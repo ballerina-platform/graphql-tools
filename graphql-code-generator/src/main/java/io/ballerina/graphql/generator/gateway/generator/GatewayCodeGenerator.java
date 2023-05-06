@@ -111,21 +111,25 @@ public class GatewayCodeGenerator extends CodeGenerator {
                         CodeGeneratorConstants.SERVICE_FILE_NAME, serviceFileContent));
     }
 
-    private void copyTemplateFiles(GraphqlGatewayProject project) throws IOException, URISyntaxException,
+    private static void copyTemplateFiles(GraphqlGatewayProject project) throws IOException, URISyntaxException,
             GatewayGenerationException {
-        ClassLoader classLoader = getClass().getClassLoader();
+        copyTemplateFiles(project.getTempDir());
+    }
 
-//        InputStream stream = classLoader.getResourceAsStream(Constants.GATEWAY_PROJECT_TEMPLATE_DIRECTORY);
-//        checkInputStream(stream);
-//        String[] templateFileNames = IOUtils.toString(stream, StandardCharsets.UTF_8).split("\\n");
+    public static void copyTemplateFiles(Path targetPath) throws GatewayGenerationException, IOException {
+        ClassLoader classLoader = GatewayCodeGenerator.class.getClassLoader();
 
-        for (String fileName : Constants.GATEWAY_PROJECT_TEMPLATE_FILES) {
+        InputStream stream = classLoader.getResourceAsStream(Constants.GATEWAY_PROJECT_TEMPLATE_DIRECTORY);
+        checkInputStream(stream);
+        String[] templateFileNames = IOUtils.toString(stream, StandardCharsets.UTF_8).split("\\n");
+
+        for (String fileName : templateFileNames) {
             InputStream inputStream = classLoader.getResourceAsStream(
                     Constants.GATEWAY_PROJECT_TEMPLATE_DIRECTORY + "/" + fileName);
 
             checkInputStream(inputStream);
             String resource = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-            Path path = project.getTempDir().resolve(fileName);
+            Path path = targetPath.resolve(fileName);
             try (PrintWriter writer = new PrintWriter(path.toString(), StandardCharsets.UTF_8)) {
                 writer.print(resource);
             } catch (IOException e) {
@@ -134,7 +138,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
         }
     }
 
-    private void checkInputStream(InputStream inputStream) throws GatewayGenerationException {
+    private static void checkInputStream(InputStream inputStream) throws GatewayGenerationException {
         if (inputStream == null) {
             throw new GatewayGenerationException("Error while copying the template files.");
         }
