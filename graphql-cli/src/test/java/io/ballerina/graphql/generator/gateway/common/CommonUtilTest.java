@@ -18,7 +18,14 @@
 
 package io.ballerina.graphql.generator.gateway.common;
 
+import graphql.language.BooleanValue;
+import graphql.language.FloatValue;
+import graphql.language.IntValue;
+import graphql.language.StringValue;
+import graphql.language.Value;
+import graphql.schema.GraphQLFieldDefinition;
 import io.ballerina.graphql.common.GraphqlTest;
+import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.gateway.TestUtils;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
@@ -30,11 +37,74 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Class to test common utils used in graphql gateway generation.
+ */
 public class CommonUtilTest extends GraphqlTest {
-    
+
+    @Test(description = "Test getting defined type objects", dataProvider = "SchemaAndTypeNamesProvider")
+    public void testGetCustomDefinedObjectTypeNames(GraphqlGatewayProject project, String[] typeNames) {
+        Object[] namesFound = CommonUtils.getCustomDefinedObjectTypeNames(project.getGraphQLSchema()).toArray();
+        Assert.assertEqualsNoOrder(typeNames, namesFound);
+    }
+
+    @DataProvider(name = "SchemaAndTypeNamesProvider")
+    public Object[][] getSchemaAndTypeNames() throws ValidationException, IOException {
+        return new Object[][] {
+                {TestUtils.getGatewayProject("Supergraph", tmpDir),
+                        new String[] {"Astronaut", "Mission"}},
+                {TestUtils.getGatewayProject("Supergraph01", tmpDir),
+                        new String[] {"Astronaut", "Mission"}},
+                {TestUtils.getGatewayProject("Supergraph02", tmpDir),
+                        new String[] {"Review", "User", "Product", "ProductDimension"}},
+                {TestUtils.getGatewayProject("Supergraph03", tmpDir),
+                        new String[] {"Review", "Product", "Category"}},
+
+        };
+    }
+
+    @Test(description = "Test get query types", dataProvider = "SchemaAndQueryTypesProvider")
+    public void textGetQueryTypes(GraphqlGatewayProject project, String[] queryTypes) {
+        Object[] queryTypeNames = CommonUtils.getQueryTypes(project.getGraphQLSchema()).stream().map(
+                field -> ((GraphQLFieldDefinition) field).getName()
+        ).toArray();
+        Assert.assertEqualsNoOrder(queryTypeNames, queryTypes);
+    }
+
+    @DataProvider(name = "SchemaAndQueryTypesProvider")
+    public Object[][] getSchemaAndQueryTypes() throws ValidationException, IOException {
+        return new Object[][] {
+                {TestUtils.getGatewayProject("Supergraph", tmpDir), new String[] {
+                        "astronaut", "astronauts", "mission", "missions"
+                }},
+                {TestUtils.getGatewayProject("Supergraph02", tmpDir), new String[] {
+                        "me", "topProducts"
+                }}
+        };
+    }
+
+    @Test(description = "Test get mutation types", dataProvider = "SchemaAndMutationTypesProvider")
+    public void textGetMutationTypes(GraphqlGatewayProject project, String[] queryTypes) {
+        Object[] queryTypeNames = CommonUtils.getMutationTypes(project.getGraphQLSchema()).stream().map(
+                field -> ((GraphQLFieldDefinition) field).getName()
+        ).toArray();
+        Assert.assertEqualsNoOrder(queryTypeNames, queryTypes);
+    }
+
+    @DataProvider(name = "SchemaAndMutationTypesProvider")
+    public Object[][] getSchemaAndMutationTypes() throws ValidationException, IOException {
+        return new Object[][] {
+                {TestUtils.getGatewayProject("Supergraph", tmpDir), new String[] {
+                        "addMission"
+                }},
+                {TestUtils.getGatewayProject("Supergraph01", tmpDir), new String[] {}}
+        };
+    }
 
     @Test(description = "Test successful compilation of a ballerina gateway projects",
             dataProvider = "GatewayProjectFilesProvider")
@@ -48,6 +118,21 @@ public class CommonUtilTest extends GraphqlTest {
         TestUtils.copyFilesToTarget(files, projectDir);
         File executable = CommonUtils.getCompiledBallerinaProject(projectDir, tmpDir, folderName);
         Assert.assertTrue(executable.exists());
+    }
+
+    @Test(description = "test getValue function", dataProvider = "ValueTypesProvider")
+    public void testGetValue(Value value, String stringValue) throws GatewayGenerationException {
+        Assert.assertEquals(CommonUtils.getValue(value), stringValue);
+    }
+
+    @DataProvider(name = "ValueTypesProvider")
+    public Object[][] getValueTypes() {
+        return new Object[][] {
+                {new IntValue(BigInteger.ONE), "1"},
+                {new StringValue("Hello"), "\"Hello\""},
+                {new BooleanValue(true), "true"},
+                {new FloatValue(BigDecimal.ONE), "1"},
+        };
     }
 
     @Test(description = "Test failure in compilation of a ballerina gateway projects",
@@ -69,11 +154,11 @@ public class CommonUtilTest extends GraphqlTest {
 
     @DataProvider(name = "GatewayProjectFilesProvider")
     public Object[][] getProjects() {
-        Path GatewayResourceDir = Paths.get(resourceDir.toAbsolutePath().toString(), "federationGateway",
+        Path gatewayResourceDir = Paths.get(resourceDir.toAbsolutePath().toString(), "federationGateway",
                 "expectedResults");
-        Path servicesDir = GatewayResourceDir.resolve("services");
-        Path typesDir = GatewayResourceDir.resolve("types");
-        Path queryPlans = GatewayResourceDir.resolve("queryPlans");
+        Path servicesDir = gatewayResourceDir.resolve("services");
+        Path typesDir = gatewayResourceDir.resolve("types");
+        Path queryPlans = gatewayResourceDir.resolve("queryPlans");
         return new Object[][] {
                 {
                         new Path[] {
@@ -112,11 +197,11 @@ public class CommonUtilTest extends GraphqlTest {
 
     @DataProvider(name = "InvalidGatewayProjectFilesProvider")
     public Object[][] getinvalidProjects() {
-        Path GatewayResourceDir = Paths.get(resourceDir.toAbsolutePath().toString(), "federationGateway",
+        Path gatewayResourceDir = Paths.get(resourceDir.toAbsolutePath().toString(), "federationGateway",
                 "expectedResults");
-        Path servicesDir = GatewayResourceDir.resolve("services");
-        Path typesDir = GatewayResourceDir.resolve("types");
-        Path queryPlans = GatewayResourceDir.resolve("queryPlans");
+        Path servicesDir = gatewayResourceDir.resolve("services");
+        Path typesDir = gatewayResourceDir.resolve("types");
+        Path queryPlans = gatewayResourceDir.resolve("queryPlans");
         return new Object[][] {
                 {
                         new Path[] {},

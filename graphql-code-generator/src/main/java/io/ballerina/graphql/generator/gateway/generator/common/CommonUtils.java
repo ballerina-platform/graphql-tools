@@ -23,10 +23,14 @@ import graphql.language.BooleanValue;
 import graphql.language.Directive;
 import graphql.language.EnumValue;
 import graphql.language.FieldDefinition;
+import graphql.language.FloatValue;
+import graphql.language.IntValue;
 import graphql.language.ListType;
 import graphql.language.NonNullType;
+import graphql.language.StringValue;
 import graphql.language.Type;
 import graphql.language.TypeName;
+import graphql.language.Value;
 import graphql.schema.GraphQLAppliedDirective;
 import graphql.schema.GraphQLAppliedDirectiveArgument;
 import graphql.schema.GraphQLEnumType;
@@ -85,9 +89,7 @@ public class CommonUtils {
      * @return List of query types
      */
     public static List<GraphQLSchemaElement> getQueryTypes(GraphQLSchema graphQLSchema) {
-        if (graphQLSchema.getQueryType() == null) {
-            return new ArrayList<>();
-        }
+        // Schema validation will fail if Query type is null.
         return graphQLSchema.getQueryType().getChildren().stream().filter(
                 child -> child instanceof GraphQLFieldDefinition).collect(Collectors.toList());
     }
@@ -263,6 +265,20 @@ public class CommonUtils {
             throws GatewayGenerationException {
         if (diagnosticResult.hasErrors()) {
             throw new GatewayGenerationException("Error while generating the executable.");
+        }
+    }
+
+    public static String getValue(Value value) throws GatewayGenerationException {
+        if (value instanceof IntValue) {
+            return ((IntValue) value).getValue().toString();
+        } else if (value instanceof StringValue) {
+            return "\"" + ((StringValue) value).getValue() + "\"";
+        } else if (value instanceof BooleanValue) {
+            return ((BooleanValue) value).isValue() ? "true" : "false";
+        } else if (value instanceof FloatValue) {
+            return ((FloatValue) value).getValue().toString();
+        } else {
+            throw new GatewayGenerationException("Unsupported value: " + value);
         }
     }
 

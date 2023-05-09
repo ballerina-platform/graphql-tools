@@ -18,7 +18,6 @@
 
 package io.ballerina.graphql.generator.gateway;
 
-import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.cmd.GraphqlCmd;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.exception.ValidationException;
@@ -156,6 +155,14 @@ public class TestUtils {
         for (Path file : files) {
             Files.copy(file, targetDir.resolve(file.getFileName()));
         }
+    }
+
+    public static GraphqlGatewayProject getGatewayProject(String schemaFileName, Path tmpDir) throws IOException,
+            ValidationException {
+        GraphqlGatewayProject project = new GraphqlGatewayProject("test",
+                schemaResourceDir.resolve(schemaFileName + ".graphql").toString(), tmpDir.toString());
+        Utils.validateGraphqlProject(project);
+        return project;
     }
 
 }

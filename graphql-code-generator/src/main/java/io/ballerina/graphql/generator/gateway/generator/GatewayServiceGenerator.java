@@ -1,11 +1,6 @@
 package io.ballerina.graphql.generator.gateway.generator;
 
-import graphql.language.BooleanValue;
 import graphql.language.EnumValue;
-import graphql.language.FloatValue;
-import graphql.language.IntValue;
-import graphql.language.StringValue;
-import graphql.language.Value;
 import graphql.schema.GraphQLAppliedDirective;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
@@ -218,21 +213,7 @@ public class GatewayServiceGenerator {
         throw new GatewayServiceGenerationException("No client name found: " + graphQLFieldDefinition.getName());
     }
 
-    private String getValue(Value value) {
-        if (value instanceof IntValue) {
-            return ((IntValue) value).getValue().toString();
-        } else if (value instanceof StringValue) {
-            return "\"" + ((StringValue) value).getValue() + "\"";
-        } else if (value instanceof BooleanValue) {
-            return ((BooleanValue) value).isValue() ? "true" : "false";
-        } else if (value instanceof FloatValue) {
-            return ((FloatValue) value).getValue().toString();
-        } else {
-            throw new GatewayServiceGenerationException("Unsupported value: " + value);
-        }
-    }
-
-    private String getArgumentString(GraphQLSchemaElement graphQLObjectType) {
+    private String getArgumentString(GraphQLSchemaElement graphQLObjectType) throws GatewayGenerationException {
         StringBuilder arguments = new StringBuilder();
         for (GraphQLArgument argument : ((GraphQLFieldDefinition) graphQLObjectType).getArguments()) {
             arguments.append(", ");
@@ -241,7 +222,7 @@ public class GatewayServiceGenerator {
             if (argument.getDefinition().getDefaultValue() != null) {
                 arguments.append(fieldType.getName()).append(fieldType.getTokens()).append(" ")
                         .append(argument.getName()).append(" = ")
-                        .append(getValue(argument.getDefinition().getDefaultValue()));
+                        .append(CommonUtils.getValue(argument.getDefinition().getDefaultValue()));
             } else {
                 arguments.append(fieldType.getName()).append(fieldType.getTokens()).append(" ")
                         .append(argument.getName());
