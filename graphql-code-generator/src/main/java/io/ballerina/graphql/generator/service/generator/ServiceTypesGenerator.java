@@ -197,15 +197,16 @@ public class ServiceTypesGenerator extends TypesGenerator {
         this.serviceMethodDeclarations = serviceMethodDeclarations;
     }
 
-    public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceTypesGenerationException {
+    public ModulePartNode generateContentNode(GraphQLSchema schema) throws ServiceTypesGenerationException {
         NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
         addServiceType(schema);
         addTypeDefinitions(schema);
-
         NodeList<ModuleMemberDeclarationNode> moduleMemberNodes = createNodeList(moduleMembers);
-        ModulePartNode modulePartNode =
-                createModulePartNode(imports, moduleMemberNodes, createToken(SyntaxKind.EOF_TOKEN));
+        return createModulePartNode(imports, moduleMemberNodes, createToken(SyntaxKind.EOF_TOKEN));
+    }
 
+    public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceTypesGenerationException {
+        ModulePartNode modulePartNode = generateContentNode(schema);
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
         return syntaxTree.modifyWith(modulePartNode);
