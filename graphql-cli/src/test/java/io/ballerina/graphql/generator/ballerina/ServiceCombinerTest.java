@@ -25,24 +25,22 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  */
 public class ServiceCombinerTest extends GraphqlTest {
     @Test(description = "Test updated schema with object type")
-    public void testForUpdatedSchemaWithObjectType()
-            throws Exception {
+    public void testForUpdatedSchemaWithObjectType() throws Exception {
         String updatedBalFileName = "typesWithSingleObjectDefault";
         String newSchemaFileName = "SchemaWithSingleObjectApi";
-        Path updatedBalFilePath = this.resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
-                "onlyLogicImplementation", updatedBalFileName + ".bal"));
-        Path newSchemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "updated", "addType",
-                newSchemaFileName + ".graphql"));
-        Path mergedBalFilePath = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "updated",
-                "addType", updatedBalFileName + ".bal"));
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", updatedBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "addType", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "addType", updatedBalFileName + ".bal"));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
         Utils.validateGraphqlProject(newGraphqlProject);
 
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
-        ModulePartNode updateBalFileNode =
-                NodeParser.parseModulePart(updatedBalFileContent);
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
@@ -58,20 +56,19 @@ public class ServiceCombinerTest extends GraphqlTest {
     public void testForUpdatedSchemaWithEnum() throws Exception {
         String balFileName = "typesWithEnumDefault";
         String newSchemaFileName = "SchemaWithEnumApi";
-        Path updatedBalFilePath = this.resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
-                "onlyLogicImplementation", balFileName + ".bal"));
-        Path newSchemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "updated", "addType",
-                newSchemaFileName + ".graphql"));
-        Path mergedBalFilePath = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "updated",
-                "addType", balFileName + ".bal"));
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "addType", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "addType", balFileName + ".bal"));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
         Utils.validateGraphqlProject(newGraphqlProject);
 
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
-        ModulePartNode updateBalFileNode =
-                NodeParser.parseModulePart(updatedBalFileContent);
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
@@ -87,20 +84,19 @@ public class ServiceCombinerTest extends GraphqlTest {
     public void testForUpdatedSchemaWithInterface() throws Exception {
         String balFileName = "typesWithInterfaceDefault";
         String newSchemaFileName = "SchemaWithInterfaceApi";
-        Path updatedBalFilePath = this.resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
-                "onlyLogicImplementation", balFileName + ".bal"));
-        Path newSchemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "updated", "addType",
-                newSchemaFileName + ".graphql"));
-        Path mergedBalFilePath = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "updated",
-                "addType", balFileName + ".bal"));
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "addType", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "addType", balFileName + ".bal"));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
         Utils.validateGraphqlProject(newGraphqlProject);
 
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
-        ModulePartNode updateBalFileNode =
-                NodeParser.parseModulePart(updatedBalFileContent);
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
