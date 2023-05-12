@@ -1,18 +1,18 @@
-type Query{
+type Query {
     "Fetch a book by its id"
     book(id: Int!): Book
     "Fetch all the books"
     books: [Book]
 }
 
-type Mutation{
+type Mutation {
     "Create a new book"
     createBook(title: String!): Book
     "Create a new author"
     createAuthor(name: String!): Author
 }
 
-type Subscription{
+type Subscription {
     "Get stream of book titles"
     bookTitles: String!
 }
@@ -22,7 +22,7 @@ type Author {
     name: String!
 }
 
-type Book{
+type Book {
     id: Int!
     title: String!
 }

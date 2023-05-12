@@ -1,4 +1,4 @@
-type Query{
+type Query {
     book(id: Int!, title: String): Book
     booksPattern1: [Book]
     booksPattern2: [Book!]!
@@ -6,7 +6,7 @@ type Query{
     booksPattern4: [Book!]
 }
 
-type Book{
+type Book {
     id: Int!
     title: String!
 }
