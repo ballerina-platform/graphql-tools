@@ -26,6 +26,8 @@ import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.RecordFieldNode;
+import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
@@ -189,9 +191,51 @@ public class ServiceCombiner {
             ObjectTypeDescriptorNode nextServiceObject =
                     (ObjectTypeDescriptorNode) nextDistinctServiceObject.typeDescriptor();
             return isServiceObjectEquals(prevServiceObject, nextServiceObject);
+        } else if (prevTypeDef.typeDescriptor() instanceof RecordTypeDescriptorNode &&
+                nextTypeDef.typeDescriptor() instanceof RecordTypeDescriptorNode) {
+            RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDef.typeDescriptor();
+            RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDef.typeDescriptor();
+            return isRecordTypeEquals(prevRecordType, nextRecordType);
         } else {
             return false;
         }
+    }
+
+    private boolean isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
+                                       RecordTypeDescriptorNode nextRecordType) throws Exception {
+        if (!prevRecordType.recordKeyword().text().equals(nextRecordType.recordKeyword().text())) {
+            return false;
+        }
+        if (!prevRecordType.bodyStartDelimiter().text().equals(nextRecordType.bodyStartDelimiter().text()) ||
+                !prevRecordType.bodyEndDelimiter().text().equals(nextRecordType.bodyEndDelimiter().text())) {
+            return false;
+        }
+        for (Node nextField : nextRecordType.fields()) {
+            boolean foundMatch = false;
+            for (Node prevField : prevRecordType.fields()) {
+                RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
+                RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
+                if (isRecordFieldEquals(prevRecordField, nextRecordField)) {
+                    foundMatch = true;
+                    break;
+                }
+            }
+            if (!foundMatch) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isRecordFieldEquals(RecordFieldNode prevRecordField, RecordFieldNode nextRecordField)
+            throws Exception {
+        if (!isTypeEquals(prevRecordField.typeName(), nextRecordField.typeName())) {
+            return false;
+        }
+        if (!prevRecordField.fieldName().text().equals(nextRecordField.fieldName().text())) {
+            return false;
+        }
+        return true;
     }
 
     private boolean isServiceObjectEquals(ObjectTypeDescriptorNode prevServiceObject,

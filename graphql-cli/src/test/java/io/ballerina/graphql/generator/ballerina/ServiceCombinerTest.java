@@ -24,8 +24,8 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  * Test the successful combination of available service file and generated service file from schema
  */
 public class ServiceCombinerTest extends GraphqlTest {
-    @Test(description = "Test updated schema with object type")
-    public void testForUpdatedSchemaWithObjectType() throws Exception {
+    @Test(description = "Test combining updated schema with object type")
+    public void testCombiningUpdatedSchemaWithObjectType() throws Exception {
         String updatedBalFileName = "typesWithSingleObjectDefault";
         String newSchemaFileName = "SchemaWithSingleObjectApi";
         Path updatedBalFilePath = this.resourceDir.resolve(
@@ -52,8 +52,8 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceTypesContent);
     }
 
-    @Test(description = "Test updated schema with enum")
-    public void testForUpdatedSchemaWithEnum() throws Exception {
+    @Test(description = "Test combining updated schema with enum")
+    public void testCombiningUpdatedSchemaWithEnum() throws Exception {
         String balFileName = "typesWithEnumDefault";
         String newSchemaFileName = "SchemaWithEnumApi";
         Path updatedBalFilePath = this.resourceDir.resolve(
@@ -80,10 +80,39 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceTypesContent);
     }
 
-    @Test(description = "Test updated schema with interface")
-    public void testForUpdatedSchemaWithInterface() throws Exception {
+    @Test(description = "Test combining updated schema with interface")
+    public void testCombiningUpdatedSchemaWithInterface() throws Exception {
         String balFileName = "typesWithInterfaceDefault";
         String newSchemaFileName = "SchemaWithInterfaceApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "addType", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "addType", balFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceCombiner serviceCombiner = new ServiceCombiner(updateBalFileNode, nextSchemaNode);
+        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        String result = Formatter.format(mergedSyntaxTree).toString().trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(result, expectedServiceTypesContent);
+    }
+
+
+    @Test(description = "Test combining updated schema with input object")
+    public void testCombiningUpdatedSchemaWithInputObject() throws Exception {
+        String balFileName = "typesWithInputsDefault";
+        String newSchemaFileName = "SchemaWithInputsApi";
         Path updatedBalFilePath = this.resourceDir.resolve(
                 Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
         Path newSchemaPath = this.resourceDir.resolve(
