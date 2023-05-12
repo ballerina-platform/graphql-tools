@@ -36,6 +36,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
+import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
@@ -196,9 +197,35 @@ public class ServiceCombiner {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDef.typeDescriptor();
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDef.typeDescriptor();
             return isRecordTypeEquals(prevRecordType, nextRecordType);
+        } else if (prevTypeDef.typeDescriptor() instanceof UnionTypeDescriptorNode &&
+                nextTypeDef.typeDescriptor() instanceof UnionTypeDescriptorNode) {
+            UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) prevTypeDef.typeDescriptor();
+            UnionTypeDescriptorNode nextUnionType = (UnionTypeDescriptorNode) nextTypeDef.typeDescriptor();
+            return isUnionTypeEquals(prevUnionType, nextUnionType);
         } else {
             return false;
         }
+    }
+
+    private boolean isUnionTypeEquals(UnionTypeDescriptorNode prevUnionType, UnionTypeDescriptorNode nextUnionType)
+            throws Exception {
+        if (prevUnionType.leftTypeDesc() instanceof UnionTypeDescriptorNode &&
+                nextUnionType.leftTypeDesc() instanceof UnionTypeDescriptorNode) {
+            UnionTypeDescriptorNode prevUnionLeftType = (UnionTypeDescriptorNode) prevUnionType.leftTypeDesc();
+            UnionTypeDescriptorNode nextUnionLeftType = (UnionTypeDescriptorNode) nextUnionType.leftTypeDesc();
+            if (!isUnionTypeEquals(prevUnionLeftType, nextUnionLeftType)) {
+                return false;
+            }
+        } else if (!isTypeEquals(prevUnionType.leftTypeDesc(), nextUnionType.leftTypeDesc())) {
+            return false;
+        }
+        if (!prevUnionType.pipeToken().text().equals(nextUnionType.pipeToken().text())) {
+            return false;
+        }
+        if (!isTypeEquals(prevUnionType.rightTypeDesc(), nextUnionType.rightTypeDesc())) {
+            return false;
+        }
+        return true;
     }
 
     private boolean isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
