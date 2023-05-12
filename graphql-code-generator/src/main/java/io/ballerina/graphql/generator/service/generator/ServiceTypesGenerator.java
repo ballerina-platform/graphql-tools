@@ -630,8 +630,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
                                 createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD)),
                                 createToken(SyntaxKind.FUNCTION_KEYWORD),
-                                createIdentifierToken(CodeGeneratorConstants.EMPTY_STRING),
-                                createNodeList(createIdentifierToken(fieldDefinition.getName())), methodSignatureNode,
+                                createIdentifierToken(fieldDefinition.getName()),
+                                createEmptyNodeList(),
+                                methodSignatureNode,
                                 createToken(SyntaxKind.SEMICOLON_TOKEN));
                 methodDeclarations.add(methodDeclaration);
             }
