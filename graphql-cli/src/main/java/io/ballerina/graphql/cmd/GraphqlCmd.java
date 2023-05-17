@@ -38,12 +38,13 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
 import picocli.CommandLine;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -313,7 +314,18 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     @Override
-    public void printLongDesc(StringBuilder stringBuilder) {}
+    public void printLongDesc(StringBuilder stringBuilder) {
+        InputStream inputStream = ClassLoader.getSystemResourceAsStream("ballerina-graphql.help");
+        try (InputStreamReader inputStreamREader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+             BufferedReader br = new BufferedReader(inputStreamREader)) {
+            String content = br.readLine();
+            out.append(content);
+            while ((content = br.readLine()) != null) {
+                out.append('\n').append(content);
+            }
+        } catch (IOException ignore) {
+        }
+    }
 
     @Override
     public void printUsage(StringBuilder stringBuilder) {}
