@@ -12,7 +12,6 @@ import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
-import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
@@ -160,22 +159,23 @@ public class ServiceCombiner {
         if (!prevEnumDec.identifier().text().equals(nextEnumDec.identifier().text())) {
             return false;
         }
-        for (Node nextEnumMemberNode : nextEnumDec.enumMemberList()) {
-            boolean foundMatch = false;
-            for (Node prevEnumMemberNode : prevEnumDec.enumMemberList()) {
-                if (nextEnumMemberNode instanceof EnumMemberNode && prevEnumMemberNode instanceof EnumMemberNode) {
-                    EnumMemberNode nextEnumMember = (EnumMemberNode) nextEnumMemberNode;
-                    EnumMemberNode prevEnumMember = (EnumMemberNode) prevEnumMemberNode;
-                    if (nextEnumMember.identifier().text().equals(prevEnumMember.identifier().text())) {
-                        foundMatch = true;
-                    }
-
-                }
-            }
-            if (!foundMatch) {
-                return false;
-            }
-        }
+        targetAndReplacement.put(prevEnumDec, nextEnumDec);
+//
+//        for (Node nextEnumMemberNode : nextEnumDec.enumMemberList()) {
+//            boolean foundMatch = false;
+//            for (Node prevEnumMemberNode : prevEnumDec.enumMemberList()) {
+//                if (nextEnumMemberNode instanceof EnumMemberNode && prevEnumMemberNode instanceof EnumMemberNode) {
+//                    EnumMemberNode nextEnumMember = (EnumMemberNode) nextEnumMemberNode;
+//                    EnumMemberNode prevEnumMember = (EnumMemberNode) prevEnumMemberNode;
+//                    if (nextEnumMember.identifier().text().equals(prevEnumMember.identifier().text())) {
+//                        foundMatch = true;
+//                    }
+//                }
+//            }
+//            if (!foundMatch) {
+//                return false;
+//            }
+//        }
         return true;
     }
 
