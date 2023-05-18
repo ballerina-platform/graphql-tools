@@ -30,6 +30,8 @@ import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.StreamTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.StreamTypeParamsNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -189,8 +191,7 @@ public class ServiceCombiner {
             if (serviceObjectNewMembers.size() > 0) {
                 ObjectTypeDescriptorNode modifiedPrevServiceObject =
                         prevServiceObject.modify(prevServiceObject.objectTypeQualifiers(),
-                                prevServiceObject.objectKeyword(),
-                                prevServiceObject.openBrace(),
+                                prevServiceObject.objectKeyword(), prevServiceObject.openBrace(),
                                 prevServiceObject.members().addAll(serviceObjectNewMembers),
                                 prevServiceObject.closeBrace());
                 targetAndReplacement.put(prevTypeDef.typeDescriptor(), modifiedPrevServiceObject);
@@ -244,8 +245,8 @@ public class ServiceCombiner {
         return true;
     }
 
-    private boolean isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
-                                       RecordTypeDescriptorNode nextRecordType) throws Exception {
+    private boolean isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType, RecordTypeDescriptorNode nextRecordType)
+            throws Exception {
         if (!prevRecordType.recordKeyword().text().equals(nextRecordType.recordKeyword().text())) {
             return false;
         }
@@ -466,6 +467,22 @@ public class ServiceCombiner {
             ArrayTypeDescriptorNode prevWrappedType = (ArrayTypeDescriptorNode) prevType;
             ArrayTypeDescriptorNode nextWrappedType = (ArrayTypeDescriptorNode) nextType;
             return isTypeEquals(prevWrappedType.memberTypeDesc(), nextWrappedType.memberTypeDesc());
+        } else if (prevType instanceof StreamTypeDescriptorNode && nextType instanceof StreamTypeDescriptorNode) {
+            StreamTypeDescriptorNode prevWrappedType = (StreamTypeDescriptorNode) prevType;
+            StreamTypeDescriptorNode nextWrappedType = (StreamTypeDescriptorNode) nextType;
+            StreamTypeParamsNode prevStreamParams =
+                    (StreamTypeParamsNode) prevWrappedType.streamTypeParamsNode().orElseThrow();
+            StreamTypeParamsNode nextStreamParams =
+                    (StreamTypeParamsNode) nextWrappedType.streamTypeParamsNode().orElseThrow();
+            if (!isTypeEquals(prevStreamParams.leftTypeDescNode(), nextStreamParams.leftTypeDescNode())) {
+                return false;
+            }
+            if (prevStreamParams.rightTypeDescNode().isPresent() && nextStreamParams.rightTypeDescNode().isPresent()) {
+                return isTypeEquals(prevStreamParams.rightTypeDescNode().orElseThrow(),
+                        nextStreamParams.rightTypeDescNode().orElseThrow());
+            } else {
+                return true;
+            }
         } else {
             if (prevType.getClass().toString().equals(nextType.getClass().toString())) {
                 throw new Exception("No valid type: " + prevType.getClass());
