@@ -35,6 +35,12 @@ public class SchemaTypes {
         }
     }
 
+    /**
+     * Return the list of fields of the given type.
+     *
+     * @param name Type name
+     * @return List of fields
+     * */
     public List<FieldData> getFieldsOfType(String name) {
         return fieldDataMap.get(name);
     }

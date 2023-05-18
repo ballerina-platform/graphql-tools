@@ -93,12 +93,6 @@ public class TestUtils {
         }
     }
 
-    private static void checkDiagnosticResultsForErrors(DiagnosticResult diagnosticResult) {
-        if (diagnosticResult.hasErrors()) {
-            throw new RuntimeException("Compilation contains errors");
-        }
-    }
-
     public static void deleteDirectory(Path tmpDir) throws IOException {
         Files.walk(tmpDir)
                 .sorted(Comparator.reverseOrder())
@@ -146,11 +140,6 @@ public class TestUtils {
         return response.toString();
     }
 
-    /**
-     * @param files     List of files to be copied
-     * @param targetDir Target destination
-     * @throws IOException If an error occurs while copying files
-     */
     public static void copyFilesToTarget(Path[] files, Path targetDir) throws IOException {
         for (Path file : files) {
             Files.copy(file, targetDir.resolve(file.getFileName()));

@@ -89,7 +89,7 @@ public class CommonUtilTest extends GraphqlTest {
     }
 
     @Test(description = "Test get mutation types", dataProvider = "SchemaAndMutationTypesProvider")
-    public void textGetMutationTypes(GraphqlGatewayProject project, String[] queryTypes) {
+    public void testGetMutationTypes(GraphqlGatewayProject project, String[] queryTypes) {
         Object[] queryTypeNames = CommonUtils.getMutationTypes(project.getGraphQLSchema()).stream().map(
                 field -> ((GraphQLFieldDefinition) field).getName()
         ).toArray();
