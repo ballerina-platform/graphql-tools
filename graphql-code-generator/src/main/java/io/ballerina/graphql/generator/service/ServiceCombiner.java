@@ -16,7 +16,6 @@ import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
-import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -42,7 +41,9 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
@@ -51,12 +52,14 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode
  * Utility class for combining available service with generated service for a GraphQL schema.
  */
 public class ServiceCombiner {
-    private final ModulePartNode prevContentNode;
     private final ModulePartNode nextContentNode;
+    private ModulePartNode prevContentNode;
+    private Map<Node, Node> targetAndReplacement;
 
     public ServiceCombiner(ModulePartNode prevContentNode, ModulePartNode nextContentNode) {
         this.prevContentNode = prevContentNode;
         this.nextContentNode = nextContentNode;
+        this.targetAndReplacement = new HashMap<>();
     }
 
     public static void getChangesOfTypeDefinitionRegistry(TypeDefinitionRegistry prevRegistry,
@@ -86,13 +89,16 @@ public class ServiceCombiner {
     }
 
     public SyntaxTree mergeRootNodes() throws Exception {
-        NodeList<ImportDeclarationNode> imports = prevContentNode.imports();
-        NodeList<ModuleMemberDeclarationNode> members = prevContentNode.members();
-
         List<ModuleMemberDeclarationNode> newMembers =
                 generateNewMembers(prevContentNode.members(), nextContentNode.members());
-        NodeList<ModuleMemberDeclarationNode> combinedMembers = members.addAll(newMembers);
-        ModulePartNode contentNode = createModulePartNode(imports, combinedMembers, createToken(SyntaxKind.EOF_TOKEN));
+
+        for (Map.Entry<Node, Node> entry : targetAndReplacement.entrySet()) {
+            prevContentNode = prevContentNode.replace(entry.getKey(), entry.getValue());
+        }
+
+        NodeList<ModuleMemberDeclarationNode> combinedMembers = prevContentNode.members().addAll(newMembers);
+        ModulePartNode contentNode =
+                createModulePartNode(prevContentNode.imports(), combinedMembers, createToken(SyntaxKind.EOF_TOKEN));
 
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
@@ -179,7 +185,17 @@ public class ServiceCombiner {
                 nextTypeDef.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
             ObjectTypeDescriptorNode prevServiceObject = (ObjectTypeDescriptorNode) prevTypeDef.typeDescriptor();
             ObjectTypeDescriptorNode nextServiceObject = (ObjectTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            return isServiceObjectEquals(prevServiceObject, nextServiceObject);
+            List<Node> serviceObjectNewMembers = getServiceObjectNewMembers(prevServiceObject, nextServiceObject);
+            if (serviceObjectNewMembers.size() > 0) {
+                ObjectTypeDescriptorNode modifiedPrevServiceObject =
+                        prevServiceObject.modify(prevServiceObject.objectTypeQualifiers(),
+                                prevServiceObject.objectKeyword(),
+                                prevServiceObject.openBrace(),
+                                prevServiceObject.members().addAll(serviceObjectNewMembers),
+                                prevServiceObject.closeBrace());
+                targetAndReplacement.put(prevTypeDef.typeDescriptor(), modifiedPrevServiceObject);
+            }
+            return true;
         } else if (prevTypeDef.typeDescriptor() instanceof DistinctTypeDescriptorNode &&
                 nextTypeDef.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
             DistinctTypeDescriptorNode prevDistinctServiceObject =
@@ -263,6 +279,33 @@ public class ServiceCombiner {
             return false;
         }
         return true;
+    }
+
+    private List<Node> getServiceObjectNewMembers(ObjectTypeDescriptorNode prevServiceObject,
+                                                  ObjectTypeDescriptorNode nextServiceObject) throws Exception {
+        List<Node> members = new ArrayList<>();
+        for (Node nextMember : nextServiceObject.members()) {
+            boolean foundMatch = false;
+            for (Node prevMember : prevServiceObject.members()) {
+                if (prevMember instanceof TypeReferenceNode && nextMember instanceof TypeReferenceNode) {
+                    TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
+                    TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextMember;
+                    if (isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName())) {
+                        foundMatch = true;
+                    }
+                } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
+                    MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
+                    MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) nextMember;
+                    if (isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration)) {
+                        foundMatch = true;
+                    }
+                }
+            }
+            if (!foundMatch) {
+                members.add(nextMember);
+            }
+        }
+        return members;
     }
 
     private boolean isServiceObjectEquals(ObjectTypeDescriptorNode prevServiceObject,
