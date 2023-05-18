@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Test class for SchemaTypes.
+ * */
 public class SchemaTypesTest extends GraphqlTest {
     @Test(description = "Test schema types on a given graphql schema", dataProvider = "SchemaTypesDataProvider")
     public void testSchemaTypes(String graphQLSchemaFileName, String[] typeNames)

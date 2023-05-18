@@ -24,7 +24,6 @@ import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
-import io.ballerina.projects.DiagnosticResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;

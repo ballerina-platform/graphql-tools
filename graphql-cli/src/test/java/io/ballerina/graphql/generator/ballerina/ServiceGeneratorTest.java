@@ -42,11 +42,10 @@ import static io.ballerina.graphql.common.TestUtils.writeContentTo;
  */
 public class ServiceGeneratorTest extends GraphqlTest {
     @Test(description = "Test the successful generation of service code")
-    public void testGenerateSrc() throws IOException, ValidationException, ServiceTypesGenerationException {
+    public void testGenerateSrc() {
+        String fileName = "SchemaWithSingleObjectApi";
+        String expectedFile = "serviceForSchemaWithSingleObject.bal";
         try {
-            String fileName = "SchemaWithBasic01Api";
-            String expectedFile = "serviceForBasicSchema01.bal";
-
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
@@ -55,19 +54,19 @@ public class ServiceGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             serviceTypesGenerator.generateSrc(graphQLSchema);
+
             ServiceGenerator serviceGenerator = new ServiceGenerator();
             serviceGenerator.setFileName(fileName);
             serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
             String generatedServiceContent = serviceGenerator.generateSrc();
             writeContentTo(generatedServiceContent, this.tmpDir);
-
             Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);
             String writtenServiceTypesContent =
                     readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
-        } catch (ServiceGenerationException e) {
-            Assert.fail("Error while generating the service code. " + e.getMessage());
+        } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | ValidationException e) {
+            Assert.fail(e.getMessage());
         }
     }
 }

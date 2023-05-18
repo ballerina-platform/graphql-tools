@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaWithBasic03Api service object {
+type SchemaWithObjectTakingInputArgumentApi service object {
     *graphql:Service;
     resource function get dog(string name) returns Dog?;
     resource function get cat(string name) returns Cat?;

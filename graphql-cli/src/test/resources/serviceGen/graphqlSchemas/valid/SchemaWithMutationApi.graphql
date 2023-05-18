@@ -1,10 +1,10 @@
-type Query{
+type Query {
     book(id: Int!, title: String): Book
     books: [Book]
     authors: [Author!]!
 }
 
-type Mutation{
+type Mutation {
     addBook(title: String!, authorId: Int!): Book
 }
 
@@ -13,7 +13,7 @@ type Author {
     name: String!
 }
 
-type Book{
+type Book {
     id: Int!
     title: String!
     price: Float!

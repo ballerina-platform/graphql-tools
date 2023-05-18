@@ -57,7 +57,7 @@ public class ExtendedOperationDefinition {
 
     public List<ExtendedVariableDefinition> getVariableDefinitions() {
         List<ExtendedVariableDefinition> variableDefinitions = new ArrayList<>();
-        for (VariableDefinition variableDefinition:this.definition.getVariableDefinitions()) {
+        for (VariableDefinition variableDefinition : this.definition.getVariableDefinitions()) {
             variableDefinitions.add(new ExtendedVariableDefinition(variableDefinition));
         }
         return variableDefinitions;
@@ -65,7 +65,7 @@ public class ExtendedOperationDefinition {
 
     public Map<String, FieldType> getVariableDefinitionsMap(GraphQLSchema graphQLSchema) {
         Map<String, FieldType> variableDefinitionsMap = new HashMap<>();
-        for (VariableDefinition variableDefinition:this.definition.getVariableDefinitions()) {
+        for (VariableDefinition variableDefinition : this.definition.getVariableDefinitions()) {
             variableDefinitionsMap.put(variableDefinition.getName(),
                     Utils.getFieldType(graphQLSchema, variableDefinition.getType()));
         }
@@ -74,7 +74,7 @@ public class ExtendedOperationDefinition {
 
     public List<ExtendedFieldDefinition> getExtendedFieldDefinitions() {
         List<ExtendedFieldDefinition> fieldDefinitionList = new ArrayList<>();
-        for (Selection<?> selection: this.definition.getSelectionSet().getSelections()) {
+        for (Selection<?> selection : this.definition.getSelectionSet().getSelections()) {
             Field field = (Field) selection;
             ExtendedFieldDefinition extendedFieldDefinition = new ExtendedFieldDefinition(field);
             fieldDefinitionList.add(extendedFieldDefinition);
