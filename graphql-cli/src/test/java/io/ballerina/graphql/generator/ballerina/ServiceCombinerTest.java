@@ -165,4 +165,32 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceTypesContent);
     }
 
+    @Test(description = "Test combining updated schema with object use records if possible")
+    public void testCombiningUpdatedSchemaWithObjectUseRecordsIfPossible() throws Exception {
+        String balFileName = "typesWithObjectTakingInputArgumentRecordsAllowed";
+        String newSchemaFileName = "SchemaWithObjectTakingInputArgumentApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "addType", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "addType", balFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setUseRecordsForObjects(true);
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceCombiner serviceCombiner = new ServiceCombiner(updateBalFileNode, nextSchemaNode);
+        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        String result = Formatter.format(mergedSyntaxTree).toString().trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(result, expectedServiceTypesContent);
+    }
 }
