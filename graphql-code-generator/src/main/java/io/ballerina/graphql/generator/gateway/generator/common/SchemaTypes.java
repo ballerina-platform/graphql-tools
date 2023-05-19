@@ -1,8 +1,6 @@
 package io.ballerina.graphql.generator.gateway.generator.common;
 
-import graphql.language.Field;
 import graphql.language.FieldDefinition;
-import graphql.language.Selection;
 import graphql.schema.GraphQLAppliedDirective;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
@@ -37,23 +35,6 @@ public class SchemaTypes {
      */
     public List<FieldData> getFieldsOfType(String name) {
         return fieldDataMap.get(name);
-    }
-
-    private static String getFieldAsString(List<Selection> fields) {
-        List<String> fieldStrings = new ArrayList<>();
-        for (Selection selection : fields) {
-
-            if (selection instanceof Field) {
-                if (((Field) selection).getSelectionSet() != null) {
-                    fieldStrings.add(((Field) selection).getName() + " {" +
-                            getFieldAsString(((Field) selection).getSelectionSet().getSelections()) + "}");
-                } else {
-                    fieldStrings.add(((Field) selection).getName());
-                }
-            }
-        }
-
-        return String.join(" ", fieldStrings);
     }
 
     /**

@@ -87,7 +87,6 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final String CMD_NAME = "graphql";
     private PrintStream outStream;
     private boolean exitWhenFinish;
-    private int exitStatusCode;
     private Path executionPath = Paths.get(System.getProperty("user.dir"));
 
     @CommandLine.Option(names = {"-h", "--help"}, hidden = true)
@@ -108,7 +107,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private String serviceBasePath;
 
     @CommandLine.Option(names = {"-m", "--mode"},
-            description = "Ballerina operation mode. It can be client, service or schema.")
+            description = "Ballerina operation mode. It can be client, service, federation-gateway or schema.")
     private String mode;
 
     @CommandLine.Option(names = {"-r", "--use-records-for-objects"},
@@ -120,7 +119,6 @@ public class GraphqlCmd implements BLauncherCmd {
 
     private ClientCodeGenerator clientCodeGenerator;
     private ServiceCodeGenerator serviceCodeGenerator;
-
     private GatewayCodeGenerator gatewayCodeGenerator;
 
     /**
@@ -163,7 +161,6 @@ public class GraphqlCmd implements BLauncherCmd {
      */
     private void exitError(boolean exit) {
         if (exit) {
-            exitStatusCode = 1;
             Runtime.getRuntime().exit(1);
         }
     }
@@ -174,14 +171,13 @@ public class GraphqlCmd implements BLauncherCmd {
             validateInputFlags();
             executeOperation();
         } catch (CmdException | ParseException | ValidationException | GenerationException | IOException |
-                 SchemaFileGenerationException | GatewayGenerationException e) {
+                 SchemaFileGenerationException e) {
             outStream.println(e.getMessage());
             exitError(this.exitWhenFinish);
         }
 
         // Successfully exit if no error occurs
         if (this.exitWhenFinish) {
-            exitStatusCode = 0;
             Runtime.getRuntime().exit(0);
         }
     }
@@ -320,13 +316,15 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private void generateFederationGateway(String filePath)
-            throws GatewayGenerationException, ValidationException, IOException, GenerationException {
+            throws GatewayGenerationException, ValidationException, IOException {
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
-            throw new GatewayGenerationException(Constants.MESSAGE_MISSING_SCHEMA_FILE);
+            throw new GatewayGenerationException(String.format(Constants.MESSAGE_MISSING_SCHEMA_FILE, filePath),
+                    ROOT_PROJECT_NAME);
         }
         if (!graphqlFile.canRead()) {
-            throw new GatewayGenerationException(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE);
+            throw new GatewayGenerationException(String.format(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE, filePath),
+                    ROOT_PROJECT_NAME);
         }
 
         GraphqlGatewayProject graphqlProject =
@@ -334,9 +332,8 @@ public class GraphqlCmd implements BLauncherCmd {
         Utils.validateGraphqlProject(graphqlProject);
 
         this.gatewayCodeGenerator.generate(graphqlProject);
-        outStream.println("Gateway generation completed.("
-                + getTargetOutputPath().resolve(graphqlProject.getFileName() + "-gateway.jar").toAbsolutePath()
-                + ")");
+        outStream.println("Gateway generation completed. Output location: "
+                + getTargetOutputPath().resolve(graphqlProject.getFileName() + "-gateway.jar").toAbsolutePath());
     }
 
     /**
@@ -454,7 +451,4 @@ public class GraphqlCmd implements BLauncherCmd {
     public void setParentCmdParser(picocli.CommandLine commandLine) {
     }
 
-    public int getExitStatusCode() {
-        return exitStatusCode;
-    }
 }

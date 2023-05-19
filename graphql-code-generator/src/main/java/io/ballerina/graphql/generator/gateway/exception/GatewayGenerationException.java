@@ -18,19 +18,26 @@
 
 package io.ballerina.graphql.generator.gateway.exception;
 
+import io.ballerina.graphql.generator.DiagnosticMessages;
+import io.ballerina.graphql.generator.GenerationException;
+import io.ballerina.tools.diagnostics.Diagnostic;
+
 /**
  * Exception for errors thrown by util functions.
  * */
-public class GatewayGenerationException extends Exception {
-    private String message;
-
-    public GatewayGenerationException(String message, Throwable e) {
-        super(message, e);
-        this.message = message;
+public class GatewayGenerationException extends GenerationException {
+    public GatewayGenerationException(String errMessage) {
+        super(errMessage);
     }
 
-    public GatewayGenerationException(String message) {
-        super(message);
-        this.message = message;
+    public GatewayGenerationException(String errMessage, String projectName) {
+        super(errMessage, projectName);
+    }
+
+    @Override
+    public String getMessage() {
+        Diagnostic diagnostic = createDiagnostic(DiagnosticMessages.GRAPHQL_GEN_100, this.getLocation(),
+                this.getErrMessage());
+        return diagnostic.toString();
     }
 }

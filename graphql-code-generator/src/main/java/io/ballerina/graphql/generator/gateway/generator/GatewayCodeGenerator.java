@@ -3,7 +3,6 @@ package io.ballerina.graphql.generator.gateway.generator;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
 import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationException;
@@ -45,7 +44,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
     }
 
     @Override
-    public void generate(GraphqlProject project) throws GenerationException {
+    public void generate(GraphqlProject project) throws GatewayGenerationException {
         String outputPath = project.getOutputPath();
         try {
             copyTemplateFiles((GraphqlGatewayProject) project);
@@ -64,7 +63,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
                     outputDirectoryPath, project.getFileName() + "-gateway");
         } catch (GatewayGenerationException | IOException | GatewayTypeGenerationException |
                  GatewayQueryPlanGenerationException | URISyntaxException e) {
-            throw new GenerationException(e.getMessage(), e.getMessage());
+            throw new GatewayGenerationException(e.getMessage(), project.getName());
         }
     }
 

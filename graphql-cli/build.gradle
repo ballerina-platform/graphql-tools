@@ -116,7 +116,7 @@ jar {
     }
 }
 
-def disableGroups = "invalid_permission"
+def disableGroups = ""
 
 task initializeVariables {
     if (project.hasProperty("disable")) {

@@ -145,7 +145,9 @@ public class CommonUtilTest extends GraphqlTest {
         try {
             CommonUtils.getCompiledBallerinaProject(projectDir, tmpDir, folderName);
         } catch (GatewayGenerationException e) {
-            Assert.assertEquals(e.getMessage(), "Error while generating the executable.");
+            Assert.assertEquals(e.getMessage(),
+                    "ERROR [(null:):(1:1,1:1)] Ballerina service code generation related error" +
+                    " occurred. Error while generating the executable.");
         }
     }
 
