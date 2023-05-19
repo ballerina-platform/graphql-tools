@@ -232,9 +232,11 @@ public class ServiceCombiner {
             UnionTypeDescriptorNode prevUnionLeftType = (UnionTypeDescriptorNode) prevUnionType.leftTypeDesc();
             UnionTypeDescriptorNode nextUnionLeftType = (UnionTypeDescriptorNode) nextUnionType.leftTypeDesc();
             if (!isUnionTypeEquals(prevUnionLeftType, nextUnionLeftType)) {
-                return false;
+                targetAndReplacement.put(prevUnionType, nextUnionType);
+                return true;
             }
         } else if (!isTypeEquals(prevUnionType.leftTypeDesc(), nextUnionType.leftTypeDesc())) {
+
             return false;
         }
         if (!prevUnionType.pipeToken().text().equals(nextUnionType.pipeToken().text())) {
