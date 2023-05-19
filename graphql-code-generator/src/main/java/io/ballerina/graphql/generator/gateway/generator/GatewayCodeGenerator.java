@@ -118,12 +118,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
 
     public static void copyTemplateFiles(Path targetPath) throws GatewayGenerationException, IOException {
         ClassLoader classLoader = GatewayCodeGenerator.class.getClassLoader();
-
-        InputStream stream = classLoader.getResourceAsStream(Constants.GATEWAY_PROJECT_TEMPLATE_DIRECTORY);
-        checkInputStream(stream);
-        String[] templateFileNames = IOUtils.toString(stream, StandardCharsets.UTF_8).split("\\n");
-
-        for (String fileName : templateFileNames) {
+        for (String fileName : Constants.GATEWAY_PROJECT_TEMPLATE_FILES) {
             InputStream inputStream = classLoader.getResourceAsStream(
                     Constants.GATEWAY_PROJECT_TEMPLATE_DIRECTORY + "/" + fileName);
 
