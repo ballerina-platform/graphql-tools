@@ -1,4 +1,3 @@
-import ballerina/lang.value;
 import ballerina/graphql;
 
 public class Resolver {
@@ -46,19 +45,18 @@ public class Resolver {
                     path = path.slice(0, path.length() - 2);
                 }
 
-                RequiresFieldRecord[]? requiredFields = self.queryPlan.get('record.parent).fields.get('record.'field.getName()).requires;
-                map<json>[] requiredFieldWithValues = check self.getRequiredFieldsInPath(self.result, self.resultType, clientName, path, requiredFields);
+                map<json>[] keyFieldsWithValues = check self.getKeyFieldsWithValues(self.result, self.resultType, clientName, path);
 
                 if getOfType('record.'field.getType()).kind == "SCALAR" {
                     // If the field type is a scalar type, just pass the field name wrapped with entity representation.
-                    string queryString = wrapWithEntityRepresentation('record.parent, requiredFieldWithValues, 'record.'field.getName());
+                    string queryString = wrapWithEntityRepresentation('record.parent, keyFieldsWithValues, 'record.'field.getName());
                     EntityResponse result = check 'client->execute(queryString);
                     check self.compose(self.result, result.data._entities, self.getEffectivePath('record.'field));
                 } else {
                     // Else need to classify the fields and resolve them accordingly.
                     QueryFieldClassifier classifier = new ('record.'field, self.queryPlan, clientName);
                     string fieldString = classifier.getFieldStringWithRoot();
-                    string queryString = wrapWithEntityRepresentation('record.parent, requiredFieldWithValues, fieldString);
+                    string queryString = wrapWithEntityRepresentation('record.parent, keyFieldsWithValues, fieldString);
                     EntityResponse response = check 'client->execute(queryString);
                     check self.compose(self.result, response.data._entities, self.getEffectivePath('record.'field));
                     UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
@@ -70,7 +68,7 @@ public class Resolver {
 
             } else {
                 // Cannot resolve directly and compose.
-                // Iterated through the self.result and resolve the fields by recursively calling the `resolve()` function 
+                // Iterated through the self.result and resolve the fields by recursively calling the `resolve()` function
                 // while updating the path.
 
                 string[] currentPath = self.currentPath.clone();
@@ -159,7 +157,7 @@ public class Resolver {
 
     // Get the values of required fields from the results.
     // Don't support @ in the path.
-    isolated function getRequiredFieldsInPath(json pointer, string pointerType, string clientName, string[] path, RequiresFieldRecord[]? requiredFields = ()) returns map<json>[]|error {
+    isolated function getKeyFieldsWithValues(json pointer, string pointerType, string clientName, string[] path) returns map<json>[]|error {
         if path.length() == 0 {
             string key = self.queryPlan.get(pointerType).keys.get(clientName);
 
@@ -168,16 +166,14 @@ public class Resolver {
                 foreach var element in pointer {
                     map<json> keyField = {};
                     keyField[key] = (<map<json>>element)[key];
-                    map<json> fieldValues = check self.fetchRequiredFields(requiredFields, keyField, pointerType);
-                    fields.push(fieldValues);
+                    fields.push(keyField);
                 }
             } else if pointer is map<json> {
                 map<json> keyField = {};
                 keyField[key] = (<map<json>>pointer)[key];
-                map<json> fieldValues = check self.fetchRequiredFields(requiredFields, keyField, pointerType);
-                fields.push(fieldValues);
+                fields.push(keyField);
             } else {
-                return error("Error: Cannot get ids from the result.");
+                return error("Error: Cannot get key field from the result.");
             }
 
             return fields;
@@ -187,22 +183,6 @@ public class Resolver {
         json newPointer = (<map<json>>pointer)[element];
         string fieldType = self.queryPlan.get(pointerType).fields.get(element).'type;
 
-        return self.getRequiredFieldsInPath(newPointer, fieldType, clientName, path, requiredFields);
-    }
-
-    // Fetch the fields from subgraphs and add them to the fieldValues map.
-    isolated function fetchRequiredFields(RequiresFieldRecord[]? requiresFields, map<json> fieldValues, string typeName) returns map<json>|error {
-        if requiresFields is () {
-            return fieldValues;
-        }
-
-        map<json> newFieldValues = fieldValues.clone();
-        foreach RequiresFieldRecord 'record in requiresFields {
-            string queryString = wrapWithEntityRepresentation(typeName, [fieldValues], 'record.fieldString);
-            graphql:Client 'client = getClient('record.clientName);
-            EntityResponse response = check 'client->execute(queryString);
-            newFieldValues = check (check value:mergeJson(newFieldValues, response.data._entities[0])).ensureType();
-        }
-        return newFieldValues;
+        return self.getKeyFieldsWithValues(newPointer, fieldType, clientName, path);
     }
 }

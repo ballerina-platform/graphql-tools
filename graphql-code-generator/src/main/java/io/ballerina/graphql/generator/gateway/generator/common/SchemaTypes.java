@@ -1,14 +1,8 @@
 package io.ballerina.graphql.generator.gateway.generator.common;
 
-import graphql.language.Argument;
-import graphql.language.Directive;
-import graphql.language.Document;
 import graphql.language.Field;
 import graphql.language.FieldDefinition;
-import graphql.language.OperationDefinition;
 import graphql.language.Selection;
-import graphql.language.StringValue;
-import graphql.parser.Parser;
 import graphql.schema.GraphQLAppliedDirective;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
@@ -40,37 +34,9 @@ public class SchemaTypes {
      *
      * @param name Type name
      * @return List of fields
-     * */
+     */
     public List<FieldData> getFieldsOfType(String name) {
         return fieldDataMap.get(name);
-    }
-
-    private Map<String, String> getClassifiedRequiresString(String requiresString,
-                                                            String parentType) {
-        Map<String, List<Selection>> clientToFieldMap = new HashMap<>();
-        Document document = Parser.parse("query{ Document {" + requiresString + "} }");
-        List<Selection> requires =
-                ((Field) ((OperationDefinition) document.getDefinitions().get(0)).getSelectionSet().
-                        getSelections().get(0)).getSelectionSet().getSelections();
-        List<FieldData> fields = this.fieldDataMap.get(parentType);
-        for (Selection selection : requires) {
-            if (selection instanceof Field) {
-                String field = ((Field) selection).getName();
-                for (FieldData fieldData : fields) {
-                    if (fieldData.getFieldName().equals(field)) {
-                        clientToFieldMap.computeIfAbsent(fieldData.getClient(), k -> new ArrayList<>()).add(selection);
-                    }
-                    // TODO: if the field is an selection set handle it. Currently checking only parent field
-                    //  resolving client
-                }
-            }
-        }
-
-        Map<String, String> classifiedRequires = new HashMap<>();
-        for (Map.Entry<String, List<Selection>> entry : clientToFieldMap.entrySet()) {
-            classifiedRequires.put(entry.getKey(), getFieldAsString(entry.getValue()));
-        }
-        return classifiedRequires;
     }
 
     private static String getFieldAsString(List<Selection> fields) {
@@ -107,27 +73,11 @@ public class SchemaTypes {
                 ).collect(Collectors.toList());
         for (Map.Entry<String, FieldDefinition> entry :
                 SpecReader.getObjectTypeFieldDefinitionMap(graphQLSchema, typeName).entrySet()) {
-            FieldData field = new FieldData(this,
-                    entry.getKey(), entry.getValue(), joinTypeDirectives, typeName);
+            FieldData field = new FieldData(entry.getKey(), entry.getValue(), joinTypeDirectives);
             if (field.getClient() != null) {
                 fields.add(field);
             }
         }
         return fields;
-    }
-
-    Map<String, String> getRequiresFromFieldDefinition(FieldDefinition definition,
-                                                       String parentType) {
-        for (Directive directive : definition.getDirectives()) {
-            if (directive.getName().equals("join__field")) {
-                for (Argument argument : directive.getArguments()) {
-                    if (argument.getName().equals("requires")) {
-                        String requiresString = ((StringValue) argument.getValue()).getValue();
-                        return getClassifiedRequiresString(requiresString, parentType);
-                    }
-                }
-            }
-        }
-        return null;
     }
 }

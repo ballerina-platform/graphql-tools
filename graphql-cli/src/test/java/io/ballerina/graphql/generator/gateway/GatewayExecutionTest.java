@@ -40,7 +40,7 @@ public class GatewayExecutionTest {
     private static final String MISSION_SUBGRAPH_URL = "http://localhost:5002";
 
     private static final Path supergraphSdl =
-            Paths.get("src/test/resources/federationGateway/supergraphSchemas/Supergraph.graphql");
+            Paths.get("src/test/resources/federationGateway/supergraphSchemas/SupergraphWithTwoEntities.graphql");
     private static final Path services = Paths.get("src/test/resources/federationGateway/subgraphServices");
 
     private Path tmpDir;
@@ -51,20 +51,20 @@ public class GatewayExecutionTest {
     @BeforeClass
     public void setup() throws IOException, GatewayGenerationException {
         this.tmpDir = Files.createTempDirectory("graphql-gateway-" + System.nanoTime());
-        File gatewayExec = TestUtils.generateGatewayJar(supergraphSdl, tmpDir);
+        File gatewayExec = GatewayTestUtils.generateGatewayJar(supergraphSdl, tmpDir);
         gatewayProcess = new ProcessBuilder("java", "-jar", gatewayExec.getAbsolutePath()).start();
         astronautServiceProcess = new ProcessBuilder("java", "-jar",
-                TestUtils.getBallerinaExecutableJar(
+                GatewayTestUtils.getBallerinaExecutableJar(
                                 services.resolve("astronautService").toAbsolutePath(), tmpDir)
                         .getAbsolutePath()).start();
         missionsServiceProcess = new ProcessBuilder("java", "-jar",
-                TestUtils.getBallerinaExecutableJar(
+                GatewayTestUtils.getBallerinaExecutableJar(
                                 services.resolve("missionsService").toAbsolutePath(), tmpDir)
                         .getAbsolutePath()).start();
 
-        TestUtils.waitTillUrlIsAvailable(gatewayProcess, ASTRONAUT_SUBGRAPH_URL);
-        TestUtils.waitTillUrlIsAvailable(astronautServiceProcess, MISSION_SUBGRAPH_URL);
-        TestUtils.waitTillUrlIsAvailable(missionsServiceProcess, GATEWAY_URL);
+        GatewayTestUtils.waitTillUrlIsAvailable(gatewayProcess, ASTRONAUT_SUBGRAPH_URL);
+        GatewayTestUtils.waitTillUrlIsAvailable(astronautServiceProcess, MISSION_SUBGRAPH_URL);
+        GatewayTestUtils.waitTillUrlIsAvailable(missionsServiceProcess, GATEWAY_URL);
     }
 
     @AfterClass
@@ -72,15 +72,15 @@ public class GatewayExecutionTest {
         astronautServiceProcess.destroy();
         missionsServiceProcess.destroy();
         gatewayProcess.destroy();
-        TestUtils.deleteDirectory(tmpDir);
+        GatewayTestUtils.deleteDirectory(tmpDir);
     }
 
     @Test(description = "Test gateway with query requests",
             dataProvider = "QueryRequestResponseDataProvider")
     public void testGatewayQueryExecution(String requestFile, String responseFile) throws IOException {
-        String query = TestUtils.getRequestContent(requestFile);
-        String expectedResponse = TestUtils.getResponseContent(responseFile);
-        String response = TestUtils.getGraphqlQueryResponse(GATEWAY_URL, query);
+        String query = GatewayTestUtils.getRequestContent(requestFile);
+        String expectedResponse = GatewayTestUtils.getResponseContent(responseFile);
+        String response = GatewayTestUtils.getGraphqlQueryResponse(GATEWAY_URL, query);
         Assert.assertEquals(response.toString(), expectedResponse);
     }
 
@@ -95,9 +95,9 @@ public class GatewayExecutionTest {
     @Test(description = "Test gateway with mutation requests",
             dataProvider = "MutationRequestResponseDataProvider")
     public void testGatewayMutationExecution(String requestFile, String responseFile) throws IOException {
-        String query = TestUtils.getRequestContent(requestFile);
-        String expectedResponse = TestUtils.getResponseContent(responseFile);
-        String response = TestUtils.getGraphqlMutationResponse(GATEWAY_URL, query);
+        String query = GatewayTestUtils.getRequestContent(requestFile);
+        String expectedResponse = GatewayTestUtils.getResponseContent(responseFile);
+        String response = GatewayTestUtils.getGraphqlMutationResponse(GATEWAY_URL, query);
         Assert.assertEquals(response.toString(), expectedResponse);
     }
 

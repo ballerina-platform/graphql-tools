@@ -45,7 +45,6 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createBuiltinSimpleN
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createCaptureBindingPatternNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createIntersectionTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createKeySpecifierNode;
-import static io.ballerina.compiler.syntax.tree.NodeFactory.createListConstructorExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createMappingConstructorExpressionNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModuleVariableDeclarationNode;
@@ -107,7 +106,7 @@ public class GatewayQueryPlanGenerator {
         }
     }
 
-    private SyntaxTree generateSyntaxTree() throws GatewayQueryPlanGenerationException {
+    private SyntaxTree generateSyntaxTree() {
         List<ModuleMemberDeclarationNode> nodeList = new LinkedList<>();
         NodeList<ImportDeclarationNode> importsList = createEmptyNodeList();
 
@@ -127,10 +126,7 @@ public class GatewayQueryPlanGenerator {
         return syntaxTree.modifyWith(modulePartNode);
     }
 
-    private void addQueryPlanTableNode(List<ModuleMemberDeclarationNode> nodeList)
-            throws GatewayQueryPlanGenerationException {
-
-
+    private void addQueryPlanTableNode(List<ModuleMemberDeclarationNode> nodeList) {
         ModuleMemberDeclarationNode tableNode = createModuleVariableDeclarationNode(
                 null,
                 createToken(PUBLIC_KEYWORD),
@@ -176,7 +172,7 @@ public class GatewayQueryPlanGenerator {
         nodeList.add(tableNode);
     }
 
-    private SeparatedNodeList<Node> getTableRows() throws GatewayQueryPlanGenerationException {
+    private SeparatedNodeList<Node> getTableRows() {
         List<Node> nodeList = new ArrayList<>();
         List<String> names = CommonUtils.getCustomDefinedObjectTypeNames(graphQLSchema);
 
@@ -198,7 +194,7 @@ public class GatewayQueryPlanGenerator {
         return createSeparatedNodeList(nodeList);
     }
 
-    private SeparatedNodeList<MappingFieldNode> getTableEntry(String name) throws GatewayQueryPlanGenerationException {
+    private SeparatedNodeList<MappingFieldNode> getTableEntry(String name) {
         List<Node> nodeList = new ArrayList<>();
         nodeList.add(
                 createSpecificFieldNode(
@@ -281,8 +277,7 @@ public class GatewayQueryPlanGenerator {
         return createSeparatedNodeList(nodeList);
     }
 
-    private Map<String, String> getKeys(String name)
-            throws GatewayQueryPlanGenerationException {
+    private Map<String, String> getKeys(String name) {
         Map<String, String> keys = new HashMap<>();
         List<GraphQLAppliedDirective> directives = SpecReader.getObjectTypeDirectives(this.graphQLSchema, name);
 
@@ -416,76 +411,7 @@ public class GatewayQueryPlanGenerator {
                 )
         );
 
-        if (data.getRequires() != null) {
-            fieldNodeList.add(createToken(COMMA_TOKEN));
-            fieldNodeList.add(
-                    createSpecificFieldNode(
-                            null,
-                            createIdentifierToken("requires"),
-                            createToken(COLON_TOKEN),
-                            createListConstructorExpressionNode(
-                                    createToken(OPEN_BRACKET_TOKEN),
-                                    getRequiresEntries(data.getRequires()),
-                                    createToken(CLOSE_BRACKET_TOKEN)
-                            )
-                    )
-            );
-        }
-
         return createSeparatedNodeList(fieldNodeList);
-    }
-
-    private SeparatedNodeList<Node> getRequiresEntries(Map<String, String> requires) {
-        List<Node> nodeList = new ArrayList<>();
-
-        int requiresLength = requires.size();
-        int i = 0;
-
-        for (Map.Entry<String, String> entry : requires.entrySet()) {
-            MappingConstructorExpressionNode entryNode = createMappingConstructorExpressionNode(
-                    createToken(OPEN_BRACE_TOKEN),
-                    createSeparatedNodeList(
-                            createSpecificFieldNode(
-                                    null,
-                                    createIdentifierToken("clientName"),
-                                    createToken(COLON_TOKEN),
-                                    createBasicLiteralNode(
-                                            STRING_LITERAL,
-                                            createLiteralValueToken(
-                                                    STRING_LITERAL_TOKEN,
-                                                    entry.getKey(),
-                                                    createEmptyMinutiaeList(),
-                                                    createEmptyMinutiaeList()
-                                            )
-                                    )
-                            ),
-                            createToken(COMMA_TOKEN),
-                            createSpecificFieldNode(
-                                    null,
-                                    createIdentifierToken("fieldString"),
-                                    createToken(COLON_TOKEN),
-                                    createBasicLiteralNode(
-                                            STRING_LITERAL,
-                                            createLiteralValueToken(
-                                                    STRING_LITERAL_TOKEN,
-                                                    "\"" + entry.getValue() + "\"",
-                                                    createEmptyMinutiaeList(),
-                                                    createEmptyMinutiaeList()
-                                            )
-                                    )
-                            )
-                    ),
-                    createToken(CLOSE_BRACE_TOKEN)
-            );
-
-            nodeList.add(entryNode);
-            i += 1;
-            if (i < requiresLength) {
-                nodeList.add(createToken(COMMA_TOKEN));
-            }
-        }
-
-        return createSeparatedNodeList(nodeList);
     }
 
     private void addClientConstantDeclarations(List<ModuleMemberDeclarationNode> nodeList) {
