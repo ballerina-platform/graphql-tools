@@ -213,7 +213,8 @@ public class ServiceCombiner {
                 nextTypeDef.typeDescriptor() instanceof RecordTypeDescriptorNode) {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDef.typeDescriptor();
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            return isRecordTypeEquals(prevRecordType, nextRecordType);
+            targetAndReplacement.put(prevRecordType, nextRecordType);
+            return true;
         } else if (prevTypeDef.typeDescriptor() instanceof UnionTypeDescriptorNode &&
                 nextTypeDef.typeDescriptor() instanceof UnionTypeDescriptorNode) {
             UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) prevTypeDef.typeDescriptor();
