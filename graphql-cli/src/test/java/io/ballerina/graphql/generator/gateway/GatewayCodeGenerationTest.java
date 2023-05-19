@@ -49,7 +49,7 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
 
     @Test(description = "Test query plan generation for gateway", dataProvider =
             "GatewayQueryPlanGenerationDataProvider")
-    public void testQueryPlanGeneration(String supergraphFileName, String expectedFileName)
+    public void testQueryPlanGeneration(String supergraphFileName)
             throws ValidationException, IOException, GatewayQueryPlanGenerationException, GatewayGenerationException {
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
@@ -57,22 +57,21 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayQueryPlanGenerator(graphQLSchema)).generateSrc();
         String expectedSrc = Files.readString(expectedResources.resolve(
-                Paths.get("queryPlans", expectedFileName)));
+                Paths.get(GatewayTestUtils.getCorrespondingFolderName(supergraphFileName), "queryPlan.bal")));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
 
     @DataProvider(name = "GatewayQueryPlanGenerationDataProvider")
     public Object[][] getGatewayQueryPlanGenerationTestData() {
         return new Object[][] {
-                {"Supergraph", "queryPlan.bal"},
-                {"Supergraph01", "queryPlan01.bal"},
-                {"Supergraph02", "queryPlan02.bal"},
-                {"Supergraph03", "queryPlan03.bal"}
+                {"SupergraphWithTwoEntities"},
+                {"SupergraphWithIDTypeFields"},
+                {"SupergraphWithThreeEntities"}
         };
     }
 
     @Test(description = "Test service generation for gateway", dataProvider = "serviceGenerationDataProvider")
-    public void testGatewayServiceGeneration(String supergraphFileName, String expectedFileName)
+    public void testGatewayServiceGeneration(String supergraphFileName)
             throws ValidationException, IOException, GatewayServiceGenerationException {
 
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
@@ -80,22 +79,21 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
                         .toString(), this.tmpDir);
         String generatedSrc = (new GatewayServiceGenerator(project)).generateSrc();
         String expectedSrc = Files.readString(expectedResources.resolve(
-                Paths.get("services", expectedFileName)));
+                Paths.get(GatewayTestUtils.getCorrespondingFolderName(supergraphFileName), "service.bal")));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
 
     @DataProvider(name = "serviceGenerationDataProvider")
     public Object[][] getServiceGenerationDataProvider() {
         return new Object[][] {
-                {"Supergraph", "service.bal"},
-                {"Supergraph01", "service01.bal"},
-                {"Supergraph02", "service02.bal"},
-                {"Supergraph03", "service03.bal"}
+                {"SupergraphWithTwoEntities"},
+                {"SupergraphWithIDTypeFields"},
+                {"SupergraphWithThreeEntities"}
         };
     }
 
     @Test(description = "Test gateway types generation", dataProvider = "GatewayTypeGenerationDataProvider")
-    public void testGatewayTypeGeneration(String supergraphFileName, String expectedFileName)
+    public void testGatewayTypeGeneration(String supergraphFileName)
             throws IOException, ValidationException, GatewayTypeGenerationException {
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
@@ -103,17 +101,16 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
         String generatedSrc = (new GatewayTypeGenerator(graphQLSchema)).generateSrc();
         String expectedSrc = Files.readString(expectedResources.resolve(
-                Paths.get("types", expectedFileName)));
+                Paths.get(GatewayTestUtils.getCorrespondingFolderName(supergraphFileName), "types.bal")));
         Assert.assertEquals(generatedSrc, expectedSrc);
     }
 
     @DataProvider(name = "GatewayTypeGenerationDataProvider")
     public Object[][] getGatewayTypeGenerationTestData() {
         return new Object[][] {
-                {"Supergraph", "types.bal"},
-                {"Supergraph01", "types01.bal"},
-                {"Supergraph02", "types02.bal"},
-                {"Supergraph03", "types03.bal"}
+                {"SupergraphWithTwoEntities"},
+                {"SupergraphWithIDTypeFields"},
+                {"SupergraphWithThreeEntities"}
         };
     }
 }

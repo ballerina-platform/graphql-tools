@@ -27,7 +27,7 @@ import graphql.schema.GraphQLFieldDefinition;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
-import io.ballerina.graphql.generator.gateway.TestUtils;
+import io.ballerina.graphql.generator.gateway.GatewayTestUtils;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.GatewayCodeGenerator;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
@@ -41,6 +41,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 /**
  * Class to test common utils used in graphql gateway generation.
@@ -56,13 +57,11 @@ public class CommonUtilTest extends GraphqlTest {
     @DataProvider(name = "SchemaAndTypeNamesProvider")
     public Object[][] getSchemaAndTypeNames() throws ValidationException, IOException {
         return new Object[][] {
-                {TestUtils.getGatewayProject("Supergraph", tmpDir),
+                {GatewayTestUtils.getGatewayProject("SupergraphWithTwoEntities", tmpDir),
                         new String[] {"Astronaut", "Mission"}},
-                {TestUtils.getGatewayProject("Supergraph01", tmpDir),
+                {GatewayTestUtils.getGatewayProject("SupergraphWithIDTypeFields", tmpDir),
                         new String[] {"Astronaut", "Mission"}},
-                {TestUtils.getGatewayProject("Supergraph02", tmpDir),
-                        new String[] {"Review", "User", "Product", "ProductDimension"}},
-                {TestUtils.getGatewayProject("Supergraph03", tmpDir),
+                {GatewayTestUtils.getGatewayProject("SupergraphWithThreeEntities", tmpDir),
                         new String[] {"Review", "Product", "Category"}},
 
         };
@@ -79,11 +78,8 @@ public class CommonUtilTest extends GraphqlTest {
     @DataProvider(name = "SchemaAndQueryTypesProvider")
     public Object[][] getSchemaAndQueryTypes() throws ValidationException, IOException {
         return new Object[][] {
-                {TestUtils.getGatewayProject("Supergraph", tmpDir), new String[] {
+                {GatewayTestUtils.getGatewayProject("SupergraphWithTwoEntities", tmpDir), new String[] {
                         "astronaut", "astronauts", "mission", "missions"
-                }},
-                {TestUtils.getGatewayProject("Supergraph02", tmpDir), new String[] {
-                        "me", "topProducts"
                 }}
         };
     }
@@ -99,23 +95,24 @@ public class CommonUtilTest extends GraphqlTest {
     @DataProvider(name = "SchemaAndMutationTypesProvider")
     public Object[][] getSchemaAndMutationTypes() throws ValidationException, IOException {
         return new Object[][] {
-                {TestUtils.getGatewayProject("Supergraph", tmpDir), new String[] {
+                {GatewayTestUtils.getGatewayProject("SupergraphWithTwoEntities", tmpDir), new String[] {
                         "addMission"
                 }},
-                {TestUtils.getGatewayProject("Supergraph01", tmpDir), new String[] {}}
+                {GatewayTestUtils.getGatewayProject("SupergraphWithIDTypeFields", tmpDir),
+                        new String[] {}}
         };
     }
 
     @Test(description = "Test successful compilation of a ballerina gateway projects",
             dataProvider = "GatewayProjectFilesProvider")
-    public void testGetCompiledBallerinaProject(Path[] files, String folderName)
+    public void testGetCompiledBallerinaProject(File folder, String folderName)
             throws GatewayGenerationException, IOException {
         Path projectDir = tmpDir.resolve(folderName);
         if (!projectDir.toFile().mkdir()) {
             throw new RuntimeException("Error while creating project directory");
         }
         GatewayCodeGenerator.copyTemplateFiles(projectDir);
-        TestUtils.copyFilesToTarget(files, projectDir);
+        GatewayTestUtils.copyFilesToTarget(Objects.requireNonNull(folder.listFiles()), projectDir);
         File executable = CommonUtils.getCompiledBallerinaProject(projectDir, tmpDir, folderName);
         Assert.assertTrue(executable.exists());
     }
@@ -144,7 +141,7 @@ public class CommonUtilTest extends GraphqlTest {
             throw new RuntimeException("Error while creating project directory");
         }
         GatewayCodeGenerator.copyTemplateFiles(projectDir);
-        TestUtils.copyFilesToTarget(files, projectDir);
+        GatewayTestUtils.copyFilesToTarget(files, projectDir);
         try {
             CommonUtils.getCompiledBallerinaProject(projectDir, tmpDir, folderName);
         } catch (GatewayGenerationException e) {
@@ -156,40 +153,20 @@ public class CommonUtilTest extends GraphqlTest {
     public Object[][] getProjects() {
         Path gatewayResourceDir = Paths.get(resourceDir.toAbsolutePath().toString(), "federationGateway",
                 "expectedResults");
-        Path servicesDir = gatewayResourceDir.resolve("services");
-        Path typesDir = gatewayResourceDir.resolve("types");
-        Path queryPlans = gatewayResourceDir.resolve("queryPlans");
         return new Object[][] {
                 {
-                        new Path[] {
-                                servicesDir.resolve("service.bal"),
-                                typesDir.resolve("types.bal"),
-                                queryPlans.resolve("queryPlan.bal")
-                        },
-                        "project"
-                },
-                {
-                        new Path[] {
-                                servicesDir.resolve("service01.bal"),
-                                typesDir.resolve("types01.bal"),
-                                queryPlans.resolve("queryPlan01.bal")
-                        },
+                        new File(gatewayResourceDir.resolve("SupergraphWithTwoEntities")
+                                .toAbsolutePath().toString()),
                         "project01"
                 },
                 {
-                        new Path[] {
-                                servicesDir.resolve("service02.bal"),
-                                typesDir.resolve("types02.bal"),
-                                queryPlans.resolve("queryPlan02.bal")
-                        },
+                        new File(gatewayResourceDir.resolve("SupergraphWithIDTypeFields")
+                                .toAbsolutePath().toString()),
                         "project02"
                 },
                 {
-                        new Path[] {
-                                servicesDir.resolve("service03.bal"),
-                                typesDir.resolve("types03.bal"),
-                                queryPlans.resolve("queryPlan03.bal")
-                        },
+                        new File(gatewayResourceDir.resolve("SupergraphWithThreeEntities")
+                                .toAbsolutePath().toString()),
                         "project03"
                 }
         };
@@ -197,37 +174,10 @@ public class CommonUtilTest extends GraphqlTest {
 
     @DataProvider(name = "InvalidGatewayProjectFilesProvider")
     public Object[][] getinvalidProjects() {
-        Path gatewayResourceDir = Paths.get(resourceDir.toAbsolutePath().toString(), "federationGateway",
-                "expectedResults");
-        Path servicesDir = gatewayResourceDir.resolve("services");
-        Path typesDir = gatewayResourceDir.resolve("types");
-        Path queryPlans = gatewayResourceDir.resolve("queryPlans");
         return new Object[][] {
                 {
                         new Path[] {},
                         "projectWithMissingFiles"
-                },
-                {
-                        new Path[] {
-                                servicesDir.resolve("service01.bal"),
-                                typesDir.resolve("types01.bal")
-                        },
-                        "projectWithoutQueryPlan"
-                },
-                {
-                        new Path[] {
-                                servicesDir.resolve("service02.bal"),
-                                queryPlans.resolve("queryPlan02.bal")
-                        },
-                        "projectWithoutTypes"
-                },
-                {
-                        new Path[] {
-                                servicesDir.resolve("service03.bal"),
-                                typesDir.resolve("types02.bal"),
-                                queryPlans.resolve("queryPlan03.bal")
-                        },
-                        "projectWithWrongTypeFile"
                 }
         };
     }

@@ -39,13 +39,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Comparator;
 
 /**
  * Utility class for gateway tests.
  */
-public class TestUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestUtils.class);
+public class GatewayTestUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GatewayTestUtils.class);
     private static final Path sampleRequestResourceDir =
             Path.of("src", "test", "resources", "federationGateway", "sampleRequests").toAbsolutePath();
     private static final Path schemaResourceDir =
@@ -145,12 +146,24 @@ public class TestUtils {
         }
     }
 
+    public static void copyFilesToTarget(File[] files, Path targetDir) throws IOException {
+        for (File file : files) {
+            Path path = file.toPath();
+            Files.copy(path, targetDir.resolve(path.getFileName()));
+        }
+    }
+
     public static GraphqlGatewayProject getGatewayProject(String schemaFileName, Path tmpDir) throws IOException,
             ValidationException {
         GraphqlGatewayProject project = new GraphqlGatewayProject("test",
                 schemaResourceDir.resolve(schemaFileName + ".graphql").toString(), tmpDir.toString());
         Utils.validateGraphqlProject(project);
         return project;
+    }
+
+    public static String getCorrespondingFolderName(String schemaFileName) {
+        char firstChar = schemaFileName.charAt(0);
+        return Character.toLowerCase(firstChar) + schemaFileName.substring(1);
     }
 
 }
