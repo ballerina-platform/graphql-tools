@@ -428,10 +428,9 @@ public class GraphqlCmdTest extends GraphqlTest {
     @DataProvider(name = "gatewayCmdTestDataProvider")
     public Object[][] gatewayCmdTestDataProvider() {
         return new Object[][] {
-                {"Supergraph"},
-                {"Supergraph01"},
-                {"Supergraph02"},
-                {"Supergraph03"},
+                {"SupergraphWithTwoEntities"},
+                {"SupergraphWithIDTypeFields"},
+                {"SupergraphWithThreeEntities"},
         };
     }
 }
