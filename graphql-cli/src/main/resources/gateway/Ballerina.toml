@@ -5,9 +5,3 @@ version = "0.1.0"
 
 [build-options]
 observabilityIncluded = true
-
-[[dependency]]
-name = "graphql"
-org = "ballerina"
-version = "1.8.0"
-repository = "local"
