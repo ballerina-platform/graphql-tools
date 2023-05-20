@@ -16,7 +16,6 @@ import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
-import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.gateway.generator.common.FieldData;
 import io.ballerina.graphql.generator.gateway.generator.common.JoinGraph;
@@ -97,12 +96,12 @@ public class GatewayQueryPlanGenerator {
         this.schemaTypes = new SchemaTypes(graphQLSchema);
     }
 
-    public String generateSrc() throws GatewayQueryPlanGenerationException {
+    public String generateSrc() throws GatewayGenerationException {
         try {
             SyntaxTree syntaxTree = generateSyntaxTree();
             return Formatter.format(syntaxTree).toString();
         } catch (Exception e) {
-            throw new GatewayQueryPlanGenerationException("Error while generating the gateway types", e);
+            throw new GatewayGenerationException("Error while generating the gateway types");
         }
     }
 
@@ -287,7 +286,7 @@ public class GatewayQueryPlanGenerator {
                     String graph = getGraphOfJoinTypeArgument(directive);
                     String key = getKeyOfJoinTypeArgument(name, directive);
                     keys.put(graph, key);
-                } catch (GatewayQueryPlanGenerationException ignored) {
+                } catch (GatewayGenerationException ignored) {
 
                 }
             }
@@ -297,7 +296,7 @@ public class GatewayQueryPlanGenerator {
     }
 
     private String getGraphOfJoinTypeArgument(GraphQLAppliedDirective directive)
-            throws GatewayQueryPlanGenerationException {
+            throws GatewayGenerationException {
         for (GraphQLAppliedDirectiveArgument argument : directive.getArguments()) {
             if (argument.getName().equals("graph")) {
                 String graphEnumName =
@@ -305,11 +304,11 @@ public class GatewayQueryPlanGenerator {
                 return this.joinGraphs.get(graphEnumName).getName();
             }
         }
-        throw new GatewayQueryPlanGenerationException("No graph argument found in @join__type directive");
+        throw new GatewayGenerationException("No graph argument found in @join__type directive");
     }
 
     private String getKeyOfJoinTypeArgument(String name, GraphQLAppliedDirective directive)
-            throws GatewayQueryPlanGenerationException {
+            throws GatewayGenerationException {
         try {
             for (GraphQLAppliedDirectiveArgument argument : directive.getArguments()) {
                 if (argument.getName().equals("key")) {
@@ -324,7 +323,7 @@ public class GatewayQueryPlanGenerator {
                 }
             }
         }
-        throw new GatewayQueryPlanGenerationException("No key argument found in @join__type directive");
+        throw new GatewayGenerationException("No key argument found in @join__type directive");
     }
 
     private SeparatedNodeList<Node> getFieldTableRows(String name) {

@@ -23,9 +23,6 @@ import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
-import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
-import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
-import io.ballerina.graphql.generator.gateway.exception.GatewayTypeGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.GatewayQueryPlanGenerator;
 import io.ballerina.graphql.generator.gateway.generator.GatewayServiceGenerator;
 import io.ballerina.graphql.generator.gateway.generator.GatewayTypeGenerator;
@@ -50,7 +47,7 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
     @Test(description = "Test query plan generation for gateway", dataProvider =
             "GatewayQueryPlanGenerationDataProvider")
     public void testQueryPlanGeneration(String supergraphFileName)
-            throws ValidationException, IOException, GatewayQueryPlanGenerationException, GatewayGenerationException {
+            throws ValidationException, IOException, GatewayGenerationException {
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);
@@ -72,7 +69,7 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
 
     @Test(description = "Test service generation for gateway", dataProvider = "serviceGenerationDataProvider")
     public void testGatewayServiceGeneration(String supergraphFileName)
-            throws ValidationException, IOException, GatewayServiceGenerationException {
+            throws ValidationException, IOException, GatewayGenerationException {
 
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
@@ -94,7 +91,7 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
 
     @Test(description = "Test gateway types generation", dataProvider = "GatewayTypeGenerationDataProvider")
     public void testGatewayTypeGeneration(String supergraphFileName)
-            throws IOException, ValidationException, GatewayTypeGenerationException {
+            throws IOException, ValidationException, GatewayGenerationException {
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);

@@ -10,9 +10,6 @@ import io.ballerina.graphql.generator.client.exception.ConfigTypesGenerationExce
 import io.ballerina.graphql.generator.client.exception.UtilsGenerationException;
 import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
-import io.ballerina.graphql.generator.gateway.exception.GatewayQueryPlanGenerationException;
-import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
-import io.ballerina.graphql.generator.gateway.exception.GatewayTypeGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.gateway.generator.common.Constants;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
@@ -38,8 +35,8 @@ public class GatewayCodeGenerator extends CodeGenerator {
     @Override
     public List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratorContext generatorContext)
             throws GatewayGenerationException, ServiceGenerationException, ClientGenerationException,
-            UtilsGenerationException, IOException,
-            ConfigTypesGenerationException, ClientTypesGenerationException, ServiceTypesGenerationException {
+                   UtilsGenerationException, IOException,
+                   ConfigTypesGenerationException, ClientTypesGenerationException, ServiceTypesGenerationException {
         return null;
     }
 
@@ -61,15 +58,13 @@ public class GatewayCodeGenerator extends CodeGenerator {
             //Generating the executable
             CommonUtils.getCompiledBallerinaProject(((GraphqlGatewayProject) project).getTempDir(),
                     outputDirectoryPath, project.getFileName() + "-gateway");
-        } catch (GatewayGenerationException | IOException | GatewayTypeGenerationException |
-                 GatewayQueryPlanGenerationException | URISyntaxException e) {
+        } catch (GatewayGenerationException | IOException | URISyntaxException e) {
             throw new GatewayGenerationException(e.getMessage(), project.getName());
         }
     }
 
     private List<SrcFilePojo> generateBalSources(GraphqlProject project)
-            throws GatewayGenerationException, GatewayTypeGenerationException, GatewayQueryPlanGenerationException,
-            IOException, URISyntaxException {
+            throws GatewayGenerationException, IOException, URISyntaxException {
         String projectName = project.getName();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
@@ -82,7 +77,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
 
     private void generateTypes(String projectName, GraphQLSchema graphQLSchema,
                                List<SrcFilePojo> sourceFiles)
-            throws GatewayTypeGenerationException {
+            throws GatewayGenerationException {
         GatewayTypeGenerator gatewayTypeGenerator = new GatewayTypeGenerator(graphQLSchema);
         String typesFileContent = gatewayTypeGenerator.generateSrc();
         sourceFiles.add(
@@ -92,7 +87,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
 
     private void generateQueryPlan(String projectName, GraphQLSchema graphQLSchema,
                                    List<SrcFilePojo> sourceFiles)
-            throws GatewayQueryPlanGenerationException, GatewayGenerationException {
+            throws GatewayGenerationException {
         GatewayQueryPlanGenerator gatewayQueryPlanGenerator = new GatewayQueryPlanGenerator(graphQLSchema);
         String queryPlanFileContent = gatewayQueryPlanGenerator.generateSrc();
         sourceFiles.add(
@@ -102,7 +97,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
 
     private void generateServiceFile(String projectName, GraphqlGatewayProject project,
                                      List<SrcFilePojo> sourceFiles)
-            throws GatewayServiceGenerationException, IOException {
+            throws GatewayGenerationException, IOException {
         GatewayServiceGenerator gatewayServiceGenerator = new GatewayServiceGenerator(project);
         String serviceFileContent = gatewayServiceGenerator.generateSrc();
         sourceFiles.add(
@@ -111,7 +106,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
     }
 
     private static void copyTemplateFiles(GraphqlGatewayProject project) throws IOException, URISyntaxException,
-            GatewayGenerationException {
+                                                                                GatewayGenerationException {
         copyTemplateFiles(project.getTempDir());
     }
 

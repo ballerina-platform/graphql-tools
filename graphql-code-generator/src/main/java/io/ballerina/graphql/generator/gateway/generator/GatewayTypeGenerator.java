@@ -31,7 +31,6 @@ import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
-import io.ballerina.graphql.generator.gateway.exception.GatewayTypeGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
 import io.ballerina.graphql.generator.utils.model.FieldType;
@@ -76,12 +75,12 @@ public class GatewayTypeGenerator {
         this.graphQLSchema = graphQLSchema;
     }
 
-    public String generateSrc() throws GatewayTypeGenerationException {
+    public String generateSrc() throws GatewayGenerationException {
         try {
             SyntaxTree syntaxTree = generateSyntaxTree();
             return Formatter.format(syntaxTree).toString();
         } catch (Exception e) {
-            throw new GatewayTypeGenerationException("Error while generating the gateway types", e);
+            throw new GatewayGenerationException("Error while generating the gateway types");
         }
     }
 

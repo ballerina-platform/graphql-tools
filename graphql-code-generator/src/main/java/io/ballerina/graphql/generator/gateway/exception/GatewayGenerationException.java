@@ -36,7 +36,7 @@ public class GatewayGenerationException extends GenerationException {
 
     @Override
     public String getMessage() {
-        Diagnostic diagnostic = createDiagnostic(DiagnosticMessages.GRAPHQL_GEN_100, this.getLocation(),
+        Diagnostic diagnostic = createDiagnostic(DiagnosticMessages.GRAPHQL_GEN_107, this.getLocation(),
                 this.getErrMessage());
         return diagnostic.toString();
     }

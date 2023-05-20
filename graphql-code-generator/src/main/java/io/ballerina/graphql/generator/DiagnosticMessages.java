@@ -37,7 +37,11 @@ public enum DiagnosticMessages {
     GRAPHQL_GEN_105("GRAPHQL_GEN_105", "Ballerina config types code generation related error occurred.",
             DiagnosticSeverity.ERROR),
     GRAPHQL_GEN_106("GRAPHQL_GEN_106", "Ballerina code generation related error occurred. %s",
-            DiagnosticSeverity.ERROR);
+            DiagnosticSeverity.ERROR),
+    GRAPHQL_GEN_107("GRAPHQL_GEN_107", "Ballerina federation gateway generation " +
+            "related error occurred. %s", DiagnosticSeverity.ERROR);
+
+
     private final String code;
     private final String description;
     private final DiagnosticSeverity severity;

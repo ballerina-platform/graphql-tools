@@ -13,7 +13,6 @@ import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
-import io.ballerina.graphql.generator.gateway.exception.GatewayServiceGenerationException;
 import io.ballerina.graphql.generator.gateway.generator.common.CommonUtils;
 import io.ballerina.graphql.generator.gateway.generator.common.JoinGraph;
 import io.ballerina.graphql.generator.utils.graphql.SpecReader;
@@ -74,12 +73,12 @@ public class GatewayServiceGenerator {
         joinGraphs = getJoinGraphs(project.getGraphQLSchema());
     }
 
-    public String generateSrc() throws GatewayServiceGenerationException {
+    public String generateSrc() throws GatewayGenerationException {
         try {
             SyntaxTree syntaxTree = generateSyntaxTree();
             return Formatter.format(syntaxTree).toString();
         } catch (Exception e) {
-            throw new GatewayServiceGenerationException("Error while generating the gateway services", e);
+            throw new GatewayGenerationException("Error while generating the gateway services");
         }
     }
 
@@ -140,7 +139,7 @@ public class GatewayServiceGenerator {
                     REMOTE_FUNCTION_TEMPLATE_FILE));
             type = "Mutation";
         } else {
-            throw new GatewayServiceGenerationException("Unsupported function type");
+            throw new GatewayGenerationException("Unsupported function type");
         }
         return template.replaceAll(QUERY_PLACEHOLDER,
                         ((GraphQLFieldDefinition) graphQLSchemaElement).getName())
@@ -193,7 +192,7 @@ public class GatewayServiceGenerator {
     }
 
     private String getClientNameFromFieldDefinition(GraphQLFieldDefinition graphQLFieldDefinition, String parentType)
-            throws GatewayServiceGenerationException {
+            throws GatewayGenerationException {
         for (GraphQLAppliedDirective directive : graphQLFieldDefinition.getAppliedDirectives()) {
             if (directive.getName().equals("join__field")) {
                 return ((EnumValue) Objects.requireNonNull(
@@ -210,7 +209,7 @@ public class GatewayServiceGenerator {
             }
         }
 
-        throw new GatewayServiceGenerationException("No client name found: " + graphQLFieldDefinition.getName());
+        throw new GatewayGenerationException("No client name found: " + graphQLFieldDefinition.getName());
     }
 
     private String getArgumentString(GraphQLSchemaElement graphQLObjectType) throws GatewayGenerationException {
