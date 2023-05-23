@@ -390,5 +390,42 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(expectedServiceTypesContent, result);
     }
 
+    @Test(description = "Test combining updated schema with new interface fields")
+    public void testCombiningUpdatedSchemaWithNewInterfaceFields() throws Exception {
+        String balFileName = "typesWithInterfaceDefault";
+        String newSchemaFileName = "SchemaWithInterfaceApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "addField", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "addField", balFileName + ".bal"));
 
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceCombiner serviceCombiner = new ServiceCombiner(updateBalFileNode, nextSchemaNode);
+        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+    }
+
+    @Test(description = "Test combining updated schema with new interface fields")
+    public void testNodeParser() throws Exception {
+        String balFileName = "typesDocsWithEnumDefault";
+        Path balFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", balFileName + ".bal"));
+        String balFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(balFilePath));
+        ModulePartNode balFileNode = NodeParser.parseModulePart(balFileContent);
+        Assert.assertTrue(balFileNode != null);
+
+    }
 }
