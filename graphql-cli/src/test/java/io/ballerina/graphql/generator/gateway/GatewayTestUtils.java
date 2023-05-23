@@ -155,8 +155,8 @@ public class GatewayTestUtils {
         }
     }
 
-    public static GraphqlGatewayProject getGatewayProject(String schemaFileName, Path tmpDir) throws IOException,
-                                                                                                     ValidationException {
+    public static GraphqlGatewayProject getGatewayProject(String schemaFileName, Path tmpDir)
+            throws IOException, ValidationException {
         GraphqlGatewayProject project = new GraphqlGatewayProject("test",
                 schemaResourceDir.resolve(schemaFileName + ".graphql").toString(), tmpDir.toString());
         Utils.validateGraphqlProject(project);
