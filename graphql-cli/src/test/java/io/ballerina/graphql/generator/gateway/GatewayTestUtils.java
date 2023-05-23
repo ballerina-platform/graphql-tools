@@ -58,7 +58,10 @@ public class GatewayTestUtils {
                 tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
         graphqlCmd.execute();
-        File generatedGateway = new File(tmpDir + File.separator + "Supergraph-gateway.jar");
+        String generatedJarName = supergraphSdl.getFileName().toString().replace(".graphql", "") +
+                "-gateway.jar";
+        File generatedGateway =
+                new File(tmpDir + File.separator + generatedJarName);
         if (generatedGateway.exists()) {
             return generatedGateway;
         }
@@ -153,7 +156,7 @@ public class GatewayTestUtils {
     }
 
     public static GraphqlGatewayProject getGatewayProject(String schemaFileName, Path tmpDir) throws IOException,
-            ValidationException {
+                                                                                                     ValidationException {
         GraphqlGatewayProject project = new GraphqlGatewayProject("test",
                 schemaResourceDir.resolve(schemaFileName + ".graphql").toString(), tmpDir.toString());
         Utils.validateGraphqlProject(project);

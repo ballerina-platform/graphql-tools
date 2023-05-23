@@ -157,17 +157,17 @@ public class CommonUtilTest extends GraphqlTest {
                 "expectedResults");
         return new Object[][] {
                 {
-                        new File(gatewayResourceDir.resolve("SupergraphWithTwoEntities")
+                        new File(gatewayResourceDir.resolve("supergraphWithTwoEntities")
                                 .toAbsolutePath().toString()),
                         "project01"
                 },
                 {
-                        new File(gatewayResourceDir.resolve("SupergraphWithIDTypeFields")
+                        new File(gatewayResourceDir.resolve("supergraphWithIDTypeFields")
                                 .toAbsolutePath().toString()),
                         "project02"
                 },
                 {
-                        new File(gatewayResourceDir.resolve("SupergraphWithThreeEntities")
+                        new File(gatewayResourceDir.resolve("supergraphWithThreeEntities")
                                 .toAbsolutePath().toString()),
                         "project03"
                 }

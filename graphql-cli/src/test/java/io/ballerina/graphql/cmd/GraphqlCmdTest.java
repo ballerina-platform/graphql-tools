@@ -407,7 +407,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     }
     @Test(description = "Test successful graphql federation gateway executable generation",
             dataProvider = "gatewayCmdTestDataProvider")
-    public void testGatewayCodeGeneration(String supergraph) {
+    public void testGatewayJarGeneration(String supergraph) {
         Path supergraphSdl = resourceDir.resolve(Paths.get("federationGateway", "supergraphSchemas",
                 supergraph + ".graphql"));
 
