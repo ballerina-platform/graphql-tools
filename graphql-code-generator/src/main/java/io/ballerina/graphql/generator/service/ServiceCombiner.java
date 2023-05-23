@@ -12,6 +12,8 @@ import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
@@ -46,6 +48,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 
@@ -391,6 +395,7 @@ public class ServiceCombiner {
         if (!prevClassDef.className().text().equals(nextClassDef.className().text())) {
             return false;
         }
+        NodeList<Node> updatedPrevClassFuncDefinitions = prevClassDef.members();
         for (Node nextClassMember : nextClassDef.members()) {
             if (!(nextClassMember instanceof FunctionDefinitionNode)) {
                 continue;
@@ -407,8 +412,18 @@ public class ServiceCombiner {
                 }
             }
             if (!foundMatch) {
-                return false;
+                updatedPrevClassFuncDefinitions = updatedPrevClassFuncDefinitions.add(nextClassFuncDef);
             }
+        }
+        if (updatedPrevClassFuncDefinitions.size() != prevClassDef.members().size()) {
+            ClassDefinitionNode modifiedPrevClassDef =
+                    prevClassDef.modify(prevClassDef.metadata().orElse(null),
+                            prevClassDef.visibilityQualifier().orElse(null),
+                            prevClassDef.classTypeQualifiers(),
+                            prevClassDef.classKeyword(), prevClassDef.className(), prevClassDef.openBrace(),
+                            updatedPrevClassFuncDefinitions, prevClassDef.closeBrace(),
+                            prevClassDef.semicolonToken().orElse(null));
+            targetAndReplacement.put(prevClassDef, modifiedPrevClassDef);
         }
         return true;
     }
