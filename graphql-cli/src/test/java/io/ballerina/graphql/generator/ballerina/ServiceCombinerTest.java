@@ -16,6 +16,8 @@ import org.testng.annotations.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
@@ -445,6 +447,47 @@ public class ServiceCombinerTest extends GraphqlTest {
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
+    }
+
+    @Test(description = "Test combining updated schema with removed input type fields")
+    public void testCombiningUpdatedSchemaWithRemovedInputTypeFields() throws Exception {
+        String balFileName = "typesWithInputsDefault";
+        String newSchemaFileName = "SchemaWithInputsApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "removeField", balFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceCombiner serviceCombiner = new ServiceCombiner(updateBalFileNode, nextSchemaNode);
+        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> warningMessages = new ArrayList<>();
+        warningMessages.add("warning: In 'CreateAuthorInput' input type 'email' field has removed. This can brake " +
+                "clients");
+        warningMessages.add("warning: In 'CreateBookInput' input type 'authorId' field has removed. This can brake " +
+                "clients");
+        warningMessages.add("warning: In 'CreateBookInput' input type 'price' field has removed. This can brake " +
+                "clients");
+        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 3);
+        for (int i = 0; i < 3; i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
+        }
     }
 
     @Test(description = "Test combining updated schema with new interface fields")
