@@ -12,8 +12,6 @@ import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
-import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
-import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
@@ -48,8 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
-import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode;
 
@@ -60,11 +57,24 @@ public class ServiceCombiner {
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
     private Map<Node, Node> targetAndReplacement;
+    private List<ModuleMemberDeclarationNode> moduleMembers;
+    private List<ModuleMemberDeclarationNode> inputObjectTypesModuleMembers;
+    private List<ModuleMemberDeclarationNode> interfaceTypesModuleMembers;
+    private List<ModuleMemberDeclarationNode> enumTypesModuleMembers;
+    private List<ModuleMemberDeclarationNode> unionTypesModuleMembers;
+    private List<ModuleMemberDeclarationNode> objectTypesModuleMembers;
 
     public ServiceCombiner(ModulePartNode prevContentNode, ModulePartNode nextContentNode) {
         this.prevContentNode = prevContentNode;
         this.nextContentNode = nextContentNode;
         this.targetAndReplacement = new HashMap<>();
+
+        moduleMembers = new ArrayList<>();
+        inputObjectTypesModuleMembers = new ArrayList<>();
+        interfaceTypesModuleMembers = new ArrayList<>();
+        enumTypesModuleMembers = new ArrayList<>();
+        unionTypesModuleMembers = new ArrayList<>();
+        objectTypesModuleMembers = new ArrayList<>();
     }
 
     public static void getChangesOfTypeDefinitionRegistry(TypeDefinitionRegistry prevRegistry,
@@ -97,13 +107,16 @@ public class ServiceCombiner {
         List<ModuleMemberDeclarationNode> newMembers =
                 generateNewMembers(prevContentNode.members(), nextContentNode.members());
 
-        for (Map.Entry<Node, Node> entry : targetAndReplacement.entrySet()) {
-            prevContentNode = prevContentNode.replace(entry.getKey(), entry.getValue());
-        }
+        moduleMembers.addAll(inputObjectTypesModuleMembers);
+        moduleMembers.addAll(interfaceTypesModuleMembers);
+        moduleMembers.addAll(enumTypesModuleMembers);
+        moduleMembers.addAll(unionTypesModuleMembers);
+        moduleMembers.addAll(objectTypesModuleMembers);
+        moduleMembers.addAll(newMembers);
 
-        NodeList<ModuleMemberDeclarationNode> combinedMembers = prevContentNode.members().addAll(newMembers);
+        NodeList<ModuleMemberDeclarationNode> allMembers = createNodeList(moduleMembers);
         ModulePartNode contentNode =
-                createModulePartNode(prevContentNode.imports(), combinedMembers, createToken(SyntaxKind.EOF_TOKEN));
+                createModulePartNode(prevContentNode.imports(), allMembers, createToken(SyntaxKind.EOF_TOKEN));
 
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
@@ -163,7 +176,7 @@ public class ServiceCombiner {
         if (!prevEnumDec.identifier().text().equals(nextEnumDec.identifier().text())) {
             return false;
         }
-        targetAndReplacement.put(prevEnumDec, nextEnumDec);
+        enumTypesModuleMembers.add(nextEnumDec);
 //
 //        for (Node nextEnumMemberNode : nextEnumDec.enumMemberList()) {
 //            boolean foundMatch = false;
@@ -191,15 +204,23 @@ public class ServiceCombiner {
                 nextTypeDef.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
             ObjectTypeDescriptorNode prevServiceObject = (ObjectTypeDescriptorNode) prevTypeDef.typeDescriptor();
             ObjectTypeDescriptorNode nextServiceObject = (ObjectTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            List<Node> serviceObjectNewMembers = getServiceObjectNewMembers(prevServiceObject, nextServiceObject);
-            if (serviceObjectNewMembers.size() > 0) {
-                ObjectTypeDescriptorNode modifiedPrevServiceObject =
-                        prevServiceObject.modify(prevServiceObject.objectTypeQualifiers(),
-                                prevServiceObject.objectKeyword(), prevServiceObject.openBrace(),
-                                prevServiceObject.members().addAll(serviceObjectNewMembers),
-                                prevServiceObject.closeBrace());
-                targetAndReplacement.put(prevTypeDef.typeDescriptor(), modifiedPrevServiceObject);
+            if (isServiceObjectEquals(prevServiceObject, nextServiceObject)) {
+
             }
+//
+//            NodeList<Node> serviceObjectNewMembers = getServiceObjectNewMembers(prevServiceObject, nextServiceObject);
+//
+//            ObjectTypeDescriptorNode modifiedPrevServiceObject =
+//                    prevServiceObject.modify(prevServiceObject.objectTypeQualifiers(),
+//                            prevServiceObject.objectKeyword(), prevServiceObject.openBrace(),
+//                            serviceObjectNewMembers,
+//                            prevServiceObject.closeBrace());
+//            TypeDefinitionNode modifiedPrevServiceType = prevTypeDef.modify(prevTypeDef.metadata().orElse(null),
+//                    prevTypeDef.visibilityQualifier().orElse(null),
+//                    prevTypeDef.typeKeyword(), prevTypeDef.typeName(), modifiedPrevServiceObject,
+//                    prevTypeDef.semicolonToken());
+//            moduleMembers.add(modifiedPrevServiceType);
+            moduleMembers.add(nextTypeDef);
             return true;
         } else if (prevTypeDef.typeDescriptor() instanceof DistinctTypeDescriptorNode &&
                 nextTypeDef.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
@@ -207,26 +228,40 @@ public class ServiceCombiner {
                     (DistinctTypeDescriptorNode) prevTypeDef.typeDescriptor();
             DistinctTypeDescriptorNode nextDistinctServiceObject =
                     (DistinctTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            // is it need to check for distinct keyword equality?
+
             ObjectTypeDescriptorNode prevServiceObject =
                     (ObjectTypeDescriptorNode) prevDistinctServiceObject.typeDescriptor();
             ObjectTypeDescriptorNode nextServiceObject =
                     (ObjectTypeDescriptorNode) nextDistinctServiceObject.typeDescriptor();
-            return isServiceObjectEquals(prevServiceObject, nextServiceObject);
+            if (!isServiceObjectEquals(prevServiceObject, nextServiceObject)) {
+
+            }
+            interfaceTypesModuleMembers.add(nextTypeDef);
+            return true;
         } else if (prevTypeDef.typeDescriptor() instanceof RecordTypeDescriptorNode &&
                 nextTypeDef.typeDescriptor() instanceof RecordTypeDescriptorNode) {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDef.typeDescriptor();
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            targetAndReplacement.put(prevRecordType, nextRecordType);
+            if (!isRecordTypeEquals(prevRecordType, nextRecordType)) {
+//                TypeDefinitionNode modifiedPrevRecordType = prevTypeDef.modify(prevTypeDef.metadata().orElse(null),
+//                        prevTypeDef.visibilityQualifier().orElse(null),
+//                        prevTypeDef.typeKeyword(), prevTypeDef.typeName(), nextRecordType,
+//                        prevTypeDef.semicolonToken());
+//                inputObjectTypesModuleMembers.add(modifiedPrevRecordType);
+            }
+            inputObjectTypesModuleMembers.add(nextTypeDef);
             return true;
         } else if (prevTypeDef.typeDescriptor() instanceof UnionTypeDescriptorNode &&
                 nextTypeDef.typeDescriptor() instanceof UnionTypeDescriptorNode) {
             UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) prevTypeDef.typeDescriptor();
             UnionTypeDescriptorNode nextUnionType = (UnionTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            return isUnionTypeEquals(prevUnionType, nextUnionType);
-        } else {
-            return false;
+            if (isUnionTypeEquals(prevUnionType, nextUnionType)) {
+
+            }
+            unionTypesModuleMembers.add(nextTypeDef);
+            return true;
         }
+        return true;
     }
 
     private boolean isUnionTypeEquals(UnionTypeDescriptorNode prevUnionType, UnionTypeDescriptorNode nextUnionType)
@@ -240,7 +275,6 @@ public class ServiceCombiner {
                 return true;
             }
         } else if (!isTypeEquals(prevUnionType.leftTypeDesc(), nextUnionType.leftTypeDesc())) {
-
             return false;
         }
         if (!prevUnionType.pipeToken().text().equals(nextUnionType.pipeToken().text())) {
@@ -289,9 +323,9 @@ public class ServiceCombiner {
         return true;
     }
 
-    private List<Node> getServiceObjectNewMembers(ObjectTypeDescriptorNode prevServiceObject,
-                                                  ObjectTypeDescriptorNode nextServiceObject) throws Exception {
-        List<Node> members = new ArrayList<>();
+    private NodeList<Node> getServiceObjectNewMembers(ObjectTypeDescriptorNode prevServiceObject,
+                                                      ObjectTypeDescriptorNode nextServiceObject) throws Exception {
+        NodeList<Node> members = prevServiceObject.members();
         for (Node nextMember : nextServiceObject.members()) {
             boolean foundMatch = false;
             for (Node prevMember : prevServiceObject.members()) {
@@ -409,22 +443,21 @@ public class ServiceCombiner {
                 FunctionDefinitionNode prevClassFuncDef = (FunctionDefinitionNode) prevClassMember;
                 if (isFuncDefEquals(prevClassFuncDef, nextClassFuncDef)) {
                     foundMatch = true;
+                    break;
                 }
             }
             if (!foundMatch) {
                 updatedPrevClassFuncDefinitions = updatedPrevClassFuncDefinitions.add(nextClassFuncDef);
             }
         }
-        if (updatedPrevClassFuncDefinitions.size() != prevClassDef.members().size()) {
-            ClassDefinitionNode modifiedPrevClassDef =
-                    prevClassDef.modify(prevClassDef.metadata().orElse(null),
-                            prevClassDef.visibilityQualifier().orElse(null),
-                            prevClassDef.classTypeQualifiers(),
-                            prevClassDef.classKeyword(), prevClassDef.className(), prevClassDef.openBrace(),
-                            updatedPrevClassFuncDefinitions, prevClassDef.closeBrace(),
-                            prevClassDef.semicolonToken().orElse(null));
-            targetAndReplacement.put(prevClassDef, modifiedPrevClassDef);
-        }
+        ClassDefinitionNode modifiedPrevClassDef =
+                prevClassDef.modify(prevClassDef.metadata().orElse(null),
+                        prevClassDef.visibilityQualifier().orElse(null),
+                        prevClassDef.classTypeQualifiers(),
+                        prevClassDef.classKeyword(), prevClassDef.className(), prevClassDef.openBrace(),
+                        updatedPrevClassFuncDefinitions, prevClassDef.closeBrace(),
+                        prevClassDef.semicolonToken().orElse(null));
+        objectTypesModuleMembers.add(modifiedPrevClassDef);
         return true;
     }
 
