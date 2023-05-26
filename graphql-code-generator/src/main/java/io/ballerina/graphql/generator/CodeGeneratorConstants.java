@@ -39,6 +39,7 @@ public class CodeGeneratorConstants {
     public static final String CLIENT_FILE_NAME = "client.bal";
     public static final String SERVICE_FILE_NAME = "service.bal";
     public static final String TYPES_FILE_NAME = "types.bal";
+    public static final String QUERY_PLAN_FILE_NAME = "query_plan.bal";
     public static final String UTILS_FILE_NAME = "utils.bal";
     public static final String CONFIG_TYPES_FILE_NAME = "config_types.bal";
     public static final String SCHEMA_PATTERN = "schema";
@@ -69,6 +70,7 @@ public class CodeGeneratorConstants {
     public static final String MODE_CLIENT = "client";
     public static final String MODE_SERVICE = "service";
     public static final String MODE_SCHEMA = "schema";
+    public static final String MODE_GATEWAY = "federation-gateway";
     public static final String CLIENT = "Client";
     public static final String SERVICE = "Service";
     public static final String LISTENER = "Listener";
@@ -127,7 +129,7 @@ public class CodeGeneratorConstants {
     public static final String LINE_SEPARATOR = System.lineSeparator();
 
     // TODO: Update keywords if Ballerina Grammer changes
-    private static final String[] KEYWORDS = new String[]{"abort", "aborted", "abstract", "all", "annotation",
+    private static final String[] KEYWORDS = new String[] {"abort", "aborted", "abstract", "all", "annotation",
             "any", "anydata", "boolean", "break", "byte", "catch", "channel", "check", "checkpanic", "client",
             "committed", "const", "continue", "decimal", "else", "error", "external", "fail", "final", "finally",
             "float", "flush", "fork", "function", "future", "handle", "if", "import", "in", "int", "is", "join",
@@ -137,10 +139,10 @@ public class CodeGeneratorConstants {
             "trap", "throw", "wait", "while", "with", "worker", "var", "version", "xml", "xmlns", "BOOLEAN_LITERAL",
             "NULL_LITERAL", "ascending", "descending", "foreach", "map", "group", "from", "default", "field",
             "limit", "as", "on", "isolated", "readonly", "distinct", "where", "select", "do", "transactional"
-            , "commit", "enum", "base16", "base64", "rollback", "configurable",  "class", "module", "never",
+            , "commit", "enum", "base16", "base64", "rollback", "configurable", "class", "module", "never",
             "outer", "order", "null", "key", "let", "by", "equals"};
 
-    private static final String[] TYPES = new String[]{"int", "any", "anydata", "boolean", "byte", "float", "int",
+    private static final String[] TYPES = new String[] {"int", "any", "anydata", "boolean", "byte", "float", "int",
             "json", "string", "table", "var", "xml"};
 
     public static final List<String> BAL_KEYWORDS;

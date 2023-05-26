@@ -25,10 +25,11 @@ import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
-import io.ballerina.graphql.generator.client.generator.graphql.SpecReader;
-import io.ballerina.graphql.generator.client.generator.model.FieldType;
+import io.ballerina.graphql.generator.utils.graphql.SpecReader;
+import io.ballerina.graphql.generator.utils.model.FieldType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -48,14 +49,14 @@ public class SpecReaderTest extends GraphqlTest {
     @Test
     public void testGetInputObjectTypeNames() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
-                this.tmpDir);
+                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
         List<String> generatedInputObjectTypes = SpecReader.getInputObjectTypeNames(schema);
-        List<String> expectedInputObjectTypes = Arrays.asList("ContinentFilterInput", "CountryFilterInput",
-                "LanguageFilterInput", "StringQueryOperatorInput");
-        for (String generatedInputObjectType: generatedInputObjectTypes) {
-            assertTrue(expectedInputObjectTypes.contains(generatedInputObjectType));
+        List<String> expectedInputObjectTypes =
+                Arrays.asList("ContinentFilterInput", "CountryFilterInput", "LanguageFilterInput",
+                        "StringQueryOperatorInput");
+        for (String generatedInputObjectType : generatedInputObjectTypes) {
+            Assert.assertTrue(expectedInputObjectTypes.contains(generatedInputObjectType));
         }
     }
 
@@ -85,38 +86,36 @@ public class SpecReaderTest extends GraphqlTest {
     @Test
     public void testGetObjectTypeNames() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
-                this.tmpDir);
+                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
         List<String> generatedObjectTypes = SpecReader.getObjectTypeNames(schema);
-        List<String> expectedObjectTypes = Arrays.asList("Continent", "Country",
-                "Language", "Query", "State");
-        for (String generatedObjectType: generatedObjectTypes) {
-            assertTrue(expectedObjectTypes.contains(generatedObjectType));
+        List<String> expectedObjectTypes = Arrays.asList("Continent", "Country", "Language", "Query", "State");
+        for (String generatedObjectType : generatedObjectTypes) {
+            Assert.assertTrue(expectedObjectTypes.contains(generatedObjectType));
         }
     }
 
     @Test
     public void testGetObjectTypeFieldsMap() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
-                this.tmpDir);
+                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
         List<String> generatedObjectTypes = SpecReader.getObjectTypeNames(schema);
-        List<String> expectedObjectTypeFields = Arrays.asList("code string", "name string", "countries Country[]",
-                "continent Continent", "capital string?", "emojiU string", "code string", "emoji string",
-                "languages Language[]", "native string", "phone string", "name string", "currency string?",
-                "states State[]", "code string", "native string?", "name string?", "rtl boolean",
-                "continent Continent?", "country Country?", "languages Language[]", "language Language?",
-                "countries Country[]", "continents Continent[]", "country Country", "code string?", "name string");
-        for (String generatedObjectType: generatedObjectTypes) {
+        List<String> expectedObjectTypeFields =
+                Arrays.asList("code string", "name string", "countries Country[]", "continent Continent",
+                        "capital string?", "emojiU string", "code string", "emoji string", "languages Language[]",
+                        "native string", "phone string", "name string", "currency string?", "states State[]",
+                        "code string", "native string?", "name string?", "rtl boolean", "continent Continent?",
+                        "country Country?", "languages Language[]", "language Language?", "countries Country[]",
+                        "continents Continent[]", "country Country", "code string?", "name string");
+        for (String generatedObjectType : generatedObjectTypes) {
             Map<String, FieldType> generatedObjectTypeFieldsMap =
                     SpecReader.getObjectTypeFieldsMap(schema, generatedObjectType);
-            for (Map.Entry<String, FieldType> generatedObjectTypeFields: generatedObjectTypeFieldsMap.entrySet()) {
+            for (Map.Entry<String, FieldType> generatedObjectTypeFields : generatedObjectTypeFieldsMap.entrySet()) {
                 String generatedFieldName = generatedObjectTypeFields.getKey();
                 String generatedTypeName = generatedObjectTypeFields.getValue().getFieldTypeAsString();
                 String generatedObjectTypeField = generatedFieldName + " " + generatedTypeName;
-                assertTrue(expectedObjectTypeFields.contains(generatedObjectTypeField));
+                Assert.assertTrue(expectedObjectTypeFields.contains(generatedObjectTypeField));
             }
         }
     }
@@ -124,26 +123,24 @@ public class SpecReaderTest extends GraphqlTest {
     @Test
     public void testGetCustomScalarTypeNames() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
-                this.tmpDir);
+                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
         List<String> generatedCustomScalarTypes = SpecReader.getCustomScalarTypeNames(schema);
         List<String> expectedCustomScalarTypes = Arrays.asList("Upload");
-        for (String generatedCustomScalarType: generatedCustomScalarTypes) {
-            assertTrue(expectedCustomScalarTypes.contains(generatedCustomScalarType));
+        for (String generatedCustomScalarType : generatedCustomScalarTypes) {
+            Assert.assertTrue(expectedCustomScalarTypes.contains(generatedCustomScalarType));
         }
     }
 
     @Test
     public void testGetEnumTypeNames() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
-                this.tmpDir);
+                this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
         List<String> generatedEnumTypes = SpecReader.getEnumTypeNames(schema);
         List<String> expectedEnumTypes = Arrays.asList("CacheControlScope");
-        for (String generatedEnumType: generatedEnumTypes) {
-            assertTrue(expectedEnumTypes.contains(generatedEnumType));
+        for (String generatedEnumType : generatedEnumTypes) {
+            Assert.assertTrue(expectedEnumTypes.contains(generatedEnumType));
         }
     }
 }

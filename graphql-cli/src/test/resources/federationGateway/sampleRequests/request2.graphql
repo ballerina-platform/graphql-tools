@@ -1,0 +1,8 @@
+mission(id: 1){
+    id
+    designation
+    crew{
+        id
+        name
+    }
+}

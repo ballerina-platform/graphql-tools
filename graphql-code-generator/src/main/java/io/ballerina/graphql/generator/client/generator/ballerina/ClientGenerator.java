@@ -39,11 +39,11 @@ import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.Utils;
 import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
-import io.ballerina.graphql.generator.client.generator.graphql.QueryReader;
-import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
-import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
+import io.ballerina.graphql.generator.utils.graphql.QueryReader;
+import io.ballerina.graphql.generator.utils.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
@@ -80,12 +80,6 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.PUBLIC_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.READONLY_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.REMOTE_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.INIT;
 
 /**
  * This class is used to generate ballerina client file according to given SDL and query file.
@@ -93,6 +87,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.INIT;
 public class ClientGenerator {
     private static ClientGenerator clientGenerator = null;
 
+    // TODO: stop using singleton
     public static ClientGenerator getInstance() {
         if (clientGenerator == null) {
             clientGenerator = new ClientGenerator();
@@ -103,17 +98,17 @@ public class ClientGenerator {
     /**
      * Generates the client file content.
      *
-     * @param queryDocuments                    the list of names of the query documents
-     * @param graphQLSchema                     the object instance of the GraphQL schema (SDL)
-     * @param authConfig                        the object instance representing authentication config information
-     * @return                                  the client file content
-     * @throws ClientGenerationException        when a client code generation error occurs
+     * @param queryDocuments the list of names of the query documents
+     * @param graphQLSchema  the object instance of the GraphQL schema (SDL)
+     * @param authConfig     the object instance representing authentication config information
+     * @return the client file content
+     * @throws ClientGenerationException when a client code generation error occurs
      */
     public String generateSrc(List<String> queryDocuments, GraphQLSchema graphQLSchema, AuthConfig authConfig,
                               GeneratorContext generatorContext) throws ClientGenerationException {
         try {
-            return Formatter.format(generateSyntaxTree(
-                    queryDocuments, graphQLSchema, authConfig, generatorContext)).toString();
+            return Formatter.format(generateSyntaxTree(queryDocuments, graphQLSchema, authConfig, generatorContext))
+                    .toString();
         } catch (FormatterException | IOException e) {
             throw new ClientGenerationException(e.getMessage());
         }
@@ -122,10 +117,10 @@ public class ClientGenerator {
     /**
      * Generates the client syntax tree.
      *
-     * @param queryDocuments            the list of names of the query documents
-     * @param graphQLSchema             the object instance of the GraphQL schema (SDL)
-     * @param authConfig                the object instance representing authentication configuration information
-     * @return                          Syntax tree for the ballerina client code
+     * @param queryDocuments the list of names of the query documents
+     * @param graphQLSchema  the object instance of the GraphQL schema (SDL)
+     * @param authConfig     the object instance representing authentication configuration information
+     * @return Syntax tree for the ballerina client code
      */
     private SyntaxTree generateSyntaxTree(List<String> queryDocuments, GraphQLSchema graphQLSchema,
                                           AuthConfig authConfig, GeneratorContext generatorContext) throws IOException {
@@ -137,7 +132,7 @@ public class ClientGenerator {
 
         ModulePartNode modulePartNode = createModulePartNode(imports, members, createToken(EOF_TOKEN));
 
-        TextDocument textDocument = TextDocuments.from(EMPTY_STRING);
+        TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
         return syntaxTree.modifyWith(modulePartNode);
     }
@@ -145,12 +140,13 @@ public class ClientGenerator {
     /**
      * Generates the imports in the client file.
      *
-     * @return                          the node list which represent imports in the client file
+     * @return the node list which represent imports in the client file
      */
     private NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();
-        ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
-                CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.GRAPHQL);
+        ImportDeclarationNode importForGraphql =
+                CodeGeneratorUtils.getImportDeclarationNode(CodeGeneratorConstants.BALLERINA,
+                        CodeGeneratorConstants.GRAPHQL);
         imports.add(importForGraphql);
         return createNodeList(imports);
     }
@@ -158,16 +154,16 @@ public class ClientGenerator {
     /**
      * Generates the members in the client file. The members include auth config record types & client class nodes.
      *
-     * @param queryDocuments            the list of names of the query documents
-     * @param graphQLSchema             the object instance of the GraphQL schema (SDL)
-     * @param authConfig                the object instance representing authentication configuration information
-     * @return                          the node list which represent members in the client file
+     * @param queryDocuments the list of names of the query documents
+     * @param graphQLSchema  the object instance of the GraphQL schema (SDL)
+     * @param authConfig     the object instance representing authentication configuration information
+     * @return the node list which represent members in the client file
      */
     private NodeList<ModuleMemberDeclarationNode> generateMembers(List<String> queryDocuments,
                                                                   GraphQLSchema graphQLSchema, AuthConfig authConfig,
                                                                   GeneratorContext generatorContext)
             throws IOException {
-        List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
+        List<ModuleMemberDeclarationNode> members = new ArrayList<>();
         // Generate client class
         ClassDefinitionNode classDefinitionNode =
                 generateClientClass(queryDocuments, graphQLSchema, authConfig, generatorContext);
@@ -178,21 +174,21 @@ public class ClientGenerator {
     /**
      * Generates the client class in the client file.
      *
-     * @param queryDocuments            the list of names of the query documents
-     * @param graphQLSchema             the object instance of the GraphQL schema (SDL)
-     * @param authConfig                the object instance representing authentication configuration information
-     * @return                          the node which represent the client class in the client file
+     * @param queryDocuments the list of names of the query documents
+     * @param graphQLSchema  the object instance of the GraphQL schema (SDL)
+     * @param authConfig     the object instance representing authentication configuration information
+     * @return the node which represent the client class in the client file
      */
     private ClassDefinitionNode generateClientClass(List<String> queryDocuments, GraphQLSchema graphQLSchema,
                                                     AuthConfig authConfig, GeneratorContext generatorContext)
             throws IOException {
         MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
-        NodeList<Token> classTypeQualifiers = createNodeList(
-                createToken(ISOLATED_KEYWORD), createToken(CLIENT_KEYWORD));
+        NodeList<Token> classTypeQualifiers =
+                createNodeList(createToken(ISOLATED_KEYWORD), createToken(CLIENT_KEYWORD));
         IdentifierToken className = createIdentifierToken(CodeGeneratorUtils.getClientClassName(generatorContext));
 
         // Collect members for class definition node
-        List<Node> members =  new ArrayList<>();
+        List<Node> members = new ArrayList<>();
         // Generate class instance variables
         members.addAll(generateClassInstanceVariables(authConfig));
         // Generate init function
@@ -201,15 +197,15 @@ public class ClientGenerator {
         members.addAll(generateRemoteFunctions(queryDocuments, graphQLSchema, authConfig));
 
         return createClassDefinitionNode(metadataNode, createToken(PUBLIC_KEYWORD), classTypeQualifiers,
-                createToken(CLASS_KEYWORD), className, createToken(OPEN_BRACE_TOKEN),
-                createNodeList(members), createToken(CLOSE_BRACE_TOKEN), null);
+                createToken(CLASS_KEYWORD), className, createToken(OPEN_BRACE_TOKEN), createNodeList(members),
+                createToken(CLOSE_BRACE_TOKEN), null);
     }
 
     /**
      * Generates the client class instance variables.
      *
-     * @param authConfig        the object instance representing authentication configuration information
-     * @return                  the list of nodes which represent the client class instance variables
+     * @param authConfig the object instance representing authentication configuration information
+     * @return the list of nodes which represent the client class instance variables
      */
     private List<ObjectFieldNode> generateClassInstanceVariables(AuthConfig authConfig) {
         List<ObjectFieldNode> objectFields = new ArrayList<>();
@@ -224,15 +220,15 @@ public class ClientGenerator {
     /**
      * Generates the client class init function.
      *
-     * @param authConfig        the object instance representing authentication configuration information
-     * @return                  the node which represent the init function
+     * @param authConfig the object instance representing authentication configuration information
+     * @return the node which represent the init function
      */
     private FunctionDefinitionNode generateInitFunction(AuthConfig authConfig) {
         MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
 
         NodeList<Token> qualifierList = createNodeList(createToken(PUBLIC_KEYWORD), createToken(ISOLATED_KEYWORD));
 
-        IdentifierToken functionName = createIdentifierToken(INIT);
+        IdentifierToken functionName = createIdentifierToken(CodeGeneratorConstants.INIT);
 
         FunctionSignatureNode functionSignatureNode =
                 FunctionSignatureGenerator.getInstance().generateInitFunctionSignature(authConfig);
@@ -245,10 +241,10 @@ public class ClientGenerator {
     /**
      * Generates the client class remote functions.
      *
-     * @param queryDocuments    the list of names of the query documents
-     * @param graphQLSchema     the object instance of the GraphQL schema (SDL)
-     * @param authConfig        the object instance representing authentication configuration information
-     * @return                  the list of nodes which represent the remote functions
+     * @param queryDocuments the list of names of the query documents
+     * @param graphQLSchema  the object instance of the GraphQL schema (SDL)
+     * @param authConfig     the object instance representing authentication configuration information
+     * @return the list of nodes which represent the remote functions
      */
     private List<FunctionDefinitionNode> generateRemoteFunctions(List<String> queryDocuments,
                                                                  GraphQLSchema graphQLSchema, AuthConfig authConfig)
@@ -259,7 +255,7 @@ public class ClientGenerator {
             Document queryDocument = Utils.getGraphQLQueryDocument(document);
             QueryReader queryReader = new QueryReader(queryDocument);
 
-            for (ExtendedOperationDefinition queryDefinition: queryReader.getExtendedOperationDefinitions()) {
+            for (ExtendedOperationDefinition queryDefinition : queryReader.getExtendedOperationDefinitions()) {
                 // Generate remote function
                 FunctionDefinitionNode functionDefinitionNode =
                         generateRemoteFunction(queryDefinition, graphQLSchema, authConfig);
@@ -272,10 +268,10 @@ public class ClientGenerator {
     /**
      * Generates a client class remote function.
      *
-     * @param queryDefinition       the object instance of a single query definition in a query document
-     * @param graphQLSchema         the object instance of the GraphQL schema (SDL)
-     * @param authConfig            the object instance representing authentication configuration information
-     * @return                      the node which represent the remote function
+     * @param queryDefinition the object instance of a single query definition in a query document
+     * @param graphQLSchema   the object instance of the GraphQL schema (SDL)
+     * @param authConfig      the object instance representing authentication configuration information
+     * @return the node which represent the remote function
      */
     private FunctionDefinitionNode generateRemoteFunction(ExtendedOperationDefinition queryDefinition,
                                                           GraphQLSchema graphQLSchema, AuthConfig authConfig) {
@@ -286,12 +282,10 @@ public class ClientGenerator {
         // Obtain functionName from queryName
         IdentifierToken functionName = createIdentifierToken(queryDefinition.getName());
 
-        FunctionSignatureNode functionSignatureNode =
-                FunctionSignatureGenerator.getInstance()
-                        .generateRemoteFunctionSignature(queryDefinition, graphQLSchema);
-        FunctionBodyNode functionBodyNode =
-                FunctionBodyGenerator.getInstance()
-                        .generateRemoteFunctionBody(queryDefinition, graphQLSchema, authConfig);
+        FunctionSignatureNode functionSignatureNode = FunctionSignatureGenerator.getInstance()
+                .generateRemoteFunctionSignature(queryDefinition, graphQLSchema);
+        FunctionBodyNode functionBodyNode = FunctionBodyGenerator.getInstance()
+                .generateRemoteFunctionBody(queryDefinition, graphQLSchema, authConfig);
 
         return createFunctionDefinitionNode(null, metadataNode, qualifierList, createToken(FUNCTION_KEYWORD),
                 functionName, createEmptyNodeList(), functionSignatureNode, functionBodyNode);
@@ -300,7 +294,7 @@ public class ClientGenerator {
     /**
      * Generates the GraphQL client {@code final graphql:Client graphqlClient;} instance variable.
      *
-     * @return                  the node which represent the {@code graphqlClient} instance variable
+     * @return the node which represent the {@code graphqlClient} instance variable
      */
     private ObjectFieldNode generateGraphqlClientField() {
         MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
@@ -308,20 +302,20 @@ public class ClientGenerator {
         Token finalKeywordToken = createToken(FINAL_KEYWORD);
         NodeList<Token> qualifierList = createNodeList(finalKeywordToken);
 
-        QualifiedNameReferenceNode typeName = createQualifiedNameReferenceNode(createIdentifierToken(GRAPHQL),
-                createToken(COLON_TOKEN), createIdentifierToken(CodeGeneratorConstants.CLIENT));
+        QualifiedNameReferenceNode typeName =
+                createQualifiedNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
+                        createToken(COLON_TOKEN), createIdentifierToken(CodeGeneratorConstants.CLIENT));
 
-        IdentifierToken fieldName = createIdentifierToken(GRAPHQL_CLIENT);
+        IdentifierToken fieldName = createIdentifierToken(CodeGeneratorConstants.GRAPHQL_CLIENT);
 
-        return createObjectFieldNode(metadataNode, null,
-                qualifierList, typeName, fieldName, null, null,
+        return createObjectFieldNode(metadataNode, null, qualifierList, typeName, fieldName, null, null,
                 createToken(SEMICOLON_TOKEN));
     }
 
     /**
      * Generates the API keys config {@code final readonly & ApiKeysConfig apiKeysConfig;} instance variable.
      *
-     * @return                  the node which represent the {@code apiKeysConfig} instance variable
+     * @return the node which represent the {@code apiKeysConfig} instance variable
      */
     private ObjectFieldNode generateApiKeysConfigField() {
         MetadataNode metadataNode = createMetadataNode(null, createEmptyNodeList());
@@ -331,14 +325,13 @@ public class ClientGenerator {
         TypeDescriptorNode readOnlyNode =
                 createTypeReferenceTypeDescNode(createSimpleNameReferenceNode(createToken(READONLY_KEYWORD)));
         TypeDescriptorNode apiKeysConfigNode =
-                createSimpleNameReferenceNode(createIdentifierToken(API_KEYS_CONFIG_TYPE_NAME));
-        TypeDescriptorNode typeName = createIntersectionTypeDescriptorNode(readOnlyNode,
-                createToken(BITWISE_AND_TOKEN), apiKeysConfigNode);
+                createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.API_KEYS_CONFIG_TYPE_NAME));
+        TypeDescriptorNode typeName =
+                createIntersectionTypeDescriptorNode(readOnlyNode, createToken(BITWISE_AND_TOKEN), apiKeysConfigNode);
 
-        IdentifierToken fieldName = createIdentifierToken(API_KEYS_CONFIG_PARAM_NAME);
+        IdentifierToken fieldName = createIdentifierToken(CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME);
 
-        return createObjectFieldNode(metadataNode, null,
-                qualifierList, typeName, fieldName, null, null,
+        return createObjectFieldNode(metadataNode, null, qualifierList, typeName, fieldName, null, null,
                 createToken(SEMICOLON_TOKEN));
     }
 }

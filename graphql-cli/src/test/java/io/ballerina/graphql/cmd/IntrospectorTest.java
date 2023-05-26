@@ -43,11 +43,9 @@ import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
 public class IntrospectorTest extends GraphqlTest {
 
     @Test(description = "Test successful introspection", enabled = false)
-    public void testGetIntrospectionResult()
-            throws ValidationException, CmdException, IOException, ParseException {
+    public void testGetIntrospectionResult() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-with-extensions.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-with-extensions.yaml")).toString(),
                 this.tmpDir);
 
         String schema = projects.get(0).getSchema();
@@ -68,8 +66,7 @@ public class IntrospectorTest extends GraphqlTest {
     public void testGetIntrospectionResultWithEmptyHeaders()
             throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
-                this.resourceDir.resolve(Paths.get("specs",
-                        "graphql-config-with-empty-headers.yaml")).toString(),
+                this.resourceDir.resolve(Paths.get("specs", "graphql-config-with-empty-headers.yaml")).toString(),
                 this.tmpDir);
 
         String schema = projects.get(0).getSchema();

@@ -29,6 +29,9 @@ import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.generator.ClientCodeGenerator;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
+import io.ballerina.graphql.generator.gateway.exception.GatewayGenerationException;
+import io.ballerina.graphql.generator.gateway.generator.GatewayCodeGenerator;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
@@ -66,6 +69,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUM
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_CLIENT;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_GATEWAY;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_SCHEMA;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_SERVICE;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
@@ -103,7 +107,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private String serviceBasePath;
 
     @CommandLine.Option(names = {"-m", "--mode"},
-            description = "Ballerina operation mode. It can be client, service or schema.")
+            description = "Ballerina operation mode. It can be client, service, schema or federation-gateway.")
     private String mode;
 
     @CommandLine.Option(names = {"-r", "--use-records-for-objects"},
@@ -115,6 +119,7 @@ public class GraphqlCmd implements BLauncherCmd {
 
     private ClientCodeGenerator clientCodeGenerator;
     private ServiceCodeGenerator serviceCodeGenerator;
+    private GatewayCodeGenerator gatewayCodeGenerator;
 
     /**
      * Constructor that initialize with the default values.
@@ -144,6 +149,9 @@ public class GraphqlCmd implements BLauncherCmd {
         this.outStream = outStream;
         this.executionPath = executionDir;
         this.exitWhenFinish = exitWhenFinish;
+        this.clientCodeGenerator = new ClientCodeGenerator();
+        this.serviceCodeGenerator = new ServiceCodeGenerator();
+        this.gatewayCodeGenerator = new GatewayCodeGenerator();
     }
 
     /**
@@ -151,7 +159,7 @@ public class GraphqlCmd implements BLauncherCmd {
      *
      * @param exit Whether to exit or not.
      */
-    private static void exitError(boolean exit) {
+    private void exitError(boolean exit) {
         if (exit) {
             Runtime.getRuntime().exit(1);
         }
@@ -225,7 +233,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 return filePath.endsWith(Constants.YAML_EXTENSION) || filePath.endsWith(Constants.YML_EXTENSION);
             } else if (MODE_SCHEMA.equals(mode)) {
                 return filePath.endsWith(Constants.BAL_EXTENSION);
-            } else if (MODE_SERVICE.equals(mode)) {
+            } else if (MODE_SERVICE.equals(mode) || MODE_GATEWAY.equals(mode)) {
                 return filePath.endsWith(Constants.GRAPHQL_EXTENSION);
             } else {
                 throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
@@ -248,7 +256,7 @@ public class GraphqlCmd implements BLauncherCmd {
      */
     private void executeOperation()
             throws CmdException, ParseException, IOException, ValidationException, GenerationException,
-            SchemaFileGenerationException {
+            SchemaFileGenerationException, GatewayGenerationException {
         String filePath = argList.get(0);
 
         if ((MODE_CLIENT.equals(mode) || mode == null) &&
@@ -260,6 +268,9 @@ public class GraphqlCmd implements BLauncherCmd {
         } else if ((MODE_SERVICE.equals(mode)) && (filePath.endsWith(GRAPHQL_EXTENSION))) {
             setServiceCodeGenerator(new ServiceCodeGenerator());
             generateService(filePath);
+        } else if (MODE_GATEWAY.equals(mode)) {
+            outStream.println("Generating the gateway...");
+            generateFederationGateway(filePath);
         }
     }
 
@@ -302,6 +313,27 @@ public class GraphqlCmd implements BLauncherCmd {
             this.serviceCodeGenerator.enableToUseRecords();
         }
         this.serviceCodeGenerator.generate(graphqlProject);
+    }
+
+    private void generateFederationGateway(String filePath)
+            throws GatewayGenerationException, ValidationException, IOException {
+        File graphqlFile = new File(filePath);
+        if (!graphqlFile.exists()) {
+            throw new GatewayGenerationException(String.format(Constants.MESSAGE_MISSING_SCHEMA_FILE, filePath),
+                    ROOT_PROJECT_NAME);
+        }
+        if (!graphqlFile.canRead()) {
+            throw new GatewayGenerationException(String.format(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE, filePath),
+                    ROOT_PROJECT_NAME);
+        }
+
+        GraphqlGatewayProject graphqlProject =
+                new GraphqlGatewayProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());
+        Utils.validateGraphqlProject(graphqlProject);
+
+        this.gatewayCodeGenerator.generate(graphqlProject);
+        outStream.println("Gateway generation completed. Output location: "
+                + getTargetOutputPath().resolve(graphqlProject.getFileName() + "-gateway.jar").toAbsolutePath());
     }
 
     /**
@@ -418,4 +450,5 @@ public class GraphqlCmd implements BLauncherCmd {
     @Override
     public void setParentCmdParser(picocli.CommandLine commandLine) {
     }
+
 }

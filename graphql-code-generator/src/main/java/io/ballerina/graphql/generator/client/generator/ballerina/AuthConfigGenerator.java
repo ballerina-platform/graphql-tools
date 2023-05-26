@@ -19,8 +19,8 @@
 package io.ballerina.graphql.generator.client.generator.ballerina;
 
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 
 import java.util.Map;
 
@@ -40,8 +40,8 @@ public class AuthConfigGenerator {
     /**
      * Populates the authentication types extracting information from the extensions.
      *
-     * @param extensions                the extensions value of the Graphql config file
-     * @param authConfig                the object instance representing authentication configuration information
+     * @param extensions the extensions value of the Graphql config file
+     * @param authConfig the object instance representing authentication configuration information
      */
     public void populateAuthConfigTypes(Extension extensions, AuthConfig authConfig) {
         if (extensions != null && extensions.getEndpoints() != null &&
@@ -67,8 +67,8 @@ public class AuthConfigGenerator {
     /**
      * Populates the API headers if present extracting information from the extensions.
      *
-     * @param extensions                the extensions value of the Graphql config file
-     * @param authConfig                the object instance representing authentication configuration information
+     * @param extensions the extensions value of the Graphql config file
+     * @param authConfig the object instance representing authentication configuration information
      */
     public void populateApiHeaders(Extension extensions, AuthConfig authConfig) {
         if (extensions != null && extensions.getEndpoints() != null &&
@@ -77,8 +77,7 @@ public class AuthConfigGenerator {
             Map<String, String> headers = extensions.getEndpoints().getDefaultName().getHeaders();
             for (String headerName : headers.keySet()) {
                 if (headerName.equals("Authorization")) {
-                    if (!headers.get(headerName).startsWith("Basic") &&
-                            !headers.get(headerName).startsWith("Bearer")) {
+                    if (!headers.get(headerName).startsWith("Basic") && !headers.get(headerName).startsWith("Bearer")) {
                         authConfig.addApiHeader(headerName);
                     }
                 } else {

@@ -24,8 +24,13 @@ import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
+import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationException;
+import io.ballerina.graphql.generator.client.exception.ConfigTypesGenerationException;
+import io.ballerina.graphql.generator.client.exception.UtilsGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
+import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
 import java.io.IOException;
@@ -55,6 +60,13 @@ public class ServiceCodeGenerator extends CodeGenerator {
         } catch (ServiceGenerationException | IOException e) {
             throw new GenerationException(e.getMessage(), project.getName());
         }
+    }
+
+    @Override
+    public List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratorContext generatorContext)
+            throws ServiceGenerationException, ClientGenerationException, UtilsGenerationException, IOException,
+            ConfigTypesGenerationException, ClientTypesGenerationException, ServiceTypesGenerationException {
+        return null;
     }
 
     public List<SrcFilePojo> generateBalSources(GraphqlProject project)

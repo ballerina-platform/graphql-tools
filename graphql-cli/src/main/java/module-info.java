@@ -21,10 +21,10 @@ module io.ballerina.graphql {
     requires org.yaml.snakeyaml;
     requires io.ballerina.cli;
     requires info.picocli;
-    requires org.json;
     requires java.net.http;
     requires io.ballerina.parser;
     requires com.graphqljava;
+    requires com.graphqljava.extendedscalars;
     requires io.ballerina.formatter.core;
     requires org.apache.commons.io;
     requires commons.logging;

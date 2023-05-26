@@ -38,9 +38,10 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.exception.ConfigTypesGenerationException;
-import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
@@ -96,12 +97,6 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.AuthConfigType;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_KIND_FIELD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_KIND_PASSWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_LABEL_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.getMetadataNode;
 
 /**
  * This class is used to generate connection config related types in the ballerina config types file.
@@ -158,8 +153,8 @@ public class ConfigTypesGenerator {
 
         for (ModuleMemberDeclarationNode node : members) {
             if (authConfig.isClientConfig()) {
-                if (node.kind().equals(SyntaxKind.TYPE_DEFINITION) && ((TypeDefinitionNode) node).typeName().text()
-                        .equals(CONNECTION_CONFIG)) {
+                if (node.kind().equals(SyntaxKind.TYPE_DEFINITION) &&
+                        ((TypeDefinitionNode) node).typeName().text().equals(CONNECTION_CONFIG)) {
                     node = constructConnectionConfig(node, authConfig);
                 }
                 memberDeclarationNodes.add(node);
@@ -173,17 +168,16 @@ public class ConfigTypesGenerator {
             NodeList<Node> nodeList = createNodeList(generateApiKeysConfigRecordFields(authConfig));
             RecordTypeDescriptorNode recordTypeDescriptorNode =
                     NodeFactory.createRecordTypeDescriptorNode(createToken(RECORD_KEYWORD),
-                            createToken(OPEN_BRACE_PIPE_TOKEN), nodeList, null,
-                            createToken(CLOSE_BRACE_PIPE_TOKEN));
-            TypeDefinitionNode typeDefinitionNode = createTypeDefinitionNode(metadataNode,
-                    createToken(PUBLIC_KEYWORD), createToken(TYPE_KEYWORD), typeName,
-                    recordTypeDescriptorNode, createToken(SEMICOLON_TOKEN));
+                            createToken(OPEN_BRACE_PIPE_TOKEN), nodeList, null, createToken(CLOSE_BRACE_PIPE_TOKEN));
+            TypeDefinitionNode typeDefinitionNode =
+                    createTypeDefinitionNode(metadataNode, createToken(PUBLIC_KEYWORD), createToken(TYPE_KEYWORD),
+                            typeName, recordTypeDescriptorNode, createToken(SEMICOLON_TOKEN));
             memberDeclarationNodes.add(typeDefinitionNode);
         }
 
-        ModulePartNode moduleNode = createModulePartNode(imports, createNodeList(memberDeclarationNodes),
-                createToken(EOF_TOKEN));
-        TextDocument textDocument = TextDocuments.from(EMPTY_STRING);
+        ModulePartNode moduleNode =
+                createModulePartNode(imports, createNodeList(memberDeclarationNodes), createToken(EOF_TOKEN));
+        TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree configTypeSyntaxTree = SyntaxTree.from(textDocument);
         return configTypeSyntaxTree.modifyWith(moduleNode);
     }
@@ -196,9 +190,10 @@ public class ConfigTypesGenerator {
      * @return updated `ConnectionConfig` type
      */
     private TypeDefinitionNode constructConnectionConfig(ModuleMemberDeclarationNode node, AuthConfig authConfig) {
-        RecordTypeDescriptorNode connectionConfigNode = (RecordTypeDescriptorNode)
-                ((TypeDefinitionNode) node).typeDescriptor();
-        MetadataNode authMetadataNode = getMetadataNode("Configurations related to client authentication");
+        RecordTypeDescriptorNode connectionConfigNode =
+                (RecordTypeDescriptorNode) ((TypeDefinitionNode) node).typeDescriptor();
+        MetadataNode authMetadataNode =
+                CodeGeneratorUtils.getMetadataNode("Configurations related to client authentication");
         String authName;
         if (authConfig.getAuthConfigTypes().contains(AuthConfigType.BEARER)) {
             authName = AuthConfigType.BEARER.getValue();
@@ -207,8 +202,9 @@ public class ConfigTypesGenerator {
         }
         IdentifierToken authFieldName = AbstractNodeFactory.createIdentifierToken(authName);
 
-        Node authConfigNode = createRecordFieldNode(authMetadataNode, null, authFieldName,
-                createIdentifierToken("auth"), null, createToken(SEMICOLON_TOKEN));
+        Node authConfigNode =
+                createRecordFieldNode(authMetadataNode, null, authFieldName, createIdentifierToken("auth"), null,
+                        createToken(SEMICOLON_TOKEN));
 
         List<Node> tokens = new ArrayList<>();
         NodeList<Node> fields = connectionConfigNode.fields();
@@ -221,9 +217,9 @@ public class ConfigTypesGenerator {
                 connectionConfigNode.modify().withFields(nodeList);
         connectionConfigNode = recordTypeDescriptorNodeModifier.apply();
 
-        return createTypeDefinitionNode(((TypeDefinitionNode) node).metadata().get(),
-                createToken(PUBLIC_KEYWORD), createToken(TYPE_KEYWORD), ((TypeDefinitionNode) node).typeName(),
-                connectionConfigNode, createToken(SEMICOLON_TOKEN));
+        return createTypeDefinitionNode(((TypeDefinitionNode) node).metadata().get(), createToken(PUBLIC_KEYWORD),
+                createToken(TYPE_KEYWORD), ((TypeDefinitionNode) node).typeName(), connectionConfigNode,
+                createToken(SEMICOLON_TOKEN));
     }
 
     /**
@@ -265,11 +261,9 @@ public class ConfigTypesGenerator {
         for (String headerName : authConfig.getApiHeaders()) {
             MetadataNode metadataNode = createMetadataNode(null, generateSensitiveFieldsAnnotation());
             TypeDescriptorNode typeName = createSimpleNameReferenceNode(createToken(STRING_KEYWORD));
-            IdentifierToken apiKeyFieldName =
-                    createIdentifierToken(CodeGeneratorUtils.getValidName(headerName));
-            ballerinaApiKeysConfigRecords.add(
-                    createRecordFieldNode(metadataNode, null, typeName,
-                            apiKeyFieldName, null, createToken(SEMICOLON_TOKEN)));
+            IdentifierToken apiKeyFieldName = createIdentifierToken(CodeGeneratorUtils.getValidName(headerName));
+            ballerinaApiKeysConfigRecords.add(createRecordFieldNode(metadataNode, null, typeName, apiKeyFieldName, null,
+                    createToken(SEMICOLON_TOKEN)));
         }
         return ballerinaApiKeysConfigRecords;
     }
@@ -282,23 +276,24 @@ public class ConfigTypesGenerator {
     private NodeList<AnnotationNode> generateSensitiveFieldsAnnotation() {
         List<Node> annotFields = new ArrayList<>();
         Map<String, String> extFields = new LinkedHashMap<>();
-        extFields.put(DISPLAY_ANNOTATION_LABEL_NAME, EMPTY_STRING);
-        extFields.put(DISPLAY_ANNOTATION_KIND_FIELD, DISPLAY_ANNOTATION_KIND_PASSWORD);
+        extFields.put(CodeGeneratorConstants.DISPLAY_ANNOTATION_LABEL_NAME, CodeGeneratorConstants.EMPTY_STRING);
+        extFields.put(CodeGeneratorConstants.DISPLAY_ANNOTATION_KIND_FIELD,
+                CodeGeneratorConstants.DISPLAY_ANNOTATION_KIND_PASSWORD);
         for (Map.Entry<String, String> field : extFields.entrySet()) {
             BasicLiteralNode valueExpr = createBasicLiteralNode(STRING_LITERAL,
                     createLiteralValueToken(SyntaxKind.STRING_LITERAL_TOKEN, '"' + field.getValue().trim() + '"',
                             createEmptyMinutiaeList(), createEmptyMinutiaeList()));
-            SpecificFieldNode fields = createSpecificFieldNode(null,
-                    createIdentifierToken(field.getKey().trim()), createToken(COLON_TOKEN), valueExpr);
+            SpecificFieldNode fields = createSpecificFieldNode(null, createIdentifierToken(field.getKey().trim()),
+                    createToken(COLON_TOKEN), valueExpr);
             annotFields.add(fields);
             annotFields.add(createToken(COMMA_TOKEN));
         }
-        MappingConstructorExpressionNode annotValue = createMappingConstructorExpressionNode(
-                createToken(OPEN_BRACE_TOKEN), createSeparatedNodeList(annotFields),
-                createToken(CLOSE_BRACE_TOKEN));
+        MappingConstructorExpressionNode annotValue =
+                createMappingConstructorExpressionNode(createToken(OPEN_BRACE_TOKEN),
+                        createSeparatedNodeList(annotFields), createToken(CLOSE_BRACE_TOKEN));
 
         SimpleNameReferenceNode annotateReference =
-                createSimpleNameReferenceNode(createIdentifierToken(DISPLAY_ANNOTATION_NAME));
+                createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DISPLAY_ANNOTATION_NAME));
         AnnotationNode annotationNode = createAnnotationNode(createToken(AT_TOKEN), annotateReference, annotValue);
         return createNodeList(annotationNode);
     }

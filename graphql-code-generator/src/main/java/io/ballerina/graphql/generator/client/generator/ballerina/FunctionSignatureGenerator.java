@@ -33,10 +33,10 @@ import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
-import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
-import io.ballerina.graphql.generator.client.generator.model.FieldType;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
+import io.ballerina.graphql.generator.utils.model.FieldType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,16 +58,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.COMMA_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.QUESTION_MARK_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RETURNS_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONFIG_PARAM_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONNECTION_CONFIG_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_EXPRESSION;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.INIT_RETURN_TYPE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.NULLABLE_EXPRESSION;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUESTION_MARK;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SERVICE_URL_TYPE_NAME;
-import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.escapeIdentifier;
+
 
 /**
  * This class is used to generate function signatures in the ballerina client file.
@@ -89,17 +80,17 @@ public class FunctionSignatureGenerator {
      * @return                  the node which represent the init function signature
      */
     public FunctionSignatureNode generateInitFunctionSignature(AuthConfig authConfig) {
-        SeparatedNodeList<ParameterNode> parameterList = createSeparatedNodeList(
-                generateInitFunctionParams(authConfig));
+        SeparatedNodeList<ParameterNode> parameterList =
+                createSeparatedNodeList(generateInitFunctionParams(authConfig));
 
-        OptionalTypeDescriptorNode returnType = createOptionalTypeDescriptorNode(
-                createIdentifierToken(INIT_RETURN_TYPE),
-                createToken(QUESTION_MARK_TOKEN));
-        ReturnTypeDescriptorNode returnTypeDescriptorNode = createReturnTypeDescriptorNode(
-                createToken(RETURNS_KEYWORD), createEmptyNodeList(), returnType);
+        OptionalTypeDescriptorNode returnType =
+                createOptionalTypeDescriptorNode(createIdentifierToken(CodeGeneratorConstants.INIT_RETURN_TYPE),
+                        createToken(QUESTION_MARK_TOKEN));
+        ReturnTypeDescriptorNode returnTypeDescriptorNode =
+                createReturnTypeDescriptorNode(createToken(RETURNS_KEYWORD), createEmptyNodeList(), returnType);
 
-        return createFunctionSignatureNode(
-                createToken(OPEN_PAREN_TOKEN), parameterList, createToken(CLOSE_PAREN_TOKEN), returnTypeDescriptorNode);
+        return createFunctionSignatureNode(createToken(OPEN_PAREN_TOKEN), parameterList, createToken(CLOSE_PAREN_TOKEN),
+                returnTypeDescriptorNode);
     }
 
     /**
@@ -114,14 +105,13 @@ public class FunctionSignatureGenerator {
         SeparatedNodeList<ParameterNode> parameterList = createSeparatedNodeList(
                 generateRemoteFunctionParams(queryDefinition.getVariableDefinitionsMap(graphQLSchema)));
 
-        BuiltinSimpleNameReferenceNode returnType = createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(
-                        CodeGeneratorUtils.getRemoteFunctionSignatureReturnTypeName(queryDefinition.getName())));
-        ReturnTypeDescriptorNode returnTypeDescriptorNode = createReturnTypeDescriptorNode(
-                createToken(RETURNS_KEYWORD), createEmptyNodeList(), returnType);
+        BuiltinSimpleNameReferenceNode returnType = createBuiltinSimpleNameReferenceNode(null, createIdentifierToken(
+                CodeGeneratorUtils.getRemoteFunctionSignatureReturnTypeName(queryDefinition.getName())));
+        ReturnTypeDescriptorNode returnTypeDescriptorNode =
+                createReturnTypeDescriptorNode(createToken(RETURNS_KEYWORD), createEmptyNodeList(), returnType);
 
-        return createFunctionSignatureNode(
-                createToken(OPEN_PAREN_TOKEN), parameterList, createToken(CLOSE_PAREN_TOKEN), returnTypeDescriptorNode);
+        return createFunctionSignatureNode(createToken(OPEN_PAREN_TOKEN), parameterList, createToken(CLOSE_PAREN_TOKEN),
+                returnTypeDescriptorNode);
     }
 
     /**
@@ -135,12 +125,14 @@ public class FunctionSignatureGenerator {
 
         NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
         BuiltinSimpleNameReferenceNode httpClientConfigTypeName = createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(CONNECTION_CONFIG_TYPE_NAME));
-        IdentifierToken httpClientConfigParamName = createIdentifierToken(CONFIG_PARAM_NAME);
+                createIdentifierToken(CodeGeneratorConstants.CONNECTION_CONFIG_TYPE_NAME));
+        IdentifierToken httpClientConfigParamName = createIdentifierToken(CodeGeneratorConstants.CONFIG_PARAM_NAME);
         IdentifierToken equalToken = createIdentifierToken(CodeGeneratorConstants.EQUAL);
-        BasicLiteralNode emptyExpression = createBasicLiteralNode(null, createIdentifierToken(EMPTY_EXPRESSION));
-        DefaultableParameterNode defaultConnectionConfig = createDefaultableParameterNode(annotationNodes,
-                httpClientConfigTypeName, httpClientConfigParamName, equalToken, emptyExpression);
+        BasicLiteralNode emptyExpression =
+                createBasicLiteralNode(null, createIdentifierToken(CodeGeneratorConstants.EMPTY_EXPRESSION));
+        DefaultableParameterNode defaultConnectionConfig =
+                createDefaultableParameterNode(annotationNodes, httpClientConfigTypeName, httpClientConfigParamName,
+                        equalToken, emptyExpression);
 
         Node serviceURLNode = generateServiceURLNode();
 
@@ -177,7 +169,7 @@ public class FunctionSignatureGenerator {
         Node serviceURLNode;
         NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
         BuiltinSimpleNameReferenceNode serviceURLTypeName = createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(SERVICE_URL_TYPE_NAME));
+                createIdentifierToken(CodeGeneratorConstants.SERVICE_URL_TYPE_NAME));
         IdentifierToken serviceURLParamName = createIdentifierToken(CodeGeneratorConstants.SERVICE_URL_PARAM_NAME);
         serviceURLNode = createRequiredParameterNode(annotationNodes, serviceURLTypeName, serviceURLParamName);
         return serviceURLNode;
@@ -192,8 +184,8 @@ public class FunctionSignatureGenerator {
         Node clientConfigNode;
         NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
         BuiltinSimpleNameReferenceNode serviceURLTypeName = createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(CONNECTION_CONFIG_TYPE_NAME));
-        IdentifierToken serviceURLParamName = createIdentifierToken(CONFIG_PARAM_NAME);
+                createIdentifierToken(CodeGeneratorConstants.CONNECTION_CONFIG_TYPE_NAME));
+        IdentifierToken serviceURLParamName = createIdentifierToken(CodeGeneratorConstants.CONFIG_PARAM_NAME);
         clientConfigNode = createRequiredParameterNode(annotationNodes, serviceURLTypeName, serviceURLParamName);
         return clientConfigNode;
     }
@@ -201,15 +193,14 @@ public class FunctionSignatureGenerator {
     /**
      * Generates the API key config {@code ApiKeysConfig apiKeysConfig} node.
      *
-     * @return                  the API key config {@code ApiKeysConfig apiKeysConfig} node
+     * @return the API key config {@code ApiKeysConfig apiKeysConfig} node
      */
     private Node generateApiKeysConfigNode() {
         Node apiKeyConfigNode;
         NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
         BuiltinSimpleNameReferenceNode serviceURLTypeName = createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(API_KEYS_CONFIG_TYPE_NAME));
-        IdentifierToken serviceURLParamName =
-                createIdentifierToken(API_KEYS_CONFIG_PARAM_NAME);
+                createIdentifierToken(CodeGeneratorConstants.API_KEYS_CONFIG_TYPE_NAME));
+        IdentifierToken serviceURLParamName = createIdentifierToken(CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME);
         apiKeyConfigNode = createRequiredParameterNode(annotationNodes, serviceURLTypeName, serviceURLParamName);
         return apiKeyConfigNode;
     }
@@ -217,32 +208,37 @@ public class FunctionSignatureGenerator {
     /**
      * Generates the client class remote function parameters.
      *
-     * @param variableDefinitionsMap    the variable definition map from the query definition
-     * @return                          the list of nodes which represent remote function parameters
+     * @param variableDefinitionsMap the variable definition map from the query definition
+     * @return the list of nodes which represent remote function parameters
      */
     private List<Node> generateRemoteFunctionParams(Map<String, FieldType> variableDefinitionsMap) {
         List<Node> parameters = new ArrayList<>();
         List<Node> requiredParameters = new ArrayList<>();
         List<Node> optionalParameters = new ArrayList<>();
 
-        for (String variableName :variableDefinitionsMap.keySet()) {
-            if (variableDefinitionsMap.get(variableName).getFieldTypeAsString().endsWith(QUESTION_MARK)) {
+        for (String variableName : variableDefinitionsMap.keySet()) {
+            if (variableDefinitionsMap.get(variableName).getFieldTypeAsString()
+                    .endsWith(CodeGeneratorConstants.QUESTION_MARK)) {
                 BuiltinSimpleNameReferenceNode optionalFieldTypeName = createBuiltinSimpleNameReferenceNode(null,
                         createIdentifierToken(variableDefinitionsMap.get(variableName).getFieldTypeAsString()));
-                IdentifierToken optionalFieldParamName = createIdentifierToken(escapeIdentifier(variableName));
+                IdentifierToken optionalFieldParamName =
+                        createIdentifierToken(CodeGeneratorUtils.escapeIdentifier(variableName));
                 IdentifierToken equalToken = createIdentifierToken(CodeGeneratorConstants.EQUAL);
                 BasicLiteralNode nullableExpression =
-                        createBasicLiteralNode(null, createIdentifierToken(NULLABLE_EXPRESSION));
-                DefaultableParameterNode optionalFieldNode = createDefaultableParameterNode(createEmptyNodeList(),
-                        optionalFieldTypeName, optionalFieldParamName, equalToken, nullableExpression);
+                        createBasicLiteralNode(null, createIdentifierToken(CodeGeneratorConstants.NULLABLE_EXPRESSION));
+                DefaultableParameterNode optionalFieldNode =
+                        createDefaultableParameterNode(createEmptyNodeList(), optionalFieldTypeName,
+                                optionalFieldParamName, equalToken, nullableExpression);
                 optionalParameters.add(optionalFieldNode);
                 optionalParameters.add(createToken(COMMA_TOKEN));
             } else {
                 BuiltinSimpleNameReferenceNode requiredFieldTypeName = createBuiltinSimpleNameReferenceNode(null,
                         createIdentifierToken(variableDefinitionsMap.get(variableName).getFieldTypeAsString()));
-                IdentifierToken requiredFieldParamName = createIdentifierToken(escapeIdentifier(variableName));
-                RequiredParameterNode requiredFieldNode = createRequiredParameterNode(createEmptyNodeList(),
-                        requiredFieldTypeName, requiredFieldParamName);
+                IdentifierToken requiredFieldParamName =
+                        createIdentifierToken(CodeGeneratorUtils.escapeIdentifier(variableName));
+                RequiredParameterNode requiredFieldNode =
+                        createRequiredParameterNode(createEmptyNodeList(), requiredFieldTypeName,
+                                requiredFieldParamName);
                 requiredParameters.add(requiredFieldNode);
                 requiredParameters.add(createToken(COMMA_TOKEN));
             }

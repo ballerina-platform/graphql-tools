@@ -18,6 +18,8 @@
 
 package io.ballerina.graphql.generator.client;
 
+
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.pojo.Default;
 import io.ballerina.graphql.generator.client.pojo.Endpoints;
@@ -31,11 +33,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.APPLICATION_JSON;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONTENT_TYPE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.INTROSPECTION_QUERY;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
 
 /**
  * This class is used to introspect a GraphQL API.
@@ -53,10 +50,10 @@ public class Introspector {
     /**
      * Returns the introspection results map for a given GraphQL schema URL.
      *
-     * @param schema                                the GraphQL schema URL value of the Graphql config file
-     * @param extensions                            the extensions value of the Graphql config file
-     * @return                                      the introspection results map
-     * @throws IntospectionException                If an error occurs during introspection of the GraphQL API
+     * @param schema     the GraphQL schema URL value of the Graphql config file
+     * @param extensions the extensions value of the Graphql config file
+     * @return the introspection results map
+     * @throws IntospectionException If an error occurs during introspection of the GraphQL API
      */
     public Map<String, Object> getIntrospectionResult(String schema, Extension extensions)
             throws IntospectionException {
@@ -90,8 +87,8 @@ public class Introspector {
     /**
      * Creates the HTTP request object with the GraphQL payload & headers attached to it.
      *
-     * @param endpoint         the Graphql API endpoint
-     * @return                 the HTTP request object
+     * @param endpoint the Graphql API endpoint
+     * @return the HTTP request object
      */
     private HttpRequest createHttpRequest(String endpoint, Extension extensions) {
         Map<String, String> headers = null;
@@ -107,13 +104,13 @@ public class Introspector {
         if (headers != null) {
             request = addHeaders(HttpRequest.newBuilder()
                     .uri(URI.create(endpoint))
-                    .headers(CONTENT_TYPE, APPLICATION_JSON)
+                    .headers(CodeGeneratorConstants.CONTENT_TYPE, CodeGeneratorConstants.APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8)), headers)
                     .build();
         } else {
             request = HttpRequest.newBuilder()
                     .uri(URI.create(endpoint))
-                    .headers(CONTENT_TYPE, APPLICATION_JSON)
+                    .headers(CodeGeneratorConstants.CONTENT_TYPE, CodeGeneratorConstants.APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8))
                     .build();
         }
@@ -123,14 +120,14 @@ public class Introspector {
     /**
      * Creates the HTTP request object with the GraphQL payload attached to it.
      *
-     * @param endpoint         the Graphql API endpoint
-     * @return                 the HTTP request object
+     * @param endpoint the Graphql API endpoint
+     * @return the HTTP request object
      */
     private HttpRequest createHttpRequest(String endpoint) {
         String graphqlPayload = getRequestPayload();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
-                .headers(CONTENT_TYPE, APPLICATION_JSON)
+                .headers(CodeGeneratorConstants.CONTENT_TYPE, CodeGeneratorConstants.APPLICATION_JSON)
                 .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8))
                 .build();
         return request;
@@ -139,19 +136,19 @@ public class Introspector {
     /**
      * Gets the GraphQL request payload constructed using the introspection query.
      *
-     * @return               the GraphQL request payload
+     * @return the GraphQL request payload
      */
     private String getRequestPayload() {
         JSONObject graphqlJsonPayload = new JSONObject();
-        graphqlJsonPayload.put(QUERY, INTROSPECTION_QUERY);
+        graphqlJsonPayload.put(CodeGeneratorConstants.QUERY, CodeGeneratorConstants.INTROSPECTION_QUERY);
         return graphqlJsonPayload.toString();
     }
 
     /**
      * Attaches headers to the HTTP request object.
      *
-     * @param builder         the builder of HTTP requests
-     * @param headers         the headers map
+     * @param builder the builder of HTTP requests
+     * @param headers the headers map
      */
     private HttpRequest.Builder addHeaders(HttpRequest.Builder builder, Map<String, String> headers) {
         for (Map.Entry<String, String> e : headers.entrySet()) {

@@ -20,6 +20,7 @@ package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.launcher.BLauncherException;
 import io.ballerina.graphql.common.GraphqlTest;
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
@@ -27,6 +28,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -189,7 +191,7 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @DataProvider(name = "invalidFileNameExtension")
     public Object[] createInvalidFileNameExtensionData() {
-        return new Object[]{"graphql.config.yam", "service.bl", "schema.grq", "schema.py"};
+        return new Object[] {"graphql.config.yam", "service.bl", "schema.grq", "schema.py"};
     }
 
     @Test(description = "Test graphql command execution with invalid file extensions",
@@ -402,5 +404,33 @@ public class GraphqlCmdTest extends GraphqlTest {
             output = e.toString();
             Assert.fail(output);
         }
+    }
+    @Test(description = "Test successful graphql federation gateway executable generation",
+            dataProvider = "gatewayCmdTestDataProvider")
+    public void testGatewayJarGeneration(String supergraph) {
+        Path supergraphSdl = resourceDir.resolve(Paths.get("federationGateway", "supergraphSchemas",
+                supergraph + ".graphql"));
+
+        String[] args = {"-i", supergraphSdl.toString(), "-o", tmpDir.toString(), "-m",
+                CodeGeneratorConstants.MODE_GATEWAY};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        try {
+            graphqlCmd.execute();
+            File generatedGateway = new File(tmpDir.toString() + File.separator + supergraph + "-gateway.jar");
+            Assert.assertTrue(generatedGateway.exists());
+        } catch (BLauncherException e) {
+            String output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @DataProvider(name = "gatewayCmdTestDataProvider")
+    public Object[][] gatewayCmdTestDataProvider() {
+        return new Object[][] {
+                {"SupergraphWithTwoEntities"},
+                {"SupergraphWithIDTypeFields"},
+                {"SupergraphWithThreeEntities"},
+        };
     }
 }

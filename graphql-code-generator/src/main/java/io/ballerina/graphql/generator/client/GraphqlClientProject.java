@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.generator.client;
 
+
 import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.client.pojo.Extension;
 import io.ballerina.graphql.generator.utils.GenerationType;

@@ -1,0 +1,15 @@
+isolated resource function get @{query}(graphql:Field 'field @{params}) returns @{responseType}|error{
+    QueryFieldClassifier classifier = new ('field, queryPlan, @{clientName});
+    string fieldString = classifier.getFieldString();
+    UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+    string queryString = wrapwithQuery("@{query}", fieldString @{queryArgs});
+    @{query}Response response = check @{clientName}_CLIENT->execute(queryString);
+    @{responseType} result = response.data.@{query};
+    Resolver resolver = new (queryPlan, result.toJson(), "@{basicResponseType}", propertiesNotResolved, ["@{query}"]);
+    json|error finalResult = resolver.getResult();
+    if finalResult is error {
+        return finalResult;
+    } else {
+        return finalResult.cloneWithType();
+    }
+}

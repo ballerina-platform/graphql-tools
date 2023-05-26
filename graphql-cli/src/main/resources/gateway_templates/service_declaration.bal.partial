@@ -1,0 +1,7 @@
+isolated service on new graphql:Listener(PORT) {
+    isolated function init() {
+        log:printInfo(string `💃 Server ready at port: ${PORT}`);
+    }
+
+    @{resourceFunctions}
+}

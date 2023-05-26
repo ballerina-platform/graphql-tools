@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.generator;
 
+
 import io.ballerina.graphql.generator.utils.NullLocation;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;

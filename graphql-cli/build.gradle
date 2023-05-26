@@ -38,14 +38,17 @@ dependencies {
     implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
     implementation "info.picocli:picocli:${picocliVersion}"
+//    implementation "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
     testImplementation "org.testng:testng:${testngVersion}"
     testImplementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
     implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
     implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    implementation "com.graphql-java:graphql-java-extended-scalars:${graphqlJavaExtendedScalarVersion}" // NEW
     implementation "org.json:json:${orgJsonVersion}" // NEW
     dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    dist "com.graphql-java:graphql-java-extended-scalars:${graphqlJavaExtendedScalarVersion}" // NEW
     dist "com.google.guava:guava:${googleGuavaVersion}" // NEW
     dist "org.json:json:${orgJsonVersion}" // NEW
     dist "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
@@ -169,6 +172,11 @@ compileJava {
         ]
         classpath = files()
     }
+}
+
+clean {
+    delete("${projectDir}/src/test/resources/federationGateway/subgraphServices/astronautService/target")
+    delete("${projectDir}/src/test/resources/federationGateway/subgraphServices/missionsService/target")
 }
 
 def packageName = "graphql"

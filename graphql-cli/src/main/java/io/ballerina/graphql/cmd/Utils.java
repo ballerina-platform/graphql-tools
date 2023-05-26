@@ -18,8 +18,12 @@
 
 package io.ballerina.graphql.cmd;
 
+import graphql.Scalars;
 import graphql.introspection.IntrospectionResultToSchema;
 import graphql.language.Document;
+import graphql.parser.Parser;
+import graphql.scalars.ExtendedScalars;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
@@ -36,6 +40,7 @@ import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.pojo.Default;
 import io.ballerina.graphql.generator.client.pojo.Endpoints;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.gateway.GraphqlGatewayProject;
 import io.ballerina.graphql.generator.utils.GenerationType;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
@@ -67,14 +72,13 @@ public class Utils {
     /**
      * Returns the Snakeyaml `Constructor` instance processing unsupported keywords in Java.
      *
-     * @return               the `GraphQLSchema` instance
+     * @return the `GraphQLSchema` instance
      */
     public static Constructor getProcessedConstructor() {
         Constructor constructor = new Constructor(Config.class);
 
         TypeDescription endpointsDesc = new TypeDescription(Endpoints.class);
-        endpointsDesc.substituteProperty("default", Default.class,
-                "getDefaultName", "setDefaultName");
+        endpointsDesc.substituteProperty("default", Default.class, "getDefaultName", "setDefaultName");
         constructor.addTypeDescription(endpointsDesc);
 
         return constructor;
@@ -83,12 +87,12 @@ public class Utils {
     /**
      * Returns the `GraphQLSchema` instance for a given GraphQL schema file or schema URL.
      *
-     * @param schema                                the schema value of the Graphql config file
-     * @param extensions                            the extensions value of the Graphql config file
-     * @return                                      the `GraphQLSchema` instance
-     * @throws IntospectionException                If an error occurs during introspection of the GraphQL API
-     * @throws SchemaProblem                        If a GraphQL schema related error occurs
-     * @throws IOException                          If an I/O error occurs
+     * @param schema     the schema value of the Graphql config file
+     * @param extensions the extensions value of the Graphql config file
+     * @return the `GraphQLSchema` instance
+     * @throws IntospectionException If an error occurs during introspection of the GraphQL API
+     * @throws SchemaProblem         If a GraphQL schema related error occurs
+     * @throws IOException           If an I/O error occurs
      */
     public static GraphQLSchema getGraphQLSchemaDocument(String schema, Extension extensions)
             throws IntospectionException, SchemaProblem, IOException {
@@ -109,17 +113,59 @@ public class Utils {
             String sdlInput = extractSchemaContent(schema);
             typeRegistry = schemaParser.parse(sdlInput);
         }
-        GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeRegistry,
-                RuntimeWiring.MOCKED_WIRING);
+        GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeRegistry, RuntimeWiring.MOCKED_WIRING);
+        return graphQLSchema;
+    }
+
+
+    /**
+     * Returns the `GraphQLSchema` instance for a given Federated GraphQL schema file or schema URL.
+     *
+     * @param schema     the schema value of the Graphql config file
+     * @param extensions the extensions value of the Graphql config file
+     * @return the `GraphQLSchema` instance
+     * @throws IntospectionException If an error occurs during introspection of the GraphQL API
+     * @throws SchemaProblem         If a GraphQL schema related error occurs
+     * @throws IOException           If an I/O error occurs
+     */
+    public static GraphQLSchema getGraphQLFederatedSchemaDocument(String schema, Extension extensions)
+            throws IntospectionException, SchemaProblem, IOException {
+        Document introspectSchema = null;
+        if (schema.startsWith(URL_RECOGNIZER)) {
+            Map<String, Object> introspectionResult =
+                    Introspector.getInstance().getIntrospectionResult(schema, extensions);
+            IntrospectionResultToSchema introspectionResultToSchema = new IntrospectionResultToSchema();
+            introspectSchema = introspectionResultToSchema.createSchemaDefinition(introspectionResult);
+        }
+
+        SchemaParser schemaParser = new SchemaParser();
+        TypeDefinitionRegistry typeRegistry;
+        if (introspectSchema != null) {
+            typeRegistry = schemaParser.buildRegistry(introspectSchema);
+        } else {
+            String sdlInput = extractSchemaContent(schema);
+            typeRegistry = schemaParser.parse(sdlInput);
+        }
+
+        // TODO: Find an alternative way for define custom scalar types
+        GraphQLScalarType joinFieldSet = ExtendedScalars.newAliasedScalar("join__FieldSet")
+                .aliasedScalar(Scalars.GraphQLString).build();
+        GraphQLScalarType linkImport = ExtendedScalars.newAliasedScalar("link__Import")
+                .aliasedScalar(Scalars.GraphQLString).build();
+
+
+        GraphQLSchema graphQLSchema = new SchemaGenerator().makeExecutableSchema(typeRegistry,
+                RuntimeWiring.newRuntimeWiring().scalar(joinFieldSet).scalar(linkImport).build());
+
         return graphQLSchema;
     }
 
     /**
      * Extracts the schema content.
      *
-     * @param schema                                the schema value of the Graphql config file
-     * @return                                      the schema content
-     * @throws IOException                          If an I/O error occurs
+     * @param schema the schema value of the Graphql config file
+     * @return the schema content
+     * @throws IOException If an I/O error occurs
      */
     public static String extractSchemaContent(String schema) throws IOException {
         File schemaFile = new File(schema);
@@ -128,9 +174,36 @@ public class Utils {
     }
 
     /**
+     * Returns the `Document` instance for a given GraphQL queries file.
+     *
+     * @param document the document value of the Graphql config file
+     * @return the `GraphQLSchema` instance
+     * @throws IOException If an I/O error occurs
+     */
+    public static Document getGraphQLQueryDocument(String document) throws IOException {
+        Parser parser = new Parser();
+        String queriesInput = extractDocumentContent(document);
+        Document parsedDocument = parser.parseDocument(queriesInput);
+        return parsedDocument;
+    }
+
+    /**
+     * Extracts the document content.
+     *
+     * @param document the document value of the Graphql config file
+     * @return the document content
+     * @throws IOException If an I/O error occurs
+     */
+    public static String extractDocumentContent(String document) throws IOException {
+        File documentFile = new File(document);
+        Path documentPath = Paths.get(documentFile.getCanonicalPath());
+        return Files.readString(documentPath);
+    }
+
+    /**
      * Checks whether the schema is a valid URL.
      *
-     * @param schema         the schema value
+     * @param schema the schema value
      */
     public static boolean isValidURL(String schema) {
         try {
@@ -186,7 +259,12 @@ public class Utils {
         }
 
         try {
-            GraphQLSchema graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
+            GraphQLSchema graphQLSchema;
+            if (project instanceof GraphqlGatewayProject) {
+                graphQLSchema = getGraphQLFederatedSchemaDocument(schema, extensions);
+            } else {
+                graphQLSchema = getGraphQLSchemaDocument(schema, extensions);
+            }
             project.setGraphQLSchema(graphQLSchema);
         } catch (IntospectionException e) {
             throw new ValidationException(e.getMessage(), project.getName());

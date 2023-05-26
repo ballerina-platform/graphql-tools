@@ -29,8 +29,8 @@ import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.exception.UtilsGenerationException;
-import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
@@ -63,7 +63,6 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypeDefinition
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 
 /**
  * This class is used to generate utility functions in the ballerina utils file.
@@ -82,9 +81,9 @@ public class UtilsGenerator {
     /**
      * Generates the utils file content.
      *
-     * @param authConfig                        the object instance representing authentication config information
-     * @return                                  the client file content
-     * @throws UtilsGenerationException         when an utils code generation error occurs
+     * @param authConfig the object instance representing authentication config information
+     * @return the client file content
+     * @throws UtilsGenerationException when an utils code generation error occurs
      */
     public String generateSrc(AuthConfig authConfig) throws UtilsGenerationException {
         try {
@@ -97,14 +96,14 @@ public class UtilsGenerator {
     /**
      * Generates the utils syntax tree.
      *
-     * @param authConfig        the object instance representing authentication config information
-     * @return                  Syntax tree for the Ballerina utils file code
-     * @throws IOException      If an I/O error occurs
+     * @param authConfig the object instance representing authentication config information
+     * @return Syntax tree for the Ballerina utils file code
+     * @throws IOException If an I/O error occurs
      */
     public SyntaxTree generateSyntaxTree(AuthConfig authConfig) throws IOException {
         NodeList<ImportDeclarationNode> importsList = generateImports();
 
-        List<ModuleMemberDeclarationNode> members =  new ArrayList<>();
+        List<ModuleMemberDeclarationNode> members = new ArrayList<>();
         if (authConfig.isApiKeysConfig()) {
             members.add(getSimpleBasicTypeDefinitionNode());
         }
@@ -139,7 +138,7 @@ public class UtilsGenerator {
         ModulePartNode modulePartNode =
                 createModulePartNode(importsList, createNodeList(members), createToken(EOF_TOKEN));
 
-        TextDocument textDocument = TextDocuments.from(EMPTY_STRING);
+        TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
         return syntaxTree.modifyWith(modulePartNode);
     }
@@ -147,12 +146,13 @@ public class UtilsGenerator {
     /**
      * Generates the imports in the utils file.
      *
-     * @return                          the node list which represent imports in the utils file
+     * @return the node list which represent imports in the utils file
      */
     private NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();
-        ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
-                CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.GRAPHQL);
+        ImportDeclarationNode importForGraphql =
+                CodeGeneratorUtils.getImportDeclarationNode(CodeGeneratorConstants.BALLERINA,
+                        CodeGeneratorConstants.GRAPHQL);
         imports.add(importForGraphql);
         return createNodeList(imports);
     }
@@ -163,15 +163,14 @@ public class UtilsGenerator {
      *     type SimpleBasicType string|boolean|int|float|decimal;
      * </pre>
      *
-     * @return          the `SimpleBasicType` type definition node
+     * @return the `SimpleBasicType` type definition node
      */
     private TypeDefinitionNode getSimpleBasicTypeDefinitionNode() {
         TypeDescriptorNode typeDescriptorNode = createSingletonTypeDescriptorNode(
                 createSimpleNameReferenceNode(createIdentifierToken("string|boolean|int|float|decimal")));
 
-        return createTypeDefinitionNode(null, null,
-                createToken(TYPE_KEYWORD), createIdentifierToken("SimpleBasicType"), typeDescriptorNode,
-                createToken(SEMICOLON_TOKEN));
+        return createTypeDefinitionNode(null, null, createToken(TYPE_KEYWORD), createIdentifierToken("SimpleBasicType"),
+                typeDescriptorNode, createToken(SEMICOLON_TOKEN));
     }
 
     /**
@@ -180,16 +179,15 @@ public class UtilsGenerator {
      *     type OperationResponse record {| anydata...; |}|record {| anydata...; |}[]|boolean|string|int|float|();
      * </pre>
      *
-     * @return          the `OperationResponse` type definition node
+     * @return the `OperationResponse` type definition node
      */
     private TypeDefinitionNode getOperationResponseTypeDefinitionNode() {
-        TypeDescriptorNode typeDescriptorNode = createSingletonTypeDescriptorNode(
-                createSimpleNameReferenceNode(createIdentifierToken("record {| anydata...; |}|" +
-                        "record {| anydata...; |}[]|boolean|string|int|float|()")));
+        TypeDescriptorNode typeDescriptorNode = createSingletonTypeDescriptorNode(createSimpleNameReferenceNode(
+                createIdentifierToken(
+                        "record {| anydata...; |}|" + "record {| anydata...; |}[]|boolean|string|int|float|()")));
 
-        return createTypeDefinitionNode(null, null,
-                createToken(TYPE_KEYWORD), createIdentifierToken("OperationResponse"), typeDescriptorNode,
-                createToken(SEMICOLON_TOKEN));
+        return createTypeDefinitionNode(null, null, createToken(TYPE_KEYWORD),
+                createIdentifierToken("OperationResponse"), typeDescriptorNode, createToken(SEMICOLON_TOKEN));
     }
 
     /**
@@ -201,25 +199,22 @@ public class UtilsGenerator {
      *      |};
      * </pre>
      *
-     * @return          the `DataResponse` type definition node
+     * @return the `DataResponse` type definition node
      */
     private TypeDefinitionNode getDataResponseTypeDefinitionNode() {
-        TypeDescriptorNode typeDescriptorNode = createSingletonTypeDescriptorNode(
-                createSimpleNameReferenceNode(createIdentifierToken("record {|\n" +
-                        "   map<json?> __extensions?;\n" +
-                        "   OperationResponse ...;\n" +
-                        "|}")));
+        TypeDescriptorNode typeDescriptorNode = createSingletonTypeDescriptorNode(createSimpleNameReferenceNode(
+                createIdentifierToken(
+                        "record {|\n" + "   map<json?> __extensions?;\n" + "   OperationResponse ...;\n" + "|}")));
 
-        return createTypeDefinitionNode(null, null,
-                createToken(TYPE_KEYWORD), createIdentifierToken("DataResponse"), typeDescriptorNode,
-                createToken(SEMICOLON_TOKEN));
+        return createTypeDefinitionNode(null, null, createToken(TYPE_KEYWORD), createIdentifierToken("DataResponse"),
+                typeDescriptorNode, createToken(SEMICOLON_TOKEN));
     }
 
     /**
      * Gets the path of the utils.bal template at the time of execution.
      *
-     * @return                  Path to utils.bal file in the temporary directory created
-     * @throws  IOException     When failed to get the templates/utils.bal file from resources
+     * @return Path to utils.bal file in the temporary directory created
+     * @throws IOException When failed to get the templates/utils.bal file from resources
      */
     private Path getResourceFilePath() throws IOException {
         Path path = null;

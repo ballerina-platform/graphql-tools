@@ -53,9 +53,9 @@ import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
-import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.utils.model.AuthConfig;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -87,26 +87,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.RIGHT_ARROW_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.VAR_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEY_CONFIG_PARAM;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_EP;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLONE_READ_ONLY;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.COMMA;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_RESPONSE_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARIABLES_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARIABLES_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HEADER_VALUES_VARIABLES_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HEADER_VALUES_VARIABLES_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_CLIENT_CONFIG_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SELF;
-import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.escapeIdentifier;
+
 
 /**
  * This class is used to generate function body's in the ballerina client file.
@@ -137,11 +118,14 @@ public class FunctionBodyGenerator {
 
         // Generate {@code self.graphqlClient = clientEp;} assignment node
         FieldAccessExpressionNode varRef = NodeFactory.createFieldAccessExpressionNode(
-                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(SELF)), createToken(DOT_TOKEN),
-                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(GRAPHQL_CLIENT)));
-        SimpleNameReferenceNode expr = NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(CLIENT_EP));
-        AssignmentStatementNode httpClientAssignmentStatementNode = NodeFactory.createAssignmentStatementNode(varRef,
-                createToken(EQUAL_TOKEN), expr, createToken(SEMICOLON_TOKEN));
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.SELF)),
+                createToken(DOT_TOKEN), NodeFactory.createSimpleNameReferenceNode(
+                        createIdentifierToken(CodeGeneratorConstants.GRAPHQL_CLIENT)));
+        SimpleNameReferenceNode expr =
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.CLIENT_EP));
+        AssignmentStatementNode httpClientAssignmentStatementNode =
+                NodeFactory.createAssignmentStatementNode(varRef, createToken(EQUAL_TOKEN), expr,
+                        createToken(SEMICOLON_TOKEN));
 
         // Generate {@code self.apiKeyConfig = apiKeyConfig.cloneReadOnly();} assignment node
         AssignmentStatementNode apiKeyConfigAssignmentStatementNode = generateApiKeyConfigAssignmentStatementNode();
@@ -154,54 +138,54 @@ public class FunctionBodyGenerator {
         }
         NodeList<StatementNode> statementList = createNodeList(assignmentNodes);
 
-        return createFunctionBodyBlockNode(createToken(OPEN_BRACE_TOKEN), null,
-                statementList, createToken(CLOSE_BRACE_TOKEN), null);
+        return createFunctionBodyBlockNode(createToken(OPEN_BRACE_TOKEN), null, statementList,
+                createToken(CLOSE_BRACE_TOKEN), null);
     }
 
     /**
      * Generates http client config record.
      *
      * @param authConfig the object instance representing authentication configuration information
-     * @return           the object instance representing http client config
+     * @return the object instance representing http client config
      * http:ClientConfiguration httpClientConfig = {auth: config.auth, httpVersion: config.httpVersion,
      * timeout: config.timeout, forwarded: config.forwarded, poolConfig: config.poolConfig,
      * compression: config.compression, circuitBreaker: config.circuitBreaker, retryConfig: config.retryConfig,
      * validation: config.validation};
      * do {
-     *     if config.http1Settings is ClientHttp1Settings {
-     *         ClientHttp1Settings settings = check config.http1Settings.ensureType(ClientHttp1Settings);
-     *         httpClientConfig.http1Settings = {...settings};
-     *     }
-     *     if config.http2Settings is http:ClientHttp2Settings {
-     *         httpClientConfig.http2Settings = check config.http2Settings.ensureType(http:ClientHttp2Settings);
-     *     }
-     *     if config.cache is http:CacheConfig {
-     *         httpClientConfig.cache = check config.cache.ensureType(http:CacheConfig);
-     *     }
-     *     if config.responseLimits is http:ResponseLimitConfigs {
-     *         httpClientConfig.responseLimits = check config.responseLimits.ensureType(http:ResponseLimitConfigs);
-     *     }
-     *     if config.secureSocket is http:ClientSecureSocket {
-     *         httpClientConfig.secureSocket = check config.secureSocket.ensureType(http:ClientSecureSocket);
-     *     }
-     *     if config.proxy is http:ProxyConfig {
-     *         httpClientConfig.proxy = check config.proxy.ensureType(http:ProxyConfig);
-     *     }
+     * if config.http1Settings is ClientHttp1Settings {
+     * ClientHttp1Settings settings = check config.http1Settings.ensureType(ClientHttp1Settings);
+     * httpClientConfig.http1Settings = {...settings};
+     * }
+     * if config.http2Settings is http:ClientHttp2Settings {
+     * httpClientConfig.http2Settings = check config.http2Settings.ensureType(http:ClientHttp2Settings);
+     * }
+     * if config.cache is http:CacheConfig {
+     * httpClientConfig.cache = check config.cache.ensureType(http:CacheConfig);
+     * }
+     * if config.responseLimits is http:ResponseLimitConfigs {
+     * httpClientConfig.responseLimits = check config.responseLimits.ensureType(http:ResponseLimitConfigs);
+     * }
+     * if config.secureSocket is http:ClientSecureSocket {
+     * httpClientConfig.secureSocket = check config.secureSocket.ensureType(http:ClientSecureSocket);
+     * }
+     * if config.proxy is http:ProxyConfig {
+     * httpClientConfig.proxy = check config.proxy.ensureType(http:ProxyConfig);
+     * }
      * } on fail var e {
-     *    return <graphql:ClientError>error("GraphQL Client Error", e, body = ());
+     * return <graphql:ClientError>error("GraphQL Client Error", e, body = ());
      * }
      */
-    private List<StatementNode>  generateHttpClientConfigurationNode(AuthConfig authConfig) {
+    private List<StatementNode> generateHttpClientConfigurationNode(AuthConfig authConfig) {
         List<StatementNode> assignmentNodes = new ArrayList<>();
         NodeList<AnnotationNode> annotationNodes = NodeFactory.createEmptyNodeList();
 
         // GraphQL {@code variables} declaration
         BuiltinSimpleNameReferenceNode typeBindingPattern = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(HTTP_CLIENT_CONFIG_TYPE_NAME));
-        CaptureBindingPatternNode bindingPattern = NodeFactory.createCaptureBindingPatternNode(
-                createIdentifierToken("graphqlClientConfig"));
-        TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(typeBindingPattern,
-                bindingPattern);
+                createIdentifierToken(CodeGeneratorConstants.HTTP_CLIENT_CONFIG_TYPE_NAME));
+        CaptureBindingPatternNode bindingPattern =
+                NodeFactory.createCaptureBindingPatternNode(createIdentifierToken("graphqlClientConfig"));
+        TypedBindingPatternNode typedBindingPatternNode =
+                NodeFactory.createTypedBindingPatternNode(typeBindingPattern, bindingPattern);
 
         // Expression node
         List<Node> defaultFields = new ArrayList<>();
@@ -219,22 +203,23 @@ public class FunctionBodyGenerator {
         map.put("retryConfig", "config.retryConfig");
         map.put("validation", "config.validation");
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            BuiltinSimpleNameReferenceNode valueExpr = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                    createIdentifierToken((entry.getValue())));
-            SpecificFieldNode specificFieldNode = NodeFactory.createSpecificFieldNode(null,
-                    createIdentifierToken(entry.getKey()), createToken(COLON_TOKEN), valueExpr);
+            BuiltinSimpleNameReferenceNode valueExpr =
+                    NodeFactory.createBuiltinSimpleNameReferenceNode(null, createIdentifierToken((entry.getValue())));
+            SpecificFieldNode specificFieldNode =
+                    NodeFactory.createSpecificFieldNode(null, createIdentifierToken(entry.getKey()),
+                            createToken(COLON_TOKEN), valueExpr);
             defaultFields.add(specificFieldNode);
             count++;
             if (count < map.size()) {
                 defaultFields.add(createToken(COMMA_TOKEN));
             }
         }
-        MappingConstructorExpressionNode initializer = NodeFactory.createMappingConstructorExpressionNode(
-                createToken(OPEN_BRACE_TOKEN), NodeFactory.createSeparatedNodeList(defaultFields),
-                createToken(CLOSE_BRACE_TOKEN));
+        MappingConstructorExpressionNode initializer =
+                NodeFactory.createMappingConstructorExpressionNode(createToken(OPEN_BRACE_TOKEN),
+                        NodeFactory.createSeparatedNodeList(defaultFields), createToken(CLOSE_BRACE_TOKEN));
 
-        assignmentNodes.add(NodeFactory.createVariableDeclarationNode(annotationNodes, null,
-                typedBindingPatternNode, createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN)));
+        assignmentNodes.add(NodeFactory.createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
+                createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN)));
         DoStatementNode doStatementNode = generateHttpClientConfigOptionalFieldsAssignment();
         assignmentNodes.add(doStatementNode);
         return assignmentNodes;
@@ -255,31 +240,34 @@ public class FunctionBodyGenerator {
 
         String http1SettingsStatement = "if config.http1Settings is ClientHttp1Settings {\n" +
                 "        ClientHttp1Settings settings = check config.http1Settings.ensureType(ClientHttp1Settings);\n" +
-                "        graphqlClientConfig.http1Settings = {...settings};" +
-                "    }";
+                "        graphqlClientConfig.http1Settings = {...settings};" + "    }";
         nodes.add(NodeParser.parseStatement(http1SettingsStatement));
         for (Map.Entry<String, String> entry : map.entrySet()) {
             String node = String.format("if config.%s is graphql:%s {\n" +
-                    "        graphqlClientConfig.%s = check config.%s.ensureType(graphql:%s);\n" +
-                    "    }\n", entry.getKey(), entry.getValue(), entry.getKey(), entry.getKey(), entry.getValue());
+                            "        graphqlClientConfig.%s = check config.%s.ensureType(graphql:%s);\n" + "    }\n",
+                    entry.getKey(), entry.getValue(), entry.getKey(), entry.getKey(), entry.getValue());
             nodes.add(NodeParser.parseStatement(node));
         }
 
-        BlockStatementNode doBlockStatementNode = NodeFactory.createBlockStatementNode(createToken(OPEN_BRACE_TOKEN),
-                createNodeList(nodes), createToken(CLOSE_BRACE_TOKEN));
-        TypeDescriptorNode varNode = NodeFactory.createTypeReferenceTypeDescNode(NodeFactory.
-                createSimpleNameReferenceNode(createToken(VAR_KEYWORD)));
+        BlockStatementNode doBlockStatementNode =
+                NodeFactory.createBlockStatementNode(createToken(OPEN_BRACE_TOKEN), createNodeList(nodes),
+                        createToken(CLOSE_BRACE_TOKEN));
+        TypeDescriptorNode varNode = NodeFactory.createTypeReferenceTypeDescNode(
+                NodeFactory.createSimpleNameReferenceNode(createToken(VAR_KEYWORD)));
         IdentifierToken errorParamName = createIdentifierToken("e");
         // TODO : Revert this change after issue in graphql:HttpError is fixed
-        ExpressionNode errorNode = NodeParser.parseExpression("<graphql:ClientError> error(\"GraphQL Client " +
-                "Error\", e, body = ())");
-        ReturnStatementNode returnStatementNode = NodeFactory.createReturnStatementNode(createToken(RETURN_KEYWORD),
-                errorNode, createToken(SEMICOLON_TOKEN));
+        ExpressionNode errorNode =
+                NodeParser.parseExpression("<graphql:ClientError> error(\"GraphQL Client " + "Error\", e, body = ())");
+        ReturnStatementNode returnStatementNode =
+                NodeFactory.createReturnStatementNode(createToken(RETURN_KEYWORD), errorNode,
+                        createToken(SEMICOLON_TOKEN));
         NodeList<StatementNode> failNodeList = createNodeList(returnStatementNode);
-        BlockStatementNode failBlockStatementNode = NodeFactory.createBlockStatementNode(createToken(OPEN_BRACE_TOKEN),
-                failNodeList, createToken(CLOSE_BRACE_TOKEN));
-        OnFailClauseNode onFailClauseNode = NodeFactory.createOnFailClauseNode(createToken(ON_KEYWORD),
-                createToken(FAIL_KEYWORD), varNode, errorParamName, failBlockStatementNode);
+        BlockStatementNode failBlockStatementNode =
+                NodeFactory.createBlockStatementNode(createToken(OPEN_BRACE_TOKEN), failNodeList,
+                        createToken(CLOSE_BRACE_TOKEN));
+        OnFailClauseNode onFailClauseNode =
+                NodeFactory.createOnFailClauseNode(createToken(ON_KEYWORD), createToken(FAIL_KEYWORD), varNode,
+                        errorParamName, failBlockStatementNode);
         return NodeFactory.createDoStatementNode(createToken(DO_KEYWORD), doBlockStatementNode, onFailClauseNode);
     }
 
@@ -318,8 +306,8 @@ public class FunctionBodyGenerator {
 
         NodeList<StatementNode> statementList = createNodeList(assignmentNodes);
 
-        return createFunctionBodyBlockNode(createToken(OPEN_BRACE_TOKEN),
-                null, statementList, createToken(CLOSE_BRACE_TOKEN), null);
+        return createFunctionBodyBlockNode(createToken(OPEN_BRACE_TOKEN), null, statementList,
+                createToken(CLOSE_BRACE_TOKEN), null);
     }
 
     /**
@@ -332,32 +320,34 @@ public class FunctionBodyGenerator {
 
         // {@code graphql:Client} variable declaration
         BuiltinSimpleNameReferenceNode typeBindingPattern = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(GRAPHQL_CLIENT_TYPE_NAME));
+                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_CLIENT_TYPE_NAME));
         CaptureBindingPatternNode bindingPattern = NodeFactory.createCaptureBindingPatternNode(
-                createIdentifierToken(GRAPHQL_CLIENT_VAR_NAME));
-        TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(typeBindingPattern,
-                bindingPattern);
+                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_CLIENT_VAR_NAME));
+        TypedBindingPatternNode typedBindingPatternNode =
+                NodeFactory.createTypedBindingPatternNode(typeBindingPattern, bindingPattern);
 
         // Expression node
         List<Node> argumentsList = new ArrayList<>();
         PositionalArgumentNode positionalArgumentNode01 = NodeFactory.createPositionalArgumentNode(
-                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(
-                        CodeGeneratorConstants.SERVICE_URL_PARAM_NAME)));
+                NodeFactory.createSimpleNameReferenceNode(
+                        createIdentifierToken(CodeGeneratorConstants.SERVICE_URL_PARAM_NAME)));
         argumentsList.add(positionalArgumentNode01);
-        Token comma1 = createIdentifierToken(COMMA);
+        Token comma1 = createIdentifierToken(CodeGeneratorConstants.COMMA);
 
-        PositionalArgumentNode positionalArgumentNode02 = NodeFactory.createPositionalArgumentNode(NodeFactory.
-                createSimpleNameReferenceNode(createIdentifierToken(GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME)));
+        PositionalArgumentNode positionalArgumentNode02 = NodeFactory.createPositionalArgumentNode(
+                NodeFactory.createSimpleNameReferenceNode(
+                        createIdentifierToken(CodeGeneratorConstants.GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME)));
         argumentsList.add(comma1);
         argumentsList.add(positionalArgumentNode02);
 
         SeparatedNodeList<FunctionArgumentNode> arguments = NodeFactory.createSeparatedNodeList(argumentsList);
-        ParenthesizedArgList parenthesizedArgList = NodeFactory.createParenthesizedArgList(
-                createToken(OPEN_PAREN_TOKEN), arguments, createToken(CLOSE_PAREN_TOKEN));
-        ImplicitNewExpressionNode expressionNode = NodeFactory.createImplicitNewExpressionNode(createToken(NEW_KEYWORD),
-                parenthesizedArgList);
-        CheckExpressionNode initializer = NodeFactory.createCheckExpressionNode(null, createToken(CHECK_KEYWORD),
-                expressionNode);
+        ParenthesizedArgList parenthesizedArgList =
+                NodeFactory.createParenthesizedArgList(createToken(OPEN_PAREN_TOKEN), arguments,
+                        createToken(CLOSE_PAREN_TOKEN));
+        ImplicitNewExpressionNode expressionNode =
+                NodeFactory.createImplicitNewExpressionNode(createToken(NEW_KEYWORD), parenthesizedArgList);
+        CheckExpressionNode initializer =
+                NodeFactory.createCheckExpressionNode(null, createToken(CHECK_KEYWORD), expressionNode);
 
         return NodeFactory.createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
                 createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN));
@@ -370,15 +360,18 @@ public class FunctionBodyGenerator {
      */
     private AssignmentStatementNode generateApiKeyConfigAssignmentStatementNode() {
         FieldAccessExpressionNode varRefApiKey = NodeFactory.createFieldAccessExpressionNode(
-                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(SELF)), createToken(DOT_TOKEN),
-                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(API_KEY_CONFIG_PARAM)));
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.SELF)),
+                createToken(DOT_TOKEN), NodeFactory.createSimpleNameReferenceNode(
+                        createIdentifierToken(CodeGeneratorConstants.API_KEY_CONFIG_PARAM)));
 
         ExpressionNode fieldAccessExpressionNode = NodeFactory.createRequiredExpressionNode(
-                createIdentifierToken(API_KEY_CONFIG_PARAM));
-        ExpressionNode methodCallExpressionNode = NodeFactory.createMethodCallExpressionNode(
-                fieldAccessExpressionNode, createToken(DOT_TOKEN),
-                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(CLONE_READ_ONLY)),
-                createToken(OPEN_PAREN_TOKEN), NodeFactory.createSeparatedNodeList(), createToken(CLOSE_PAREN_TOKEN));
+                createIdentifierToken(CodeGeneratorConstants.API_KEY_CONFIG_PARAM));
+        ExpressionNode methodCallExpressionNode =
+                NodeFactory.createMethodCallExpressionNode(fieldAccessExpressionNode, createToken(DOT_TOKEN),
+                        NodeFactory.createSimpleNameReferenceNode(
+                                createIdentifierToken(CodeGeneratorConstants.CLONE_READ_ONLY)),
+                        createToken(OPEN_PAREN_TOKEN), NodeFactory.createSeparatedNodeList(),
+                        createToken(CLOSE_PAREN_TOKEN));
 
         return NodeFactory.createAssignmentStatementNode(varRefApiKey, createToken(EQUAL_TOKEN),
                 methodCallExpressionNode, createToken(SEMICOLON_TOKEN));
@@ -394,17 +387,18 @@ public class FunctionBodyGenerator {
         NodeList<AnnotationNode> annotationNodes = NodeFactory.createEmptyNodeList();
 
         // {@code query} variable declaration
-        BuiltinSimpleNameReferenceNode typeBindingPattern = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                createToken(STRING_KEYWORD));
+        BuiltinSimpleNameReferenceNode typeBindingPattern =
+                NodeFactory.createBuiltinSimpleNameReferenceNode(null, createToken(STRING_KEYWORD));
         CaptureBindingPatternNode bindingPattern = NodeFactory.createCaptureBindingPatternNode(
-                createIdentifierToken(QUERY_VAR_NAME));
-        TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(typeBindingPattern,
-                bindingPattern);
+                createIdentifierToken(CodeGeneratorConstants.QUERY_VAR_NAME));
+        TypedBindingPatternNode typedBindingPatternNode =
+                NodeFactory.createTypedBindingPatternNode(typeBindingPattern, bindingPattern);
 
         // Expression node
         NodeList<Node> content = createNodeList(createIdentifierToken(queryDefinition.getQueryString()));
-        TemplateExpressionNode initializer = NodeFactory.createTemplateExpressionNode(null,
-                createToken(STRING_KEYWORD), createToken(BACKTICK_TOKEN), content, createToken(BACKTICK_TOKEN));
+        TemplateExpressionNode initializer =
+                NodeFactory.createTemplateExpressionNode(null, createToken(STRING_KEYWORD), createToken(BACKTICK_TOKEN),
+                        content, createToken(BACKTICK_TOKEN));
 
         return NodeFactory.createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
                 createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN));
@@ -423,11 +417,11 @@ public class FunctionBodyGenerator {
 
         // GraphQL {@code variables} declaration
         BuiltinSimpleNameReferenceNode typeBindingPattern = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(GRAPHQL_VARIABLES_TYPE_NAME));
+                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_VARIABLES_TYPE_NAME));
         CaptureBindingPatternNode bindingPattern = NodeFactory.createCaptureBindingPatternNode(
-                createIdentifierToken(GRAPHQL_VARIABLES_VAR_NAME));
-        TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(typeBindingPattern,
-                bindingPattern);
+                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_VARIABLES_VAR_NAME));
+        TypedBindingPatternNode typedBindingPatternNode =
+                NodeFactory.createTypedBindingPatternNode(typeBindingPattern, bindingPattern);
 
         // Expression node
         List<Node> specificFields = new ArrayList<>();
@@ -435,9 +429,10 @@ public class FunctionBodyGenerator {
         int count = 0;
         for (String variableName : queryDefinition.getVariableDefinitionsMap(graphQLSchema).keySet()) {
             BuiltinSimpleNameReferenceNode valueExpr = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                    createIdentifierToken(escapeIdentifier(variableName)));
-            SpecificFieldNode specificFieldNode = NodeFactory.createSpecificFieldNode(null,
-                    createIdentifierToken("\"" + variableName + "\""), createToken(COLON_TOKEN), valueExpr);
+                    createIdentifierToken(CodeGeneratorUtils.escapeIdentifier(variableName)));
+            SpecificFieldNode specificFieldNode =
+                    NodeFactory.createSpecificFieldNode(null, createIdentifierToken("\"" + variableName + "\""),
+                            createToken(COLON_TOKEN), valueExpr);
             specificFields.add(specificFieldNode);
             count++;
             if (count < queryDefinition.getVariableDefinitionsMap(graphQLSchema).size()) {
@@ -445,9 +440,9 @@ public class FunctionBodyGenerator {
             }
         }
 
-        MappingConstructorExpressionNode initializer = NodeFactory.createMappingConstructorExpressionNode(
-                createToken(OPEN_BRACE_TOKEN), NodeFactory.createSeparatedNodeList(specificFields),
-                createToken(CLOSE_BRACE_TOKEN));
+        MappingConstructorExpressionNode initializer =
+                NodeFactory.createMappingConstructorExpressionNode(createToken(OPEN_BRACE_TOKEN),
+                        NodeFactory.createSeparatedNodeList(specificFields), createToken(CLOSE_BRACE_TOKEN));
 
         return NodeFactory.createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
                 createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN));
@@ -464,11 +459,11 @@ public class FunctionBodyGenerator {
 
         // {@code headerValues} variable declaration
         BuiltinSimpleNameReferenceNode typeBindingPattern = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(HEADER_VALUES_VARIABLES_TYPE_NAME));
+                createIdentifierToken(CodeGeneratorConstants.HEADER_VALUES_VARIABLES_TYPE_NAME));
         CaptureBindingPatternNode bindingPattern = NodeFactory.createCaptureBindingPatternNode(
-                createIdentifierToken(HEADER_VALUES_VARIABLES_VAR_NAME));
-        TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(typeBindingPattern,
-                bindingPattern);
+                createIdentifierToken(CodeGeneratorConstants.HEADER_VALUES_VARIABLES_VAR_NAME));
+        TypedBindingPatternNode typedBindingPatternNode =
+                NodeFactory.createTypedBindingPatternNode(typeBindingPattern, bindingPattern);
 
         Set<String> apiHeaders = authConfig.getApiHeaders();
 
@@ -477,19 +472,21 @@ public class FunctionBodyGenerator {
 
         int count = 0;
         for (String apiHeaderName : apiHeaders) {
-            IdentifierToken apiKeyConfigIdentifierToken = createIdentifierToken(API_KEYS_CONFIG_PARAM_NAME);
-            SimpleNameReferenceNode apiKeyConfigParamNode = NodeFactory.createSimpleNameReferenceNode(
-                    apiKeyConfigIdentifierToken);
+            IdentifierToken apiKeyConfigIdentifierToken =
+                    createIdentifierToken(CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME);
+            SimpleNameReferenceNode apiKeyConfigParamNode =
+                    NodeFactory.createSimpleNameReferenceNode(apiKeyConfigIdentifierToken);
             FieldAccessExpressionNode fieldExpr = NodeFactory.createFieldAccessExpressionNode(
-                    NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(SELF)), createToken(DOT_TOKEN),
-                    apiKeyConfigParamNode);
+                    NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.SELF)),
+                    createToken(DOT_TOKEN), apiKeyConfigParamNode);
             SimpleNameReferenceNode valueExpr = NodeFactory.createSimpleNameReferenceNode(
                     createIdentifierToken(CodeGeneratorUtils.getValidName(apiHeaderName)));
-            ExpressionNode apiKeyExpr = NodeFactory.createFieldAccessExpressionNode(
-                    fieldExpr, createToken(DOT_TOKEN), valueExpr);
+            ExpressionNode apiKeyExpr =
+                    NodeFactory.createFieldAccessExpressionNode(fieldExpr, createToken(DOT_TOKEN), valueExpr);
 
-            SpecificFieldNode specificFieldNode = NodeFactory.createSpecificFieldNode(null,
-                    createIdentifierToken("\"" + apiHeaderName + "\""), createToken(COLON_TOKEN), apiKeyExpr);
+            SpecificFieldNode specificFieldNode =
+                    NodeFactory.createSpecificFieldNode(null, createIdentifierToken("\"" + apiHeaderName + "\""),
+                            createToken(COLON_TOKEN), apiKeyExpr);
             specificFields.add(specificFieldNode);
             count++;
             if (count < apiHeaders.size()) {
@@ -497,9 +494,9 @@ public class FunctionBodyGenerator {
             }
         }
 
-        MappingConstructorExpressionNode initializer = NodeFactory.createMappingConstructorExpressionNode(
-                createToken(OPEN_BRACE_TOKEN), NodeFactory.createSeparatedNodeList(specificFields),
-                createToken(CLOSE_BRACE_TOKEN));
+        MappingConstructorExpressionNode initializer =
+                NodeFactory.createMappingConstructorExpressionNode(createToken(OPEN_BRACE_TOKEN),
+                        NodeFactory.createSeparatedNodeList(specificFields), createToken(CLOSE_BRACE_TOKEN));
 
         return NodeFactory.createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
                 createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN));
@@ -515,21 +512,21 @@ public class FunctionBodyGenerator {
 
         // {@code httpHeaders} variable declaration
         BuiltinSimpleNameReferenceNode typeBindingPattern = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                createIdentifierToken(HTTP_HEADERS_VARIABLES_TYPE_NAME));
+                createIdentifierToken(CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_TYPE_NAME));
         CaptureBindingPatternNode bindingPattern = NodeFactory.createCaptureBindingPatternNode(
-                createIdentifierToken(HTTP_HEADERS_VARIABLES_VAR_NAME));
-        TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(typeBindingPattern,
-                bindingPattern);
+                createIdentifierToken(CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_VAR_NAME));
+        TypedBindingPatternNode typedBindingPatternNode =
+                NodeFactory.createTypedBindingPatternNode(typeBindingPattern, bindingPattern);
 
         IdentifierToken functionName = createIdentifierToken("getMapForHeaders");
         SimpleNameReferenceNode functionNameNode = NodeFactory.createSimpleNameReferenceNode(functionName);
-        SimpleNameReferenceNode expressionNode = NodeFactory.createSimpleNameReferenceNode(
-                createIdentifierToken("headerValues"));
+        SimpleNameReferenceNode expressionNode =
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("headerValues"));
         FunctionArgumentNode node = NodeFactory.createPositionalArgumentNode(expressionNode);
         SeparatedNodeList<FunctionArgumentNode> arguments = NodeFactory.createSeparatedNodeList(node);
         FunctionCallExpressionNode initializer =
-                NodeFactory.createFunctionCallExpressionNode(functionNameNode, createToken(OPEN_PAREN_TOKEN),
-                        arguments, createToken(CLOSE_PAREN_TOKEN));
+                NodeFactory.createFunctionCallExpressionNode(functionNameNode, createToken(OPEN_PAREN_TOKEN), arguments,
+                        createToken(CLOSE_PAREN_TOKEN));
 
         return NodeFactory.createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
                 createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN));
@@ -541,11 +538,9 @@ public class FunctionBodyGenerator {
      * @param queryDefinition the object instance of a single query definition in a query document
      * @return the node which represent the return statement for a remote function with Http headers
      */
-    private ReturnStatementNode generateReturnStatementNode(
-            ExtendedOperationDefinition queryDefinition) {
-        SimpleNameReferenceNode expr = NodeFactory.createSimpleNameReferenceNode(
-                createIdentifierToken(
-                        CodeGeneratorUtils.getRemoteFunctionBodyReturnTypeName(queryDefinition.getName())));
+    private ReturnStatementNode generateReturnStatementNode(ExtendedOperationDefinition queryDefinition) {
+        SimpleNameReferenceNode expr = NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(
+                CodeGeneratorUtils.getRemoteFunctionBodyReturnTypeName(queryDefinition.getName())));
         return NodeFactory.createReturnStatementNode(createToken(RETURN_KEYWORD), expr, createToken(SEMICOLON_TOKEN));
     }
 
@@ -560,12 +555,12 @@ public class FunctionBodyGenerator {
         NodeList<AnnotationNode> annotationNodes = NodeFactory.createEmptyNodeList();
 
         // {@code json graphqlResponse} declaration
-        BuiltinSimpleNameReferenceNode typeDescriptor = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                createToken(JSON_KEYWORD));
+        BuiltinSimpleNameReferenceNode typeDescriptor =
+                NodeFactory.createBuiltinSimpleNameReferenceNode(null, createToken(JSON_KEYWORD));
         CaptureBindingPatternNode bindingPattern = NodeFactory.createCaptureBindingPatternNode(
-                createIdentifierToken(GRAPHQL_RESPONSE_VAR_NAME));
-        TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(typeDescriptor,
-                bindingPattern);
+                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_RESPONSE_VAR_NAME));
+        TypedBindingPatternNode typedBindingPatternNode =
+                NodeFactory.createTypedBindingPatternNode(typeDescriptor, bindingPattern);
 
         // {@code self.graphqlClient} declaration
         SimpleNameReferenceNode fieldName =
@@ -578,24 +573,23 @@ public class FunctionBodyGenerator {
         SimpleNameReferenceNode methodName =
                 NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("executeWithType"));
         List<Node> arguments = new ArrayList<>();
-        FunctionArgumentNode queryArgument =
-                NodeFactory.createPositionalArgumentNode(NodeFactory.createSimpleNameReferenceNode(
-                        createIdentifierToken("query")));
-        FunctionArgumentNode variableSArgument =
-                NodeFactory.createPositionalArgumentNode(NodeFactory.createSimpleNameReferenceNode(
-                        createIdentifierToken("variables")));
+        FunctionArgumentNode queryArgument = NodeFactory.createPositionalArgumentNode(
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("query")));
+        FunctionArgumentNode variableSArgument = NodeFactory.createPositionalArgumentNode(
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("variables")));
         arguments.add(queryArgument);
         arguments.add(createToken(COMMA_TOKEN));
         arguments.add(variableSArgument);
-        SeparatedNodeList<FunctionArgumentNode> remoteFunctionArguments = NodeFactory.
-                createSeparatedNodeList(arguments);
-        RemoteMethodCallActionNode remoteMethodCallExpr = NodeFactory.createRemoteMethodCallActionNode(
-                graphqlClientFieldAccessExpr, createToken(RIGHT_ARROW_TOKEN), methodName, createToken(OPEN_PAREN_TOKEN),
-                remoteFunctionArguments, createToken(CLOSE_PAREN_TOKEN));
+        SeparatedNodeList<FunctionArgumentNode> remoteFunctionArguments =
+                NodeFactory.createSeparatedNodeList(arguments);
+        RemoteMethodCallActionNode remoteMethodCallExpr =
+                NodeFactory.createRemoteMethodCallActionNode(graphqlClientFieldAccessExpr,
+                        createToken(RIGHT_ARROW_TOKEN), methodName, createToken(OPEN_PAREN_TOKEN),
+                        remoteFunctionArguments, createToken(CLOSE_PAREN_TOKEN));
 
         // {@code check self.graphqlClient->executeWithType(query, variables)} declaration
-        CheckExpressionNode initializer = NodeFactory.createCheckExpressionNode(null, createToken(CHECK_KEYWORD),
-                remoteMethodCallExpr);
+        CheckExpressionNode initializer =
+                NodeFactory.createCheckExpressionNode(null, createToken(CHECK_KEYWORD), remoteMethodCallExpr);
 
         return NodeFactory.createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
                 createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN));
@@ -612,12 +606,12 @@ public class FunctionBodyGenerator {
         NodeList<AnnotationNode> annotationNodes = NodeFactory.createEmptyNodeList();
 
         // {@code json graphqlResponse} declaration
-        BuiltinSimpleNameReferenceNode typeDescriptor = NodeFactory.createBuiltinSimpleNameReferenceNode(null,
-                createToken(JSON_KEYWORD));
+        BuiltinSimpleNameReferenceNode typeDescriptor =
+                NodeFactory.createBuiltinSimpleNameReferenceNode(null, createToken(JSON_KEYWORD));
         CaptureBindingPatternNode bindingPattern = NodeFactory.createCaptureBindingPatternNode(
-                createIdentifierToken(GRAPHQL_RESPONSE_VAR_NAME));
-        TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(typeDescriptor,
-                bindingPattern);
+                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_RESPONSE_VAR_NAME));
+        TypedBindingPatternNode typedBindingPatternNode =
+                NodeFactory.createTypedBindingPatternNode(typeDescriptor, bindingPattern);
 
         // {@code self.graphqlClient} declaration
         SimpleNameReferenceNode fieldName =
@@ -630,16 +624,13 @@ public class FunctionBodyGenerator {
         SimpleNameReferenceNode methodName =
                 NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("executeWithType"));
         List<Node> arguments = new ArrayList<>();
-        FunctionArgumentNode queryArgument =
-                NodeFactory.createPositionalArgumentNode(NodeFactory.createSimpleNameReferenceNode(
-                        createIdentifierToken("query")));
-        FunctionArgumentNode variablesArgument =
-                NodeFactory.createPositionalArgumentNode(NodeFactory.createSimpleNameReferenceNode(
-                        createIdentifierToken("variables")));
+        FunctionArgumentNode queryArgument = NodeFactory.createPositionalArgumentNode(
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("query")));
+        FunctionArgumentNode variablesArgument = NodeFactory.createPositionalArgumentNode(
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("variables")));
         FunctionArgumentNode httpHeadersArgument = NodeFactory.createNamedArgumentNode(
-                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("headers")),
-                createToken(EQUAL_TOKEN), NodeFactory.createSimpleNameReferenceNode(
-                        createIdentifierToken("httpHeaders")));
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("headers")), createToken(EQUAL_TOKEN),
+                NodeFactory.createSimpleNameReferenceNode(createIdentifierToken("httpHeaders")));
         arguments.add(queryArgument);
         arguments.add(createToken(COMMA_TOKEN));
         arguments.add(variablesArgument);
@@ -647,14 +638,14 @@ public class FunctionBodyGenerator {
         arguments.add(httpHeadersArgument);
         SeparatedNodeList<FunctionArgumentNode> remoteFunctionArguments =
                 NodeFactory.createSeparatedNodeList(arguments);
-        RemoteMethodCallActionNode remoteMethodCallExpr = NodeFactory.
-                createRemoteMethodCallActionNode(graphqlClientFieldAccessExpr, createToken(RIGHT_ARROW_TOKEN),
-                        methodName, createToken(OPEN_PAREN_TOKEN), remoteFunctionArguments,
-                        createToken(CLOSE_PAREN_TOKEN));
+        RemoteMethodCallActionNode remoteMethodCallExpr =
+                NodeFactory.createRemoteMethodCallActionNode(graphqlClientFieldAccessExpr,
+                        createToken(RIGHT_ARROW_TOKEN), methodName, createToken(OPEN_PAREN_TOKEN),
+                        remoteFunctionArguments, createToken(CLOSE_PAREN_TOKEN));
 
         // {@code check self.graphqlClient->executeWithType(query, variables, httpHeaders)} declaration
-        CheckExpressionNode initializer = NodeFactory.createCheckExpressionNode(null, createToken(CHECK_KEYWORD),
-                remoteMethodCallExpr);
+        CheckExpressionNode initializer =
+                NodeFactory.createCheckExpressionNode(null, createToken(CHECK_KEYWORD), remoteMethodCallExpr);
 
         return NodeFactory.createVariableDeclarationNode(annotationNodes, null, typedBindingPatternNode,
                 createToken(EQUAL_TOKEN), initializer, createToken(SEMICOLON_TOKEN));

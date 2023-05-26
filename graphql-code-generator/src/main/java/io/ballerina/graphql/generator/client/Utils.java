@@ -33,11 +33,24 @@ import java.nio.file.Paths;
 public class Utils {
 
     /**
+     * Extracts the schema content.
+     *
+     * @param schema the schema value of the Graphql config file
+     * @return the schema content
+     * @throws IOException If an I/O error occurs
+     */
+    public static String extractSchemaContent(String schema) throws IOException {
+        File schemaFile = new File(schema);
+        Path schemaPath = Paths.get(schemaFile.getCanonicalPath());
+        return Files.readString(schemaPath);
+    }
+
+    /**
      * Returns the `Document` instance for a given GraphQL queries file.
      *
-     * @param document                              the document value of the Graphql config file
-     * @return                                      the `GraphQLSchema` instance
-     * @throws IOException                          If an I/O error occurs
+     * @param document the document value of the Graphql config file
+     * @return the `GraphQLSchema` instance
+     * @throws IOException If an I/O error occurs
      */
     public static Document getGraphQLQueryDocument(String document) throws IOException {
         Parser parser = new Parser();
@@ -49,13 +62,14 @@ public class Utils {
     /**
      * Extracts the document content.
      *
-     * @param document                              the document value of the Graphql config file
-     * @return                                      the document content
-     * @throws IOException                          If an I/O error occurs
+     * @param document the document value of the Graphql config file
+     * @return the document content
+     * @throws IOException If an I/O error occurs
      */
     public static String extractDocumentContent(String document) throws IOException {
         File documentFile = new File(document);
         Path documentPath = Paths.get(documentFile.getCanonicalPath());
         return Files.readString(documentPath);
     }
+
 }

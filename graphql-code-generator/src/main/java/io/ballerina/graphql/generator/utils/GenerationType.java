@@ -23,5 +23,6 @@ package io.ballerina.graphql.generator.utils;
  */
 public enum GenerationType {
     SERVICE,
-    CLIENT
+    CLIENT,
+    GATEWAY
 }
