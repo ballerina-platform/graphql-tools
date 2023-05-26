@@ -19,8 +19,6 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import graphql.schema.GraphQLSchema;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
@@ -223,6 +221,32 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     public void testGenerateSrcForSchemaWithObjectImplementingInterfaceRecordsAllowed() {
         String fileName = "SchemaWithInterfaceApi";
         String expectedFile = "typesWithInterfaceRecordsAllowed.bal";
+        try {
+            GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                            .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setUseRecordsForObjects(true);
+            serviceTypesGenerator.setFileName(fileName);
+            String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+
+            Path expectedServiceTypesFile =
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
+        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(groups = {"record-type-for-objects"}, description = "Test for schema with union")
+    public void testGenerateSrcForSchemaWithUnionRecordsAllowed() {
+        String fileName = "SchemaWithUnionApi";
+        String expectedFile = "typesWithUnionRecordsAllowed.bal";
         try {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
