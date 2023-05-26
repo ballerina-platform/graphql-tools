@@ -40,6 +40,7 @@ def packageName = "graphql"
 
 dependencies {
     implementation project(':graphql-schema-file-generator')
+    implementation project(':graphql-code-generator')
     implementation project(':graphql-cli')
 }
 
@@ -64,7 +65,7 @@ allprojects {
         maven {
             url = 'https://maven.wso2.org/nexus/content/repositories/releases/'
         }
-        
+
         maven {
             url = 'https://maven.wso2.org/nexus/content/groups/wso2-public/'
         }
@@ -177,6 +178,8 @@ def targetGraphqlIDLPluginJar = file("$project.rootDir/graphql-tool-idl-plugin/b
         "graphql-tool-idl-plugin-${project.version}.jar")
 def targetGraphqlBalServiceJar = file("$project.rootDir/graphql-schema-file-generator/build/libs/" +
         "graphql-schema-file-generator-${project.version}.jar")
+def targetGraphqlCodeGenJar = file("$project.rootDir/graphql-code-generator/build/libs/" +
+        "graphql-code-generator-${project.version}.jar")
 
 jar {
     manifest {
@@ -198,6 +201,10 @@ task directoryBuild {
         }
         copy {
             from targetGraphqlBalServiceJar
+            into file("$artifactLibParent/libs")
+        }
+        copy {
+            from targetGraphqlCodeGenJar
             into file("$artifactLibParent/libs")
         }
     }
@@ -231,6 +238,7 @@ publishing {
 }
 
 directoryBuild.dependsOn ":${packageName}-schema-file-generator:build"
+directoryBuild.dependsOn ":${packageName}-code-generator:build"
 directoryBuild.dependsOn ":${packageName}-cli:build"
 directoryBuild.dependsOn(checkstyleMain)
 directoryBuild.dependsOn(checkstyleTest)

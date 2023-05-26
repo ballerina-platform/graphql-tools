@@ -19,16 +19,18 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
-import io.ballerina.graphql.exception.ClientGenerationException;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.GeneratorContext;
-import io.ballerina.graphql.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
+import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
+import io.ballerina.graphql.generator.client.generator.ballerina.ClientGenerator;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.utils.GeneratorContext;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -45,7 +47,7 @@ public class ClientGeneratorTest extends GraphqlTest {
     @Test(description = "Test the successful generation of client code")
     public void testGenerateSrc() throws CmdException, IOException, ParseException, ValidationException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                     this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                     this.tmpDir);
 
@@ -76,7 +78,7 @@ public class ClientGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithApiKeysConfig()
             throws CmdException, IOException, ParseException, ValidationException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                     this.resourceDir.resolve(Paths.get("specs",
                             "graphql-config-with-auth-apikeys-config.yaml")).toString(),
                     this.tmpDir);
@@ -109,7 +111,7 @@ public class ClientGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithClientConfig()
             throws CmdException, IOException, ParseException, ValidationException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                     this.resourceDir.resolve(Paths.get("specs",
                             "graphql-config-with-auth-client-config.yaml")).toString(),
                     this.tmpDir);
@@ -142,7 +144,7 @@ public class ClientGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithClientConfigAndAPIKeysConfig()
             throws CmdException, IOException, ParseException, ValidationException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                     this.resourceDir.resolve(Paths.get("specs",
                             "graphql-config-with-auth-apikeys-and-client-config.yaml")).toString(),
                     this.tmpDir);

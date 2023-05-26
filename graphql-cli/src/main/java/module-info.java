@@ -30,14 +30,10 @@ module io.ballerina.graphql {
     requires commons.logging;
     requires io.ballerina.lang;
     requires org.slf4j;
+    requires io.ballerina.graphql.generator;
     requires io.ballerina.graphql.schema;
     exports io.ballerina.graphql.cmd;
     exports io.ballerina.graphql.cmd.pojo;
     exports io.ballerina.graphql.exception;
-    exports io.ballerina.graphql.generator;
-    exports io.ballerina.graphql.generator.model;
     exports io.ballerina.graphql.validator;
-    exports io.ballerina.graphql.generator.ballerina;
-    exports io.ballerina.graphql.generator.graphql.components;
-    exports io.ballerina.graphql.generator.graphql;
 }

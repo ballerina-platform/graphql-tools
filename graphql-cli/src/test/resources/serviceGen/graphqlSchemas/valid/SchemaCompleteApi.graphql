@@ -1,0 +1,60 @@
+type Query {
+    book(id: Int!): Book
+    books: [Book!]
+    profiles: [Profile!]
+}
+
+type Mutation {
+    addBook(
+        id: Int
+        title: String!
+    ): Book!
+    addBookWithInfo(bookInfo: BookInfo!): Book
+}
+
+type Subscription {
+    bookTitles: String!
+}
+
+interface Info {
+    name: String!
+}
+
+interface ContactInfo implements Info {
+    name: String!
+    email: String!
+}
+
+interface AddressInfo {
+    address: String!
+}
+
+type Book {
+    title: String!
+    id: Int!
+    price: Float!
+}
+
+input BookInfo {
+    id: Int!
+    title: String!
+}
+
+type Teacher implements ContactInfo & Info {
+    name: String!
+    subject: String!
+    email: String!
+}
+
+type Student implements Info & AddressInfo {
+    name: String!
+    gpa: Float!
+    address: String!
+}
+
+union Profile = Teacher | Student
+
+enum Gender {
+    MALE
+    FEMALE
+}

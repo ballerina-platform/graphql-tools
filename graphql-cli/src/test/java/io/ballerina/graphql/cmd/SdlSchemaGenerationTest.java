@@ -263,7 +263,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             BufferedReader br = new BufferedReader(new InputStreamReader(output));
             Stream<String> logLines = br.lines();
             String generatedLog = logLines.collect(Collectors.joining(System.lineSeparator()));
-            logLines.close();
+
             // Replace following as Windows environment requirement
             generatedLog = (generatedLog.trim()).replaceAll(WHITESPACE_REGEX, "");
             message = (message.trim()).replaceAll(WHITESPACE_REGEX, "");

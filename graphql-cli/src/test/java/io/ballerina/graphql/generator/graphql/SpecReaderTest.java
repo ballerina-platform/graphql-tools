@@ -19,13 +19,14 @@
 package io.ballerina.graphql.generator.graphql;
 
 import graphql.schema.GraphQLSchema;
-import io.ballerina.graphql.cmd.GraphqlProject;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.model.FieldType;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.generator.graphql.SpecReader;
+import io.ballerina.graphql.generator.client.generator.model.FieldType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.annotations.Test;
@@ -46,7 +47,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetInputObjectTypeNames() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -60,7 +61,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetInputTypeFieldsMap() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -83,7 +84,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetObjectTypeNames() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -97,7 +98,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetObjectTypeFieldsMap() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -122,7 +123,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetCustomScalarTypeNames() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
@@ -135,7 +136,7 @@ public class SpecReaderTest extends GraphqlTest {
 
     @Test
     public void testGetEnumTypeNames() throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
         GraphQLSchema schema = projects.get(0).getGraphQLSchema();
