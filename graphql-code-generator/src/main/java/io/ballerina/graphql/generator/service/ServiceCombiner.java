@@ -54,6 +54,8 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode
  * Utility class for combining available service with generated service for a GraphQL schema.
  */
 public class ServiceCombiner {
+    private static final String removeInputTypeFieldMessage =
+            "warning: In '%s' input type '%s' field has removed. " + "This can brake clients";
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
     private Map<Node, Node> targetAndReplacement;
@@ -63,6 +65,7 @@ public class ServiceCombiner {
     private List<ModuleMemberDeclarationNode> enumTypesModuleMembers;
     private List<ModuleMemberDeclarationNode> unionTypesModuleMembers;
     private List<ModuleMemberDeclarationNode> objectTypesModuleMembers;
+    private List<String> breakingChangeWarnings;
 
     public ServiceCombiner(ModulePartNode prevContentNode, ModulePartNode nextContentNode) {
         this.prevContentNode = prevContentNode;
@@ -75,6 +78,8 @@ public class ServiceCombiner {
         enumTypesModuleMembers = new ArrayList<>();
         unionTypesModuleMembers = new ArrayList<>();
         objectTypesModuleMembers = new ArrayList<>();
+
+        breakingChangeWarnings = new ArrayList<>();
     }
 
     public static void getChangesOfTypeDefinitionRegistry(TypeDefinitionRegistry prevRegistry,
@@ -242,12 +247,20 @@ public class ServiceCombiner {
                 nextTypeDef.typeDescriptor() instanceof RecordTypeDescriptorNode) {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDef.typeDescriptor();
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            if (!isRecordTypeEquals(prevRecordType, nextRecordType)) {
+            TypeEqualityResult equalityResult = isRecordTypeEquals(prevRecordType, nextRecordType);
+            if (!equalityResult.getIsEqual()) {
 //                TypeDefinitionNode modifiedPrevRecordType = prevTypeDef.modify(prevTypeDef.metadata().orElse(null),
 //                        prevTypeDef.visibilityQualifier().orElse(null),
 //                        prevTypeDef.typeKeyword(), prevTypeDef.typeName(), nextRecordType,
 //                        prevTypeDef.semicolonToken());
 //                inputObjectTypesModuleMembers.add(modifiedPrevRecordType);
+                if (equalityResult.getRemovals().size() > 0) {
+                    for (String removedField : equalityResult.getRemovals()) {
+                        breakingChangeWarnings.add(
+                                String.format(removeInputTypeFieldMessage, prevTypeDef.typeName().text(),
+                                        removedField));
+                    }
+                }
             }
             inputObjectTypesModuleMembers.add(nextTypeDef);
             return true;
@@ -286,30 +299,36 @@ public class ServiceCombiner {
         return true;
     }
 
-    private boolean isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType, RecordTypeDescriptorNode nextRecordType)
-            throws Exception {
+    private TypeEqualityResult isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
+                                                  RecordTypeDescriptorNode nextRecordType) throws Exception {
+        TypeEqualityResult result = new TypeEqualityResult();
+        result.setIsEqual(false);
         if (!prevRecordType.recordKeyword().text().equals(nextRecordType.recordKeyword().text())) {
-            return false;
+            return result;
         }
         if (!prevRecordType.bodyStartDelimiter().text().equals(nextRecordType.bodyStartDelimiter().text()) ||
                 !prevRecordType.bodyEndDelimiter().text().equals(nextRecordType.bodyEndDelimiter().text())) {
-            return false;
+            return result;
         }
-        for (Node nextField : nextRecordType.fields()) {
-            boolean foundMatch = false;
-            for (Node prevField : prevRecordType.fields()) {
+        for (Node prevField : prevRecordType.fields()) {
+            boolean foundPrevMatch = false;
+            RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
+            for (Node nextField : nextRecordType.fields()) {
                 RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
-                RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
                 if (isRecordFieldEquals(prevRecordField, nextRecordField)) {
-                    foundMatch = true;
+                    foundPrevMatch = true;
                     break;
                 }
             }
-            if (!foundMatch) {
-                return false;
+            if (!foundPrevMatch) {
+                result.setIsEqual(false);
+                result.addToRemovals(prevRecordField.fieldName().text());
             }
         }
-        return true;
+        if (result.getRemovals().isEmpty()) {
+            result.setIsEqual(true);
+        }
+        return result;
     }
 
     private boolean isRecordFieldEquals(RecordFieldNode prevRecordField, RecordFieldNode nextRecordField)
@@ -450,13 +469,10 @@ public class ServiceCombiner {
                 updatedPrevClassFuncDefinitions = updatedPrevClassFuncDefinitions.add(nextClassFuncDef);
             }
         }
-        ClassDefinitionNode modifiedPrevClassDef =
-                prevClassDef.modify(prevClassDef.metadata().orElse(null),
-                        prevClassDef.visibilityQualifier().orElse(null),
-                        prevClassDef.classTypeQualifiers(),
-                        prevClassDef.classKeyword(), prevClassDef.className(), prevClassDef.openBrace(),
-                        updatedPrevClassFuncDefinitions, prevClassDef.closeBrace(),
-                        prevClassDef.semicolonToken().orElse(null));
+        ClassDefinitionNode modifiedPrevClassDef = prevClassDef.modify(prevClassDef.metadata().orElse(null),
+                prevClassDef.visibilityQualifier().orElse(null), prevClassDef.classTypeQualifiers(),
+                prevClassDef.classKeyword(), prevClassDef.className(), prevClassDef.openBrace(),
+                updatedPrevClassFuncDefinitions, prevClassDef.closeBrace(), prevClassDef.semicolonToken().orElse(null));
         objectTypesModuleMembers.add(modifiedPrevClassDef);
         return true;
     }
@@ -577,5 +593,9 @@ public class ServiceCombiner {
             }
         }
         return changesTypeRegistry;
+    }
+
+    public List<String> getBreakingChangeWarnings() {
+        return breakingChangeWarnings;
     }
 }
