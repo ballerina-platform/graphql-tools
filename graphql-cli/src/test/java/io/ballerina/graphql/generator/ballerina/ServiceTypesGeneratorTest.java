@@ -19,6 +19,8 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import graphql.schema.GraphQLSchema;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
@@ -690,6 +692,32 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     public void testGenerateSrcForSchemaWithFileUploadFields() {
         String fileName = "SchemaWithFileUploadApi";
         String expectedFile = "typesWithFileUploadDefault.bal";
+        try {
+            GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                            .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setFileName(fileName);
+            String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+
+            Path expectedServiceTypesFile =
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
+        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(groups = {"service-type-for-objects"}, description = "Test for schema with input type fields having default" +
+            " values")
+    public void testGenerateSrcForSchemaWithInputTypeFieldsHavingDefaultValues() {
+        String fileName = "SchemaWithInputTypeDefaultParametersApi";
+        String expectedFile = "typesWithInputTypeDefaultParameters.bal";
         try {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
