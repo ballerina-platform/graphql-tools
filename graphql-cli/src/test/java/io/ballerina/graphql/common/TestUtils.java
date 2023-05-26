@@ -18,7 +18,6 @@
 
 package io.ballerina.graphql.common;
 
-import io.ballerina.graphql.cmd.Constants;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.cmd.pojo.Project;
@@ -63,7 +62,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
+import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
+import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 
@@ -92,20 +95,20 @@ public class TestUtils {
      */
     public static Config readConfig(String filePath) throws FileNotFoundException, ParseException, CmdException {
         try {
-            if (filePath.endsWith(Constants.YAML_EXTENSION) || filePath.endsWith(Constants.YML_EXTENSION)) {
+            if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {
                 InputStream inputStream = new FileInputStream(new File(filePath));
                 Constructor constructor = Utils.getProcessedConstructor();
                 Yaml yaml = new Yaml(constructor);
                 Config config = yaml.load(inputStream);
                 if (config == null) {
-                    throw new ParseException(Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE);
+                    throw new ParseException(MESSAGE_FOR_EMPTY_CONFIGURATION_FILE);
                 }
                 return config;
             } else {
                 throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, filePath));
             }
         } catch (YAMLException e) {
-            throw new ParseException(Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT + e.getMessage());
+            throw new ParseException(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT + e.getMessage());
         }
     }
 

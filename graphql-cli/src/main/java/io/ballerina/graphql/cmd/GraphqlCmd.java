@@ -149,9 +149,6 @@ public class GraphqlCmd implements BLauncherCmd {
         this.outStream = outStream;
         this.executionPath = executionDir;
         this.exitWhenFinish = exitWhenFinish;
-        this.clientCodeGenerator = new ClientCodeGenerator();
-        this.serviceCodeGenerator = new ServiceCodeGenerator();
-        this.gatewayCodeGenerator = new GatewayCodeGenerator();
     }
 
     /**
@@ -159,7 +156,7 @@ public class GraphqlCmd implements BLauncherCmd {
      *
      * @param exit Whether to exit or not.
      */
-    private void exitError(boolean exit) {
+    private static void exitError(boolean exit) {
         if (exit) {
             Runtime.getRuntime().exit(1);
         }
@@ -270,6 +267,7 @@ public class GraphqlCmd implements BLauncherCmd {
             generateService(filePath);
         } else if (MODE_GATEWAY.equals(mode)) {
             outStream.println("Generating the gateway...");
+            setGatewayCodeGenerator(new GatewayCodeGenerator());
             generateFederationGateway(filePath);
         }
     }
@@ -432,6 +430,10 @@ public class GraphqlCmd implements BLauncherCmd {
 
     public void setServiceCodeGenerator(ServiceCodeGenerator serviceCodeGenerator) {
         this.serviceCodeGenerator = serviceCodeGenerator;
+    }
+
+    public void setGatewayCodeGenerator(GatewayCodeGenerator gatewayCodeGenerator) {
+        this.gatewayCodeGenerator = gatewayCodeGenerator;
     }
 
     @Override

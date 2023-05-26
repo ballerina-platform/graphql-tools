@@ -45,12 +45,12 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         String[] args = {"-i", "valid/service_1.bal", "-o", this.tmpDir.toString()};
         try {
             executeCommand(args);
-//            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_graphql.graphql"));
-//            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-//            Files.exists(this.tmpDir.resolve("schema_graphql.graphql"));
+            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_graphql.graphql"));
+            String expectedSchema = readContentWithFormat(expectedSchemaFile);
+            Files.exists(this.tmpDir.resolve("schema_graphql.graphql"));
             Assert.assertTrue(true);
             String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_graphql.graphql"));
-//            Assert.assertEquals(expectedSchema, generatedSchema);
+            Assert.assertEquals(expectedSchema, generatedSchema);
         } catch (IOException | InterruptedException e) {
             Assert.fail(e.toString());
         }
@@ -71,7 +71,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test successful GraphQL command e  mbhj h            xecution with service name")
+    @Test(description = "Test successful GraphQL command execution with service name")
     public void testSdlGenerationWithServiceBasePath() {
         String[] args = {"-i", "valid/service_2.bal", "-o", this.tmpDir.toString(), "-s", "/service/gql"};
         try {
