@@ -217,6 +217,58 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         }
     }
 
+    @Test(groups = {"record-type-for-objects"}, description = "Test for schema with object implementing interface")
+    public void testGenerateSrcForSchemaWithObjectImplementingInterfaceRecordsAllowed() {
+        String fileName = "SchemaWithInterfaceApi";
+        String expectedFile = "typesWithInterfaceRecordsAllowed.bal";
+        try {
+            GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                            .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setUseRecordsForObjects(true);
+            serviceTypesGenerator.setFileName(fileName);
+            String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+
+            Path expectedServiceTypesFile =
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
+        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(groups = {"record-type-for-objects"}, description = "Test for schema with union")
+    public void testGenerateSrcForSchemaWithUnionRecordsAllowed() {
+        String fileName = "SchemaWithUnionApi";
+        String expectedFile = "typesWithUnionRecordsAllowed.bal";
+        try {
+            GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                            .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setUseRecordsForObjects(true);
+            serviceTypesGenerator.setFileName(fileName);
+            String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+
+            Path expectedServiceTypesFile =
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
+        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
     @Test(groups = {"service-type-for-objects"}, description = "Test for schema with enum")
     public void testGenerateSrcForEnum() {
         String fileName = "SchemaWithEnumApi";
@@ -690,6 +742,32 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     public void testGenerateSrcForSchemaWithFileUploadFields() {
         String fileName = "SchemaWithFileUploadApi";
         String expectedFile = "typesWithFileUploadDefault.bal";
+        try {
+            GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                            .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setFileName(fileName);
+            String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+
+            Path expectedServiceTypesFile =
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
+        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(groups = {"service-type-for-objects"}, description = "Test for schema with input type fields having default" +
+            " values")
+    public void testGenerateSrcForSchemaWithInputTypeFieldsHavingDefaultValues() {
+        String fileName = "SchemaWithInputTypeDefaultParametersApi";
+        String expectedFile = "typesWithInputTypeDefaultParameters.bal";
         try {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))

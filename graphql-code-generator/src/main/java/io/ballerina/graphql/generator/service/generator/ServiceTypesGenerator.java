@@ -136,6 +136,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createObjectTypeDesc
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createOptionalTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createQualifiedNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordFieldNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordFieldWithDefaultValueNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRequiredParameterNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createReturnTypeDescriptorNode;
@@ -446,10 +447,19 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLInputObjectField> inputTypeFields) throws ServiceTypesGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLInputObjectField field : inputTypeFields) {
-            fields.add(createRecordFieldNode(
-                    generateMetadata(field.getDescription(), null, field.isDeprecated(), field.getDeprecationReason()),
-                    null, generateTypeDescriptor(field.getType()), createIdentifierToken(field.getName()), null,
-                    createToken(SyntaxKind.SEMICOLON_TOKEN)));
+            if (field.hasSetDefaultValue()) {
+                Object value = field.getInputFieldDefaultValue().getValue();
+                ExpressionNode generatedDefaultValue = generateArgDefaultValue(value);
+                fields.add(createRecordFieldWithDefaultValueNode(
+                        generateMetadata(field.getDescription(), null, field.isDeprecated(),
+                                field.getDeprecationReason()), null, generateTypeDescriptor(field.getType()),
+                        createIdentifierToken(field.getName()), createToken(SyntaxKind.EQUAL_TOKEN),
+                        generatedDefaultValue, createToken(SyntaxKind.SEMICOLON_TOKEN)));
+            } else {
+                fields.add(createRecordFieldNode(generateMetadata(field.getDescription(), null, field.isDeprecated(),
+                                field.getDeprecationReason()), null, generateTypeDescriptor(field.getType()),
+                        createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
+            }
         }
         return createNodeList(fields);
     }
