@@ -12,6 +12,7 @@ import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
+import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
@@ -29,6 +30,7 @@ import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.StreamTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.StreamTypeParamsNode;
@@ -59,6 +61,8 @@ public class ServiceCombiner {
             "warning: In '%s' input type '%s' field has removed. This can brake clients";
     private static final String addViolatedInputTypeFieldMessage = "warning: In '%s' input type '%s' field is " +
             "introduced without a default value. This can brake available clients";
+    private static final String removeEnumMemberMessage = "warning: In '%s' enum '%s' member has removed. This can " +
+            "brake existing clients.";
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
     private Map<Node, Node> targetAndReplacement;
@@ -185,23 +189,55 @@ public class ServiceCombiner {
             return false;
         }
         enumTypesModuleMembers.add(nextEnumDec);
-//
-//        for (Node nextEnumMemberNode : nextEnumDec.enumMemberList()) {
-//            boolean foundMatch = false;
-//            for (Node prevEnumMemberNode : prevEnumDec.enumMemberList()) {
-//                if (nextEnumMemberNode instanceof EnumMemberNode && prevEnumMemberNode instanceof EnumMemberNode) {
-//                    EnumMemberNode nextEnumMember = (EnumMemberNode) nextEnumMemberNode;
-//                    EnumMemberNode prevEnumMember = (EnumMemberNode) prevEnumMemberNode;
-//                    if (nextEnumMember.identifier().text().equals(prevEnumMember.identifier().text())) {
-//                        foundMatch = true;
-//                    }
-//                }
-//            }
-//            if (!foundMatch) {
-//                return false;
-//            }
-//        }
+        TypeEqualityResult comparedResult = compareEnumMembers(prevEnumDec.enumMemberList(),
+                nextEnumDec.enumMemberList());
+        for (String removedField : comparedResult.getRemovals()) {
+            breakingChangeWarnings.add(String.format(removeEnumMemberMessage, prevEnumDec.identifier().text(),
+                    removedField));
+        }
         return true;
+    }
+
+    private TypeEqualityResult compareEnumMembers(SeparatedNodeList<Node> prevEnumMembers,
+                                                  SeparatedNodeList<Node> nextEnumMembers) {
+        TypeEqualityResult result = new TypeEqualityResult();
+        for (Node prevEnumMemberNode : prevEnumMembers) {
+            boolean prevFoundMatch = false;
+            for (Node nextEnumMemberNode : nextEnumMembers) {
+                if (prevEnumMemberNode instanceof EnumMemberNode && nextEnumMemberNode instanceof EnumMemberNode) {
+                    EnumMemberNode nextEnumMember = (EnumMemberNode) nextEnumMemberNode;
+                    EnumMemberNode prevEnumMember = (EnumMemberNode) prevEnumMemberNode;
+                    if (nextEnumMember.identifier().text().equals(prevEnumMember.identifier().text())) {
+                        prevFoundMatch = true;
+                    }
+                }
+            }
+            if (!prevFoundMatch) {
+                if (prevEnumMemberNode instanceof EnumMemberNode) {
+                    EnumMemberNode prevEnumMember = (EnumMemberNode) prevEnumMemberNode;
+                    result.addToRemovals(prevEnumMember.identifier().text());
+                }
+            }
+        }
+        for (Node nextEnumMemberNode : nextEnumMembers) {
+            boolean nextFoundMatch = false;
+            for (Node prevEnumMemberNode : prevEnumMembers) {
+                if (nextEnumMemberNode instanceof EnumMemberNode && prevEnumMemberNode instanceof EnumMemberNode) {
+                    EnumMemberNode nextEnumMember = (EnumMemberNode) nextEnumMemberNode;
+                    EnumMemberNode prevEnumMember = (EnumMemberNode) prevEnumMemberNode;
+                    if (nextEnumMember.identifier().text().equals(prevEnumMember.identifier().text())) {
+                        nextFoundMatch = true;
+                    }
+                }
+            }
+            if (!nextFoundMatch) {
+                if (nextEnumMemberNode instanceof EnumMemberNode) {
+                    EnumMemberNode nextEnumMember = (EnumMemberNode) nextEnumMemberNode;
+                    result.addToAdditions(nextEnumMember.identifier().text());
+                }
+            }
+        }
+        return result;
     }
 
     private boolean isTypeDefEquals(TypeDefinitionNode prevTypeDef, TypeDefinitionNode nextTypeDef) throws Exception {
@@ -252,11 +288,6 @@ public class ServiceCombiner {
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDef.typeDescriptor();
             TypeEqualityResult equalityResult = isRecordTypeEquals(prevRecordType, nextRecordType);
             if (!equalityResult.isEqual()) {
-//                TypeDefinitionNode modifiedPrevRecordType = prevTypeDef.modify(prevTypeDef.metadata().orElse(null),
-//                        prevTypeDef.visibilityQualifier().orElse(null),
-//                        prevTypeDef.typeKeyword(), prevTypeDef.typeName(), nextRecordType,
-//                        prevTypeDef.semicolonToken());
-//                inputObjectTypesModuleMembers.add(modifiedPrevRecordType);
                 for (String removedField : equalityResult.getRemovals()) {
                     breakingChangeWarnings.add(
                             String.format(removeInputTypeFieldMessage, prevTypeDef.typeName().text(), removedField));
