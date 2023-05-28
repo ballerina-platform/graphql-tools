@@ -334,6 +334,17 @@ public class ServiceCombinerTest extends GraphqlTest {
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> warnings = new ArrayList<>();
+        warnings.add("warning: In 'CreateAuthorInput' input type 'address' field is introduced without " +
+                "a default value. This can brake available clients");
+        warnings.add("warning: In 'CreateBookInput' input type 'version' field is introduced without a " +
+                "default value. This can brake available clients");
+        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 2);
+        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
+            Assert.assertEquals(warnings.get(i), breakingChangeWarnings.get(i));
+        }
     }
 
     @Test(description = "Test combining updated schema with new union sub types")

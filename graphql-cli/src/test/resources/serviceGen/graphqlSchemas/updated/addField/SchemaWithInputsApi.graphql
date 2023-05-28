@@ -22,11 +22,13 @@ type Book {
 input CreateAuthorInput {
     name: String!
     email: String!
-    age: Int!
+    address: String!
+    age: Int! = 18
 }
 
 input CreateBookInput {
     title: String!
     authorId: Int
     price: Float!
+    version: String!
 }

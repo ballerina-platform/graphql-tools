@@ -12,13 +12,15 @@ type SchemaWithInputsApi service object {
 public type CreateAuthorInput record {|
     string name;
     string email;
-    int age;
+    string address;
+    int age = 18;
 |};
 
 public type CreateBookInput record {|
     string title;
     int? authorId;
     float price;
+    string version;
 |};
 
 public distinct service class Author {
