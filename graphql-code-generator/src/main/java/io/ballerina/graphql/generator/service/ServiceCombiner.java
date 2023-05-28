@@ -25,6 +25,7 @@ import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
+import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
@@ -55,7 +56,9 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode
  */
 public class ServiceCombiner {
     private static final String removeInputTypeFieldMessage =
-            "warning: In '%s' input type '%s' field has removed. " + "This can brake clients";
+            "warning: In '%s' input type '%s' field has removed. This can brake clients";
+    private static final String addViolatedInputTypeFieldMessage = "warning: In '%s' input type '%s' field is " +
+            "introduced without a default value. This can brake available clients";
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
     private Map<Node, Node> targetAndReplacement;
@@ -248,18 +251,20 @@ public class ServiceCombiner {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDef.typeDescriptor();
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDef.typeDescriptor();
             TypeEqualityResult equalityResult = isRecordTypeEquals(prevRecordType, nextRecordType);
-            if (!equalityResult.getIsEqual()) {
+            if (!equalityResult.isEqual()) {
 //                TypeDefinitionNode modifiedPrevRecordType = prevTypeDef.modify(prevTypeDef.metadata().orElse(null),
 //                        prevTypeDef.visibilityQualifier().orElse(null),
 //                        prevTypeDef.typeKeyword(), prevTypeDef.typeName(), nextRecordType,
 //                        prevTypeDef.semicolonToken());
 //                inputObjectTypesModuleMembers.add(modifiedPrevRecordType);
-                if (equalityResult.getRemovals().size() > 0) {
-                    for (String removedField : equalityResult.getRemovals()) {
-                        breakingChangeWarnings.add(
-                                String.format(removeInputTypeFieldMessage, prevTypeDef.typeName().text(),
-                                        removedField));
-                    }
+                for (String removedField : equalityResult.getRemovals()) {
+                    breakingChangeWarnings.add(
+                            String.format(removeInputTypeFieldMessage, prevTypeDef.typeName().text(), removedField));
+                }
+                for (String addedViolatedField : equalityResult.getViolatedAdditions()) {
+                    breakingChangeWarnings.add(
+                            String.format(addViolatedInputTypeFieldMessage, prevTypeDef.typeName().text(),
+                                    addedViolatedField));
                 }
             }
             inputObjectTypesModuleMembers.add(nextTypeDef);
@@ -302,7 +307,6 @@ public class ServiceCombiner {
     private TypeEqualityResult isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
                                                   RecordTypeDescriptorNode nextRecordType) throws Exception {
         TypeEqualityResult result = new TypeEqualityResult();
-        result.setIsEqual(false);
         if (!prevRecordType.recordKeyword().text().equals(nextRecordType.recordKeyword().text())) {
             return result;
         }
@@ -312,23 +316,86 @@ public class ServiceCombiner {
         }
         for (Node prevField : prevRecordType.fields()) {
             boolean foundPrevMatch = false;
-            RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
             for (Node nextField : nextRecordType.fields()) {
-                RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
-                if (isRecordFieldEquals(prevRecordField, nextRecordField)) {
-                    foundPrevMatch = true;
-                    break;
+                if (prevField instanceof RecordFieldNode && nextField instanceof RecordFieldNode) {
+                    RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
+                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
+                    if (isRecordFieldEquals(prevRecordField, nextRecordField)) {
+                        foundPrevMatch = true;
+                        break;
+                    }
+                } else if (prevField instanceof RecordFieldWithDefaultValueNode &&
+                        nextField instanceof RecordFieldWithDefaultValueNode) {
+                    RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue =
+                            (RecordFieldWithDefaultValueNode) prevField;
+                    RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue =
+                            (RecordFieldWithDefaultValueNode) nextField;
+                    if (isRecordFieldWithDefaultValueEquals(prevRecordFieldWithDefaultValue,
+                            nextRecordFieldWithDefaultValue)) {
+                        foundPrevMatch = true;
+                        break;
+                    }
                 }
             }
             if (!foundPrevMatch) {
-                result.setIsEqual(false);
-                result.addToRemovals(prevRecordField.fieldName().text());
+                if (prevField instanceof RecordFieldNode) {
+                    RecordFieldNode nextRecordField = (RecordFieldNode) prevField;
+                    result.addToRemovals(nextRecordField.fieldName().text());
+                } else if (prevField instanceof RecordFieldWithDefaultValueNode) {
+                    RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) prevField;
+                    result.addToRemovals(nextRecordField.fieldName().text());
+                }
             }
         }
-        if (result.getRemovals().isEmpty()) {
-            result.setIsEqual(true);
+        for (Node nextField : nextRecordType.fields()) {
+            boolean foundNextMatch = false;
+            for (Node prevField : prevRecordType.fields()) {
+                if (prevField instanceof RecordFieldNode && nextField instanceof RecordFieldNode) {
+                    RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
+                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
+
+                    if (isRecordFieldEquals(prevRecordField, nextRecordField)) {
+                        foundNextMatch = true;
+                        break;
+                    }
+                } else if (prevField instanceof RecordFieldWithDefaultValueNode &&
+                        nextField instanceof RecordFieldWithDefaultValueNode) {
+                    RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue =
+                            (RecordFieldWithDefaultValueNode) prevField;
+                    RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue =
+                            (RecordFieldWithDefaultValueNode) nextField;
+                    if (isRecordFieldWithDefaultValueEquals(prevRecordFieldWithDefaultValue,
+                            nextRecordFieldWithDefaultValue)) {
+                        foundNextMatch = true;
+                        break;
+                    }
+                }
+            }
+            if (!foundNextMatch) {
+                if (nextField instanceof RecordFieldNode) {
+                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
+                    result.addToAdditions(nextRecordField.fieldName().text());
+                    result.addToViolatedAdditions(nextRecordField.fieldName().text());
+                } else if (nextField instanceof RecordFieldWithDefaultValueNode) {
+                    RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) nextField;
+                    result.addToAdditions(nextRecordField.fieldName().text());
+                }
+            }
         }
         return result;
+    }
+
+    private boolean isRecordFieldWithDefaultValueEquals(RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue,
+                                                        RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue)
+            throws Exception {
+        if (!isTypeEquals(prevRecordFieldWithDefaultValue.typeName(), nextRecordFieldWithDefaultValue.typeName())) {
+            return false;
+        }
+        if (!prevRecordFieldWithDefaultValue.fieldName().text()
+                .equals(nextRecordFieldWithDefaultValue.fieldName().text())) {
+            return false;
+        }
+        return true;
     }
 
     private boolean isRecordFieldEquals(RecordFieldNode prevRecordField, RecordFieldNode nextRecordField)

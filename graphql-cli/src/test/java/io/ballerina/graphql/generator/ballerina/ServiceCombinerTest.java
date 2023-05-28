@@ -488,12 +488,12 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(expectedServiceTypesContent, result);
 
         List<String> warningMessages = new ArrayList<>();
-        warningMessages.add("warning: In 'CreateAuthorInput' input type 'email' field has removed. This can brake " +
-                "clients");
-        warningMessages.add("warning: In 'CreateBookInput' input type 'authorId' field has removed. This can brake " +
-                "clients");
-        warningMessages.add("warning: In 'CreateBookInput' input type 'price' field has removed. This can brake " +
-                "clients");
+        warningMessages.add(
+                "warning: In 'CreateAuthorInput' input type 'email' field has removed. This can brake clients");
+        warningMessages.add(
+                "warning: In 'CreateBookInput' input type 'authorId' field has removed. This can brake clients");
+        warningMessages.add(
+                "warning: In 'CreateBookInput' input type 'price' field has removed. This can brake clients");
         List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 3);
         for (int i = 0; i < 3; i++) {
