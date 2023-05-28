@@ -501,6 +501,42 @@ public class ServiceCombinerTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test combining updated schema with removed enum fields")
+    public void testCombiningUpdatedSchemaWithRemovedEnumFields() throws Exception {
+        String balFileName = "typesWithEnumDefault";
+        String newSchemaFileName = "SchemaWithEnumApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "removeField", balFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceCombiner serviceCombiner = new ServiceCombiner(updateBalFileNode, nextSchemaNode);
+        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> warningMessages = new ArrayList<>();
+        warningMessages.add("warning: In 'Gender' enum 'FEMALE' member has removed. This can break existing clients.");
+        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 1);
+        for (int i = 0; i < 1; i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
+        }
+    }
+
     @Test(description = "Test combining updated schema with new interface fields")
     public void testNodeParser() throws Exception {
         String balFileName = "typesDocsWithEnumDefault";
