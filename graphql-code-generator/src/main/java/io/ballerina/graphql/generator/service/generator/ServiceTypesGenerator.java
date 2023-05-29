@@ -101,6 +101,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createCommentMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEndOfLineMinutiae;
@@ -522,7 +523,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         for (int fieldIdx = 0; fieldIdx < fields.size(); fieldIdx++) {
             GraphQLFieldDefinition field = fields.get(fieldIdx);
             boolean addAdditionalNewLine = true;
-            if (fieldIdx == fields.size() - 1) {
+            if (fieldIdx == 0) {
                 addAdditionalNewLine = false;
             }
             FunctionDefinitionNode functionDefinition = generateServiceClassTypeMember(field, addAdditionalNewLine);
@@ -534,7 +535,14 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private FunctionDefinitionNode generateServiceClassTypeMember(GraphQLFieldDefinition fieldDefinition,
                                                                   boolean addAdditionalNewLine)
             throws ServiceTypesGenerationException {
-        NodeList<Token> qualifierResource = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD));
+        MinutiaeList resourceLeadingMinutiaeList = createEmptyMinutiaeList();
+        if (addAdditionalNewLine) {
+            resourceLeadingMinutiaeList =
+                    resourceLeadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+        }
+        NodeList<Token> qualifierResource = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD,
+                resourceLeadingMinutiaeList,
+                createEmptyMinutiaeList()));
         NodeList<Node> fieldName = createNodeList(createIdentifierToken(fieldDefinition.getName()));
         FunctionSignatureNode functionSignature = createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
                 generateMethodSignatureParams(fieldDefinition.getArguments()),
@@ -542,10 +550,11 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 generateMethodSignatureReturnType(fieldDefinition.getType()));
         MinutiaeList functionBodyTraillingMinutiaeList =
                 createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
-        if (addAdditionalNewLine) {
-            functionBodyTraillingMinutiaeList =
-                    functionBodyTraillingMinutiaeList.add(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
-        }
+//        if (addAdditionalNewLine) {
+//            resourceLeading = resourceLeading.add(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
+//            functionBodyTraillingMinutiaeList =
+//                    functionBodyTraillingMinutiaeList.add(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
+//        }
         FunctionBodyBlockNode functionBody =
                 createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
                         createToken(SyntaxKind.CLOSE_BRACE_TOKEN, createEmptyMinutiaeList(),
