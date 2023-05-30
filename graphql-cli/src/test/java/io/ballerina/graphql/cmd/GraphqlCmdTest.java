@@ -405,6 +405,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.fail(output);
         }
     }
+    
     @Test(description = "Test successful graphql federation gateway executable generation",
             dataProvider = "gatewayCmdTestDataProvider")
     public void testGatewayJarGeneration(String supergraph) {

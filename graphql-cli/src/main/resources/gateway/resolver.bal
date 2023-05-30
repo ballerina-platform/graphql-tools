@@ -60,7 +60,7 @@ public class Resolver {
                     EntityResponse response = check 'client->execute(queryString);
                     check self.compose(self.result, response.data._entities, self.getEffectivePath('record.'field));
                     UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
-                    if (propertiesNotResolved.length() > 0) {
+                    if propertiesNotResolved.length() > 0 {
                         Resolver resolver = new (self.queryPlan, self.result, self.resultType, propertiesNotResolved, self.currentPath);
                         check resolver.resolve();
                     }
@@ -107,7 +107,7 @@ public class Resolver {
         json pointer = finalResult;
         string element = pathCopy.shift();
 
-        while (pathCopy.length() > 0) {
+        while pathCopy.length() > 0 {
             if element == "@" {
                 if resultToCompose is json[] && pointer is json[] {
                     foreach var i in 0 ..< resultToCompose.length() {
@@ -115,14 +115,12 @@ public class Resolver {
                     }
                     return;
                 }
-                else {
-                    // Ideally should not be thrown
-                    return error("Error: Cannot compose into the result.");
-                }
+                // Ideally should not be thrown
+                return error("Error: Cannot compose into the result.");
             }
             else {
                 if pointer is map<json> {
-                    if (pointer.hasKey(element)) {
+                    if pointer.hasKey(element) {
                         pointer = pointer.get(element);
                     } else {
                         return error(element.toString() + " is not found in pointer :" + pointer.toString());
