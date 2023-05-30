@@ -110,7 +110,6 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceTypesContent);
     }
 
-
     @Test(description = "Test combining updated schema with input object")
     public void testCombiningUpdatedSchemaWithInputObject() throws Exception {
         String balFileName = "typesWithInputsDefault";
@@ -537,6 +536,44 @@ public class ServiceCombinerTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test combining updated schema with removed object fields represented in service class")
+    public void testCombiningUpdatedSchemaWithRemovedObjectFieldsRepresentedInServiceClass() throws Exception {
+        String beforeBalFileName = "typesBeforeSingleObjectRemoveFieldDefault";
+        String expectedBalFileName = "typesWithSingleObjectRemoveFieldDefault";
+        String newSchemaFileName = "SchemaWithSingleObjectRemoveFieldApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceCombiner serviceCombiner = new ServiceCombiner(updateBalFileNode, nextSchemaNode);
+        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> warningMessages = new ArrayList<>();
+        warningMessages.add(
+                "warning: In 'Book' service class 'title' function definition has removed. " +
+                        "This can brake available clients"
+        );
+        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 1);
+        Assert.assertEquals(breakingChangeWarnings.get(0), warningMessages.get(0));
+    }
+
     @Test(description = "Test combining updated schema with new interface fields")
     public void testNodeParser() throws Exception {
         String balFileName = "typesDocsWithEnumDefault";
@@ -544,6 +581,5 @@ public class ServiceCombinerTest extends GraphqlTest {
         String balFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(balFilePath));
         ModulePartNode balFileNode = NodeParser.parseModulePart(balFileContent);
         Assert.assertTrue(balFileNode != null);
-
     }
 }

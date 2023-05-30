@@ -28,4 +28,6 @@ public class Constants {
     public static final String ONLY_SCALAR_TYPE_ALLOWED = "Should be a scalar type but found \"%s\".";
     public static final String NOT_ALLOWED_UNION_SUB_TYPE =
             "Union type can only have object types as members. But found: \"%s\" with different type.";
+    public static final String RESOURCE = "resource";
+    public static final String REMOTE = "remote";
 }
