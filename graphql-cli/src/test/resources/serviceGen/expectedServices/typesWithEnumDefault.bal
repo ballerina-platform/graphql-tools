@@ -10,10 +10,21 @@ public enum Gender {
     FEMALE
 }
 
+public enum Status {
+    ONLINE,
+    OFFLINE
+}
+
 public distinct service class Student {
     resource function get id() returns int {
     }
 
     resource function get name() returns string {
+    }
+
+    resource function get gender() returns Gender {
+    }
+
+    resource function get status() returns Status? {
     }
 }
