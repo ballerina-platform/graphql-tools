@@ -232,8 +232,10 @@ public class GraphqlCmdTest extends GraphqlTest {
                 {"schema", "schema.graphql"}};
     }
 
-    @Test(description = "Test graphql command execution with mismatch mode and file extension",
-            dataProvider = "mismatchModeAndFile")
+    @Test(
+            description = "Test graphql command execution with mismatch mode and file extension",
+            dataProvider = "mismatchModeAndFile"
+    )
     public void testExecuteWithMismatchModeAndFileExtension(String mode, String fileName) {
         Path filePath = resourceDir.resolve(Paths.get("specs", fileName));
         String[] args = {"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode};
@@ -254,8 +256,10 @@ public class GraphqlCmdTest extends GraphqlTest {
         return new Object[][]{{"client", "graphql.config.yaml"}, {"schema", "service.bal"}};
     }
 
-    @Test(description = "Test graphql command execution with use-records-for-objects and incompatible mode",
-            dataProvider = "useRecordsForObjectsFlagMisUse")
+    @Test(
+            description = "Test graphql command execution with use-records-for-objects and incompatible mode",
+            dataProvider = "useRecordsForObjectsFlagMisUse"
+    )
     public void testExecuteWithUseRecordsForObjectsFlagAndIncompatibleMode(String mode, String fileName) {
         Path filePath = resourceDir.resolve(Paths.get("specs", fileName));
         String[] args = new String[]{"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode,

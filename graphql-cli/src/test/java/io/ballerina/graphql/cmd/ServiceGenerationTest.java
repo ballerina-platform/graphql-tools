@@ -112,8 +112,10 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(groups = {"invalid_permission"},
-            description = "Test GraphQL command execution with schema file without read permission")
+    @Test(
+            groups = {"invalid_permission"},
+            description = "Test GraphQL command execution with schema file without read permission"
+    )
     public void testExecuteWithSchemaFileWithoutReadPermission() {
         Path graphqlSchema = Paths.get(tmpDir.toString(), "schema.graphql");
         String[] args = {"-i", graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
@@ -150,8 +152,10 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "SchemaCompleteApi.graphql"};
     }
 
-    @Test(description = "Test compilation for all schemas without use-records-for-objects flag", dataProvider =
-            "schemaFileNames")
+    @Test(
+            description = "Test compilation for all schemas without use-records-for-objects flag",
+            dataProvider = "schemaFileNames"
+    )
     public void testCompilationForAllSchemas(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
         String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
@@ -166,8 +170,10 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test compilation for all schemas with use-records-for-objects flag",
-            dataProvider = "schemaFileNames")
+    @Test(
+            description = "Test compilation for all schemas with use-records-for-objects flag",
+            dataProvider = "schemaFileNames"
+    )
     public void testCompilationForAllSchemasWithUseRecordsForObjects(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
         String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service",

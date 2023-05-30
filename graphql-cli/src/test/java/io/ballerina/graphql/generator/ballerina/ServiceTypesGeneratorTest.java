@@ -190,8 +190,10 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         }
     }
 
-    @Test(groups = {"record-type-for-objects"}, description = "Test for schema with object field taking input " +
-            "argument")
+    @Test(
+            groups = {"record-type-for-objects"},
+            description = "Test for schema with object field taking input argument"
+    )
     public void testGenerateSrcForRecordForced() {
         String fileName = "SchemaWithObjectTakingInputArgumentApi";
         String expectedFile = "typesWithObjectTakingInputArgumentRecordsAllowed.bal";
@@ -369,8 +371,10 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         }
     }
 
-    @Test(groups = {"service-type-for-objects"},
-            description = "Test for schema with interfaces implementing interfaces")
+    @Test(
+            groups = {"service-type-for-objects"},
+            description = "Test for schema with interfaces implementing interfaces"
+    )
     public void testGenerateSrcForInterfacesImplementingInterfaces() {
         String fileName = "SchemaWithInterfacesImplementingInterfacesApi";
         String expectedFile = "typesWithInterfacesImplementingInterfacesDefault.bal";
@@ -428,8 +432,11 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
                 {"SchemaWithDefaultParameters04Api", "typesWithDefaultParameters04Default.bal"}};
     }
 
-    @Test(groups = {"service-type-for-objects"}, description = "Test for schema with default parameter values",
-            dataProvider = "schemasWithDefaultParameterValuesAndExpectedFiles")
+    @Test(
+            groups = {"service-type-for-objects"},
+            description = "Test for schema with default parameter values",
+            dataProvider = "schemasWithDefaultParameterValuesAndExpectedFiles"
+    )
     public void testGenerateSrcForSchemaWithDefaultParameterValues(String fileName, String expectedFile) {
         try {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
@@ -478,8 +485,10 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
     }
 
 
-    @Test(groups = {"service-type-for-objects"},
-            description = "Test for schema with docs in arguments in resolver functions")
+    @Test(
+            groups = {"service-type-for-objects"},
+            description = "Test for schema with docs in arguments in resolver functions"
+    )
     public void testGenerateSrcForSchemaWithDocsInArgumentsInResolverFunctions() {
         String fileName = "SchemaDocsWithResolverArgumentsApi";
         String expectedFile = "typesDocsWithResolverArgumentsDefault.bal";
@@ -504,8 +513,10 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         }
     }
 
-    @Test(groups = {"service-type-for-objects"},
-            description = "Test for schema with multiple line docs in resolver function arguments")
+    @Test(
+            groups = {"service-type-for-objects"},
+            description = "Test for schema with multiple line docs in resolver function arguments"
+    )
     public void testGenerateSrcForSchemaWithMultipleLineDocsInResolverFunctionArguments() {
         String fileName = "SchemaDocsWithMultipleLinesApi";
         String expectedFile = "typesDocsWithMultipleLinesDefault.bal";
@@ -688,8 +699,11 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
                 {"SchemaDocsWithDeprecated03Api", "typesDocsWithDeprecated03Default.bal"}};
     }
 
-    @Test(groups = {"service-type-for-objects"}, description = "Test for schema with deprecated directive fields",
-            dataProvider = "schemaFileNamesWithDeprecationAndExpectedFiles")
+    @Test(
+            groups = {"service-type-for-objects"},
+            description = "Test for schema with deprecated directive fields",
+            dataProvider = "schemaFileNamesWithDeprecationAndExpectedFiles"
+    )
     public void testGenerateSrcForSchemaWithDeprecatedDirective(String fileName, String expectedFile) {
         try {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
@@ -763,8 +777,10 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         }
     }
 
-    @Test(groups = {"service-type-for-objects"}, description = "Test for schema with input type fields having default" +
-            " values")
+    @Test(
+            groups = {"service-type-for-objects"},
+            description = "Test for schema with input type fields having default values"
+    )
     public void testGenerateSrcForSchemaWithInputTypeFieldsHavingDefaultValues() {
         String fileName = "SchemaWithInputTypeDefaultParametersApi";
         String expectedFile = "typesWithInputTypeDefaultParameters.bal";
