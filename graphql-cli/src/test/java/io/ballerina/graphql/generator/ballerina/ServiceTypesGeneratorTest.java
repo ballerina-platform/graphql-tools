@@ -788,4 +788,32 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             Assert.fail(e.getMessage());
         }
     }
+
+    @DataProvider(name = "invalidSchemasWithExpectedErrorMessages")
+    public Object[][] getInvalidSchemasWithExpectedErrorMessages() {
+        return new Object[][]{
+                {"InvalidSchemaWithUnionMemberTypeOfEnum",
+                        "The member types of a Union type must all be Object base types. member type Gender in Union " +
+                                "Profile is invalid."},
+                {"InvalidSchemaWithUnionMemberTypeOfInterface", "The member types of a Union type must all be " +
+                        "Object base types. member type Info in Union Profile is invalid."},
+                {"InvalidSchemaWithUnionMemberTypeOfUnion", "The member types of a Union type must all be Object " +
+                        "base types. member type Internal in Union Profile is invalid."},
+                {"InvalidSchemaWithUnionMemberTypeOfInputType", "The member types of a Union type must all be " +
+                        "Object base types. member type Info in Union PersonInfo is invalid."},
+                {"InvalidSchemaWithUnionMemberTypeOfInputType", "The member types of a Union type must all be " +
+                        "Object base types. member type Info in Union PersonInfo is invalid."}};
+    }
+
+    @Test(description = "Test for invalid schemas", dataProvider = "invalidSchemasWithExpectedErrorMessages")
+    public void testGenerateSrcForInvalidSchemas(String fileName, String errorMessage) {
+        try {
+            TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid", fileName +
+                                    ".graphql"))
+                            .toString(), this.tmpDir);
+        } catch (ValidationException | IOException e) {
+            Assert.assertTrue(e.getMessage().contains(errorMessage));
+        }
+    }
 }
