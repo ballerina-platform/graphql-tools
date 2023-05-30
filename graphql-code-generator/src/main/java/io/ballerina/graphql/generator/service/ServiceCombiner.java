@@ -63,6 +63,8 @@ public class ServiceCombiner {
             "introduced without a default value. This can brake available clients";
     private static final String removeEnumMemberMessage = "warning: In '%s' enum '%s' member has removed. This can " +
             "brake existing clients.";
+    private static final String removeServiceClassFuncDefMessage = "warning: In '%s' service class '%s' function " +
+            "definition has removed. This can brake available clients";
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
     private Map<Node, Node> targetAndReplacement;
@@ -546,33 +548,72 @@ public class ServiceCombiner {
         if (!prevClassDef.className().text().equals(nextClassDef.className().text())) {
             return false;
         }
-        NodeList<Node> updatedPrevClassFuncDefinitions = prevClassDef.members();
+        NodeList<Node> finalClassFuncDefinitions = createNodeList();
+        TypeEqualityResult equalityResult = new TypeEqualityResult();
+        HashMap<FunctionDefinitionNode, Boolean> nextClassMemberAvailable = new HashMap<>();
         for (Node nextClassMember : nextClassDef.members()) {
-            if (!(nextClassMember instanceof FunctionDefinitionNode)) {
-                continue;
+            if (nextClassMember instanceof FunctionDefinitionNode) {
+                FunctionDefinitionNode nextClassFuncDef = (FunctionDefinitionNode) nextClassMember;
+                nextClassMemberAvailable.put(nextClassFuncDef, false);
+            } else if (nextClassMember instanceof TypeReferenceNode) {
+                TypeReferenceNode nextClassTypeReference = (TypeReferenceNode) nextClassMember;
+                finalClassFuncDefinitions = finalClassFuncDefinitions.add(nextClassTypeReference);
             }
-            FunctionDefinitionNode nextClassFuncDef = (FunctionDefinitionNode) nextClassMember;
+        }
+        for (Node prevClassMember : prevClassDef.members()) {
             boolean foundMatch = false;
-            for (Node prevClassMember : prevClassDef.members()) {
-                if (!(prevClassMember instanceof FunctionDefinitionNode)) {
-                    continue;
-                }
-                FunctionDefinitionNode prevClassFuncDef = (FunctionDefinitionNode) prevClassMember;
-                if (isFuncDefEquals(prevClassFuncDef, nextClassFuncDef)) {
-                    foundMatch = true;
-                    break;
+            for (Node nextClassMember : nextClassDef.members()) {
+                if (prevClassMember instanceof FunctionDefinitionNode &&
+                        nextClassMember instanceof FunctionDefinitionNode) {
+                    FunctionDefinitionNode nextClassFuncDef = (FunctionDefinitionNode) nextClassMember;
+                    FunctionDefinitionNode prevClassFuncDef = (FunctionDefinitionNode) prevClassMember;
+                    if (isFuncDefEquals(prevClassFuncDef, nextClassFuncDef)) {
+                        foundMatch = true;
+                        finalClassFuncDefinitions = finalClassFuncDefinitions.add(prevClassFuncDef);
+                        nextClassMemberAvailable.put(nextClassFuncDef, true);
+                        break;
+                    }
                 }
             }
             if (!foundMatch) {
-                updatedPrevClassFuncDefinitions = updatedPrevClassFuncDefinitions.add(nextClassFuncDef);
+                if (prevClassMember instanceof FunctionDefinitionNode) {
+                    FunctionDefinitionNode prevClassFuncDef = (FunctionDefinitionNode) prevClassMember;
+                    equalityResult.addToRemovals(getFunctionName(prevClassFuncDef));
+                }
             }
         }
-        ClassDefinitionNode modifiedPrevClassDef = prevClassDef.modify(prevClassDef.metadata().orElse(null),
-                prevClassDef.visibilityQualifier().orElse(null), prevClassDef.classTypeQualifiers(),
-                prevClassDef.classKeyword(), prevClassDef.className(), prevClassDef.openBrace(),
-                updatedPrevClassFuncDefinitions, prevClassDef.closeBrace(), prevClassDef.semicolonToken().orElse(null));
-        objectTypesModuleMembers.add(modifiedPrevClassDef);
+        for (Map.Entry<FunctionDefinitionNode, Boolean> entry : nextClassMemberAvailable.entrySet()) {
+            FunctionDefinitionNode nextClassFuncDef = entry.getKey();
+            Boolean available = entry.getValue();
+            if (!available) {
+                finalClassFuncDefinitions = finalClassFuncDefinitions.add(nextClassFuncDef);
+                equalityResult.addToAdditions(nextClassFuncDef.functionName().text());
+            }
+        }
+        for (String removedFuncDefName : equalityResult.getRemovals()) {
+            breakingChangeWarnings.add(String.format(removeServiceClassFuncDefMessage,
+                    prevClassDef.className().text(), removedFuncDefName));
+        }
+        ClassDefinitionNode modifiedNextClassDef = nextClassDef.modify(prevClassDef.metadata().orElse(null),
+                nextClassDef.visibilityQualifier().orElse(null), nextClassDef.classTypeQualifiers(),
+                nextClassDef.classKeyword(), nextClassDef.className(), nextClassDef.openBrace(),
+                finalClassFuncDefinitions, nextClassDef.closeBrace(), nextClassDef.semicolonToken().orElse(null));
+        objectTypesModuleMembers.add(modifiedNextClassDef);
         return true;
+    }
+
+    private String getFunctionName(FunctionDefinitionNode functionDefinition) {
+        String firstQualifier = functionDefinition.qualifierList().get(0).text();
+        if (firstQualifier.equals(Constants.RESOURCE)) {
+            Node functionNameNode = functionDefinition.relativeResourcePath().get(0);
+            if (functionNameNode instanceof IdentifierToken) {
+                IdentifierToken functionNameToken = (IdentifierToken) functionNameNode;
+                return functionNameToken.text();
+            }
+        } else if (firstQualifier.equals(Constants.REMOTE)) {
+
+        }
+        return null;
     }
 
     private boolean isFuncDefEquals(FunctionDefinitionNode prevClassFuncDef, FunctionDefinitionNode nextClassFuncDef)
