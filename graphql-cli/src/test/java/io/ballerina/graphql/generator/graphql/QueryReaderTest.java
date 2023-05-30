@@ -58,7 +58,7 @@ public class QueryReaderTest extends GraphqlTest {
         AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
         AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-        Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
+        Document queryDocument = Utils.getGraphqlQueryDocument(documents.get(0));
         QueryReader queryReader = new QueryReader(queryDocument);
 
         List<String> expectedOperationNames = Arrays.asList("operation1", "operation2", "operation3");

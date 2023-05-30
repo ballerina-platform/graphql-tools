@@ -109,7 +109,7 @@ public class TypesGenerator {
         Map<String, String> fragmentRecordsMap = new HashMap<>();
 
         for (String document : documents) {
-            QueryReader queryReader = new QueryReader(Utils.getGraphQLQueryDocument(document));
+            QueryReader queryReader = new QueryReader(Utils.getGraphqlQueryDocument(document));
             for (ExtendedOperationDefinition definition : queryReader.getExtendedOperationDefinitions()) {
                 String queryName = definition.getName();
                 // Record field nodes of the Query record

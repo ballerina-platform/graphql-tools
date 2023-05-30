@@ -51,7 +51,7 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+        GraphQLSchema graphQLSchema = project.getGraphqlSchema();
         String generatedSrc = (new GatewayQueryPlanGenerator(graphQLSchema)).generateSrc();
         String expectedSrc = Files.readString(expectedResources.resolve(
                 Paths.get(GatewayTestUtils.getCorrespondingFolderName(supergraphFileName), "queryPlan.bal")));
@@ -95,7 +95,7 @@ public class GatewayCodeGenerationTest extends GraphqlTest {
         GraphqlGatewayProject project = TestUtils.getValidatedMockGatewayProject(
                 schemaFiles.resolve(Paths.get(supergraphFileName + ".graphql"))
                         .toString(), this.tmpDir);
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+        GraphQLSchema graphQLSchema = project.getGraphqlSchema();
         String generatedSrc = (new GatewayTypeGenerator(graphQLSchema)).generateSrc();
         String expectedSrc = Files.readString(expectedResources.resolve(
                 Paths.get(GatewayTestUtils.getCorrespondingFolderName(supergraphFileName), "types.bal")));

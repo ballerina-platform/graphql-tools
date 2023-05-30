@@ -28,7 +28,7 @@ isolated service on new graphql:Listener(PORT) {
     isolated resource function get product(graphql:Field 'field, string id) returns Product|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, PRODUCT);
         string fieldString = classifier.getFieldString();
-        UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+        UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
         string queryString = wrapwithQuery("product", fieldString, {"id": getParamAsString(id)});
         productResponse response = check PRODUCT_CLIENT->execute(queryString);
         Product result = response.data.product;
@@ -43,7 +43,7 @@ isolated service on new graphql:Listener(PORT) {
     isolated resource function get products(graphql:Field 'field) returns Product[]|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, PRODUCT);
         string fieldString = classifier.getFieldString();
-        UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+        UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
         string queryString = wrapwithQuery("products", fieldString);
         productsResponse response = check PRODUCT_CLIENT->execute(queryString);
         Product[] result = response.data.products;
@@ -58,7 +58,7 @@ isolated service on new graphql:Listener(PORT) {
     isolated resource function get reviews(graphql:Field 'field, string productId) returns Review[]|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, REVIEWS);
         string fieldString = classifier.getFieldString();
-        UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+        UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
         string queryString = wrapwithQuery("reviews", fieldString, {"productId": getParamAsString(productId)});
         reviewsResponse response = check REVIEWS_CLIENT->execute(queryString);
         Review[] result = response.data.reviews;

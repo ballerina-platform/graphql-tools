@@ -1,7 +1,7 @@
 isolated remote function @{query}(graphql:Field 'field @{params}) returns @{responseType}|error{
     QueryFieldClassifier classifier = new ('field, queryPlan, @{clientName});
     string fieldString = classifier.getFieldString();
-    UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+    UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
     string queryString = wrapwithMutation("@{query}", fieldString @{queryArgs});
     @{query}Response response = check @{clientName}_CLIENT->execute(queryString);
     @{responseType} result = response.data.@{query};

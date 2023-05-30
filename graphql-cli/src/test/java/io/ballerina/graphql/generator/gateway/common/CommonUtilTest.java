@@ -50,7 +50,7 @@ public class CommonUtilTest extends GraphqlTest {
 
     @Test(description = "Test getting defined type objects", dataProvider = "SchemaAndTypeNamesProvider")
     public void testGetCustomDefinedObjectTypeNames(GraphqlGatewayProject project, String[] typeNames) {
-        Object[] namesFound = CommonUtils.getCustomDefinedObjectTypeNames(project.getGraphQLSchema()).toArray();
+        Object[] namesFound = CommonUtils.getCustomDefinedObjectTypeNames(project.getGraphqlSchema()).toArray();
         Assert.assertEqualsNoOrder(typeNames, namesFound);
     }
 
@@ -69,7 +69,7 @@ public class CommonUtilTest extends GraphqlTest {
 
     @Test(description = "Test get query types", dataProvider = "SchemaAndQueryTypesProvider")
     public void textGetQueryTypes(GraphqlGatewayProject project, String[] queryTypes) {
-        Object[] queryTypeNames = CommonUtils.getQueryTypes(project.getGraphQLSchema()).stream().map(
+        Object[] queryTypeNames = CommonUtils.getQueryTypes(project.getGraphqlSchema()).stream().map(
                 field -> ((GraphQLFieldDefinition) field).getName()
         ).toArray();
         Assert.assertEqualsNoOrder(queryTypeNames, queryTypes);
@@ -86,7 +86,7 @@ public class CommonUtilTest extends GraphqlTest {
 
     @Test(description = "Test get mutation types", dataProvider = "SchemaAndMutationTypesProvider")
     public void testGetMutationTypes(GraphqlGatewayProject project, String[] queryTypes) {
-        Object[] queryTypeNames = CommonUtils.getMutationTypes(project.getGraphQLSchema()).stream().map(
+        Object[] queryTypeNames = CommonUtils.getMutationTypes(project.getGraphqlSchema()).stream().map(
                 field -> ((GraphQLFieldDefinition) field).getName()
         ).toArray();
         Assert.assertEqualsNoOrder(queryTypeNames, queryTypes);

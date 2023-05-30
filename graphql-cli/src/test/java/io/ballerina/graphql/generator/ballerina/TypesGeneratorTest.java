@@ -34,7 +34,7 @@ public class TypesGeneratorTest {
             Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
-        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
+        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphqlSchema(),
                 projects.get(0).getDocuments());
         Path expectedFilePath = RES_DIR.resolve("expectedGenCode/types/expectedInputRecords.bal");
         String expectedFileContent = TestUtils.getStringFromGivenBalFile(expectedFilePath);
@@ -51,7 +51,7 @@ public class TypesGeneratorTest {
             Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
-        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
+        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphqlSchema(),
                 projects.get(0).getDocuments());
         Path expectedFilePath = RES_DIR.resolve("expectedGenCode/types/expectedQueryResponseRecords.bal");
         String expectedFileContent = TestUtils.getStringFromGivenBalFile(expectedFilePath);
@@ -69,7 +69,7 @@ public class TypesGeneratorTest {
             Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
-        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
+        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphqlSchema(),
                 projects.get(0).getDocuments());
         Path expectedFilePath = RES_DIR.resolve("expectedGenCode/types/expectedFragmentTypes.bal");
         String expectedFileContent = TestUtils.getStringFromGivenBalFile(expectedFilePath);
@@ -86,7 +86,7 @@ public class TypesGeneratorTest {
             Utils.validateGraphqlProject(project);
             QueryValidator.getInstance().validate(project);
         }
-        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphQLSchema(),
+        String typesFileContent = ClientTypesGenerator.getInstance().generateSrc(projects.get(0).getGraphqlSchema(),
                 projects.get(0).getDocuments());
         Path expectedFilePath = RES_DIR.resolve("expectedGenCode/types/expectedTypes.bal");
         String expectedFileContent = TestUtils.getStringFromGivenBalFile(expectedFilePath);

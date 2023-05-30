@@ -52,7 +52,7 @@ public class Utils {
      * @return the `GraphQLSchema` instance
      * @throws IOException If an I/O error occurs
      */
-    public static Document getGraphQLQueryDocument(String document) throws IOException {
+    public static Document getGraphqlQueryDocument(String document) throws IOException {
         Parser parser = new Parser();
         String queriesInput = extractDocumentContent(document);
         Document parsedDocument = parser.parseDocument(queriesInput);

@@ -73,7 +73,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
             throws ServiceGenerationException, ServiceTypesGenerationException {
         String projectName = project.getName();
         String fileName = project.getFileName();
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+        GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
         generateServiceTypes(projectName, fileName, graphQLSchema, sourceFiles);

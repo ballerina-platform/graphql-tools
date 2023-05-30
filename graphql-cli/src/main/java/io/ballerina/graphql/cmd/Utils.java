@@ -94,7 +94,7 @@ public class Utils {
      * @throws SchemaProblem         If a GraphQL schema related error occurs
      * @throws IOException           If an I/O error occurs
      */
-    public static GraphQLSchema getGraphQLSchemaDocument(String schema, Extension extensions)
+    public static GraphQLSchema getGraphqlSchemaDocument(String schema, Extension extensions)
             throws IntospectionException, SchemaProblem, IOException {
         Document introspectSchema = null;
         if (schema.startsWith(URL_RECOGNIZER)) {
@@ -117,7 +117,6 @@ public class Utils {
         return graphQLSchema;
     }
 
-
     /**
      * Returns the `GraphQLSchema` instance for a given Federated GraphQL schema file or schema URL.
      *
@@ -128,7 +127,7 @@ public class Utils {
      * @throws SchemaProblem         If a GraphQL schema related error occurs
      * @throws IOException           If an I/O error occurs
      */
-    public static GraphQLSchema getGraphQLFederatedSchemaDocument(String schema, Extension extensions)
+    public static GraphQLSchema getGraphqlFederatedSchemaDocument(String schema, Extension extensions)
             throws IntospectionException, SchemaProblem, IOException {
         Document introspectSchema = null;
         if (schema.startsWith(URL_RECOGNIZER)) {
@@ -180,7 +179,7 @@ public class Utils {
      * @return the `GraphQLSchema` instance
      * @throws IOException If an I/O error occurs
      */
-    public static Document getGraphQLQueryDocument(String document) throws IOException {
+    public static Document getGraphqlQueryDocument(String document) throws IOException {
         Parser parser = new Parser();
         String queriesInput = extractDocumentContent(document);
         Document parsedDocument = parser.parseDocument(queriesInput);
@@ -261,9 +260,9 @@ public class Utils {
         try {
             GraphQLSchema graphQLSchema;
             if (project instanceof GraphqlGatewayProject) {
-                graphQLSchema = getGraphQLFederatedSchemaDocument(schema, extensions);
+                graphQLSchema = getGraphqlFederatedSchemaDocument(schema, extensions);
             } else {
-                graphQLSchema = getGraphQLSchemaDocument(schema, extensions);
+                graphQLSchema = getGraphqlSchemaDocument(schema, extensions);
             }
             project.setGraphQLSchema(graphQLSchema);
         } catch (IntospectionException e) {

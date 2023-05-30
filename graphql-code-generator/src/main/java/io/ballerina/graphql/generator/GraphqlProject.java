@@ -53,7 +53,7 @@ public abstract class GraphqlProject {
         return outputPath;
     }
 
-    public GraphQLSchema getGraphQLSchema() {
+    public GraphQLSchema getGraphqlSchema() {
         return graphQLSchema;
     }
 

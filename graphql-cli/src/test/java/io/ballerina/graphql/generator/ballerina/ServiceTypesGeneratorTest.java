@@ -48,7 +48,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -73,7 +73,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -98,7 +98,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -123,7 +123,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -148,7 +148,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -173,7 +173,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -199,7 +199,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setUseRecordsForObjects(true);
@@ -225,7 +225,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -250,7 +250,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -275,7 +275,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -300,7 +300,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -326,7 +326,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -351,7 +351,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -383,7 +383,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -408,7 +408,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -435,7 +435,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -461,7 +461,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -486,7 +486,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -511,7 +511,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setUseRecordsForObjects(true);
@@ -537,7 +537,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -562,7 +562,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -587,7 +587,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -612,7 +612,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -643,7 +643,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
@@ -668,7 +668,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setUseRecordsForObjects(true);
@@ -694,7 +694,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
                     this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
                             .toString(), this.tmpDir);
-            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+            GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);

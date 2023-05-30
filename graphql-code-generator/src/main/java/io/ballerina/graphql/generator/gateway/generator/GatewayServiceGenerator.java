@@ -70,7 +70,7 @@ public class GatewayServiceGenerator {
 
     public GatewayServiceGenerator(GraphqlGatewayProject project) throws IOException {
         this.project = project;
-        joinGraphs = getJoinGraphs(project.getGraphQLSchema());
+        joinGraphs = getJoinGraphs(project.getGraphqlSchema());
     }
 
     public String generateSrc() throws GatewayGenerationException {
@@ -117,10 +117,10 @@ public class GatewayServiceGenerator {
 
     private List<String> getServiceFunctions() throws GatewayGenerationException, IOException {
         List<String> resourceFunctions = new ArrayList<>();
-        for (GraphQLSchemaElement graphQLObjectType : CommonUtils.getQueryTypes(project.getGraphQLSchema())) {
+        for (GraphQLSchemaElement graphQLObjectType : CommonUtils.getQueryTypes(project.getGraphqlSchema())) {
             resourceFunctions.add(getServiceFunction(FunctionType.QUERY, graphQLObjectType));
         }
-        for (GraphQLSchemaElement graphQLObjectType : CommonUtils.getMutationTypes(project.getGraphQLSchema())) {
+        for (GraphQLSchemaElement graphQLObjectType : CommonUtils.getMutationTypes(project.getGraphqlSchema())) {
             resourceFunctions.add(getServiceFunction(FunctionType.MUTATION, graphQLObjectType));
         }
         return resourceFunctions;
@@ -201,7 +201,7 @@ public class GatewayServiceGenerator {
         }
 
         List<GraphQLAppliedDirective> appliedDirectivesOnParent =
-                SpecReader.getObjectTypeDirectives(project.getGraphQLSchema(), parentType);
+                SpecReader.getObjectTypeDirectives(project.getGraphqlSchema(), parentType);
         for (GraphQLAppliedDirective directive : appliedDirectivesOnParent) {
             if (directive.getName().equals("join__type")) {
                 return ((EnumValue) Objects.requireNonNull(
@@ -216,7 +216,7 @@ public class GatewayServiceGenerator {
         StringBuilder arguments = new StringBuilder();
         for (GraphQLArgument argument : ((GraphQLFieldDefinition) graphQLObjectType).getArguments()) {
             arguments.append(", ");
-            FieldType fieldType = Utils.getFieldType(project.getGraphQLSchema(),
+            FieldType fieldType = Utils.getFieldType(project.getGraphqlSchema(),
                     Objects.requireNonNull(argument.getDefinition()).getType());
             if (argument.getDefinition().getDefaultValue() != null) {
                 arguments.append(fieldType.getName()).append(fieldType.getTokens()).append(" ")

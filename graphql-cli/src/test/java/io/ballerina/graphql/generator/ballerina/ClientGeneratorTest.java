@@ -52,7 +52,7 @@ public class ClientGeneratorTest extends GraphqlTest {
 
             Extension extensions = projects.get(0).getExtensions();
             List<String> documents = projects.get(0).getDocuments();
-            GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+            GraphQLSchema schema = projects.get(0).getGraphqlSchema();
 
             AuthConfig authConfig = new AuthConfig();
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
@@ -82,7 +82,7 @@ public class ClientGeneratorTest extends GraphqlTest {
 
             Extension extensions = projects.get(0).getExtensions();
             List<String> documents = projects.get(0).getDocuments();
-            GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+            GraphQLSchema schema = projects.get(0).getGraphqlSchema();
 
             AuthConfig authConfig = new AuthConfig();
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
@@ -113,7 +113,7 @@ public class ClientGeneratorTest extends GraphqlTest {
 
             Extension extensions = projects.get(0).getExtensions();
             List<String> documents = projects.get(0).getDocuments();
-            GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+            GraphQLSchema schema = projects.get(0).getGraphqlSchema();
 
             AuthConfig authConfig = new AuthConfig();
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
@@ -144,7 +144,7 @@ public class ClientGeneratorTest extends GraphqlTest {
 
             Extension extensions = projects.get(0).getExtensions();
             List<String> documents = projects.get(0).getDocuments();
-            GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+            GraphQLSchema schema = projects.get(0).getGraphqlSchema();
 
             AuthConfig authConfig = new AuthConfig();
             AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);

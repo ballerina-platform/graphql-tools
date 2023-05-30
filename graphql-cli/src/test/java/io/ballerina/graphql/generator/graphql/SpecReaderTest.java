@@ -50,7 +50,7 @@ public class SpecReaderTest extends GraphqlTest {
     public void testGetInputObjectTypeNames() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
-        GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+        GraphQLSchema schema = projects.get(0).getGraphqlSchema();
         List<String> generatedInputObjectTypes = SpecReader.getInputObjectTypeNames(schema);
         List<String> expectedInputObjectTypes =
                 Arrays.asList("ContinentFilterInput", "CountryFilterInput", "LanguageFilterInput",
@@ -65,7 +65,7 @@ public class SpecReaderTest extends GraphqlTest {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(),
                 this.tmpDir);
-        GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+        GraphQLSchema schema = projects.get(0).getGraphqlSchema();
         List<String> generatedInputObjectTypes = SpecReader.getInputObjectTypeNames(schema);
         List<String> expectedInputTypeFields = Arrays.asList("code StringQueryOperatorInput?",
                 "continent StringQueryOperatorInput?", "code StringQueryOperatorInput?",
@@ -87,7 +87,7 @@ public class SpecReaderTest extends GraphqlTest {
     public void testGetObjectTypeNames() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
-        GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+        GraphQLSchema schema = projects.get(0).getGraphqlSchema();
         List<String> generatedObjectTypes = SpecReader.getObjectTypeNames(schema);
         List<String> expectedObjectTypes = Arrays.asList("Continent", "Country", "Language", "Query", "State");
         for (String generatedObjectType : generatedObjectTypes) {
@@ -99,7 +99,7 @@ public class SpecReaderTest extends GraphqlTest {
     public void testGetObjectTypeFieldsMap() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
-        GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+        GraphQLSchema schema = projects.get(0).getGraphqlSchema();
         List<String> generatedObjectTypes = SpecReader.getObjectTypeNames(schema);
         List<String> expectedObjectTypeFields =
                 Arrays.asList("code string", "name string", "countries Country[]", "continent Continent",
@@ -124,7 +124,7 @@ public class SpecReaderTest extends GraphqlTest {
     public void testGetCustomScalarTypeNames() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
-        GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+        GraphQLSchema schema = projects.get(0).getGraphqlSchema();
         List<String> generatedCustomScalarTypes = SpecReader.getCustomScalarTypeNames(schema);
         List<String> expectedCustomScalarTypes = Arrays.asList("Upload");
         for (String generatedCustomScalarType : generatedCustomScalarTypes) {
@@ -136,7 +136,7 @@ public class SpecReaderTest extends GraphqlTest {
     public void testGetEnumTypeNames() throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", "graphql.config.yaml")).toString(), this.tmpDir);
-        GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+        GraphQLSchema schema = projects.get(0).getGraphqlSchema();
         List<String> generatedEnumTypes = SpecReader.getEnumTypeNames(schema);
         List<String> expectedEnumTypes = Arrays.asList("CacheControlScope");
         for (String generatedEnumType : generatedEnumTypes) {

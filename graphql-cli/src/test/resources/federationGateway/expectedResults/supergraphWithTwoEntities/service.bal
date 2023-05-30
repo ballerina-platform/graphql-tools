@@ -28,7 +28,7 @@ isolated service on new graphql:Listener(PORT) {
     isolated resource function get astronauts(graphql:Field 'field) returns Astronaut[]|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, ASTRONAUTS);
         string fieldString = classifier.getFieldString();
-        UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+        UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
         string queryString = wrapwithQuery("astronauts", fieldString);
         astronautsResponse response = check ASTRONAUTS_CLIENT->execute(queryString);
         Astronaut[] result = response.data.astronauts;
@@ -43,7 +43,7 @@ isolated service on new graphql:Listener(PORT) {
     isolated resource function get astronaut(graphql:Field 'field, int id) returns Astronaut|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, ASTRONAUTS);
         string fieldString = classifier.getFieldString();
-        UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+        UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
         string queryString = wrapwithQuery("astronaut", fieldString, {"id": getParamAsString(id)});
         astronautResponse response = check ASTRONAUTS_CLIENT->execute(queryString);
         Astronaut result = response.data.astronaut;
@@ -58,7 +58,7 @@ isolated service on new graphql:Listener(PORT) {
     isolated resource function get missions(graphql:Field 'field) returns Mission[]|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, MISSIONS);
         string fieldString = classifier.getFieldString();
-        UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+        UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
         string queryString = wrapwithQuery("missions", fieldString);
         missionsResponse response = check MISSIONS_CLIENT->execute(queryString);
         Mission[] result = response.data.missions;
@@ -73,7 +73,7 @@ isolated service on new graphql:Listener(PORT) {
     isolated resource function get mission(graphql:Field 'field, int id) returns Mission|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, MISSIONS);
         string fieldString = classifier.getFieldString();
-        UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+        UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
         string queryString = wrapwithQuery("mission", fieldString, {"id": getParamAsString(id)});
         missionResponse response = check MISSIONS_CLIENT->execute(queryString);
         Mission result = response.data.mission;
@@ -88,7 +88,7 @@ isolated service on new graphql:Listener(PORT) {
     isolated remote function addMission(graphql:Field 'field, MissionInput missionInput) returns Mission|error {
         QueryFieldClassifier classifier = new ('field, queryPlan, MISSIONS);
         string fieldString = classifier.getFieldString();
-        UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+        UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
         string queryString = wrapwithMutation("addMission", fieldString, {"missionInput": getParamAsString(missionInput)});
         addMissionResponse response = check MISSIONS_CLIENT->execute(queryString);
         Mission result = response.data.addMission;

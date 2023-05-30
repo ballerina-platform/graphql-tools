@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-public type UnResolvableField record {|
+public type UnresolvableField record {|
     string parent;
     graphql:Field 'field;
 |};

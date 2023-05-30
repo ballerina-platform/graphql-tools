@@ -66,7 +66,7 @@ public class GatewayCodeGenerator extends CodeGenerator {
     private List<SrcFilePojo> generateBalSources(GraphqlProject project)
             throws GatewayGenerationException, IOException, URISyntaxException {
         String projectName = project.getName();
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+        GraphQLSchema graphQLSchema = project.getGraphqlSchema();
 
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
         generateTypes(projectName, graphQLSchema, sourceFiles);

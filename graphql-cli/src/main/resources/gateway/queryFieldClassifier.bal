@@ -14,7 +14,7 @@ public class QueryFieldClassifier {
 
     // unresolvable fields are pushed to the map along with the parentType name.
     // parent type name is needed to decide which type the subfield belongs for.
-    private UnResolvableField[] unresolvableFields;
+    private UnresolvableField[] unresolvableFields;
 
     // Query plan used to classify the fields.
     private final readonly & table<QueryPlanEntry> key(typename) queryPlan;
@@ -92,7 +92,7 @@ public class QueryFieldClassifier {
         return self.resolvableFields;
     }
 
-    public isolated function getUnresolvableFields() returns UnResolvableField[] {
+    public isolated function getUnresolvableFields() returns UnresolvableField[] {
         return self.unresolvableFields;
     }
 

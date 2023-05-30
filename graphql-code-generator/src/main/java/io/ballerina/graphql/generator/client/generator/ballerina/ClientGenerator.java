@@ -252,7 +252,7 @@ public class ClientGenerator {
         List<FunctionDefinitionNode> functionDefinitionNodeList = new ArrayList<>();
 
         for (String document : queryDocuments) {
-            Document queryDocument = Utils.getGraphQLQueryDocument(document);
+            Document queryDocument = Utils.getGraphqlQueryDocument(document);
             QueryReader queryReader = new QueryReader(queryDocument);
 
             for (ExtendedOperationDefinition queryDefinition : queryReader.getExtendedOperationDefinitions()) {

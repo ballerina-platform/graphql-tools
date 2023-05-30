@@ -23,7 +23,7 @@ public class SchemaTypesTest extends GraphqlTest {
     public void testSchemaTypes(String graphQLSchemaFileName, String[] typeNames)
             throws GatewayGenerationException, ValidationException, IOException {
         GraphQLSchema graphQLSchema = GatewayTestUtils.getGatewayProject(graphQLSchemaFileName, tmpDir)
-                .getGraphQLSchema();
+                .getGraphqlSchema();
         SchemaTypes schemaTypes = new SchemaTypes(graphQLSchema);
         for (String typeName : typeNames) {
             Assert.assertNotNull(schemaTypes.getFieldsOfType(typeName));
@@ -43,7 +43,7 @@ public class SchemaTypesTest extends GraphqlTest {
     public void testFieldData(String graphQLSchemaFileName, String typeName, Map<String, Object[]> fieldData)
             throws GatewayGenerationException, ValidationException, IOException {
         GraphQLSchema graphQLSchema = GatewayTestUtils.getGatewayProject(graphQLSchemaFileName, tmpDir)
-                .getGraphQLSchema();
+                .getGraphqlSchema();
         SchemaTypes schemaTypes = new SchemaTypes(graphQLSchema);
         List<FieldData> fieldDataList = schemaTypes.getFieldsOfType(typeName);
         for (FieldData data : fieldDataList) {

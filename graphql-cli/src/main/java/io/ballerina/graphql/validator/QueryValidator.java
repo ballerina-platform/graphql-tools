@@ -53,7 +53,7 @@ public class QueryValidator {
      */
     public void validate(GraphqlClientProject project) throws ValidationException, IOException {
         List<String> documents = project.getDocuments();
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+        GraphQLSchema graphQLSchema = project.getGraphqlSchema();
         String projectName = project.getName();
 
         for (String document : documents) {
@@ -76,7 +76,7 @@ public class QueryValidator {
      */
     private void validateDocument(GraphQLSchema graphQLSchema, String document, String projectName)
             throws QueryValidationException, IOException {
-        Document parsedDocument = Utils.getGraphQLQueryDocument(document);
+        Document parsedDocument = Utils.getGraphqlQueryDocument(document);
 
         Validator validator = new Validator();
         List<ValidationError> validationErrors = validator.validateDocument(graphQLSchema, parsedDocument,

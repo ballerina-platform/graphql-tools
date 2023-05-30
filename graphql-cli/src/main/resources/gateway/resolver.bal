@@ -2,7 +2,7 @@ import ballerina/graphql;
 
 public class Resolver {
 
-    private UnResolvableField[] toBeResolved;
+    private UnresolvableField[] toBeResolved;
 
     // The final result of the resolver. Created an composed while resolving by `resolve()`.
     private json result;
@@ -12,7 +12,7 @@ public class Resolver {
     // Query plan used to classify the fields.
     private final readonly & table<QueryPlanEntry> key(typename) queryPlan;
 
-    public isolated function init(readonly & table<QueryPlanEntry> key(typename) queryPlan, json result, string resultType, UnResolvableField[] unResolvableFields, string[] currentPath) {
+    public isolated function init(readonly & table<QueryPlanEntry> key(typename) queryPlan, json result, string resultType, UnresolvableField[] unResolvableFields, string[] currentPath) {
         self.queryPlan = queryPlan;
         self.result = result;
         self.resultType = resultType;
@@ -30,7 +30,7 @@ public class Resolver {
     isolated function resolve() returns error? {
         // Resolve the fields which are not resolved yet.
         while self.toBeResolved.length() > 0 {
-            UnResolvableField 'record = self.toBeResolved.shift();
+            UnresolvableField 'record = self.toBeResolved.shift();
             string[] path = self.getEffectivePath('record.'field);
 
             // Check whether the field need to be resolved is nested by zero or one level.
@@ -59,7 +59,7 @@ public class Resolver {
                     string queryString = wrapWithEntityRepresentation('record.parent, keyFieldsWithValues, fieldString);
                     EntityResponse response = check 'client->execute(queryString);
                     check self.compose(self.result, response.data._entities, self.getEffectivePath('record.'field));
-                    UnResolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
+                    UnresolvableField[] propertiesNotResolved = classifier.getUnresolvableFields();
                     if propertiesNotResolved.length() > 0 {
                         Resolver resolver = new (self.queryPlan, self.result, self.resultType, propertiesNotResolved, self.currentPath);
                         check resolver.resolve();
@@ -95,11 +95,8 @@ public class Resolver {
                     return error("Error: Cannot resolve the field.");
                 }
             }
-
         }
     }
-
-    // helper functions.
 
     // Compose results to the final result. i.e. to the `result` object.
     isolated function compose(json finalResult, json resultToCompose, string[] path) returns error? {

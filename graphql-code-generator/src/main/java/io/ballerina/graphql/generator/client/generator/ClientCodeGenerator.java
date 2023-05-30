@@ -64,7 +64,7 @@ public class ClientCodeGenerator extends CodeGenerator {
         String projectName = project.getName();
         Extension extensions = ((GraphqlClientProject) project).getExtensions();
         List<String> documents = ((GraphqlClientProject) project).getDocuments();
-        GraphQLSchema schema = project.getGraphQLSchema();
+        GraphQLSchema schema = project.getGraphqlSchema();
 
         AuthConfig authConfig = new AuthConfig();
         AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);

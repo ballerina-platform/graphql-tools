@@ -9,7 +9,7 @@ isolated function wrapWithEntityRepresentation(string typename, map<json>[] fiel
     }
     return string `query{
         _entities(
-            representations: [${string:'join(", ", ...representations)}]
+            representations: [${",".'join(...representations)}]
         ) {
             ... on ${typename} {
                 ${fieldQuery}

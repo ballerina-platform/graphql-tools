@@ -140,13 +140,13 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
 
         Extension extensions = projects.get(0).getExtensions();
         List<String> documents = projects.get(0).getDocuments();
-        GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+        GraphQLSchema schema = projects.get(0).getGraphqlSchema();
 
         AuthConfig authConfig = new AuthConfig();
         AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
         AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-        Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
+        Document queryDocument = Utils.getGraphqlQueryDocument(documents.get(0));
         QueryReader queryReader = new QueryReader(queryDocument);
 
         ExtendedOperationDefinition queryOperation1Definition = queryReader.getExtendedOperationDefinitions().get(0);
@@ -201,13 +201,13 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
 
         Extension extensions = projects.get(0).getExtensions();
         List<String> documents = projects.get(0).getDocuments();
-        GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+        GraphQLSchema schema = projects.get(0).getGraphqlSchema();
 
         AuthConfig authConfig = new AuthConfig();
         AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
         AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-        Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
+        Document queryDocument = Utils.getGraphqlQueryDocument(documents.get(0));
         QueryReader queryReader = new QueryReader(queryDocument);
 
         ExtendedOperationDefinition queryOperation2Definition = queryReader.getExtendedOperationDefinitions().get(1);
@@ -238,13 +238,13 @@ public class FunctionSignatureGeneratorTest extends GraphqlTest {
 
         Extension extensions = projects.get(0).getExtensions();
         List<String> documents = projects.get(0).getDocuments();
-        GraphQLSchema schema = projects.get(0).getGraphQLSchema();
+        GraphQLSchema schema = projects.get(0).getGraphqlSchema();
 
         AuthConfig authConfig = new AuthConfig();
         AuthConfigGenerator.getInstance().populateAuthConfigTypes(extensions, authConfig);
         AuthConfigGenerator.getInstance().populateApiHeaders(extensions, authConfig);
 
-        Document queryDocument = Utils.getGraphQLQueryDocument(documents.get(0));
+        Document queryDocument = Utils.getGraphqlQueryDocument(documents.get(0));
         QueryReader queryReader = new QueryReader(queryDocument);
 
         ExtendedOperationDefinition queryOperation3Definition = queryReader.getExtendedOperationDefinitions().get(2);
