@@ -602,7 +602,14 @@ public class ServiceCombiner {
                                             funcDefEquals.getFunctionSignatureEqualityResult()
                                                     .getReturnTypeEqualityResult().getNextType()));
                         }
-
+                        FunctionDefinitionNode modifiedNextFuncDef = nextClassFuncDef.modify(nextClassFuncDef.kind(),
+                                nextClassFuncDef.metadata().orElse(null),
+                                nextClassFuncDef.qualifierList(), nextClassFuncDef.functionKeyword(),
+                                nextClassFuncDef.functionName(), nextClassFuncDef.relativeResourcePath(),
+                                nextClassFuncDef.functionSignature(), prevClassFuncDef.functionBody());
+                        finalClassFuncDefinitions = finalClassFuncDefinitions.add(modifiedNextFuncDef);
+                        nextClassMemberAvailable.put(nextClassFuncDef, true);
+                        break;
                     }
                 }
             }
