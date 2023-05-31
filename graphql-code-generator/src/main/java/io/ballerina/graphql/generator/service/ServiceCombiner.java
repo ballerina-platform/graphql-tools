@@ -57,14 +57,17 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode
  * Utility class for combining available service with generated service for a GraphQL schema.
  */
 public class ServiceCombiner {
-    private static final String removeInputTypeFieldMessage =
+    private static final String REMOVE_INPUT_TYPE_FIELD_MESSAGE =
             "warning: In '%s' input type '%s' field has removed. This can brake clients";
-    private static final String addViolatedInputTypeFieldMessage = "warning: In '%s' input type '%s' field is " +
+    private static final String ADD_VIOLATED_INPUT_TYPE_FIELD_MESSAGE = "warning: In '%s' input type '%s' field is " +
             "introduced without a default value. This can brake available clients";
-    private static final String removeEnumMemberMessage = "warning: In '%s' enum '%s' member has removed. This can " +
-            "brake existing clients.";
-    private static final String removeServiceClassFuncDefMessage = "warning: In '%s' service class '%s' function " +
-            "definition has removed. This can brake available clients";
+    private static final String REMOVE_ENUM_MEMBER_MESSAGE =
+            "warning: In '%s' enum '%s' member has removed. This can " + "brake existing clients.";
+    private static final String REMOVE_SERVICE_CLASS_FUNC_DEF_MESSAGE =
+            "warning: In '%s' service class '%s' function " +
+                    "definition has removed. This can brake available clients";
+    private static final String WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE = "warning: In '%s' class " +
+            "'%s' function definition return type has changed from '%s' to '%s'. This can brake existing clients.";
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
     private Map<Node, Node> targetAndReplacement;
@@ -191,18 +194,18 @@ public class ServiceCombiner {
             return false;
         }
         enumTypesModuleMembers.add(nextEnumDec);
-        TypeEqualityResult comparedResult = compareEnumMembers(prevEnumDec.enumMemberList(),
-                nextEnumDec.enumMemberList());
+        MembersEqualityResult comparedResult =
+                compareEnumMembers(prevEnumDec.enumMemberList(), nextEnumDec.enumMemberList());
         for (String removedField : comparedResult.getRemovals()) {
-            breakingChangeWarnings.add(String.format(removeEnumMemberMessage, prevEnumDec.identifier().text(),
-                    removedField));
+            breakingChangeWarnings.add(
+                    String.format(REMOVE_ENUM_MEMBER_MESSAGE, prevEnumDec.identifier().text(), removedField));
         }
         return true;
     }
 
-    private TypeEqualityResult compareEnumMembers(SeparatedNodeList<Node> prevEnumMembers,
-                                                  SeparatedNodeList<Node> nextEnumMembers) {
-        TypeEqualityResult result = new TypeEqualityResult();
+    private MembersEqualityResult compareEnumMembers(SeparatedNodeList<Node> prevEnumMembers,
+                                                     SeparatedNodeList<Node> nextEnumMembers) {
+        MembersEqualityResult result = new MembersEqualityResult();
         for (Node prevEnumMemberNode : prevEnumMembers) {
             boolean prevFoundMatch = false;
             for (Node nextEnumMemberNode : nextEnumMembers) {
@@ -288,15 +291,16 @@ public class ServiceCombiner {
                 nextTypeDef.typeDescriptor() instanceof RecordTypeDescriptorNode) {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDef.typeDescriptor();
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            TypeEqualityResult equalityResult = isRecordTypeEquals(prevRecordType, nextRecordType);
+            MembersEqualityResult equalityResult = isRecordTypeEquals(prevRecordType, nextRecordType);
             if (!equalityResult.isEqual()) {
                 for (String removedField : equalityResult.getRemovals()) {
                     breakingChangeWarnings.add(
-                            String.format(removeInputTypeFieldMessage, prevTypeDef.typeName().text(), removedField));
+                            String.format(REMOVE_INPUT_TYPE_FIELD_MESSAGE, prevTypeDef.typeName().text(),
+                                    removedField));
                 }
                 for (String addedViolatedField : equalityResult.getViolatedAdditions()) {
                     breakingChangeWarnings.add(
-                            String.format(addViolatedInputTypeFieldMessage, prevTypeDef.typeName().text(),
+                            String.format(ADD_VIOLATED_INPUT_TYPE_FIELD_MESSAGE, prevTypeDef.typeName().text(),
                                     addedViolatedField));
                 }
             }
@@ -317,6 +321,7 @@ public class ServiceCombiner {
 
     private boolean isUnionTypeEquals(UnionTypeDescriptorNode prevUnionType, UnionTypeDescriptorNode nextUnionType)
             throws Exception {
+        TypeEqualityResult leftTypeEquality = isTypeEquals(prevUnionType.leftTypeDesc(), nextUnionType.leftTypeDesc());
         if (prevUnionType.leftTypeDesc() instanceof UnionTypeDescriptorNode &&
                 nextUnionType.leftTypeDesc() instanceof UnionTypeDescriptorNode) {
             UnionTypeDescriptorNode prevUnionLeftType = (UnionTypeDescriptorNode) prevUnionType.leftTypeDesc();
@@ -325,21 +330,23 @@ public class ServiceCombiner {
                 targetAndReplacement.put(prevUnionType, nextUnionType);
                 return true;
             }
-        } else if (!isTypeEquals(prevUnionType.leftTypeDesc(), nextUnionType.leftTypeDesc())) {
+        } else if (!leftTypeEquality.isEqual()) {
             return false;
         }
         if (!prevUnionType.pipeToken().text().equals(nextUnionType.pipeToken().text())) {
             return false;
         }
-        if (!isTypeEquals(prevUnionType.rightTypeDesc(), nextUnionType.rightTypeDesc())) {
+        TypeEqualityResult rightTypeEquality =
+                isTypeEquals(prevUnionType.rightTypeDesc(), nextUnionType.rightTypeDesc());
+        if (!rightTypeEquality.isEqual()) {
             return false;
         }
         return true;
     }
 
-    private TypeEqualityResult isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
-                                                  RecordTypeDescriptorNode nextRecordType) throws Exception {
-        TypeEqualityResult result = new TypeEqualityResult();
+    private MembersEqualityResult isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
+                                                     RecordTypeDescriptorNode nextRecordType) throws Exception {
+        MembersEqualityResult result = new MembersEqualityResult();
         if (!prevRecordType.recordKeyword().text().equals(nextRecordType.recordKeyword().text())) {
             return result;
         }
@@ -421,7 +428,9 @@ public class ServiceCombiner {
     private boolean isRecordFieldWithDefaultValueEquals(RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue,
                                                         RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue)
             throws Exception {
-        if (!isTypeEquals(prevRecordFieldWithDefaultValue.typeName(), nextRecordFieldWithDefaultValue.typeName())) {
+        TypeEqualityResult typeEquality =
+                isTypeEquals(prevRecordFieldWithDefaultValue.typeName(), nextRecordFieldWithDefaultValue.typeName());
+        if (!typeEquality.isEqual()) {
             return false;
         }
         if (!prevRecordFieldWithDefaultValue.fieldName().text()
@@ -433,7 +442,8 @@ public class ServiceCombiner {
 
     private boolean isRecordFieldEquals(RecordFieldNode prevRecordField, RecordFieldNode nextRecordField)
             throws Exception {
-        if (!isTypeEquals(prevRecordField.typeName(), nextRecordField.typeName())) {
+        TypeEqualityResult typeEquality = isTypeEquals(prevRecordField.typeName(), nextRecordField.typeName());
+        if (!typeEquality.isEqual()) {
             return false;
         }
         if (!prevRecordField.fieldName().text().equals(nextRecordField.fieldName().text())) {
@@ -451,7 +461,9 @@ public class ServiceCombiner {
                 if (prevMember instanceof TypeReferenceNode && nextMember instanceof TypeReferenceNode) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextMember;
-                    if (isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName())) {
+                    TypeEqualityResult typeEquality =
+                            isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
+                    if (typeEquality.isEqual()) {
                         foundMatch = true;
                     }
                 } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
@@ -477,7 +489,9 @@ public class ServiceCombiner {
                 if (prevMember instanceof TypeReferenceNode && nextMember instanceof TypeReferenceNode) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextMember;
-                    if (isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName())) {
+                    TypeEqualityResult typeEquality =
+                            isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
+                    if (typeEquality.isEqual()) {
                         foundMatch = true;
                     }
                 } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
@@ -507,7 +521,9 @@ public class ServiceCombiner {
                 nextMethodDeclaration.relativeResourcePath())) {
             return false;
         }
-        return isFuncSignatureEquals(prevMethodDeclaration.methodSignature(), nextMethodDeclaration.methodSignature());
+        FunctionSignatureEqualityResult funcSignatureEquals =
+                isFuncSignatureEquals(prevMethodDeclaration.methodSignature(), nextMethodDeclaration.methodSignature());
+        return funcSignatureEquals.isEqual();
     }
 
     private boolean isRelativeResourcePathEquals(NodeList<Node> prevRelativeResourcePath,
@@ -549,7 +565,7 @@ public class ServiceCombiner {
             return false;
         }
         NodeList<Node> finalClassFuncDefinitions = createNodeList();
-        TypeEqualityResult equalityResult = new TypeEqualityResult();
+        MembersEqualityResult equalityResult = new MembersEqualityResult();
         HashMap<FunctionDefinitionNode, Boolean> nextClassMemberAvailable = new HashMap<>();
         for (Node nextClassMember : nextClassDef.members()) {
             if (nextClassMember instanceof FunctionDefinitionNode) {
@@ -567,11 +583,26 @@ public class ServiceCombiner {
                         nextClassMember instanceof FunctionDefinitionNode) {
                     FunctionDefinitionNode nextClassFuncDef = (FunctionDefinitionNode) nextClassMember;
                     FunctionDefinitionNode prevClassFuncDef = (FunctionDefinitionNode) prevClassMember;
-                    if (isFuncDefEquals(prevClassFuncDef, nextClassFuncDef)) {
+                    FunctionDefinitionEqualityResult funcDefEquals =
+                            isFuncDefEquals(prevClassFuncDef, nextClassFuncDef);
+                    if (funcDefEquals.isEqual()) {
                         foundMatch = true;
                         finalClassFuncDefinitions = finalClassFuncDefinitions.add(prevClassFuncDef);
                         nextClassMemberAvailable.put(nextClassFuncDef, true);
                         break;
+                    } else if (funcDefEquals.isMatch()) {
+                        foundMatch = true;
+                        if (!funcDefEquals.getFunctionSignatureEqualityResult().getReturnTypeEqualityResult()
+                                .isEqual()) {
+                            breakingChangeWarnings.add(
+                                    String.format(WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE,
+                                            prevClassDef.className().text(), funcDefEquals.getPrevFunctionName(),
+                                            funcDefEquals.getFunctionSignatureEqualityResult()
+                                                    .getReturnTypeEqualityResult().getPrevType(),
+                                            funcDefEquals.getFunctionSignatureEqualityResult()
+                                                    .getReturnTypeEqualityResult().getNextType()));
+                        }
+
                     }
                 }
             }
@@ -591,8 +622,9 @@ public class ServiceCombiner {
             }
         }
         for (String removedFuncDefName : equalityResult.getRemovals()) {
-            breakingChangeWarnings.add(String.format(removeServiceClassFuncDefMessage,
-                    prevClassDef.className().text(), removedFuncDefName));
+            breakingChangeWarnings.add(
+                    String.format(REMOVE_SERVICE_CLASS_FUNC_DEF_MESSAGE, prevClassDef.className().text(),
+                            removedFuncDefName));
         }
         ClassDefinitionNode modifiedNextClassDef = nextClassDef.modify(prevClassDef.metadata().orElse(null),
                 nextClassDef.visibilityQualifier().orElse(null), nextClassDef.classTypeQualifiers(),
@@ -616,55 +648,104 @@ public class ServiceCombiner {
         return null;
     }
 
-    private boolean isFuncDefEquals(FunctionDefinitionNode prevClassFuncDef, FunctionDefinitionNode nextClassFuncDef)
-            throws Exception {
-        if (!isQualifierListEquals(prevClassFuncDef.qualifierList(), nextClassFuncDef.qualifierList())) {
-            return false;
-        }
-        if (!prevClassFuncDef.functionName().text().equals(nextClassFuncDef.functionName().text())) {
-            return false;
-        }
-        if (!isRelativeResourcePathEquals(prevClassFuncDef.relativeResourcePath(),
-                nextClassFuncDef.relativeResourcePath())) {
-            return false;
-        }
-        return isFuncSignatureEquals(prevClassFuncDef.functionSignature(), nextClassFuncDef.functionSignature());
+    private FunctionDefinitionEqualityResult isFuncDefEquals(FunctionDefinitionNode prevClassFuncDef,
+                                                             FunctionDefinitionNode nextClassFuncDef) throws Exception {
+        FunctionDefinitionEqualityResult functionDefinitionEquality = new FunctionDefinitionEqualityResult();
+        functionDefinitionEquality.setPrevFunctionName(getFunctionName(prevClassFuncDef));
+        functionDefinitionEquality.setNextFunctionName(getFunctionName(nextClassFuncDef));
+
+        functionDefinitionEquality.setQualifierListEqual(
+                isQualifierListEquals(prevClassFuncDef.qualifierList(), nextClassFuncDef.qualifierList()));
+//        if (!isQualifierListEquals(prevClassFuncDef.qualifierList(), nextClassFuncDef.qualifierList())) {
+//            functionDefinitionEquality.setEqual(false);
+//            functionDefinitionEquality.setQualifierListEqual(false);
+////            return functionDefinitionEquality;
+////            return false;
+//        }
+        functionDefinitionEquality.setFunctionNameEqual(
+                prevClassFuncDef.functionName().text().equals(nextClassFuncDef.functionName().text()));
+//        if (!prevClassFuncDef.functionName().text().equals(nextClassFuncDef.functionName().text())) {
+//            functionDefinitionEquality.setEqual(false);
+//            functionDefinitionEquality.setFunctionNameEqual(false);
+////            return functionDefinitionEquality;
+////            return false;
+//        }
+        functionDefinitionEquality.setRelativeResourcePathsEqual(
+                isRelativeResourcePathEquals(prevClassFuncDef.relativeResourcePath(),
+                        nextClassFuncDef.relativeResourcePath()));
+//        if (!isRelativeResourcePathEquals(prevClassFuncDef.relativeResourcePath(),
+//                nextClassFuncDef.relativeResourcePath())) {
+//            functionDefinitionEquality.setEqual(false);
+//            functionDefinitionEquality.setRelativeResourcePathsEqual(false);
+////            return functionDefinitionEquality;
+////            return false;
+//        }
+        FunctionSignatureEqualityResult funcSignatureEquals =
+                isFuncSignatureEquals(prevClassFuncDef.functionSignature(), nextClassFuncDef.functionSignature());
+        functionDefinitionEquality.setFunctionSignatureEqualityResult(funcSignatureEquals);
+//        if (funcSignatureEquals.isEqual()) {
+//            functionDefinitionEquality.setEqual(true);
+//        }
+        return functionDefinitionEquality;
     }
 
-    private boolean isFuncSignatureEquals(FunctionSignatureNode prevFunctionSignature,
-                                          FunctionSignatureNode nextFunctionSignature) throws Exception {
+    private FunctionSignatureEqualityResult isFuncSignatureEquals(FunctionSignatureNode prevFunctionSignature,
+                                                                  FunctionSignatureNode nextFunctionSignature)
+            throws Exception {
+        FunctionSignatureEqualityResult equalityResult = new FunctionSignatureEqualityResult();
         if (prevFunctionSignature.parameters().size() != nextFunctionSignature.parameters().size()) {
-            return false;
+            equalityResult.setEqual(false);
+//            return false;
         }
         for (int i = 0; i < nextFunctionSignature.parameters().size(); i++) {
             ParameterNode nextParameter = nextFunctionSignature.parameters().get(i);
             ParameterNode prevParameter = prevFunctionSignature.parameters().get(i);
-            if (!isParameterEquals(prevParameter, nextParameter)) {
-                return false;
+            ParameterEqualityResult parameterEquality = isParameterEquals(prevParameter, nextParameter);
+            if (!parameterEquality.isEqual()) {
+//                return false;
+                equalityResult.setEqual(false);
             }
         }
         ReturnTypeDescriptorNode prevReturnType = prevFunctionSignature.returnTypeDesc().orElseThrow();
         ReturnTypeDescriptorNode nextReturnType = nextFunctionSignature.returnTypeDesc().orElseThrow();
 
-        return isTypeEquals(prevReturnType.type(), nextReturnType.type());
+        TypeEqualityResult returnTypeEqualityResult = isTypeEquals(prevReturnType.type(), nextReturnType.type());
+        equalityResult.setTypeEqualityResult(returnTypeEqualityResult);
+        if (returnTypeEqualityResult.isEqual()) {
+            equalityResult.setEqual(true);
+        } else {
+            equalityResult.setEqual(false);
+        }
+        return equalityResult;
     }
 
-    private boolean isTypeEquals(Node prevType, Node nextType) throws Exception {
+    private TypeEqualityResult isTypeEquals(Node prevType, Node nextType) throws Exception {
+        TypeEqualityResult equalityResult = new TypeEqualityResult();
         if (prevType instanceof BuiltinSimpleNameReferenceNode && nextType instanceof BuiltinSimpleNameReferenceNode) {
             BuiltinSimpleNameReferenceNode prevTypeName = (BuiltinSimpleNameReferenceNode) prevType;
             BuiltinSimpleNameReferenceNode nextTypeName = (BuiltinSimpleNameReferenceNode) nextType;
-            return prevTypeName.name().text().equals(nextTypeName.name().text());
+            equalityResult.setPrevType(prevTypeName.name().text());
+            equalityResult.setNextType(nextTypeName.name().text());
+            equalityResult.setEqual(prevTypeName.name().text().equals(nextTypeName.name().text()));
+            //            return prevTypeName.name().text().equals(nextTypeName.name().text());
         } else if (prevType instanceof SimpleNameReferenceNode && nextType instanceof SimpleNameReferenceNode) {
             SimpleNameReferenceNode prevTypeName = (SimpleNameReferenceNode) prevType;
             SimpleNameReferenceNode nextTypeName = (SimpleNameReferenceNode) nextType;
-            return prevTypeName.name().text().equals(nextTypeName.name().text());
+            equalityResult.setPrevType(prevTypeName.name().text());
+            equalityResult.setNextType(nextTypeName.name().text());
+            equalityResult.setEqual(prevTypeName.name().text().equals(nextTypeName.name().text()));
+//            return prevTypeName.name().text().equals(nextTypeName.name().text());
         } else if (prevType instanceof QualifiedNameReferenceNode && nextType instanceof QualifiedNameReferenceNode) {
             QualifiedNameReferenceNode prevTypeName = (QualifiedNameReferenceNode) prevType;
             QualifiedNameReferenceNode nextTypeName = (QualifiedNameReferenceNode) nextType;
             if (!prevTypeName.modulePrefix().text().equals(nextTypeName.modulePrefix().text())) {
-                return false;
+                equalityResult.setEqual(false);
+            } else {
+                equalityResult.setPrevType(prevTypeName.identifier().text());
+                equalityResult.setNextType(nextTypeName.identifier().text());
+                equalityResult.setEqual(prevTypeName.identifier().text().equals(nextTypeName.identifier().text()));
             }
-            return prevTypeName.identifier().text().equals(nextTypeName.identifier().text());
+//            return prevTypeName.identifier().text().equals(nextTypeName.identifier().text());
         } else if (prevType instanceof OptionalTypeDescriptorNode && nextType instanceof OptionalTypeDescriptorNode) {
             OptionalTypeDescriptorNode prevWrappedType = (OptionalTypeDescriptorNode) prevType;
             OptionalTypeDescriptorNode nextWrappedType = (OptionalTypeDescriptorNode) nextType;
@@ -680,24 +761,30 @@ public class ServiceCombiner {
                     (StreamTypeParamsNode) prevWrappedType.streamTypeParamsNode().orElseThrow();
             StreamTypeParamsNode nextStreamParams =
                     (StreamTypeParamsNode) nextWrappedType.streamTypeParamsNode().orElseThrow();
-            if (!isTypeEquals(prevStreamParams.leftTypeDescNode(), nextStreamParams.leftTypeDescNode())) {
-                return false;
+            TypeEqualityResult typeEqualResult =
+                    isTypeEquals(prevStreamParams.leftTypeDescNode(), nextStreamParams.leftTypeDescNode());
+            if (!typeEqualResult.isEqual()) {
+                typeEqualResult.setEqual(false);
             }
             if (prevStreamParams.rightTypeDescNode().isPresent() && nextStreamParams.rightTypeDescNode().isPresent()) {
                 return isTypeEquals(prevStreamParams.rightTypeDescNode().orElseThrow(),
                         nextStreamParams.rightTypeDescNode().orElseThrow());
             } else {
-                return true;
+                typeEqualResult.setEqual(true);
             }
+            return typeEqualResult;
         } else {
             if (prevType.getClass().toString().equals(nextType.getClass().toString())) {
                 throw new Exception("No valid type: " + prevType.getClass());
             }
-            return false;
+            equalityResult.setEqual(false);
         }
+        return equalityResult;
     }
 
-    private boolean isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter) throws Exception {
+    private ParameterEqualityResult isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter)
+            throws Exception {
+        ParameterEqualityResult parameterEquality = new ParameterEqualityResult();
         if (prevParameter instanceof RequiredParameterNode && nextParameter instanceof RequiredParameterNode) {
             RequiredParameterNode prevRequiredParam = (RequiredParameterNode) prevParameter;
             RequiredParameterNode nextRequiredParam = (RequiredParameterNode) nextParameter;
@@ -705,13 +792,19 @@ public class ServiceCombiner {
             Token prevParamName = prevRequiredParam.paramName().orElseThrow();
             Token nextParamName = nextRequiredParam.paramName().orElseThrow();
             if (!prevParamName.text().equals(nextParamName.text())) {
-                return false;
+                parameterEquality.setEqual(false);
+//                return false;
             }
-            if (!isTypeEquals(prevRequiredParam.typeName(), nextRequiredParam.typeName())) {
-                return false;
+            TypeEqualityResult typeEquality = isTypeEquals(prevRequiredParam.typeName(), nextRequiredParam.typeName());
+            parameterEquality.setTypeEquality(typeEquality);
+            if (!typeEquality.isEqual()) {
+                parameterEquality.setEqual(false);
+//                return false;
             } else {
-                return true;
+                parameterEquality.setEqual(true);
+//                return true;
             }
+            return parameterEquality;
         } else {
             throw new Exception(String.format("Invalid parameterNode: %s", prevParameter.getClass()));
         }
