@@ -1,43 +1,40 @@
 package io.ballerina.graphql.generator.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Utility class for representing result after comparing nodes.
+ * Utility class to store result comparing two types.
  */
 public class TypeEqualityResult {
-    private List<String> additions;
-    private List<String> violatedAdditions;
-    private List<String> removals;
+    private String prevType;
+    private String nextType;
+    private boolean isEqual;
 
     public TypeEqualityResult() {
-        additions = new ArrayList<>();
-        violatedAdditions = new ArrayList<>();
-        removals = new ArrayList<>();
-    }
-
-    public void addToAdditions(String str) {
-        additions.add(str);
-    }
-
-    public void addToViolatedAdditions(String str) {
-        violatedAdditions.add(str);
-    }
-
-    public void addToRemovals(String str) {
-        removals.add(str);
-    }
-
-    public List<String> getViolatedAdditions() {
-        return violatedAdditions;
-    }
-
-    public List<String> getRemovals() {
-        return removals;
     }
 
     public boolean isEqual() {
-        return removals.isEmpty() && additions.isEmpty();
+//        if ((prevType != null) && (nextType != null)) {
+//            return true;
+//        } else return prevType == null && nextType == null;
+        return isEqual;
+    }
+
+    public void setPrevType(String prevType) {
+        this.prevType = prevType;
+    }
+
+    public void setNextType(String nextType) {
+        this.nextType = nextType;
+    }
+
+    public void setEqual(boolean equal) {
+        isEqual = equal;
+    }
+
+    public String getPrevType() {
+        return prevType;
+    }
+
+    public String getNextType() {
+        return nextType;
     }
 }
