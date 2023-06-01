@@ -565,10 +565,8 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(expectedServiceTypesContent, result);
 
         List<String> warningMessages = new ArrayList<>();
-        warningMessages.add(
-                "warning: In 'Book' service class 'title' function definition has removed. " +
-                        "This can brake available clients"
-        );
+        warningMessages.add("warning: In 'Book' service class 'title' function definition has removed. " +
+                "This can break available clients");
         List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 1);
         Assert.assertEquals(breakingChangeWarnings.get(0), warningMessages.get(0));
@@ -615,7 +613,8 @@ public class ServiceCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with changed type in multiple object fields represented in " +
             "service class")
-    public void testCombiningUpdatedSchemaWithChangedTypeInMultipleObjectFieldsRepresentedInServiceClass() throws Exception {
+    public void testCombiningUpdatedSchemaWithChangedTypeInMultipleObjectFieldsRepresentedInServiceClass()
+            throws Exception {
         String beforeBalFileName = "typesBeforeMultipleChangedTypesInObjectFieldsDefault";
         String expectedBalFileName = "typesWithMultipleChangedTypesInObjectFieldsDefault";
         String newSchemaFileName = "SchemaWithMultipleChangedTypesInObjectFieldsApi";
@@ -647,8 +646,50 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "to 'string'. This can break existing clients.");
         warningMessages.add(
                 "warning: In 'Book' class 'id' function definition return type has changed from 'int' to 'string'. " +
-                        "This can break existing clients."
-        );
+                        "This can break existing clients.");
+        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 2);
+        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
+        }
+    }
+
+    @Test(description = "Test combining updated schema with removed parameters in object fields " +
+            "represented in service class")
+    public void testCombiningUpdatedSchemaWithRemovedParametersInObjectFieldsRepresentedInServiceClass()
+            throws Exception {
+        String beforeBalFileName = "typesBeforeRemovingParametersInObjectFieldsDefault";
+        String expectedBalFileName = "typesWithRemovedParametersInObjectFieldsDefault";
+        String newSchemaFileName = "SchemaWithRemovedParametersInObjectFieldsApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceCombiner serviceCombiner = new ServiceCombiner(updateBalFileNode, nextSchemaNode);
+        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> warningMessages = new ArrayList<>();
+        warningMessages.add("warning: In 'Adult' class 'age' function definition 'nic' parameter removed. " +
+                "This can break existing clients.");
+        warningMessages.add(
+                "warning: In 'Child' class 'pass' function definition 'score3' parameter removed. " +
+                        "This can break existing clients.");
         List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 2);
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
