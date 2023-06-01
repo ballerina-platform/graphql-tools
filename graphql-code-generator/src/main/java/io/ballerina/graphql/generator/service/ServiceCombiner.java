@@ -63,12 +63,19 @@ public class ServiceCombiner {
     private static final String ADD_VIOLATED_INPUT_TYPE_FIELD_MESSAGE = "warning: In '%s' input type '%s' field is " +
             "introduced without a default value. This can brake available clients";
     private static final String REMOVE_ENUM_MEMBER_MESSAGE =
-            "warning: In '%s' enum '%s' member has removed. This can " + "brake existing clients.";
+            "warning: In '%s' enum '%s' member has removed. This can " + "break existing clients.";
     private static final String REMOVE_SERVICE_CLASS_FUNC_DEF_MESSAGE =
             "warning: In '%s' service class '%s' function " +
-                    "definition has removed. This can brake available clients";
+                    "definition has removed. This can break available clients";
     private static final String WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE = "warning: In '%s' class " +
-            "'%s' function definition return type has changed from '%s' to '%s'. This can brake existing clients.";
+            "'%s' function definition return type has changed from '%s' to '%s'. This can break existing clients.";
+    private static final String WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_CLASS = "warning: In '%s'" +
+            " class '%s' function definition '%s' parameter added without default value. This can break existing " +
+            "clients.";
+    private static final String WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE_CLASS = "warning: In '%s' class '%s' " +
+            "function definition '%s' parameter removed. This can break existing clients.";
+    private static final String WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_CLASS = "warning: In '%s' class " +
+            "'%s' function definition '%s' parameter type change from '%s' to '%s'. This can break existing clients.";
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
     private Map<Node, Node> targetAndReplacement;
@@ -602,6 +609,48 @@ public class ServiceCombiner {
                                                     .getReturnTypeEqualityResult().getPrevType(),
                                             funcDefEquals.getFunctionSignatureEqualityResult()
                                                     .getReturnTypeEqualityResult().getNextType()));
+                        }
+                        if (!funcDefEquals.getFunctionSignatureEqualityResult().getAddedViolatedParameters()
+                                .isEmpty()) {
+                            for (String addedParameterName :
+                                    funcDefEquals.getFunctionSignatureEqualityResult().getAddedViolatedParameters()) {
+                                breakingChangeWarnings.add(
+                                        String.format(
+                                                WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_CLASS,
+                                                prevClassDef.className().text(),
+                                                funcDefEquals.getPrevFunctionName(),
+                                                addedParameterName
+                                        )
+                                );
+                            }
+                        }
+                        if (!funcDefEquals.getFunctionSignatureEqualityResult().getRemovedParameters().isEmpty()) {
+                            for (String removedParameterName :
+                                    funcDefEquals.getFunctionSignatureEqualityResult().getRemovedParameters()) {
+                                breakingChangeWarnings.add(
+                                        String.format(
+                                                WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE_CLASS,
+                                                prevClassDef.className().text(),
+                                                funcDefEquals.getPrevFunctionName(),
+                                                removedParameterName
+                                        )
+                                );
+                            }
+                        }
+                        if (!funcDefEquals.getFunctionSignatureEqualityResult().getTypeChangedParameters().isEmpty()) {
+                            for (ParameterEqualityResult parameterEquals :
+                                    funcDefEquals.getFunctionSignatureEqualityResult().getTypeChangedParameters()) {
+                                breakingChangeWarnings.add(
+                                        String.format(
+                                                WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_CLASS,
+                                                prevClassDef.className().text(),
+                                                funcDefEquals.getPrevFunctionName(),
+                                                parameterEquals.getPrevParameterName(),
+                                                parameterEquals.getTypeEquality().getPrevType(),
+                                                parameterEquals.getTypeEquality().getNextType()
+                                        )
+                                );
+                            }
                         }
                         FunctionDefinitionNode modifiedNextFuncDef = nextClassFuncDef.modify(nextClassFuncDef.kind(),
                                 nextClassFuncDef.metadata().orElse(null), nextClassFuncDef.qualifierList(),

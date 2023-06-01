@@ -38,7 +38,7 @@ public class FunctionSignatureEqualityResult {
     public void addToAddedViolatedParameters(String parameterName) {
         addedViolatedParameters.add(parameterName);
     }
-    
+
     public void addToTypeChangedParameters(ParameterEqualityResult parameterEqualityResult) {
         typeChangedParameters.add(parameterEqualityResult);
     }

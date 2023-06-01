@@ -40,4 +40,8 @@ public class ParameterEqualityResult {
     public TypeEqualityResult getTypeEquality() {
         return typeEquality;
     }
+
+    public String getPrevParameterName() {
+        return prevParameterName;
+    }
 }
