@@ -1,0 +1,15 @@
+type Query {
+    child(name: String!): Child
+    adult(name: String!): Adult
+}
+
+type Child {
+    name: String!
+    knowsWords(word1: String!, word2: String!): Boolean!
+    pass(score1: Int!, score2: Int!, score3: Int! = 0): Boolean!
+}
+
+type Adult {
+    name: String!
+    age(birthday: String!): Int!
+}
