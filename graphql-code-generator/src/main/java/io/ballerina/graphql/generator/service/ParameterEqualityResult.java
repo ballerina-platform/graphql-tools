@@ -30,10 +30,14 @@ public class ParameterEqualityResult {
     }
 
     public boolean isEqual() {
-        return isEqual;
+        return isMatch() && typeEquality.isEqual();
     }
 
     public boolean isMatch() {
         return prevParameterName.equals(nextParameterName);
+    }
+
+    public TypeEqualityResult getTypeEquality() {
+        return typeEquality;
     }
 }

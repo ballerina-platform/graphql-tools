@@ -10,6 +10,7 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
+import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
 import io.ballerina.compiler.syntax.tree.EnumMemberNode;
@@ -603,10 +604,10 @@ public class ServiceCombiner {
                                                     .getReturnTypeEqualityResult().getNextType()));
                         }
                         FunctionDefinitionNode modifiedNextFuncDef = nextClassFuncDef.modify(nextClassFuncDef.kind(),
-                                nextClassFuncDef.metadata().orElse(null),
-                                nextClassFuncDef.qualifierList(), nextClassFuncDef.functionKeyword(),
-                                nextClassFuncDef.functionName(), nextClassFuncDef.relativeResourcePath(),
-                                nextClassFuncDef.functionSignature(), prevClassFuncDef.functionBody());
+                                nextClassFuncDef.metadata().orElse(null), nextClassFuncDef.qualifierList(),
+                                nextClassFuncDef.functionKeyword(), nextClassFuncDef.functionName(),
+                                nextClassFuncDef.relativeResourcePath(), nextClassFuncDef.functionSignature(),
+                                prevClassFuncDef.functionBody());
                         finalClassFuncDefinitions = finalClassFuncDefinitions.add(modifiedNextFuncDef);
                         nextClassMemberAvailable.put(nextClassFuncDef, true);
                         break;
@@ -704,13 +705,38 @@ public class ServiceCombiner {
             equalityResult.setEqual(false);
 //            return false;
         }
-        for (int i = 0; i < nextFunctionSignature.parameters().size(); i++) {
-            ParameterNode nextParameter = nextFunctionSignature.parameters().get(i);
-            ParameterNode prevParameter = prevFunctionSignature.parameters().get(i);
-            ParameterEqualityResult parameterEquality = isParameterEquals(prevParameter, nextParameter);
-            if (!parameterEquality.isEqual()) {
-//                return false;
-                equalityResult.setEqual(false);
+        HashMap<ParameterNode, Boolean> nextParameterAvailable = new HashMap<>();
+        for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
+            nextParameterAvailable.put(nextParameter, false);
+        }
+        for (ParameterNode prevParameter : prevFunctionSignature.parameters()) {
+            boolean foundMatch = false;
+            for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
+                ParameterEqualityResult parameterEquals = isParameterEquals(prevParameter, nextParameter);
+                if (parameterEquals.isEqual()) {
+                    foundMatch = true;
+                    nextParameterAvailable.put(nextParameter, true);
+                } else {
+                    if (parameterEquals.isMatch()) {
+                        if (!parameterEquals.getTypeEquality().isEqual()) {
+                            equalityResult.addToTypeChangedParameters(parameterEquals);
+                        }
+                    }
+                }
+            }
+            if (!foundMatch) {
+                equalityResult.addToRemovedParameters(getParameterName(prevParameter));
+            }
+        }
+        for (Map.Entry<ParameterNode, Boolean> entry : nextParameterAvailable.entrySet()) {
+            Boolean parameterAvailable = entry.getValue();
+            if (!parameterAvailable) {
+                ParameterNode newParameter = entry.getKey();
+                String newParameterName = getParameterName(newParameter);
+                if (newParameter instanceof RequiredParameterNode) {
+                    equalityResult.addToAddedViolatedParameters(newParameterName);
+                }
+                equalityResult.addToAddedParameters(newParameterName);
             }
         }
         ReturnTypeDescriptorNode prevReturnType = prevFunctionSignature.returnTypeDesc().orElseThrow();
@@ -718,12 +744,18 @@ public class ServiceCombiner {
 
         TypeEqualityResult returnTypeEqualityResult = isTypeEquals(prevReturnType.type(), nextReturnType.type());
         equalityResult.setTypeEqualityResult(returnTypeEqualityResult);
-        if (returnTypeEqualityResult.isEqual()) {
-            equalityResult.setEqual(true);
-        } else {
-            equalityResult.setEqual(false);
-        }
         return equalityResult;
+    }
+
+    private String getParameterName(ParameterNode parameter) {
+        if (parameter instanceof RequiredParameterNode) {
+            RequiredParameterNode requiredParameter = (RequiredParameterNode) parameter;
+            return requiredParameter.paramName().orElse(null).text();
+        } else if (parameter instanceof DefaultableParameterNode) {
+            DefaultableParameterNode defaultableParameter = (DefaultableParameterNode) parameter;
+            return defaultableParameter.paramName().orElse(null).text();
+        }
+        return null;
     }
 
     private TypeEqualityResult isTypeEquals(Node prevType, Node nextType) throws Exception {
@@ -792,29 +824,25 @@ public class ServiceCombiner {
     private ParameterEqualityResult isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter)
             throws Exception {
         ParameterEqualityResult parameterEquality = new ParameterEqualityResult();
+        parameterEquality.setPrevParameterName(getParameterName(prevParameter));
+        parameterEquality.setNextParameterName(getParameterName(nextParameter));
         if (prevParameter instanceof RequiredParameterNode && nextParameter instanceof RequiredParameterNode) {
             RequiredParameterNode prevRequiredParam = (RequiredParameterNode) prevParameter;
             RequiredParameterNode nextRequiredParam = (RequiredParameterNode) nextParameter;
 
-            Token prevParamName = prevRequiredParam.paramName().orElseThrow();
-            Token nextParamName = nextRequiredParam.paramName().orElseThrow();
-            if (!prevParamName.text().equals(nextParamName.text())) {
-                parameterEquality.setEqual(false);
-//                return false;
-            }
             TypeEqualityResult typeEquality = isTypeEquals(prevRequiredParam.typeName(), nextRequiredParam.typeName());
             parameterEquality.setTypeEquality(typeEquality);
-            if (!typeEquality.isEqual()) {
-                parameterEquality.setEqual(false);
-//                return false;
-            } else {
-                parameterEquality.setEqual(true);
-//                return true;
-            }
             return parameterEquality;
-        } else {
-            throw new Exception(String.format("Invalid parameterNode: %s", prevParameter.getClass()));
+        } else if (prevParameter instanceof DefaultableParameterNode &&
+                nextParameter instanceof DefaultableParameterNode) {
+            DefaultableParameterNode prevDefaultableParam = (DefaultableParameterNode) prevParameter;
+            DefaultableParameterNode nextDefaultableParam = (DefaultableParameterNode) nextParameter;
+            TypeEqualityResult typeEquality =
+                    isTypeEquals(prevDefaultableParam.typeName(), nextDefaultableParam.typeName());
+            parameterEquality.setTypeEquality(typeEquality);
+            return parameterEquality;
         }
+        return parameterEquality;
     }
 
     public TypeDefinitionRegistry getChangesOfDocuments(Document prevDocument, Document nextDocument) {

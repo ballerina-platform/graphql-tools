@@ -10,6 +10,7 @@ public class FunctionSignatureEqualityResult {
     private List<String> addedParameters;
     private List<String> addedViolatedParameters;
     private List<String> removedParameters;
+    private List<ParameterEqualityResult> typeChangedParameters;
     private String prevReturnType;
     private String nextReturnType;
     private TypeEqualityResult returnTypeEqualityResult;
@@ -19,6 +20,7 @@ public class FunctionSignatureEqualityResult {
         addedParameters = new ArrayList<>();
         addedViolatedParameters = new ArrayList<>();
         removedParameters = new ArrayList<>();
+        typeChangedParameters = new ArrayList<>();
         prevReturnType = "";
         nextReturnType = "";
         isEqual = false;
@@ -35,6 +37,10 @@ public class FunctionSignatureEqualityResult {
 
     public void addToAddedViolatedParameters(String parameterName) {
         addedViolatedParameters.add(parameterName);
+    }
+    
+    public void addToTypeChangedParameters(ParameterEqualityResult parameterEqualityResult) {
+        typeChangedParameters.add(parameterEqualityResult);
     }
 
     public void addToRemovedParameters(String parameterName) {
@@ -67,6 +73,10 @@ public class FunctionSignatureEqualityResult {
 
     public List<String> getRemovedParameters() {
         return removedParameters;
+    }
+
+    public List<ParameterEqualityResult> getTypeChangedParameters() {
+        return typeChangedParameters;
     }
 
     public TypeEqualityResult getReturnTypeEqualityResult() {
