@@ -74,6 +74,8 @@ public class ServiceCombiner {
             "clients.";
     private static final String WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE_CLASS = "warning: In '%s' class '%s' " +
             "function definition '%s' parameter removed. This can break existing clients.";
+    private static final String WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT = "warning: In '%s' service " +
+            "object '%s' method declaration '%s' parameter has removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_CLASS = "warning: In '%s' class " +
             "'%s' function definition '%s' parameter type change from '%s' to '%s'. This can break existing clients.";
     private static final String WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION = "warning: In '%s' service " +
@@ -269,14 +271,35 @@ public class ServiceCombiner {
 
             } else {
                 if (!serviceObjectEquals.getRemovedMethodDeclarations().isEmpty()) {
-                    for (String removedMethodDeclaration : serviceObjectEquals.getRemovedMethodDeclarations()) {
+                    for (String removedMethodDeclarationName : serviceObjectEquals.getRemovedMethodDeclarations()) {
                         breakingChangeWarnings.add(
                                 String.format(
                                         WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION,
                                         prevTypeDef.typeName().text(),
-                                        removedMethodDeclaration
+                                        removedMethodDeclarationName
                                 )
                         );
+                    }
+                }
+                List<MethodDeclarationEqualityResult> updatedMethodDeclarations =
+                        serviceObjectEquals.getUpdatedMethodDeclarations();
+                if (!updatedMethodDeclarations.isEmpty()) {
+                    for (MethodDeclarationEqualityResult updatedMethodDeclaration : updatedMethodDeclarations) {
+                        if (!updatedMethodDeclaration.getFunctionSignatureEqualityResult().isEqual()) {
+                            for (String removedParameterName :
+                                    updatedMethodDeclaration.getFunctionSignatureEqualityResult()
+                                            .getRemovedParameters()) {
+                                breakingChangeWarnings.add(
+                                        String.format(
+                                                WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
+                                                prevTypeDef.typeName().text(),
+                                                updatedMethodDeclaration.getPrevFunctionName(),
+                                                removedParameterName
+                                        )
+                                );
+                            }
+
+                        }
                     }
                 }
             }
@@ -532,6 +555,9 @@ public class ServiceCombiner {
                             isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration);
                     if (methodDeclarationEquals.isEqual()) {
                         foundMatch = true;
+                    } else if (methodDeclarationEquals.isMatch()) {
+                        foundMatch = true;
+                        serviceObjectEquality.addToUpdatedMethodDeclarations(methodDeclarationEquals);
                     }
                 }
             }
@@ -549,10 +575,11 @@ public class ServiceCombiner {
     }
 
     private MethodDeclarationEqualityResult isMethodDeclarationEquals(MethodDeclarationNode prevMethodDeclaration,
-                                              MethodDeclarationNode nextMethodDeclaration) throws Exception {
+                                                                      MethodDeclarationNode nextMethodDeclaration)
+            throws Exception {
         MethodDeclarationEqualityResult methodDeclarationEquality = new MethodDeclarationEqualityResult();
-        methodDeclarationEquality.setPrevFunctionName(prevMethodDeclaration.methodName().text());
-        methodDeclarationEquality.setNextFunctionName(nextMethodDeclaration.methodName().text());
+        methodDeclarationEquality.setPrevFunctionName(getMethodDeclarationName(prevMethodDeclaration));
+        methodDeclarationEquality.setNextFunctionName(getMethodDeclarationName(nextMethodDeclaration));
         if (isQualifierListEquals(prevMethodDeclaration.qualifierList(), nextMethodDeclaration.qualifierList())) {
             methodDeclarationEquality.setQualifierListEqual(true);
         }

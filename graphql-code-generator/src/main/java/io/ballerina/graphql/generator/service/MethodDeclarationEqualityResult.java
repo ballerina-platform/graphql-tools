@@ -42,8 +42,20 @@ public class MethodDeclarationEqualityResult {
         isRelativeResourcePathsEqual = relativeResourcePathsEqual;
     }
 
+    public boolean isMatch() {
+        return prevFunctionName.equals(nextFunctionName);
+    }
+
     public boolean isEqual() {
-        return isQualifierListEqual && isFunctionNameEqual
+        return isQualifierListEqual && isMatch()
                 && isRelativeResourcePathsEqual && functionSignatureEqualityResult.isEqual();
+    }
+
+    public FunctionSignatureEqualityResult getFunctionSignatureEqualityResult() {
+        return functionSignatureEqualityResult;
+    }
+
+    public String getPrevFunctionName() {
+        return prevFunctionName;
     }
 }

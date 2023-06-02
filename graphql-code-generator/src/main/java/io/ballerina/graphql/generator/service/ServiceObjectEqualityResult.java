@@ -11,21 +11,28 @@ public class ServiceObjectEqualityResult {
     private List<String> removedMethodDeclarations;
     private List<String> addedMethodDeclarations;
     private List<String> addedTypeReferences;
+    private List<MethodDeclarationEqualityResult> updatedMethodDeclarations;
 
     public ServiceObjectEqualityResult() {
         removedTypeReferences = new ArrayList<>();
         removedMethodDeclarations = new ArrayList<>();
         addedMethodDeclarations = new ArrayList<>();
         addedTypeReferences = new ArrayList<>();
+        updatedMethodDeclarations = new ArrayList<>();
     }
 
     public boolean isEqual() {
         return removedTypeReferences.isEmpty() && removedMethodDeclarations.isEmpty() &&
-                addedMethodDeclarations.isEmpty() && addedTypeReferences.isEmpty();
+                addedMethodDeclarations.isEmpty() && updatedMethodDeclarations.isEmpty() &&
+                addedTypeReferences.isEmpty();
     }
 
     public void addToRemovedMethodDeclarations(String methodDeclarationName) {
         removedMethodDeclarations.add(methodDeclarationName);
+    }
+
+    public void addToUpdatedMethodDeclarations(MethodDeclarationEqualityResult methodDeclarationEquality) {
+        updatedMethodDeclarations.add(methodDeclarationEquality);
     }
 
     public void addToAddedMethodDeclarations(String methodDeclarationName) {
@@ -34,5 +41,9 @@ public class ServiceObjectEqualityResult {
 
     public List<String> getRemovedMethodDeclarations() {
         return removedMethodDeclarations;
+    }
+
+    public List<MethodDeclarationEqualityResult> getUpdatedMethodDeclarations() {
+        return updatedMethodDeclarations;
     }
 }
