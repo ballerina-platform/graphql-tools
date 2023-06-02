@@ -76,6 +76,8 @@ public class ServiceCombiner {
             "function definition '%s' parameter removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_CLASS = "warning: In '%s' class " +
             "'%s' function definition '%s' parameter type change from '%s' to '%s'. This can break existing clients.";
+    private static final String WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION = "warning: In '%s' service " +
+            "object '%s' method declaration has removed. This can break existing clients.";
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
     private Map<Node, Node> targetAndReplacement;
@@ -261,8 +263,22 @@ public class ServiceCombiner {
                 nextTypeDef.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
             ObjectTypeDescriptorNode prevServiceObject = (ObjectTypeDescriptorNode) prevTypeDef.typeDescriptor();
             ObjectTypeDescriptorNode nextServiceObject = (ObjectTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            if (isServiceObjectEquals(prevServiceObject, nextServiceObject)) {
+            ServiceObjectEqualityResult serviceObjectEquals =
+                    isServiceObjectEquals(prevServiceObject, nextServiceObject);
+            if (serviceObjectEquals.isEqual()) {
 
+            } else {
+                if (!serviceObjectEquals.getRemovedMethodDeclarations().isEmpty()) {
+                    for (String removedMethodDeclaration : serviceObjectEquals.getRemovedMethodDeclarations()) {
+                        breakingChangeWarnings.add(
+                                String.format(
+                                        WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION,
+                                        prevTypeDef.typeName().text(),
+                                        removedMethodDeclaration
+                                )
+                        );
+                    }
+                }
             }
 //
 //            NodeList<Node> serviceObjectNewMembers = getServiceObjectNewMembers(prevServiceObject, nextServiceObject);
@@ -290,7 +306,9 @@ public class ServiceCombiner {
                     (ObjectTypeDescriptorNode) prevDistinctServiceObject.typeDescriptor();
             ObjectTypeDescriptorNode nextServiceObject =
                     (ObjectTypeDescriptorNode) nextDistinctServiceObject.typeDescriptor();
-            if (!isServiceObjectEquals(prevServiceObject, nextServiceObject)) {
+            ServiceObjectEqualityResult serviceObjectEquals =
+                    isServiceObjectEquals(prevServiceObject, nextServiceObject);
+            if (!serviceObjectEquals.isEqual()) {
 
             }
             interfaceTypesModuleMembers.add(nextTypeDef);
@@ -477,7 +495,9 @@ public class ServiceCombiner {
                 } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
                     MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) nextMember;
-                    if (isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration)) {
+                    MethodDeclarationEqualityResult methodDeclarationEquals =
+                            isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration);
+                    if (methodDeclarationEquals.isEqual()) {
                         foundMatch = true;
                     }
                 }
@@ -489,11 +509,14 @@ public class ServiceCombiner {
         return members;
     }
 
-    private boolean isServiceObjectEquals(ObjectTypeDescriptorNode prevServiceObject,
-                                          ObjectTypeDescriptorNode nextServiceObject) throws Exception {
-        for (Node nextMember : nextServiceObject.members()) {
+    private ServiceObjectEqualityResult isServiceObjectEquals(ObjectTypeDescriptorNode prevServiceObject,
+                                                              ObjectTypeDescriptorNode nextServiceObject)
+            throws Exception {
+        ServiceObjectEqualityResult serviceObjectEquality = new ServiceObjectEqualityResult();
+
+        for (Node prevMember : prevServiceObject.members()) {
             boolean foundMatch = false;
-            for (Node prevMember : prevServiceObject.members()) {
+            for (Node nextMember : nextServiceObject.members()) {
                 if (prevMember instanceof TypeReferenceNode && nextMember instanceof TypeReferenceNode) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextMember;
@@ -505,33 +528,45 @@ public class ServiceCombiner {
                 } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
                     MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) nextMember;
-                    if (isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration)) {
+                    MethodDeclarationEqualityResult methodDeclarationEquals =
+                            isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration);
+                    if (methodDeclarationEquals.isEqual()) {
                         foundMatch = true;
                     }
                 }
             }
             if (!foundMatch) {
-                return false;
+                if (prevMember instanceof TypeReferenceNode) {
+                    TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
+                } else if (prevMember instanceof MethodDeclarationNode) {
+                    MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
+                    serviceObjectEquality.addToRemovedMethodDeclarations(
+                            getMethodDeclarationName(prevMethodDeclaration));
+                }
             }
         }
-        return true;
+        return serviceObjectEquality;
     }
 
-    private boolean isMethodDeclarationEquals(MethodDeclarationNode prevMethodDeclaration,
+    private MethodDeclarationEqualityResult isMethodDeclarationEquals(MethodDeclarationNode prevMethodDeclaration,
                                               MethodDeclarationNode nextMethodDeclaration) throws Exception {
-        if (!isQualifierListEquals(prevMethodDeclaration.qualifierList(), nextMethodDeclaration.qualifierList())) {
-            return false;
+        MethodDeclarationEqualityResult methodDeclarationEquality = new MethodDeclarationEqualityResult();
+        methodDeclarationEquality.setPrevFunctionName(prevMethodDeclaration.methodName().text());
+        methodDeclarationEquality.setNextFunctionName(nextMethodDeclaration.methodName().text());
+        if (isQualifierListEquals(prevMethodDeclaration.qualifierList(), nextMethodDeclaration.qualifierList())) {
+            methodDeclarationEquality.setQualifierListEqual(true);
         }
-        if (!prevMethodDeclaration.methodName().text().equals(nextMethodDeclaration.methodName().text())) {
-            return false;
+        if (prevMethodDeclaration.methodName().text().equals(nextMethodDeclaration.methodName().text())) {
+            methodDeclarationEquality.setFunctionNameEqual(true);
         }
-        if (!isRelativeResourcePathEquals(prevMethodDeclaration.relativeResourcePath(),
+        if (isRelativeResourcePathEquals(prevMethodDeclaration.relativeResourcePath(),
                 nextMethodDeclaration.relativeResourcePath())) {
-            return false;
+            methodDeclarationEquality.setRelativeResourcePathsEqual(true);
         }
         FunctionSignatureEqualityResult funcSignatureEquals =
                 isFuncSignatureEquals(prevMethodDeclaration.methodSignature(), nextMethodDeclaration.methodSignature());
-        return funcSignatureEquals.isEqual();
+        methodDeclarationEquality.setFunctionSignatureEqualityResult(funcSignatureEquals);
+        return methodDeclarationEquality;
     }
 
     private boolean isRelativeResourcePathEquals(NodeList<Node> prevRelativeResourcePath,
@@ -691,6 +726,24 @@ public class ServiceCombiner {
         return true;
     }
 
+    private String getMethodDeclarationName(MethodDeclarationNode methodDeclaration) {
+        if (methodDeclaration.qualifierList().size() > 0) {
+            String firstQualifier = methodDeclaration.qualifierList().get(0).text();
+            if (firstQualifier.equals(Constants.RESOURCE)) {
+                Node methodDeclarationNameNode = methodDeclaration.relativeResourcePath().get(0);
+                if (methodDeclarationNameNode instanceof IdentifierToken) {
+                    IdentifierToken methodDeclarationName = (IdentifierToken) methodDeclarationNameNode;
+                    return methodDeclarationName.text();
+                }
+            } else if (firstQualifier.equals(Constants.REMOTE)) {
+                return methodDeclaration.methodName().text();
+            }
+        } else {
+            return methodDeclaration.methodName().text();
+        }
+        return null;
+    }
+
     private String getFunctionName(FunctionDefinitionNode functionDefinition) {
         String firstQualifier = functionDefinition.qualifierList().get(0).text();
         if (firstQualifier.equals(Constants.RESOURCE)) {
@@ -750,10 +803,10 @@ public class ServiceCombiner {
                                                                   FunctionSignatureNode nextFunctionSignature)
             throws Exception {
         FunctionSignatureEqualityResult equalityResult = new FunctionSignatureEqualityResult();
-        if (prevFunctionSignature.parameters().size() != nextFunctionSignature.parameters().size()) {
-            equalityResult.setEqual(false);
-//            return false;
-        }
+//        if (prevFunctionSignature.parameters().size() != nextFunctionSignature.parameters().size()) {
+//            equalityResult.setEqual(false);
+////            return false;
+//        }
         HashMap<ParameterNode, Boolean> nextParameterAvailable = new HashMap<>();
         for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
             nextParameterAvailable.put(nextParameter, false);
@@ -765,6 +818,7 @@ public class ServiceCombiner {
                 if (parameterEquals.isEqual()) {
                     foundMatch = true;
                     nextParameterAvailable.put(nextParameter, true);
+                    break;
                 } else {
                     if (parameterEquals.isMatch()) {
                         if (!parameterEquals.getTypeEquality().isEqual()) {

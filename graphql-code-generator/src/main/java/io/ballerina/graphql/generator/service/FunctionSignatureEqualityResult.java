@@ -11,24 +11,19 @@ public class FunctionSignatureEqualityResult {
     private List<String> addedViolatedParameters;
     private List<String> removedParameters;
     private List<ParameterEqualityResult> typeChangedParameters;
-    private String prevReturnType;
-    private String nextReturnType;
     private TypeEqualityResult returnTypeEqualityResult;
-    private Boolean isEqual;
+
 
     public FunctionSignatureEqualityResult() {
         addedParameters = new ArrayList<>();
         addedViolatedParameters = new ArrayList<>();
         removedParameters = new ArrayList<>();
         typeChangedParameters = new ArrayList<>();
-        prevReturnType = "";
-        nextReturnType = "";
-        isEqual = false;
     }
 
-    public Boolean isEqual() {
-//        return addedParameters.isEmpty() && removedParameters.isEmpty() && prevReturnType.equals(nextReturnType);
-        return isEqual;
+    public boolean isEqual() {
+        return addedParameters.isEmpty() && removedParameters.isEmpty()
+                && typeChangedParameters.isEmpty() && returnTypeEqualityResult.isEqual();
     }
 
     public void addToAddedParameters(String parameterName) {
@@ -45,18 +40,6 @@ public class FunctionSignatureEqualityResult {
 
     public void addToRemovedParameters(String parameterName) {
         removedParameters.add(parameterName);
-    }
-
-    public void setPrevReturnType(String prevReturnType) {
-        this.prevReturnType = prevReturnType;
-    }
-
-    public void setNextReturnType(String nextReturnType) {
-        this.nextReturnType = nextReturnType;
-    }
-
-    public void setEqual(Boolean equal) {
-        isEqual = equal;
     }
 
     public void setTypeEqualityResult(TypeEqualityResult returnTypeEqualityResult) {
