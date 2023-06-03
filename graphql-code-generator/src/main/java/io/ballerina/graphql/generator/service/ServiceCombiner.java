@@ -69,6 +69,9 @@ public class ServiceCombiner {
                     "definition has removed. This can break available clients";
     private static final String WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE = "warning: In '%s' class " +
             "'%s' function definition return type has changed from '%s' to '%s'. This can break existing clients.";
+    private static final String WARNING_MESSAGE_METHOD_DECLARATION_CHANGE_RETURN_TYPE_IN_SERVICE_OBJECT = "warning: " +
+            "In '%s' service object '%s' method declaration return type has changed from '%s' to '%s'. This can break" +
+            " existing clients.";
     private static final String WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_CLASS = "warning: In '%s'" +
             " class '%s' function definition '%s' parameter added without default value. This can break existing " +
             "clients.";
@@ -78,6 +81,9 @@ public class ServiceCombiner {
             "object '%s' method declaration '%s' parameter has removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_CLASS = "warning: In '%s' class " +
             "'%s' function definition '%s' parameter type change from '%s' to '%s'. This can break existing clients.";
+    private static final String WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT = "warning: In '%s' service " +
+            "object '%s' method declaration '%s' parameter type change from '%s' to '%s'. This can break existing " +
+            "clients.";
     private static final String WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION = "warning: In '%s' service " +
             "object '%s' method declaration has removed. This can break existing clients.";
     private final ModulePartNode nextContentNode;
@@ -273,12 +279,8 @@ public class ServiceCombiner {
                 if (!serviceObjectEquals.getRemovedMethodDeclarations().isEmpty()) {
                     for (String removedMethodDeclarationName : serviceObjectEquals.getRemovedMethodDeclarations()) {
                         breakingChangeWarnings.add(
-                                String.format(
-                                        WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION,
-                                        prevTypeDef.typeName().text(),
-                                        removedMethodDeclarationName
-                                )
-                        );
+                                String.format(WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION,
+                                        prevTypeDef.typeName().text(), removedMethodDeclarationName));
                     }
                 }
                 List<MethodDeclarationEqualityResult> updatedMethodDeclarations =
@@ -288,17 +290,42 @@ public class ServiceCombiner {
                         if (!updatedMethodDeclaration.getFunctionSignatureEqualityResult().isEqual()) {
                             for (String removedParameterName :
                                     updatedMethodDeclaration.getFunctionSignatureEqualityResult()
-                                            .getRemovedParameters()) {
+                                    .getRemovedParameters()) {
                                 breakingChangeWarnings.add(
-                                        String.format(
-                                                WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
+                                        String.format(WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
+                                                prevTypeDef.typeName().text(),
+                                                updatedMethodDeclaration.getPrevFunctionName(), removedParameterName));
+                            }
+                        }
+                        if (!updatedMethodDeclaration.getFunctionSignatureEqualityResult().getTypeChangedParameters()
+                                .isEmpty()) {
+                            for (ParameterEqualityResult parameterEquality :
+                                    updatedMethodDeclaration.getFunctionSignatureEqualityResult()
+                                    .getTypeChangedParameters()) {
+                                breakingChangeWarnings.add(
+                                        String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT,
                                                 prevTypeDef.typeName().text(),
                                                 updatedMethodDeclaration.getPrevFunctionName(),
-                                                removedParameterName
+                                                parameterEquality.getPrevParameterName(),
+                                                parameterEquality.getTypeEquality().getPrevType(),
+                                                parameterEquality.getTypeEquality().getNextType()
                                         )
                                 );
                             }
-
+                        }
+                        if (!updatedMethodDeclaration.getFunctionSignatureEqualityResult()
+                                .getReturnTypeEqualityResult().isEqual()) {
+                            breakingChangeWarnings.add(
+                                    String.format(
+                                            WARNING_MESSAGE_METHOD_DECLARATION_CHANGE_RETURN_TYPE_IN_SERVICE_OBJECT,
+                                            prevTypeDef.typeName().text(),
+                                            updatedMethodDeclaration.getPrevFunctionName(),
+                                            updatedMethodDeclaration.getFunctionSignatureEqualityResult()
+                                                    .getReturnTypeEqualityResult().getPrevType(),
+                                            updatedMethodDeclaration.getFunctionSignatureEqualityResult()
+                                                    .getReturnTypeEqualityResult().getNextType()
+                                    )
+                            );
                         }
                     }
                 }
@@ -674,44 +701,33 @@ public class ServiceCombiner {
                         }
                         if (!funcDefEquals.getFunctionSignatureEqualityResult().getAddedViolatedParameters()
                                 .isEmpty()) {
-                            for (String addedParameterName :
-                                    funcDefEquals.getFunctionSignatureEqualityResult().getAddedViolatedParameters()) {
+                            for (String addedParameterName : funcDefEquals.getFunctionSignatureEqualityResult()
+                                    .getAddedViolatedParameters()) {
                                 breakingChangeWarnings.add(
-                                        String.format(
-                                                WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_CLASS,
-                                                prevClassDef.className().text(),
-                                                funcDefEquals.getPrevFunctionName(),
-                                                addedParameterName
-                                        )
-                                );
+                                        String.format(WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_CLASS,
+                                                prevClassDef.className().text(), funcDefEquals.getPrevFunctionName(),
+                                                addedParameterName));
                             }
                         }
                         if (!funcDefEquals.getFunctionSignatureEqualityResult().getRemovedParameters().isEmpty()) {
-                            for (String removedParameterName :
-                                    funcDefEquals.getFunctionSignatureEqualityResult().getRemovedParameters()) {
+                            for (String removedParameterName : funcDefEquals.getFunctionSignatureEqualityResult()
+                                    .getRemovedParameters()) {
                                 breakingChangeWarnings.add(
-                                        String.format(
-                                                WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE_CLASS,
-                                                prevClassDef.className().text(),
-                                                funcDefEquals.getPrevFunctionName(),
-                                                removedParameterName
-                                        )
-                                );
+                                        String.format(WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE_CLASS,
+                                                prevClassDef.className().text(), funcDefEquals.getPrevFunctionName(),
+                                                removedParameterName));
                             }
                         }
                         if (!funcDefEquals.getFunctionSignatureEqualityResult().getTypeChangedParameters().isEmpty()) {
                             for (ParameterEqualityResult parameterEquals :
-                                    funcDefEquals.getFunctionSignatureEqualityResult().getTypeChangedParameters()) {
+                                    funcDefEquals.getFunctionSignatureEqualityResult()
+                                    .getTypeChangedParameters()) {
                                 breakingChangeWarnings.add(
-                                        String.format(
-                                                WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_CLASS,
-                                                prevClassDef.className().text(),
-                                                funcDefEquals.getPrevFunctionName(),
+                                        String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_CLASS,
+                                                prevClassDef.className().text(), funcDefEquals.getPrevFunctionName(),
                                                 parameterEquals.getPrevParameterName(),
                                                 parameterEquals.getTypeEquality().getPrevType(),
-                                                parameterEquals.getTypeEquality().getNextType()
-                                        )
-                                );
+                                                parameterEquals.getTypeEquality().getNextType()));
                             }
                         }
                         FunctionDefinitionNode modifiedNextFuncDef = nextClassFuncDef.modify(nextClassFuncDef.kind(),
@@ -830,10 +846,6 @@ public class ServiceCombiner {
                                                                   FunctionSignatureNode nextFunctionSignature)
             throws Exception {
         FunctionSignatureEqualityResult equalityResult = new FunctionSignatureEqualityResult();
-//        if (prevFunctionSignature.parameters().size() != nextFunctionSignature.parameters().size()) {
-//            equalityResult.setEqual(false);
-////            return false;
-//        }
         HashMap<ParameterNode, Boolean> nextParameterAvailable = new HashMap<>();
         for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
             nextParameterAvailable.put(nextParameter, false);
@@ -848,6 +860,7 @@ public class ServiceCombiner {
                     break;
                 } else {
                     if (parameterEquals.isMatch()) {
+                        foundMatch = true;
                         if (!parameterEquals.getTypeEquality().isEqual()) {
                             equalityResult.addToTypeChangedParameters(parameterEquals);
                         }
@@ -890,65 +903,100 @@ public class ServiceCombiner {
 
     private TypeEqualityResult isTypeEquals(Node prevType, Node nextType) throws Exception {
         TypeEqualityResult equalityResult = new TypeEqualityResult();
-        if (prevType instanceof BuiltinSimpleNameReferenceNode && nextType instanceof BuiltinSimpleNameReferenceNode) {
-            BuiltinSimpleNameReferenceNode prevTypeName = (BuiltinSimpleNameReferenceNode) prevType;
-            BuiltinSimpleNameReferenceNode nextTypeName = (BuiltinSimpleNameReferenceNode) nextType;
-            equalityResult.setPrevType(prevTypeName.name().text());
-            equalityResult.setNextType(nextTypeName.name().text());
-            equalityResult.setEqual(prevTypeName.name().text().equals(nextTypeName.name().text()));
-            //            return prevTypeName.name().text().equals(nextTypeName.name().text());
-        } else if (prevType instanceof SimpleNameReferenceNode && nextType instanceof SimpleNameReferenceNode) {
-            SimpleNameReferenceNode prevTypeName = (SimpleNameReferenceNode) prevType;
-            SimpleNameReferenceNode nextTypeName = (SimpleNameReferenceNode) nextType;
-            equalityResult.setPrevType(prevTypeName.name().text());
-            equalityResult.setNextType(nextTypeName.name().text());
-            equalityResult.setEqual(prevTypeName.name().text().equals(nextTypeName.name().text()));
-//            return prevTypeName.name().text().equals(nextTypeName.name().text());
-        } else if (prevType instanceof QualifiedNameReferenceNode && nextType instanceof QualifiedNameReferenceNode) {
-            QualifiedNameReferenceNode prevTypeName = (QualifiedNameReferenceNode) prevType;
-            QualifiedNameReferenceNode nextTypeName = (QualifiedNameReferenceNode) nextType;
-            if (!prevTypeName.modulePrefix().text().equals(nextTypeName.modulePrefix().text())) {
-                equalityResult.setEqual(false);
-            } else {
-                equalityResult.setPrevType(prevTypeName.identifier().text());
-                equalityResult.setNextType(nextTypeName.identifier().text());
-                equalityResult.setEqual(prevTypeName.identifier().text().equals(nextTypeName.identifier().text()));
-            }
-//            return prevTypeName.identifier().text().equals(nextTypeName.identifier().text());
-        } else if (prevType instanceof OptionalTypeDescriptorNode && nextType instanceof OptionalTypeDescriptorNode) {
-            OptionalTypeDescriptorNode prevWrappedType = (OptionalTypeDescriptorNode) prevType;
-            OptionalTypeDescriptorNode nextWrappedType = (OptionalTypeDescriptorNode) nextType;
-            return isTypeEquals(prevWrappedType.typeDescriptor(), nextWrappedType.typeDescriptor());
-        } else if (prevType instanceof ArrayTypeDescriptorNode && nextType instanceof ArrayTypeDescriptorNode) {
-            ArrayTypeDescriptorNode prevWrappedType = (ArrayTypeDescriptorNode) prevType;
-            ArrayTypeDescriptorNode nextWrappedType = (ArrayTypeDescriptorNode) nextType;
-            return isTypeEquals(prevWrappedType.memberTypeDesc(), nextWrappedType.memberTypeDesc());
-        } else if (prevType instanceof StreamTypeDescriptorNode && nextType instanceof StreamTypeDescriptorNode) {
-            StreamTypeDescriptorNode prevWrappedType = (StreamTypeDescriptorNode) prevType;
-            StreamTypeDescriptorNode nextWrappedType = (StreamTypeDescriptorNode) nextType;
-            StreamTypeParamsNode prevStreamParams =
-                    (StreamTypeParamsNode) prevWrappedType.streamTypeParamsNode().orElseThrow();
-            StreamTypeParamsNode nextStreamParams =
-                    (StreamTypeParamsNode) nextWrappedType.streamTypeParamsNode().orElseThrow();
-            TypeEqualityResult typeEqualResult =
-                    isTypeEquals(prevStreamParams.leftTypeDescNode(), nextStreamParams.leftTypeDescNode());
-            if (!typeEqualResult.isEqual()) {
-                typeEqualResult.setEqual(false);
-            }
-            if (prevStreamParams.rightTypeDescNode().isPresent() && nextStreamParams.rightTypeDescNode().isPresent()) {
-                return isTypeEquals(prevStreamParams.rightTypeDescNode().orElseThrow(),
-                        nextStreamParams.rightTypeDescNode().orElseThrow());
-            } else {
-                typeEqualResult.setEqual(true);
-            }
-            return typeEqualResult;
-        } else {
-            if (prevType.getClass().toString().equals(nextType.getClass().toString())) {
-                throw new Exception("No valid type: " + prevType.getClass());
-            }
-            equalityResult.setEqual(false);
-        }
+        equalityResult.setPrevType(getTypeName(prevType));
+        equalityResult.setNextType(getTypeName(nextType));
+//        if (prevType instanceof BuiltinSimpleNameReferenceNode
+//        && nextType instanceof BuiltinSimpleNameReferenceNode) {
+//            BuiltinSimpleNameReferenceNode prevTypeName = (BuiltinSimpleNameReferenceNode) prevType;
+//            BuiltinSimpleNameReferenceNode nextTypeName = (BuiltinSimpleNameReferenceNode) nextType;
+//            equalityResult.setPrevType(prevTypeName.name().text());
+//            equalityResult.setNextType(nextTypeName.name().text());
+//            equalityResult.setEqual(prevTypeName.name().text().equals(nextTypeName.name().text()));
+//            //            return prevTypeName.name().text().equals(nextTypeName.name().text());
+//        } else if (prevType instanceof SimpleNameReferenceNode && nextType instanceof SimpleNameReferenceNode) {
+//            SimpleNameReferenceNode prevTypeName = (SimpleNameReferenceNode) prevType;
+//            SimpleNameReferenceNode nextTypeName = (SimpleNameReferenceNode) nextType;
+//            equalityResult.setPrevType(prevTypeName.name().text());
+//            equalityResult.setNextType(nextTypeName.name().text());
+//            equalityResult.setEqual(prevTypeName.name().text().equals(nextTypeName.name().text()));
+////            return prevTypeName.name().text().equals(nextTypeName.name().text());
+//        } else if (prevType instanceof QualifiedNameReferenceNode && nextType instanceof QualifiedNameReferenceNode) {
+//            QualifiedNameReferenceNode prevTypeName = (QualifiedNameReferenceNode) prevType;
+//            QualifiedNameReferenceNode nextTypeName = (QualifiedNameReferenceNode) nextType;
+//            if (!prevTypeName.modulePrefix().text().equals(nextTypeName.modulePrefix().text())) {
+//                equalityResult.setEqual(false);
+//            } else {
+//                equalityResult.setPrevType(prevTypeName.identifier().text());
+//                equalityResult.setNextType(nextTypeName.identifier().text());
+//                equalityResult.setEqual(prevTypeName.identifier().text().equals(nextTypeName.identifier().text()));
+//            }
+////            return prevTypeName.identifier().text().equals(nextTypeName.identifier().text());
+//        } else if (prevType instanceof OptionalTypeDescriptorNode && nextType instanceof OptionalTypeDescriptorNode) {
+//            OptionalTypeDescriptorNode prevWrappedType = (OptionalTypeDescriptorNode) prevType;
+//            OptionalTypeDescriptorNode nextWrappedType = (OptionalTypeDescriptorNode) nextType;
+//            return isTypeEquals(prevWrappedType.typeDescriptor(), nextWrappedType.typeDescriptor());
+//        } else if (prevType instanceof ArrayTypeDescriptorNode && nextType instanceof ArrayTypeDescriptorNode) {
+//            ArrayTypeDescriptorNode prevWrappedType = (ArrayTypeDescriptorNode) prevType;
+//            ArrayTypeDescriptorNode nextWrappedType = (ArrayTypeDescriptorNode) nextType;
+//            return isTypeEquals(prevWrappedType.memberTypeDesc(), nextWrappedType.memberTypeDesc());
+//        } else if (prevType instanceof StreamTypeDescriptorNode && nextType instanceof StreamTypeDescriptorNode) {
+//            StreamTypeDescriptorNode prevWrappedType = (StreamTypeDescriptorNode) prevType;
+//            StreamTypeDescriptorNode nextWrappedType = (StreamTypeDescriptorNode) nextType;
+//            StreamTypeParamsNode prevStreamParams =
+//                    (StreamTypeParamsNode) prevWrappedType.streamTypeParamsNode().orElseThrow();
+//            StreamTypeParamsNode nextStreamParams =
+//                    (StreamTypeParamsNode) nextWrappedType.streamTypeParamsNode().orElseThrow();
+//            TypeEqualityResult typeEqualResult =
+//                    isTypeEquals(prevStreamParams.leftTypeDescNode(), nextStreamParams.leftTypeDescNode());
+//            if (!typeEqualResult.isEqual()) {
+//                typeEqualResult.setEqual(false);
+//            }
+//            if (prevStreamParams.rightTypeDescNode().isPresent()
+//            && nextStreamParams.rightTypeDescNode().isPresent()) {
+//                return isTypeEquals(prevStreamParams.rightTypeDescNode().orElseThrow(),
+//                        nextStreamParams.rightTypeDescNode().orElseThrow());
+//            } else {
+//                typeEqualResult.setEqual(true);
+//            }
+//            return typeEqualResult;
+//        } else {
+//            if (prevType.getClass().toString().equals(nextType.getClass().toString())) {
+//                throw new Exception("No valid type: " + prevType.getClass());
+//            }
+//            equalityResult.setEqual(false);
+//        }
         return equalityResult;
+    }
+
+    private String getTypeName(Node type) throws Exception {
+        if (type instanceof BuiltinSimpleNameReferenceNode) {
+            BuiltinSimpleNameReferenceNode typeName = (BuiltinSimpleNameReferenceNode) type;
+            return typeName.name().text();
+        } else if (type instanceof SimpleNameReferenceNode) {
+            SimpleNameReferenceNode typeName = (SimpleNameReferenceNode) type;
+            return typeName.name().text();
+        } else if (type instanceof QualifiedNameReferenceNode) {
+            QualifiedNameReferenceNode typeName = (QualifiedNameReferenceNode) type;
+            return typeName.identifier().text();
+        } else if (type instanceof OptionalTypeDescriptorNode) {
+            OptionalTypeDescriptorNode wrappedType = (OptionalTypeDescriptorNode) type;
+            return String.format("%s?", getTypeName(wrappedType.typeDescriptor()));
+        } else if (type instanceof ArrayTypeDescriptorNode) {
+            ArrayTypeDescriptorNode wrappedType = (ArrayTypeDescriptorNode) type;
+            return String.format("%s[]", getTypeName(wrappedType.memberTypeDesc()));
+        } else if (type instanceof StreamTypeDescriptorNode) {
+            StreamTypeDescriptorNode wrappedType = (StreamTypeDescriptorNode) type;
+            StreamTypeParamsNode streamParams = (StreamTypeParamsNode) wrappedType.streamTypeParamsNode().orElseThrow();
+            String typesCommaSeparatedNames = getTypeName(streamParams.leftTypeDescNode());
+            if (streamParams.rightTypeDescNode().isPresent()) {
+                typesCommaSeparatedNames = typesCommaSeparatedNames.concat(",");
+                typesCommaSeparatedNames =
+                        typesCommaSeparatedNames.concat(getTypeName(streamParams.rightTypeDescNode().orElseThrow()));
+            }
+            return String.format("stream<%s>", typesCommaSeparatedNames);
+        } else {
+            throw new Exception("No valid type: " + type.getClass());
+        }
     }
 
     private ParameterEqualityResult isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter)
