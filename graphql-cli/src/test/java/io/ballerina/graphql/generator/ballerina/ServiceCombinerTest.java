@@ -687,9 +687,8 @@ public class ServiceCombinerTest extends GraphqlTest {
         List<String> warningMessages = new ArrayList<>();
         warningMessages.add("warning: In 'Adult' class 'age' function definition 'nic' parameter removed. " +
                 "This can break existing clients.");
-        warningMessages.add(
-                "warning: In 'Child' class 'pass' function definition 'score3' parameter removed. " +
-                        "This can break existing clients.");
+        warningMessages.add("warning: In 'Child' class 'pass' function definition 'score3' parameter removed. " +
+                "This can break existing clients.");
         List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 2);
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
@@ -744,8 +743,7 @@ public class ServiceCombinerTest extends GraphqlTest {
     }
 
     @Test(description = "Test combining updated schema with removed fields in query, mutation and subscription")
-    public void testCombiningUpdatedSchemaWithRemovedFieldsInQueryMutationAndSubscription()
-            throws Exception {
+    public void testCombiningUpdatedSchemaWithRemovedFieldsInQueryMutationAndSubscription() throws Exception {
         String beforeBalFileName = "typesBeforeRemovingFieldsInQueryMutationAndSubscriptionDefault";
         String expectedBalFileName = "typesWithRemovedFieldsInQueryMutationAndSubscriptionDefault";
         String newSchemaFileName = "SchemaWithRemovedFieldsInQueryMutationAndSubscriptionApi";
@@ -792,8 +790,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed parameters in query, mutation and subscription " +
             "fields")
-    public void testCombiningUpdatedSchemaWithRemovedParametersInQueryMutationAndSubscriptionFields()
-            throws Exception {
+    public void testCombiningUpdatedSchemaWithRemovedParametersInQueryMutationAndSubscriptionFields() throws Exception {
         String beforeBalFileName = "typesBeforeRemovingParametersInQueryMutationAndSubscriptionFieldsDefault";
         String expectedBalFileName = "typesWithRemovedParametersInQueryMutationAndSubscriptionFieldsDefault";
         String newSchemaFileName = "SchemaWithRemovedParametersInQueryMutationAndSubscriptionFieldsApi";
@@ -829,7 +826,85 @@ public class ServiceCombinerTest extends GraphqlTest {
                         "clients.");
         warningMessages.add(
                 "warning: In 'SchemaWithRemovedParametersInQueryMutationAndSubscriptionFieldsApi' service object " +
-                        "'bookTitles' method declaration 'ids' parameter has removed. This can break existing clients.");
+                        "'bookTitles' method declaration 'ids' parameter has removed. " +
+                        "This can break existing clients.");
+        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
+        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
+        }
+    }
+
+    @Test(description = "Test combining updated schema with types changed in query, mutation and subscription fields")
+    public void testCombiningUpdatedSchemaWithTypesChangedInQueryMutationAndSubscriptionFields() throws Exception {
+        String beforeBalFileName = "typesBeforeChangingTypesInQueryMutationAndSubscriptionFieldsDefault";
+        String expectedBalFileName = "typesWithTypesChangedInQueryMutationAndSubscriptionFieldsDefault";
+        String newSchemaFileName = "SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceCombiner serviceCombiner = new ServiceCombiner(updateBalFileNode, nextSchemaNode);
+        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> warningMessages = new ArrayList<>();
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'book' method declaration 'id' parameter type change from 'int' to 'string'. This can break " +
+                "existing clients.");
+        warningMessages.add(
+                "warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service object 'book' " +
+                        "method declaration return type has changed from 'Book?' to 'Book'. This can break existing " +
+                        "clients.");
+        warningMessages.add(
+                "warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service object 'author' " +
+                        "method declaration 'id' parameter type change from 'int' to 'string?'. This can break " +
+                        "existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'author' method declaration return type has changed from 'Author?' to 'Author'. This can " +
+                "break existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'authors' method declaration return type has changed from 'Author[]' to 'Author?[]?'. This " +
+                "can break existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'addBook' method declaration 'title' parameter type change from 'string' to 'string?'. This " +
+                "can break existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'addBook' method declaration return type has changed from 'Book?' to 'Book'. This can break " +
+                "existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'addAuthor' method declaration 'name' parameter type change from 'string' to 'string?'. This " +
+                "can break existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'addAuthor' method declaration return type has changed from 'Author?' to 'Author'. This can " +
+                "break existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'bookTitles' method declaration 'ids' parameter type change from 'int?[]' to 'int?[]?'. This " +
+                "can break existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'bookTitles' method declaration return type has changed from 'stream<string>' to " +
+                "'stream<string?>'. This can break existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'authorNames' method declaration 'ids' parameter type change from 'int?[]' to 'int?[]?'. This" +
+                " can break existing clients.");
+        warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
+                "object 'authorNames' method declaration return type has changed from 'stream<string>' to " +
+                "'stream<string?>'. This can break existing clients.");
         List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
