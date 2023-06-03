@@ -75,6 +75,9 @@ public class ServiceCombiner {
     private static final String WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_CLASS = "warning: In '%s'" +
             " class '%s' function definition '%s' parameter added without default value. This can break existing " +
             "clients.";
+    private static final String WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_OBJECT_METHOD = "warning:" +
+            " In '%s' service object '%s' method declaration '%s' parameter added without default value. This can " +
+            "break existing clients.";
     private static final String WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE_CLASS = "warning: In '%s' class '%s' " +
             "function definition '%s' parameter removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT = "warning: In '%s' service " +
@@ -326,6 +329,21 @@ public class ServiceCombiner {
                                                     .getReturnTypeEqualityResult().getNextType()
                                     )
                             );
+                        }
+                        FunctionSignatureEqualityResult updatedMethodSignatureEquality =
+                                updatedMethodDeclaration.getFunctionSignatureEqualityResult();
+                        if (!updatedMethodSignatureEquality.getAddedViolatedParameters().isEmpty()) {
+                            for (String addedViolatedParameterName :
+                                    updatedMethodSignatureEquality.getAddedViolatedParameters()) {
+                                breakingChangeWarnings.add(
+                                    String.format(
+                                            WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_OBJECT_METHOD,
+                                            prevTypeDef.typeName().text(),
+                                            updatedMethodDeclaration.getPrevFunctionName(),
+                                            addedViolatedParameterName
+                                    )
+                                );
+                            }
                         }
                     }
                 }
