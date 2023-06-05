@@ -960,6 +960,67 @@ public class ServiceCombinerTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test combining updated schema with removed parameter default values")
+    public void testCombiningUpdatedSchemaWithRemovedParameterDefaultValues() throws Exception {
+        String beforeBalFileName = "typesBeforeRemovingParameterDefaultValuesDefault";
+        String expectedBalFileName = "typesWithRemovedParameterDefaultValuesDefault";
+        String newSchemaFileName = "SchemaWithRemovedParameterDefaultValuesApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceCombiner serviceCombiner = new ServiceCombiner(updateBalFileNode, nextSchemaNode);
+        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> warningMessages = new ArrayList<>();
+        warningMessages.add("warning: In 'SchemaWithRemovedParameterDefaultValuesApi' service object 'book' method " +
+                "declaration 'id' parameter assigned '1' default value has removed. This can break existing clients.");
+        warningMessages.add("warning: In 'SchemaWithRemovedParameterDefaultValuesApi' service object 'book' method " +
+                "declaration 'title' parameter assigned '\"No title\"' default value has removed. This can break " +
+                "existing clients.");
+        warningMessages.add("warning: In 'SchemaWithRemovedParameterDefaultValuesApi' service object 'authors' method" +
+                " declaration 'ids' parameter assigned '[1]' default value has removed. This can break existing " +
+                "clients.");
+        warningMessages.add("warning: In 'SchemaWithRemovedParameterDefaultValuesApi' service object 'addBook' method" +
+                " declaration 'authorId' parameter assigned '1' default value has removed. This can break existing " +
+                "clients.");
+        warningMessages.add("warning: In 'SchemaWithRemovedParameterDefaultValuesApi' service object 'addAuthor' " +
+                "method declaration 'name' parameter assigned '\"No name\"' default value has removed. This can break" +
+                " existing clients.");
+        warningMessages.add("warning: In 'SchemaWithRemovedParameterDefaultValuesApi' service object 'bookTitles' " +
+                "method declaration 'ids' parameter assigned '[]' default value has removed. This can break existing " +
+                "clients.");
+        warningMessages.add("warning: In 'CreateBookInput' record type 'price' field assigned '150.0' default value " +
+                "has removed. This can break existing clients.");
+        warningMessages.add("warning: In 'CreateBookInput' record type 'version' field assigned '\"v1.0\"' default " +
+                "value has removed. This can break existing clients.");
+        warningMessages.add("warning: In 'Author' service class 'name' function 'designation' parameter assigned " +
+                "'\"\"' default value has removed. This can break existing clients.");
+        warningMessages.add("warning: In 'Book' service class 'price' function 'copiesSold' parameter assigned '0' " +
+                "default value has removed. This can break existing clients.");
+        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
+        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
+        }
+    }
+
     @Test(description = "Test combining updated schema with new interface fields")
     public void testNodeParser() throws Exception {
         String balFileName = "typesDocsWithEnumDefault";
