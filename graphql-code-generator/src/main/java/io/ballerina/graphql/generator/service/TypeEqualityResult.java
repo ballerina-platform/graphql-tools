@@ -13,9 +13,8 @@ public class TypeEqualityResult {
     public boolean isEqual() {
         if ((prevType != null) && (nextType != null)) {
             return prevType.equals(nextType);
-        } else {
-            return prevType == null && nextType == null;
         }
+        return false;
     }
 
     public String getPrevType() {

@@ -11,6 +11,7 @@ public class FunctionSignatureEqualityResult {
     private List<String> addedViolatedParameters;
     private List<String> removedParameters;
     private List<ParameterEqualityResult> typeChangedParameters;
+    private List<ParameterEqualityResult> defaultValueRemovedParameters;
     private TypeEqualityResult returnTypeEqualityResult;
 
 
@@ -19,11 +20,13 @@ public class FunctionSignatureEqualityResult {
         addedViolatedParameters = new ArrayList<>();
         removedParameters = new ArrayList<>();
         typeChangedParameters = new ArrayList<>();
+        defaultValueRemovedParameters = new ArrayList<>();
     }
 
     public boolean isEqual() {
         return addedParameters.isEmpty() && removedParameters.isEmpty()
-                && typeChangedParameters.isEmpty() && returnTypeEqualityResult.isEqual();
+                && typeChangedParameters.isEmpty() && returnTypeEqualityResult.isEqual()
+                && defaultValueRemovedParameters.isEmpty();
     }
 
     public void addToAddedParameters(String parameterName) {
@@ -36,6 +39,10 @@ public class FunctionSignatureEqualityResult {
 
     public void addToTypeChangedParameters(ParameterEqualityResult parameterEqualityResult) {
         typeChangedParameters.add(parameterEqualityResult);
+    }
+
+    public void addToDefaultValueRemovedParameters(ParameterEqualityResult parameterEqualityResult) {
+        defaultValueRemovedParameters.add(parameterEqualityResult);
     }
 
     public void addToRemovedParameters(String parameterName) {
@@ -64,5 +71,9 @@ public class FunctionSignatureEqualityResult {
 
     public TypeEqualityResult getReturnTypeEqualityResult() {
         return returnTypeEqualityResult;
+    }
+
+    public List<ParameterEqualityResult> getDefaultValueRemovedParameters() {
+        return defaultValueRemovedParameters;
     }
 }

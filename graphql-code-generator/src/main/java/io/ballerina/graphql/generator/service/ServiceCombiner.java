@@ -78,6 +78,14 @@ public class ServiceCombiner {
     private static final String WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_OBJECT_METHOD = "warning:" +
             " In '%s' service object '%s' method declaration '%s' parameter added without default value. This can " +
             "break existing clients.";
+    private static final String WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_OBJECT_METHOD = "warning: " +
+            "In '%s' service object '%s' method declaration '%s' parameter assigned '%s' default value has removed. " +
+            "This can break existing clients.";
+    private static final String WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_CLASS_FUNC = "warning: " +
+            "In '%s' service class '%s' function '%s' parameter assigned '%s' default value has removed. " +
+            "This can break existing clients.";
+    private static final String WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD = "warning: In '%s' record type" +
+            " '%s' field assigned '%s' default value has removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE_CLASS = "warning: In '%s' class '%s' " +
             "function definition '%s' parameter removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT = "warning: In '%s' service " +
@@ -311,38 +319,38 @@ public class ServiceCombiner {
                                                 updatedMethodDeclaration.getPrevFunctionName(),
                                                 parameterEquality.getPrevParameterName(),
                                                 parameterEquality.getTypeEquality().getPrevType(),
-                                                parameterEquality.getTypeEquality().getNextType()
-                                        )
-                                );
+                                                parameterEquality.getTypeEquality().getNextType()));
                             }
                         }
-                        if (!updatedMethodDeclaration.getFunctionSignatureEqualityResult()
-                                .getReturnTypeEqualityResult().isEqual()) {
-                            breakingChangeWarnings.add(
-                                    String.format(
-                                            WARNING_MESSAGE_METHOD_DECLARATION_CHANGE_RETURN_TYPE_IN_SERVICE_OBJECT,
-                                            prevTypeDef.typeName().text(),
-                                            updatedMethodDeclaration.getPrevFunctionName(),
-                                            updatedMethodDeclaration.getFunctionSignatureEqualityResult()
-                                                    .getReturnTypeEqualityResult().getPrevType(),
-                                            updatedMethodDeclaration.getFunctionSignatureEqualityResult()
-                                                    .getReturnTypeEqualityResult().getNextType()
-                                    )
-                            );
+                        if (!updatedMethodDeclaration.getFunctionSignatureEqualityResult().getReturnTypeEqualityResult()
+                                .isEqual()) {
+                            breakingChangeWarnings.add(String.format(
+                                    WARNING_MESSAGE_METHOD_DECLARATION_CHANGE_RETURN_TYPE_IN_SERVICE_OBJECT,
+                                    prevTypeDef.typeName().text(), updatedMethodDeclaration.getPrevFunctionName(),
+                                    updatedMethodDeclaration.getFunctionSignatureEqualityResult()
+                                            .getReturnTypeEqualityResult().getPrevType(),
+                                    updatedMethodDeclaration.getFunctionSignatureEqualityResult()
+                                            .getReturnTypeEqualityResult().getNextType()));
                         }
                         FunctionSignatureEqualityResult updatedMethodSignatureEquality =
                                 updatedMethodDeclaration.getFunctionSignatureEqualityResult();
                         if (!updatedMethodSignatureEquality.getAddedViolatedParameters().isEmpty()) {
                             for (String addedViolatedParameterName :
                                     updatedMethodSignatureEquality.getAddedViolatedParameters()) {
-                                breakingChangeWarnings.add(
-                                    String.format(
-                                            WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_OBJECT_METHOD,
-                                            prevTypeDef.typeName().text(),
-                                            updatedMethodDeclaration.getPrevFunctionName(),
-                                            addedViolatedParameterName
-                                    )
-                                );
+                                breakingChangeWarnings.add(String.format(
+                                        WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_OBJECT_METHOD,
+                                        prevTypeDef.typeName().text(), updatedMethodDeclaration.getPrevFunctionName(),
+                                        addedViolatedParameterName));
+                            }
+                        }
+                        if (!updatedMethodSignatureEquality.getDefaultValueRemovedParameters().isEmpty()) {
+                            for (ParameterEqualityResult defaultValueRemovedParameterEquality :
+                                    updatedMethodSignatureEquality.getDefaultValueRemovedParameters()) {
+                                breakingChangeWarnings.add(String.format(
+                                        WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_OBJECT_METHOD,
+                                        prevTypeDef.typeName().text(), updatedMethodDeclaration.getPrevFunctionName(),
+                                        defaultValueRemovedParameterEquality.getPrevParameterName(),
+                                        defaultValueRemovedParameterEquality.getPrevParameterDefaultValue()));
                             }
                         }
                     }
@@ -385,7 +393,7 @@ public class ServiceCombiner {
                 nextTypeDef.typeDescriptor() instanceof RecordTypeDescriptorNode) {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDef.typeDescriptor();
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            MembersEqualityResult equalityResult = isRecordTypeEquals(prevRecordType, nextRecordType);
+            RecordTypeEqualityResult equalityResult = isRecordTypeEquals(prevRecordType, nextRecordType);
             if (!equalityResult.isEqual()) {
                 for (String removedField : equalityResult.getRemovals()) {
                     breakingChangeWarnings.add(
@@ -396,6 +404,11 @@ public class ServiceCombiner {
                     breakingChangeWarnings.add(
                             String.format(ADD_VIOLATED_INPUT_TYPE_FIELD_MESSAGE, prevTypeDef.typeName().text(),
                                     addedViolatedField));
+                }
+                for (RecordFieldEqualityResult recordFieldEquality : equalityResult.getDefaultValueRemovedFields()) {
+                    breakingChangeWarnings.add(String.format(WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD,
+                            prevTypeDef.typeName().text(), recordFieldEquality.getPrevRecordFieldName(),
+                            recordFieldEquality.getPrevRecordFieldDefaultValue()));
                 }
             }
             inputObjectTypesModuleMembers.add(nextTypeDef);
@@ -438,112 +451,201 @@ public class ServiceCombiner {
         return true;
     }
 
-    private MembersEqualityResult isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
-                                                     RecordTypeDescriptorNode nextRecordType) throws Exception {
+    private RecordTypeEqualityResult isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
+                                                        RecordTypeDescriptorNode nextRecordType) throws Exception {
         MembersEqualityResult result = new MembersEqualityResult();
-        if (!prevRecordType.recordKeyword().text().equals(nextRecordType.recordKeyword().text())) {
-            return result;
-        }
-        if (!prevRecordType.bodyStartDelimiter().text().equals(nextRecordType.bodyStartDelimiter().text()) ||
-                !prevRecordType.bodyEndDelimiter().text().equals(nextRecordType.bodyEndDelimiter().text())) {
-            return result;
+        RecordTypeEqualityResult recordTypeEquality =
+                new RecordTypeEqualityResult(prevRecordType.recordKeyword().text(),
+                        nextRecordType.recordKeyword().text(), prevRecordType.bodyStartDelimiter().text(),
+                        nextRecordType.bodyStartDelimiter().text(), prevRecordType.bodyEndDelimiter().text(),
+                        nextRecordType.bodyEndDelimiter().text());
+//        if (!prevRecordType.recordKeyword().text().equals(nextRecordType.recordKeyword().text())) {
+//            return result;
+//        }
+//        if (!prevRecordType.bodyStartDelimiter().text().equals(nextRecordType.bodyStartDelimiter().text()) ||
+//                !prevRecordType.bodyEndDelimiter().text().equals(nextRecordType.bodyEndDelimiter().text())) {
+//            return result;
+//        }
+        HashMap<Node, Boolean> nextRecordTypeFieldsAvailable = new HashMap<>();
+        for (Node nextField : nextRecordType.fields()) {
+            nextRecordTypeFieldsAvailable.put(nextField, true);
         }
         for (Node prevField : prevRecordType.fields()) {
             boolean foundPrevMatch = false;
             for (Node nextField : nextRecordType.fields()) {
-                if (prevField instanceof RecordFieldNode && nextField instanceof RecordFieldNode) {
-                    RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
-                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
-                    if (isRecordFieldEquals(prevRecordField, nextRecordField)) {
-                        foundPrevMatch = true;
-                        break;
+                RecordFieldEqualityResult recordFieldEqualityResult = isRecordFieldEquals(prevField, nextField);
+                if (recordFieldEqualityResult.isEqual()) {
+                    foundPrevMatch = true;
+                    break;
+                } else if (recordFieldEqualityResult.isMatch()) {
+                    foundPrevMatch = true;
+                    if (!recordFieldEqualityResult.getTypeEquality().isEqual()) {
+                        recordTypeEquality.addToTypeChangedRecordFields(recordFieldEqualityResult);
                     }
-                } else if (prevField instanceof RecordFieldWithDefaultValueNode &&
-                        nextField instanceof RecordFieldWithDefaultValueNode) {
-                    RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue =
-                            (RecordFieldWithDefaultValueNode) prevField;
-                    RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue =
-                            (RecordFieldWithDefaultValueNode) nextField;
-                    if (isRecordFieldWithDefaultValueEquals(prevRecordFieldWithDefaultValue,
-                            nextRecordFieldWithDefaultValue)) {
-                        foundPrevMatch = true;
-                        break;
+                    if (recordFieldEqualityResult.isDefaultValueRemoved()) {
+                        recordTypeEquality.addToDefaultValueRemovedFields(recordFieldEqualityResult);
                     }
+                    break;
                 }
+//                if (prevField instanceof RecordFieldNode && nextField instanceof RecordFieldNode) {
+//                    RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
+//                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
+//                    RecordFieldEqualityResult recordFieldEqualityResult =
+//                    isRecordFieldEquals(prevRecordField, nextRecordField);
+//                    if (recordFieldEqualityResult.isEqual()) {
+//                        foundPrevMatch = true;
+//                        break;
+//                    } else if (recordFieldEqualityResult.isMatch()) {
+//                        foundPrevMatch = true;
+//                        if (!recordFieldEqualityResult.getTypeEquality().isEqual()) {
+//                            recordTypeEquality.addToTypeChangedRecordFields(recordFieldEqualityResult);
+//                        }
+//                        break;
+//                    }
+//                } else if (prevField instanceof RecordFieldWithDefaultValueNode &&
+//                        nextField instanceof RecordFieldWithDefaultValueNode) {
+//                    RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue =
+//                            (RecordFieldWithDefaultValueNode) prevField;
+//                    RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue =
+//                            (RecordFieldWithDefaultValueNode) nextField;
+//                    RecordFieldWithDefaultValueEqualityResult recordFieldWithDefaultValueEqualityResult =
+//                            isRecordFieldWithDefaultValueEquals(prevRecordFieldWithDefaultValue,
+//                                    nextRecordFieldWithDefaultValue);
+//                    if (recordFieldWithDefaultValueEqualityResult.isEqual()) {
+//                        foundPrevMatch = true;
+//                        break;
+//                    } else if (recordFieldWithDefaultValueEqualityResult.isMatch()) {
+//                        foundPrevMatch = true;
+//                        if (!recordFieldWithDefaultValueEqualityResult.getTypeEquality().isEqual()) {
+//                            recordTypeEquality.
+//                            addToTypeChangedRecordFieldsWithDefaultValues(recordFieldWithDefaultValueEqualityResult);
+//                        }
+//                        break;
+//                    }
+//                } else if (prevField instanceof RecordFieldWithDefaultValueNode &&
+//                nextField instanceof RecordFieldNode) {
+//                    RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue =
+//                            (RecordFieldWithDefaultValueNode) prevField;
+//                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
+//                    if (prevRecordFieldWithDefaultValue.fieldName().text()
+//                    .equals(nextRecordField.fieldName().text())) {
+//                        TypeEqualityResult typeEqualityResult =
+//                                isTypeEquals(prevRecordFieldWithDefaultValue.typeName(), nextRecordField.typeName());
+//                        if ()
+//                    }
+//                }
             }
             if (!foundPrevMatch) {
-                if (prevField instanceof RecordFieldNode) {
-                    RecordFieldNode nextRecordField = (RecordFieldNode) prevField;
-                    result.addToRemovals(nextRecordField.fieldName().text());
-                } else if (prevField instanceof RecordFieldWithDefaultValueNode) {
-                    RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) prevField;
-                    result.addToRemovals(nextRecordField.fieldName().text());
+                recordTypeEquality.addToRemovals(getRecordFieldName(prevField));
+//                if (prevField instanceof RecordFieldNode) {
+//                    RecordFieldNode nextRecordField = (RecordFieldNode) prevField;
+//                    result.addToRemovals(nextRecordField.fieldName().text());
+//
+//                } else if (prevField instanceof RecordFieldWithDefaultValueNode) {
+//                    RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) prevField;
+//                    result.addToRemovals(nextRecordField.fieldName().text());
+//                }
+            }
+        }
+        for (Map.Entry<Node, Boolean> entry : nextRecordTypeFieldsAvailable.entrySet()) {
+            Boolean available = entry.getValue();
+            if (!available) {
+                Node notAvailableField = entry.getKey();
+                recordTypeEquality.addToAdditions(getRecordFieldName(notAvailableField));
+                if (notAvailableField instanceof RecordFieldNode) {
+                    RecordFieldNode notAvailableRecordField = (RecordFieldNode) notAvailableField;
+                    recordTypeEquality.addToViolatedAdditions(notAvailableRecordField.fieldName().text());
                 }
             }
         }
-        for (Node nextField : nextRecordType.fields()) {
-            boolean foundNextMatch = false;
-            for (Node prevField : prevRecordType.fields()) {
-                if (prevField instanceof RecordFieldNode && nextField instanceof RecordFieldNode) {
-                    RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
-                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
-
-                    if (isRecordFieldEquals(prevRecordField, nextRecordField)) {
-                        foundNextMatch = true;
-                        break;
-                    }
-                } else if (prevField instanceof RecordFieldWithDefaultValueNode &&
-                        nextField instanceof RecordFieldWithDefaultValueNode) {
-                    RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue =
-                            (RecordFieldWithDefaultValueNode) prevField;
-                    RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue =
-                            (RecordFieldWithDefaultValueNode) nextField;
-                    if (isRecordFieldWithDefaultValueEquals(prevRecordFieldWithDefaultValue,
-                            nextRecordFieldWithDefaultValue)) {
-                        foundNextMatch = true;
-                        break;
-                    }
-                }
-            }
-            if (!foundNextMatch) {
-                if (nextField instanceof RecordFieldNode) {
-                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
-                    result.addToAdditions(nextRecordField.fieldName().text());
-                    result.addToViolatedAdditions(nextRecordField.fieldName().text());
-                } else if (nextField instanceof RecordFieldWithDefaultValueNode) {
-                    RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) nextField;
-                    result.addToAdditions(nextRecordField.fieldName().text());
-                }
-            }
-        }
-        return result;
+//        for (Node nextField : nextRecordType.fields()) {
+//            boolean foundNextMatch = false;
+//            for (Node prevField : prevRecordType.fields()) {
+//                if (prevField instanceof RecordFieldNode && nextField instanceof RecordFieldNode) {
+//                    RecordFieldNode prevRecordField = (RecordFieldNode) prevField;
+//                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
+//                    RecordFieldEqualityResult recordFieldEquals =
+//                    isRecordFieldEquals(prevRecordField, nextRecordField);
+//                    if (recordFieldEquals.isEqual()) {
+//                        foundNextMatch = true;
+//                        break;
+//                    }
+//                } else if (prevField instanceof RecordFieldWithDefaultValueNode &&
+//                        nextField instanceof RecordFieldWithDefaultValueNode) {
+//                    RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue =
+//                            (RecordFieldWithDefaultValueNode) prevField;
+//                    RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue =
+//                            (RecordFieldWithDefaultValueNode) nextField;
+//                    RecordFieldWithDefaultValueEqualityResult recordFieldWithDefaultValueEquals =
+//                            isRecordFieldWithDefaultValueEquals(prevRecordFieldWithDefaultValue,
+//                                    nextRecordFieldWithDefaultValue);
+//                    if (recordFieldWithDefaultValueEquals.isEqual()) {
+//                        foundNextMatch = true;
+//                        break;
+//                    }
+//                }
+//            }
+//            if (!foundNextMatch) {
+//                if (nextField instanceof RecordFieldNode) {
+//                    RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
+//                    result.addToAdditions(nextRecordField.fieldName().text());
+//                    result.addToViolatedAdditions(nextRecordField.fieldName().text());
+//                } else if (nextField instanceof RecordFieldWithDefaultValueNode) {
+//                    RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) nextField;
+//                    result.addToAdditions(nextRecordField.fieldName().text());
+//                }
+//            }
+//        }
+        return recordTypeEquality;
     }
 
-    private boolean isRecordFieldWithDefaultValueEquals(RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue,
-                                                        RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue)
-            throws Exception {
+    private RecordFieldWithDefaultValueEqualityResult isRecordFieldWithDefaultValueEquals(
+            RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue,
+            RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue) throws Exception {
         TypeEqualityResult typeEquality =
                 isTypeEquals(prevRecordFieldWithDefaultValue.typeName(), nextRecordFieldWithDefaultValue.typeName());
-        if (!typeEquality.isEqual()) {
-            return false;
-        }
-        if (!prevRecordFieldWithDefaultValue.fieldName().text()
-                .equals(nextRecordFieldWithDefaultValue.fieldName().text())) {
-            return false;
-        }
-        return true;
+        return new RecordFieldWithDefaultValueEqualityResult(typeEquality,
+                prevRecordFieldWithDefaultValue.fieldName().text(), nextRecordFieldWithDefaultValue.fieldName().text(),
+                prevRecordFieldWithDefaultValue.expression().toString(),
+                nextRecordFieldWithDefaultValue.expression().toString());
     }
 
-    private boolean isRecordFieldEquals(RecordFieldNode prevRecordField, RecordFieldNode nextRecordField)
-            throws Exception {
-        TypeEqualityResult typeEquality = isTypeEquals(prevRecordField.typeName(), nextRecordField.typeName());
-        if (!typeEquality.isEqual()) {
-            return false;
+    private RecordFieldEqualityResult isRecordFieldEquals(Node prevRecordField, Node nextRecordField) throws Exception {
+        TypeEqualityResult typeEquality =
+                isTypeEquals(getRecordFieldType(prevRecordField), getRecordFieldType(nextRecordField));
+        return new RecordFieldEqualityResult(typeEquality, getRecordFieldName(prevRecordField),
+                getRecordFieldName(nextRecordField), getRecordFieldDefaultValue(prevRecordField),
+                getRecordFieldDefaultValue(nextRecordField));
+    }
+
+    private String getRecordFieldDefaultValue(Node field) {
+        if (field instanceof RecordFieldWithDefaultValueNode) {
+            RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
+            return recordFieldWithDefaultValue.expression().toString();
         }
-        if (!prevRecordField.fieldName().text().equals(nextRecordField.fieldName().text())) {
-            return false;
+        return null;
+    }
+
+    private String getRecordFieldName(Node field) {
+        if (field instanceof RecordFieldNode) {
+            RecordFieldNode recordField = (RecordFieldNode) field;
+            return recordField.fieldName().text();
+        } else if (field instanceof RecordFieldWithDefaultValueNode) {
+            RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
+            return recordFieldWithDefaultValue.fieldName().text();
         }
-        return true;
+        return null;
+    }
+
+    private Node getRecordFieldType(Node field) {
+        if (field instanceof RecordFieldNode) {
+            RecordFieldNode recordField = (RecordFieldNode) field;
+            return recordField.typeName();
+        } else if (field instanceof RecordFieldWithDefaultValueNode) {
+            RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
+            return recordFieldWithDefaultValue.typeName();
+        }
+        return null;
     }
 
     private NodeList<Node> getServiceObjectNewMembers(ObjectTypeDescriptorNode prevServiceObject,
@@ -707,6 +809,8 @@ public class ServiceCombiner {
                         break;
                     } else if (funcDefEquals.isMatch()) {
                         foundMatch = true;
+                        FunctionSignatureEqualityResult functionSignatureEquality =
+                                funcDefEquals.getFunctionSignatureEqualityResult();
                         if (!funcDefEquals.getFunctionSignatureEqualityResult().getReturnTypeEqualityResult()
                                 .isEqual()) {
                             breakingChangeWarnings.add(
@@ -746,6 +850,16 @@ public class ServiceCombiner {
                                                 parameterEquals.getPrevParameterName(),
                                                 parameterEquals.getTypeEquality().getPrevType(),
                                                 parameterEquals.getTypeEquality().getNextType()));
+                            }
+                        }
+                        if (!functionSignatureEquality.getDefaultValueRemovedParameters().isEmpty()) {
+                            for (ParameterEqualityResult defaultValueRemovedParameterEquality :
+                                    functionSignatureEquality.getDefaultValueRemovedParameters()) {
+                                breakingChangeWarnings.add(String.format(
+                                        WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_CLASS_FUNC,
+                                        prevClassDef.className().text(), funcDefEquals.getPrevFunctionName(),
+                                        defaultValueRemovedParameterEquality.getPrevParameterName(),
+                                        defaultValueRemovedParameterEquality.getPrevParameterDefaultValue()));
                             }
                         }
                         FunctionDefinitionNode modifiedNextFuncDef = nextClassFuncDef.modify(nextClassFuncDef.kind(),
@@ -879,8 +993,12 @@ public class ServiceCombiner {
                 } else {
                     if (parameterEquals.isMatch()) {
                         foundMatch = true;
+                        nextParameterAvailable.put(nextParameter, true);
                         if (!parameterEquals.getTypeEquality().isEqual()) {
                             equalityResult.addToTypeChangedParameters(parameterEquals);
+                        }
+                        if (parameterEquals.isDefaultValueRemoved()) {
+                            equalityResult.addToDefaultValueRemovedParameters(parameterEquals);
                         }
                     }
                 }
@@ -918,6 +1036,23 @@ public class ServiceCombiner {
         }
         return null;
     }
+
+    private String getParameterDefaultValue(ParameterNode parameter) {
+        if (parameter instanceof DefaultableParameterNode) {
+            DefaultableParameterNode defaultableParameter = (DefaultableParameterNode) parameter;
+            Node defaultExpression = defaultableParameter.expression();
+            return defaultExpression.toString();
+        }
+        return null;
+    }
+
+//    private String getParameterDefaultValue(ParameterNode parameter) {
+//        if (parameter instanceof DefaultableParameterNode) {
+//            DefaultableParameterNode defaultableParameter = (DefaultableParameterNode) parameter;
+//            return defaultableParameter.expression().;
+//        }
+//        return null;
+//    }
 
     private TypeEqualityResult isTypeEquals(Node prevType, Node nextType) throws Exception {
         TypeEqualityResult equalityResult = new TypeEqualityResult();
@@ -1019,26 +1154,46 @@ public class ServiceCombiner {
 
     private ParameterEqualityResult isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter)
             throws Exception {
-        ParameterEqualityResult parameterEquality = new ParameterEqualityResult();
+        ParameterEqualityResult parameterEquality = new ParameterEqualityResult(prevParameter, nextParameter);
         parameterEquality.setPrevParameterName(getParameterName(prevParameter));
         parameterEquality.setNextParameterName(getParameterName(nextParameter));
-        if (prevParameter instanceof RequiredParameterNode && nextParameter instanceof RequiredParameterNode) {
-            RequiredParameterNode prevRequiredParam = (RequiredParameterNode) prevParameter;
-            RequiredParameterNode nextRequiredParam = (RequiredParameterNode) nextParameter;
-
-            TypeEqualityResult typeEquality = isTypeEquals(prevRequiredParam.typeName(), nextRequiredParam.typeName());
-            parameterEquality.setTypeEquality(typeEquality);
-            return parameterEquality;
-        } else if (prevParameter instanceof DefaultableParameterNode &&
-                nextParameter instanceof DefaultableParameterNode) {
-            DefaultableParameterNode prevDefaultableParam = (DefaultableParameterNode) prevParameter;
-            DefaultableParameterNode nextDefaultableParam = (DefaultableParameterNode) nextParameter;
-            TypeEqualityResult typeEquality =
-                    isTypeEquals(prevDefaultableParam.typeName(), nextDefaultableParam.typeName());
-            parameterEquality.setTypeEquality(typeEquality);
-            return parameterEquality;
-        }
+        parameterEquality.setPrevParameterDefaultValue(getParameterDefaultValue(prevParameter));
+        parameterEquality.setNextParameterDefaultValue(getParameterDefaultValue(nextParameter));
+        TypeEqualityResult typeEquals = isTypeEquals(getParameterType(prevParameter), getParameterType(nextParameter));
+        parameterEquality.setTypeEquality(typeEquals);
+//        if (prevParameter instanceof RequiredParameterNode && nextParameter instanceof RequiredParameterNode) {
+//            RequiredParameterNode prevRequiredParam = (RequiredParameterNode) prevParameter;
+//            RequiredParameterNode nextRequiredParam = (RequiredParameterNode) nextParameter;
+//
+//            TypeEqualityResult typeEquality =
+//              isTypeEquals(prevRequiredParam.typeName(), nextRequiredParam.typeName());
+//            parameterEquality.setTypeEquality(typeEquality);
+//            return parameterEquality;
+//        } else if (prevParameter instanceof DefaultableParameterNode &&
+//                nextParameter instanceof DefaultableParameterNode) {
+//            DefaultableParameterNode prevDefaultableParam = (DefaultableParameterNode) prevParameter;
+//            DefaultableParameterNode nextDefaultableParam = (DefaultableParameterNode) nextParameter;
+//
+//            TypeEqualityResult typeEquality =
+//                    isTypeEquals(prevDefaultableParam.typeName(), nextDefaultableParam.typeName());
+//            parameterEquality.setTypeEquality(typeEquality);
+//            return parameterEquality;
+//        } else {
+//            parameterEquality.setTypeEquality(new TypeEqualityResult());
+//        }
         return parameterEquality;
+    }
+
+    private Node getParameterType(ParameterNode parameter) throws Exception {
+        if (parameter instanceof RequiredParameterNode) {
+            RequiredParameterNode requiredParameter = (RequiredParameterNode) parameter;
+            return requiredParameter.typeName();
+        } else if (parameter instanceof DefaultableParameterNode) {
+            DefaultableParameterNode defaultableParameter = (DefaultableParameterNode) parameter;
+            return defaultableParameter.typeName();
+        } else {
+            throw new Exception("No valid parameter type: " + parameter.getClass().toString());
+        }
     }
 
     public TypeDefinitionRegistry getChangesOfDocuments(Document prevDocument, Document nextDocument) {
