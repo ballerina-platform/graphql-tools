@@ -88,6 +88,8 @@ public class ServiceCombiner {
             "This can break existing clients.";
     private static final String WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD = "warning: In '%s' record type" +
             " '%s' field assigned '%s' default value has removed. This can break existing clients.";
+    private static final String WARNING_MESSAGE_RECORD_FIELD_TYPE_CHANGED = "warning: In '%s' record type '%s' " +
+            "field type has changed from '%s' to '%s'. This can break existing clients.";
     private static final String WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE_CLASS = "warning: In '%s' class '%s' " +
             "function definition '%s' parameter removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT = "warning: In '%s' service " +
@@ -421,6 +423,18 @@ public class ServiceCombiner {
                     breakingChangeWarnings.add(String.format(WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD,
                             prevTypeDef.typeName().text(), recordFieldEquality.getPrevRecordFieldName(),
                             recordFieldEquality.getPrevRecordFieldDefaultValue()));
+                }
+
+                for (RecordFieldEqualityResult recordFieldEquality : equalityResult.getTypeChangedRecordFields()) {
+                    breakingChangeWarnings.add(
+                            String.format(
+                                    WARNING_MESSAGE_RECORD_FIELD_TYPE_CHANGED,
+                                    prevTypeDef.typeName().text(),
+                                    recordFieldEquality.getPrevRecordFieldName(),
+                                    recordFieldEquality.getTypeEquality().getPrevType(),
+                                    recordFieldEquality.getTypeEquality().getNextType()
+                            )
+                    );
                 }
             }
             inputObjectTypesModuleMembers.add(nextTypeDef);
