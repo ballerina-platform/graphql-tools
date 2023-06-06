@@ -99,6 +99,8 @@ public class ServiceCombiner {
             "clients.";
     private static final String WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION = "warning: In '%s' service " +
             "object '%s' method declaration has removed. This can break existing clients.";
+    private static final String WARNING_MESSAGE_REMOVE_INTERFACE_SERVICE_OBJECT_METHOD_DECLARATION = "warning: In " +
+            "'%s' interface service object '%s' method declaration has removed. This can break existing clients.";
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
     private Map<Node, Node> targetAndReplacement;
@@ -387,7 +389,15 @@ public class ServiceCombiner {
             ServiceObjectEqualityResult serviceObjectEquals =
                     isServiceObjectEquals(prevServiceObject, nextServiceObject);
             if (!serviceObjectEquals.isEqual()) {
-
+                for (String removedMethod : serviceObjectEquals.getRemovedMethodDeclarations()) {
+                    breakingChangeWarnings.add(
+                            String.format(
+                                    WARNING_MESSAGE_REMOVE_INTERFACE_SERVICE_OBJECT_METHOD_DECLARATION,
+                                    prevTypeDef.typeName().text(),
+                                    removedMethod
+                            )
+                    );
+                }
             }
             interfaceTypesModuleMembers.add(nextTypeDef);
             return true;
