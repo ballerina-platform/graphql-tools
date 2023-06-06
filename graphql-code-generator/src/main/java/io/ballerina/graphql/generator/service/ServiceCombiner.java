@@ -60,10 +60,12 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode
 public class ServiceCombiner {
     private static final String REMOVE_INPUT_TYPE_FIELD_MESSAGE =
             "warning: In '%s' input type '%s' field has removed. This can brake clients";
+    private static final String WARNING_MESSAGE_REMOVE_UNION_MEMBER = "warning: In '%s' union type '%s' member has " +
+            "removed. This can break existing clients.";
     private static final String ADD_VIOLATED_INPUT_TYPE_FIELD_MESSAGE = "warning: In '%s' input type '%s' field is " +
             "introduced without a default value. This can brake available clients";
     private static final String REMOVE_ENUM_MEMBER_MESSAGE =
-            "warning: In '%s' enum '%s' member has removed. This can " + "break existing clients.";
+            "warning: In '%s' enum '%s' member has removed. This can break existing clients.";
     private static final String REMOVE_SERVICE_CLASS_FUNC_DEF_MESSAGE =
             "warning: In '%s' service class '%s' function " +
                     "definition has removed. This can break available clients";
@@ -301,7 +303,7 @@ public class ServiceCombiner {
                         if (!updatedMethodDeclaration.getFunctionSignatureEqualityResult().isEqual()) {
                             for (String removedParameterName :
                                     updatedMethodDeclaration.getFunctionSignatureEqualityResult()
-                                    .getRemovedParameters()) {
+                                            .getRemovedParameters()) {
                                 breakingChangeWarnings.add(
                                         String.format(WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
                                                 prevTypeDef.typeName().text(),
@@ -312,7 +314,7 @@ public class ServiceCombiner {
                                 .isEmpty()) {
                             for (ParameterEqualityResult parameterEquality :
                                     updatedMethodDeclaration.getFunctionSignatureEqualityResult()
-                                    .getTypeChangedParameters()) {
+                                            .getTypeChangedParameters()) {
                                 breakingChangeWarnings.add(
                                         String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT,
                                                 prevTypeDef.typeName().text(),
@@ -417,8 +419,14 @@ public class ServiceCombiner {
                 nextTypeDef.typeDescriptor() instanceof UnionTypeDescriptorNode) {
             UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) prevTypeDef.typeDescriptor();
             UnionTypeDescriptorNode nextUnionType = (UnionTypeDescriptorNode) nextTypeDef.typeDescriptor();
-            if (isUnionTypeEquals(prevUnionType, nextUnionType)) {
-
+            UnionTypeEqualityResult unionTypeEqualityResult = isUnionTypeEquals(prevUnionType, nextUnionType);
+            if (!unionTypeEqualityResult.isEqual()) {
+                for (String removedUnionMemberName : unionTypeEqualityResult.getRemovals()) {
+                    breakingChangeWarnings.add(
+                            String.format(WARNING_MESSAGE_REMOVE_UNION_MEMBER, prevTypeDef.typeName().text(),
+                                    removedUnionMemberName)
+                    );
+                }
             }
             unionTypesModuleMembers.add(nextTypeDef);
             return true;
@@ -426,29 +434,70 @@ public class ServiceCombiner {
         return true;
     }
 
-    private boolean isUnionTypeEquals(UnionTypeDescriptorNode prevUnionType, UnionTypeDescriptorNode nextUnionType)
+    private UnionTypeEqualityResult isUnionTypeEquals(UnionTypeDescriptorNode prevUnionType,
+                                                      UnionTypeDescriptorNode nextUnionType)
             throws Exception {
-        TypeEqualityResult leftTypeEquality = isTypeEquals(prevUnionType.leftTypeDesc(), nextUnionType.leftTypeDesc());
-        if (prevUnionType.leftTypeDesc() instanceof UnionTypeDescriptorNode &&
-                nextUnionType.leftTypeDesc() instanceof UnionTypeDescriptorNode) {
-            UnionTypeDescriptorNode prevUnionLeftType = (UnionTypeDescriptorNode) prevUnionType.leftTypeDesc();
-            UnionTypeDescriptorNode nextUnionLeftType = (UnionTypeDescriptorNode) nextUnionType.leftTypeDesc();
-            if (!isUnionTypeEquals(prevUnionLeftType, nextUnionLeftType)) {
-                targetAndReplacement.put(prevUnionType, nextUnionType);
-                return true;
+        UnionTypeEqualityResult unionTypeEqualityResult = new UnionTypeEqualityResult();
+        List<String> prevUnionTypeMembers = new ArrayList<>();
+        List<String> nextUnionTypeMembers = new ArrayList<>();
+        populateUnionMemberNames(prevUnionType, prevUnionTypeMembers);
+        populateUnionMemberNames(nextUnionType, nextUnionTypeMembers);
+        HashMap<String, Boolean> nextUnionMemberAvailable = new HashMap<>();
+        for (String nextUnionTypeMember : nextUnionTypeMembers) {
+            nextUnionMemberAvailable.put(nextUnionTypeMember, false);
+        }
+        for (String prevUnionTypeMember : prevUnionTypeMembers) {
+            boolean foundMatch = false;
+            for (String nextUnionTypeMember : nextUnionTypeMembers) {
+                if (prevUnionTypeMember.equals(nextUnionTypeMember)) {
+                    foundMatch = true;
+                    nextUnionMemberAvailable.put(nextUnionTypeMember, true);
+                    break;
+                }
             }
-        } else if (!leftTypeEquality.isEqual()) {
-            return false;
+            if (!foundMatch) {
+                unionTypeEqualityResult.addToRemovals(prevUnionTypeMember);
+            }
         }
-        if (!prevUnionType.pipeToken().text().equals(nextUnionType.pipeToken().text())) {
-            return false;
+        for (Map.Entry<String, Boolean> availableEntry : nextUnionMemberAvailable.entrySet()) {
+            Boolean available = availableEntry.getValue();
+            if (!available) {
+                String notAvailableNextUnionMember = availableEntry.getKey();
+                unionTypeEqualityResult.addToAdditions(notAvailableNextUnionMember);
+            }
         }
-        TypeEqualityResult rightTypeEquality =
-                isTypeEquals(prevUnionType.rightTypeDesc(), nextUnionType.rightTypeDesc());
-        if (!rightTypeEquality.isEqual()) {
-            return false;
+//        if (prevUnionType.leftTypeDesc() instanceof UnionTypeDescriptorNode &&
+//                nextUnionType.leftTypeDesc() instanceof UnionTypeDescriptorNode) {
+//            UnionTypeDescriptorNode prevUnionLeftType = (UnionTypeDescriptorNode) prevUnionType.leftTypeDesc();
+//            UnionTypeDescriptorNode nextUnionLeftType = (UnionTypeDescriptorNode) nextUnionType.leftTypeDesc();
+//            if (!isUnionTypeEquals(prevUnionLeftType, nextUnionLeftType)) {
+//                targetAndReplacement.put(prevUnionType, nextUnionType);
+//                return true;
+//            }
+//        }
+////        else if (!leftTypeEquality.isEqual()) {
+////            return false;
+////        }
+//        if (!prevUnionType.pipeToken().text().equals(nextUnionType.pipeToken().text())) {
+//            return false;
+//        }
+//        TypeEqualityResult rightTypeEquality =
+//                isTypeEquals(prevUnionType.rightTypeDesc(), nextUnionType.rightTypeDesc());
+//        if (!rightTypeEquality.isEqual()) {
+//            return false;
+//        }
+        return unionTypeEqualityResult;
+    }
+
+    private void populateUnionMemberNames(UnionTypeDescriptorNode unionType, List<String> unionTypeMembers)
+            throws Exception {
+        unionTypeMembers.add(getTypeName(unionType.rightTypeDesc()));
+        if (unionType.leftTypeDesc() instanceof UnionTypeDescriptorNode) {
+            UnionTypeDescriptorNode leftUnionType = (UnionTypeDescriptorNode) unionType.leftTypeDesc();
+            populateUnionMemberNames(leftUnionType, unionTypeMembers);
+        } else {
+            unionTypeMembers.add(getTypeName(unionType.leftTypeDesc()));
         }
-        return true;
     }
 
     private RecordTypeEqualityResult isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
@@ -843,7 +892,7 @@ public class ServiceCombiner {
                         if (!funcDefEquals.getFunctionSignatureEqualityResult().getTypeChangedParameters().isEmpty()) {
                             for (ParameterEqualityResult parameterEquals :
                                     funcDefEquals.getFunctionSignatureEqualityResult()
-                                    .getTypeChangedParameters()) {
+                                            .getTypeChangedParameters()) {
                                 breakingChangeWarnings.add(
                                         String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_CLASS,
                                                 prevClassDef.className().text(), funcDefEquals.getPrevFunctionName(),
