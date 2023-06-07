@@ -12,6 +12,7 @@ public class ServiceObjectEqualityResult {
     private List<String> addedMethodDeclarations;
     private List<String> addedTypeReferences;
     private List<MethodDeclarationEqualityResult> updatedMethodDeclarations;
+    private List<MethodDeclarationEqualityResult> qualifierListChangedMethodDeclarations;
 
     public ServiceObjectEqualityResult() {
         removedTypeReferences = new ArrayList<>();
@@ -37,6 +38,10 @@ public class ServiceObjectEqualityResult {
 
     public void addToAddedMethodDeclarations(String methodDeclarationName) {
         addedMethodDeclarations.add(methodDeclarationName);
+    }
+
+    public void addToQualifierListChangedMethodDeclarations(MethodDeclarationEqualityResult methodDeclarationEquality) {
+        qualifierListChangedMethodDeclarations.add(methodDeclarationEquality);
     }
 
     public List<String> getRemovedMethodDeclarations() {

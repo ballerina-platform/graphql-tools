@@ -86,6 +86,12 @@ public class ServiceCombiner {
     private static final String WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_CLASS_FUNC = "warning: " +
             "In '%s' service class '%s' function '%s' parameter assigned '%s' default value has removed. " +
             "This can break existing clients.";
+    private static final String WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_CLASS = "warning: In '%s' service " +
+            "class '%s' function qualifier list changed from '%s' to '%s'. This can break existing clients.";
+    private static final String WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_OBJECT = "warning: In '%s' service " +
+            "object '%s' function qualifier list changed from '%s' to '%s'. This can break existing clients.";
+    private static final String WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_INTERFACE = "warning: In '%s' " +
+            "interface '%s' function qualifier list changed from '%s' to '%s'. This can break existing clients.";
     private static final String WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD = "warning: In '%s' record type" +
             " '%s' field assigned '%s' default value has removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_RECORD_FIELD_TYPE_CHANGED = "warning: In '%s' record type '%s' " +
@@ -328,6 +334,17 @@ public class ServiceCombiner {
                                                 parameterEquality.getTypeEquality().getNextType()));
                             }
                         }
+                        if (!updatedMethodDeclaration.isQualifierSimilar()) {
+                            breakingChangeWarnings.add(
+                                    String.format(
+                                            WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_OBJECT,
+                                            prevTypeDef.typeName().text(),
+                                            updatedMethodDeclaration.getPrevFunctionName(),
+                                            updatedMethodDeclaration.getPrevMainQualifier(),
+                                            updatedMethodDeclaration.getNextMainQualifier()
+                                    )
+                            );
+                        }
                         if (!updatedMethodDeclaration.getFunctionSignatureEqualityResult().getReturnTypeEqualityResult()
                                 .isEqual()) {
                             breakingChangeWarnings.add(String.format(
@@ -391,6 +408,20 @@ public class ServiceCombiner {
             ServiceObjectEqualityResult serviceObjectEquals =
                     isServiceObjectEquals(prevServiceObject, nextServiceObject);
             if (!serviceObjectEquals.isEqual()) {
+                for (MethodDeclarationEqualityResult updatedMethodDeclaration :
+                        serviceObjectEquals.getUpdatedMethodDeclarations()) {
+                    if (!updatedMethodDeclaration.isQualifierSimilar()) {
+                        breakingChangeWarnings.add(
+                                String.format(
+                                        WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_INTERFACE,
+                                        prevTypeDef.typeName().text(),
+                                        updatedMethodDeclaration.getPrevFunctionName(),
+                                        updatedMethodDeclaration.getPrevMainQualifier(),
+                                        updatedMethodDeclaration.getNextMainQualifier()
+                                )
+                        );
+                    }
+                }
                 for (String removedMethod : serviceObjectEquals.getRemovedMethodDeclarations()) {
                     breakingChangeWarnings.add(
                             String.format(
@@ -734,6 +765,7 @@ public class ServiceCombiner {
                             isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
                     if (typeEquality.isEqual()) {
                         foundMatch = true;
+                        break;
                     }
                 } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
@@ -742,6 +774,9 @@ public class ServiceCombiner {
                             isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration);
                     if (methodDeclarationEquals.isEqual()) {
                         foundMatch = true;
+                        break;
+                    } else if (methodDeclarationEquals.isMatch()) {
+
                     }
                 }
             }
@@ -800,12 +835,8 @@ public class ServiceCombiner {
         MethodDeclarationEqualityResult methodDeclarationEquality = new MethodDeclarationEqualityResult();
         methodDeclarationEquality.setPrevFunctionName(getMethodDeclarationName(prevMethodDeclaration));
         methodDeclarationEquality.setNextFunctionName(getMethodDeclarationName(nextMethodDeclaration));
-        if (isQualifierListEquals(prevMethodDeclaration.qualifierList(), nextMethodDeclaration.qualifierList())) {
-            methodDeclarationEquality.setQualifierListEqual(true);
-        }
-        if (prevMethodDeclaration.methodName().text().equals(nextMethodDeclaration.methodName().text())) {
-            methodDeclarationEquality.setFunctionNameEqual(true);
-        }
+        methodDeclarationEquality.setPrevQualifiers(prevMethodDeclaration.qualifierList());
+        methodDeclarationEquality.setNextQualifiers(nextMethodDeclaration.qualifierList());
         if (isRelativeResourcePathEquals(prevMethodDeclaration.relativeResourcePath(),
                 nextMethodDeclaration.relativeResourcePath())) {
             methodDeclarationEquality.setRelativeResourcePathsEqual(true);
@@ -935,6 +966,17 @@ public class ServiceCombiner {
                                         defaultValueRemovedParameterEquality.getPrevParameterDefaultValue()));
                             }
                         }
+                        if (!funcDefEquals.isQualifierSimilar()) {
+                            breakingChangeWarnings.add(
+                                    String.format(
+                                            WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_CLASS,
+                                            prevClassDef.className().text(),
+                                            funcDefEquals.getPrevFunctionName(),
+                                            funcDefEquals.getPrevMainQualifier(),
+                                            funcDefEquals.getNextMainQualifier()
+                                    )
+                            );
+                        }
                         FunctionDefinitionNode modifiedNextFuncDef = nextClassFuncDef.modify(nextClassFuncDef.kind(),
                                 nextClassFuncDef.metadata().orElse(null), nextClassFuncDef.qualifierList(),
                                 nextClassFuncDef.functionKeyword(), nextClassFuncDef.functionName(),
@@ -1001,7 +1043,7 @@ public class ServiceCombiner {
                 return functionNameToken.text();
             }
         } else if (firstQualifier.equals(Constants.REMOTE)) {
-
+            return functionDefinition.functionName().text();
         }
         return null;
     }
@@ -1011,9 +1053,8 @@ public class ServiceCombiner {
         FunctionDefinitionEqualityResult functionDefinitionEquality = new FunctionDefinitionEqualityResult();
         functionDefinitionEquality.setPrevFunctionName(getFunctionName(prevClassFuncDef));
         functionDefinitionEquality.setNextFunctionName(getFunctionName(nextClassFuncDef));
-
-        functionDefinitionEquality.setQualifierListEqual(
-                isQualifierListEquals(prevClassFuncDef.qualifierList(), nextClassFuncDef.qualifierList()));
+        functionDefinitionEquality.setPrevQualifiers(prevClassFuncDef.qualifierList());
+        functionDefinitionEquality.setNextQualifiers(nextClassFuncDef.qualifierList());
 //        if (!isQualifierListEquals(prevClassFuncDef.qualifierList(), nextClassFuncDef.qualifierList())) {
 //            functionDefinitionEquality.setEqual(false);
 //            functionDefinitionEquality.setQualifierListEqual(false);

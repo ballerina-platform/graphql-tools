@@ -1,5 +1,11 @@
 package io.ballerina.graphql.generator.service;
 
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.Token;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Utility class to store result of comparing two function definitions.
  */
@@ -7,26 +13,18 @@ public class FunctionDefinitionEqualityResult {
     private FunctionSignatureEqualityResult functionSignatureEqualityResult;
     private String prevFunctionName;
     private String nextFunctionName;
-    private boolean isEqual;
-    private boolean isQualifierListEqual;
+    private NodeList<Token> prevQualifiers;
+    private NodeList<Token>  nextQualifiers;
     private boolean isFunctionNameEqual;
     private boolean isRelativeResourcePathsEqual;
 
-    public FunctionDefinitionEqualityResult() {
-        isEqual = false;
-    }
-
     public boolean isEqual() {
-        return isQualifierListEqual && isFunctionNameEqual && isRelativeResourcePathsEqual &&
-                functionSignatureEqualityResult.isEqual();
-    }
-
-    public void setEqual(boolean equal) {
-        isEqual = equal;
+        return isQualifierSimilar() && isFunctionNameEqual && isRelativeResourcePathsEqual &&
+                functionSignatureEqualityResult.isEqual() && isMatch();
     }
 
     public boolean isMatch() {
-        return prevFunctionName.equals(nextFunctionName) && isRelativeResourcePathsEqual;
+        return prevFunctionName.equals(nextFunctionName);
     }
 
     public FunctionSignatureEqualityResult getFunctionSignatureEqualityResult() {
@@ -54,10 +52,6 @@ public class FunctionDefinitionEqualityResult {
         this.nextFunctionName = nextFunctionName;
     }
 
-    public void setQualifierListEqual(boolean qualifierListEqual) {
-        isQualifierListEqual = qualifierListEqual;
-    }
-
     public void setFunctionNameEqual(boolean functionNameEqual) {
         isFunctionNameEqual = functionNameEqual;
     }
@@ -66,5 +60,55 @@ public class FunctionDefinitionEqualityResult {
         isRelativeResourcePathsEqual = relativeResourcePathsEqual;
     }
 
+    public void setPrevQualifiers(NodeList<Token>  prevQualifiers) {
+        this.prevQualifiers = prevQualifiers;
+    }
+
+    public void setNextQualifiers(NodeList<Token>  nextQualifiers) {
+        this.nextQualifiers = nextQualifiers;
+    }
+
+    private List<String> getPrevQualifiers() {
+        List<String> results = new ArrayList<>();
+        for (Token qualifierToken : prevQualifiers) {
+            results.add(qualifierToken.text());
+        }
+        return results;
+    }
+
+    private List<String> getNextQualifiers() {
+        List<String> results = new ArrayList<>();
+        for (Token qualifierToken : nextQualifiers) {
+            results.add(qualifierToken.text());
+        }
+        return results;
+    }
+
+    public String getPrevMainQualifier() {
+        if (getPrevQualifiers().contains(Constants.RESOURCE)) {
+            return Constants.RESOURCE;
+        } else if (getPrevQualifiers().contains(Constants.REMOTE)) {
+            return Constants.REMOTE;
+        }
+        return null;
+    }
+
+    public String getNextMainQualifier() {
+        if (getNextQualifiers().contains(Constants.RESOURCE)) {
+            return Constants.RESOURCE;
+        } else if (getNextQualifiers().contains(Constants.REMOTE)) {
+            return Constants.REMOTE;
+        }
+        return null;
+    }
+
+    public boolean isQualifierSimilar() {
+        if (getPrevQualifiers().contains(Constants.RESOURCE) && getNextQualifiers().contains(Constants.RESOURCE)) {
+            return true;
+        } else if (getPrevQualifiers().contains(Constants.REMOTE) && getNextQualifiers().contains(Constants.REMOTE)) {
+            return true;
+        }
+        return false;
+    }
 
 }
