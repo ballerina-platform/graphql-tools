@@ -1,0 +1,26 @@
+type Query {
+    author: Author!
+    authorNames: String!
+}
+
+type Subscription {
+    book(id: Int!): Book!
+    bookTitles: String!
+}
+
+interface Info {
+    names: String!
+    bookNames: String!
+}
+
+type Author implements Info {
+    id: Int!
+    names: String!
+    bookNames: String!
+}
+
+type Book {
+    id: Int!
+    titles: String!
+    price: Float!
+}
