@@ -2,6 +2,7 @@ package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,8 @@ public class MethodDeclarationEqualityResult {
     private String nextFunctionName;
     private NodeList<Token> prevQualifiers;
     private NodeList<Token> nextQualifiers;
+    private String prevMethodType;
+    private String nextMethodType;
     private boolean isRelativeResourcePathsEqual;
 
     public MethodDeclarationEqualityResult() {
@@ -94,6 +97,44 @@ public class MethodDeclarationEqualityResult {
             return Constants.REMOTE;
         }
         return null;
+    }
+
+    public String getPrevMethodType() {
+        return prevMethodType;
+    }
+
+    public void setPrevMethodType(String methodType) {
+        if (methodType.equals(CodeGeneratorConstants.GET)) {
+            this.prevMethodType = methodType;
+        } else if (methodType.equals(CodeGeneratorConstants.SUBSCRIBE)) {
+            this.prevMethodType = methodType;
+        } else {
+            this.prevMethodType = null;
+        }
+    }
+
+    public String getNextMethodType() {
+        return nextMethodType;
+    }
+
+    public void setNextMethodType(String methodType) {
+        if (methodType.equals(CodeGeneratorConstants.GET)) {
+            this.nextMethodType = methodType;
+        } else if (methodType.equals(CodeGeneratorConstants.SUBSCRIBE)) {
+            this.nextMethodType = methodType;
+        } else {
+            this.nextMethodType = null;
+        }
+    }
+
+    public boolean isGetAndSubscribeInterchanged() {
+        if (prevMethodType != null && nextMethodType != null) {
+            return (prevMethodType.equals(CodeGeneratorConstants.GET) &&
+                    nextMethodType.equals(CodeGeneratorConstants.SUBSCRIBE)) ||
+                    (prevMethodType.equals(CodeGeneratorConstants.SUBSCRIBE) &&
+                            nextMethodType.equals(CodeGeneratorConstants.GET));
+        }
+        return false;
     }
 
     public boolean isQualifierSimilar() {
