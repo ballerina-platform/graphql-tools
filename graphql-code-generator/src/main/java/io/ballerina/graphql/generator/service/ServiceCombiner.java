@@ -4,6 +4,7 @@ import graphql.language.Definition;
 import graphql.language.Document;
 import graphql.language.SDLDefinition;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.TypeDefinitionRegistry;
@@ -115,6 +116,7 @@ public class ServiceCombiner {
             "'%s' interface service object '%s' method declaration has removed. This can break existing clients.";
     private final ModulePartNode nextContentNode;
     private ModulePartNode prevContentNode;
+    private GraphQLSchema nextGraphqlSchema;
     private Map<Node, Node> targetAndReplacement;
     private List<ModuleMemberDeclarationNode> moduleMembers;
     private List<ModuleMemberDeclarationNode> inputObjectTypesModuleMembers;
@@ -124,9 +126,11 @@ public class ServiceCombiner {
     private List<ModuleMemberDeclarationNode> objectTypesModuleMembers;
     private List<String> breakingChangeWarnings;
 
-    public ServiceCombiner(ModulePartNode prevContentNode, ModulePartNode nextContentNode) {
+    public ServiceCombiner(ModulePartNode prevContentNode, ModulePartNode nextContentNode,
+                           GraphQLSchema nextGraphqlSchema) {
         this.prevContentNode = prevContentNode;
         this.nextContentNode = nextContentNode;
+        this.nextGraphqlSchema = nextGraphqlSchema;
         this.targetAndReplacement = new HashMap<>();
 
         moduleMembers = new ArrayList<>();
@@ -163,6 +167,10 @@ public class ServiceCombiner {
         if (prevObject.getName().equals(newObject.getName())) {
             return;
         }
+    }
+
+    public GraphQLSchema getNextGraphqlSchema() {
+        return nextGraphqlSchema;
     }
 
     public SyntaxTree mergeRootNodes() throws Exception {
@@ -317,7 +325,7 @@ public class ServiceCombiner {
                         if (!updatedMethodDeclaration.getFunctionSignatureEqualityResult().isEqual()) {
                             for (String removedParameterName :
                                     updatedMethodDeclaration.getFunctionSignatureEqualityResult()
-                                    .getRemovedParameters()) {
+                                            .getRemovedParameters()) {
                                 breakingChangeWarnings.add(
                                         String.format(WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
                                                 prevTypeDef.typeName().text(),
@@ -328,7 +336,7 @@ public class ServiceCombiner {
                                 .isEmpty()) {
                             for (ParameterEqualityResult parameterEquality :
                                     updatedMethodDeclaration.getFunctionSignatureEqualityResult()
-                                    .getTypeChangedParameters()) {
+                                            .getTypeChangedParameters()) {
                                 breakingChangeWarnings.add(
                                         String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT,
                                                 prevTypeDef.typeName().text(),
@@ -468,9 +476,11 @@ public class ServiceCombiner {
                                     addedViolatedField));
                 }
                 for (RecordFieldEqualityResult recordFieldEquality : equalityResult.getDefaultValueRemovedFields()) {
-                    breakingChangeWarnings.add(String.format(WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD,
-                            prevTypeDef.typeName().text(), recordFieldEquality.getPrevRecordFieldName(),
-                            recordFieldEquality.getPrevRecordFieldDefaultValue()));
+                    if (nextGraphqlSchema.getType(prevTypeDef.typeName().text()) instanceof GraphQLInputObjectType) {
+                        breakingChangeWarnings.add(String.format(WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD,
+                                prevTypeDef.typeName().text(), recordFieldEquality.getPrevRecordFieldName(),
+                                recordFieldEquality.getPrevRecordFieldDefaultValue()));
+                    }
                 }
 
                 for (RecordFieldEqualityResult recordFieldEquality : equalityResult.getTypeChangedRecordFields()) {
