@@ -593,7 +593,7 @@ public class ServiceCombiner {
 //        }
         HashMap<Node, Boolean> nextRecordTypeFieldsAvailable = new HashMap<>();
         for (Node nextField : nextRecordType.fields()) {
-            nextRecordTypeFieldsAvailable.put(nextField, true);
+            nextRecordTypeFieldsAvailable.put(nextField, false);
         }
         for (Node prevField : prevRecordType.fields()) {
             boolean foundPrevMatch = false;
@@ -601,9 +601,11 @@ public class ServiceCombiner {
                 RecordFieldEqualityResult recordFieldEqualityResult = isRecordFieldEquals(prevField, nextField);
                 if (recordFieldEqualityResult.isEqual()) {
                     foundPrevMatch = true;
+                    nextRecordTypeFieldsAvailable.put(nextField, true);
                     break;
                 } else if (recordFieldEqualityResult.isMatch()) {
                     foundPrevMatch = true;
+                    nextRecordTypeFieldsAvailable.put(nextField, true);
                     if (!recordFieldEqualityResult.getTypeEquality().isEqual()) {
                         recordTypeEquality.addToTypeChangedRecordFields(recordFieldEqualityResult);
                     }
