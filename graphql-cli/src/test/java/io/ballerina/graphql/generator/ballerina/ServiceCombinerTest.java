@@ -26,16 +26,17 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  * Test the successful combination of available service file and generated service file from schema
  */
 public class ServiceCombinerTest extends GraphqlTest {
-    @Test(description = "Test combining updated schema with object type")
-    public void testCombiningUpdatedSchemaWithObjectType() throws Exception {
-        String updatedBalFileName = "typesWithSingleObjectDefault";
-        String newSchemaFileName = "SchemaWithSingleObjectApi";
+    @Test(description = "Test combining updated schema with added new object type")
+    public void testCombiningUpdatedSchemaWithAddedNewObjectType() throws Exception {
+        String newSchemaFileName = "SchemaWithAddedNewObjectTypeApi";
+        String beforeBalFileName = "typesBeforeAddingNewObjectTypeDefault";
+        String expectedBalFileName = "typesWithAddedNewObjectTypeDefault";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", updatedBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "addType", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "addType", updatedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
