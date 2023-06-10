@@ -398,16 +398,17 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(expectedServiceTypesContent, result);
     }
 
-    @Test(description = "Test combining updated schema with new object fields")
-    public void testCombiningUpdatedSchemaWithNewObjectFields() throws Exception {
-        String balFileName = "typesWithSingleObjectDefault";
-        String newSchemaFileName = "SchemaWithSingleObjectApi";
+    @Test(description = "Test combining updated schema with added new object type fields")
+    public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFields() throws Exception {
+        String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsDefault";
+        String expectedBalFileName = "typesWithAddedNewObjectTypeFieldsDefault";
+        String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsApi";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "addField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "addField", balFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
