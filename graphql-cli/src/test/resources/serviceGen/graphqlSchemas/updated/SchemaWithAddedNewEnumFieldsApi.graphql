@@ -1,0 +1,14 @@
+type Query {
+    student(id: Int!): Student
+}
+
+type Student {
+    id: Int!
+    name: String!
+}
+
+enum Gender {
+    MALE
+    FEMALE
+    OTHER
+}
