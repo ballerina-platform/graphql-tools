@@ -50,7 +50,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -80,7 +80,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -110,7 +110,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -140,7 +140,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -170,7 +170,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -201,7 +201,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -231,7 +231,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -261,7 +261,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -291,7 +291,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -321,7 +321,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -351,7 +351,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -392,7 +392,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -422,7 +422,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -453,7 +453,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -483,7 +483,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -512,7 +512,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -554,7 +554,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -592,7 +592,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -629,7 +629,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -671,7 +671,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -715,7 +715,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -758,7 +758,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -803,7 +803,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -851,7 +851,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -898,7 +898,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -977,7 +977,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1025,7 +1025,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1087,7 +1087,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1128,7 +1128,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1170,7 +1170,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1218,7 +1218,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1271,7 +1271,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1330,7 +1330,7 @@ public class ServiceCombinerTest extends GraphqlTest {
 
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.mergeRootNodes();
+        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);

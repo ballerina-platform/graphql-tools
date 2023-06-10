@@ -45,6 +45,8 @@ import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
+import org.ballerinalang.formatter.core.Formatter;
+import org.ballerinalang.formatter.core.FormatterException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -173,7 +175,12 @@ public class ServiceCombiner {
         return nextGraphqlSchema;
     }
 
-    public SyntaxTree mergeRootNodes() throws Exception {
+    public String generateMergedSrc() throws FormatterException {
+        String generatedSyntaxTree = Formatter.format(generateMergedSyntaxTree()).toString();
+        return Formatter.format(generatedSyntaxTree);
+    }
+
+    public SyntaxTree generateMergedSyntaxTree() {
         List<ModuleMemberDeclarationNode> newMembers =
                 generateNewMembers(prevContentNode.members(), nextContentNode.members());
 
@@ -194,8 +201,7 @@ public class ServiceCombiner {
     }
 
     private List<ModuleMemberDeclarationNode> generateNewMembers(NodeList<ModuleMemberDeclarationNode> prevMembers,
-                                                                 NodeList<ModuleMemberDeclarationNode> nextMembers)
-            throws Exception {
+                                                                 NodeList<ModuleMemberDeclarationNode> nextMembers) {
         List<ModuleMemberDeclarationNode> newMembers = new ArrayList<>();
         for (ModuleMemberDeclarationNode nextMember : nextMembers) {
             boolean isFound = false;
@@ -213,8 +219,7 @@ public class ServiceCombiner {
         return newMembers;
     }
 
-    private boolean isMemberEquals(ModuleMemberDeclarationNode prevMember, ModuleMemberDeclarationNode nextMember)
-            throws Exception {
+    private boolean isMemberEquals(ModuleMemberDeclarationNode prevMember, ModuleMemberDeclarationNode nextMember) {
         if (prevMember instanceof ClassDefinitionNode && nextMember instanceof ClassDefinitionNode) {
             ClassDefinitionNode prevClassDef = (ClassDefinitionNode) prevMember;
             ClassDefinitionNode nextClassDef = (ClassDefinitionNode) nextMember;
@@ -234,7 +239,7 @@ public class ServiceCombiner {
                 return true;
             }
         } else if (prevMember.getClass().toString().equals(nextMember.getClass().toString())) {
-            throw new Exception("No valid member: " + prevMember.getClass().toString());
+            // handle exception
         }
         return false;
     }
@@ -298,7 +303,7 @@ public class ServiceCombiner {
         return result;
     }
 
-    private boolean isTypeDefEquals(TypeDefinitionNode prevTypeDef, TypeDefinitionNode nextTypeDef) throws Exception {
+    private boolean isTypeDefEquals(TypeDefinitionNode prevTypeDef, TypeDefinitionNode nextTypeDef) {
         if (!prevTypeDef.typeName().text().equals(nextTypeDef.typeName().text())) {
             return false;
         }
@@ -512,7 +517,7 @@ public class ServiceCombiner {
     }
 
     private UnionTypeEqualityResult isUnionTypeEquals(UnionTypeDescriptorNode prevUnionType,
-                                                      UnionTypeDescriptorNode nextUnionType) throws Exception {
+                                                      UnionTypeDescriptorNode nextUnionType) {
         UnionTypeEqualityResult unionTypeEqualityResult = new UnionTypeEqualityResult();
         List<String> prevUnionTypeMembers = new ArrayList<>();
         List<String> nextUnionTypeMembers = new ArrayList<>();
@@ -565,8 +570,7 @@ public class ServiceCombiner {
         return unionTypeEqualityResult;
     }
 
-    private void populateUnionMemberNames(UnionTypeDescriptorNode unionType, List<String> unionTypeMembers)
-            throws Exception {
+    private void populateUnionMemberNames(UnionTypeDescriptorNode unionType, List<String> unionTypeMembers) {
         unionTypeMembers.add(getTypeName(unionType.rightTypeDesc()));
         if (unionType.leftTypeDesc() instanceof UnionTypeDescriptorNode) {
             UnionTypeDescriptorNode leftUnionType = (UnionTypeDescriptorNode) unionType.leftTypeDesc();
@@ -577,7 +581,7 @@ public class ServiceCombiner {
     }
 
     private RecordTypeEqualityResult isRecordTypeEquals(RecordTypeDescriptorNode prevRecordType,
-                                                        RecordTypeDescriptorNode nextRecordType) throws Exception {
+                                                        RecordTypeDescriptorNode nextRecordType) {
         MembersEqualityResult result = new MembersEqualityResult();
         RecordTypeEqualityResult recordTypeEquality =
                 new RecordTypeEqualityResult(prevRecordType.recordKeyword().text(),
@@ -728,7 +732,7 @@ public class ServiceCombiner {
 
     private RecordFieldWithDefaultValueEqualityResult isRecordFieldWithDefaultValueEquals(
             RecordFieldWithDefaultValueNode prevRecordFieldWithDefaultValue,
-            RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue) throws Exception {
+            RecordFieldWithDefaultValueNode nextRecordFieldWithDefaultValue) {
         TypeEqualityResult typeEquality =
                 isTypeEquals(prevRecordFieldWithDefaultValue.typeName(), nextRecordFieldWithDefaultValue.typeName());
         return new RecordFieldWithDefaultValueEqualityResult(typeEquality,
@@ -737,7 +741,7 @@ public class ServiceCombiner {
                 nextRecordFieldWithDefaultValue.expression().toString());
     }
 
-    private RecordFieldEqualityResult isRecordFieldEquals(Node prevRecordField, Node nextRecordField) throws Exception {
+    private RecordFieldEqualityResult isRecordFieldEquals(Node prevRecordField, Node nextRecordField) {
         TypeEqualityResult typeEquality =
                 isTypeEquals(getRecordFieldType(prevRecordField), getRecordFieldType(nextRecordField));
         return new RecordFieldEqualityResult(typeEquality, getRecordFieldName(prevRecordField),
@@ -776,7 +780,7 @@ public class ServiceCombiner {
     }
 
 //    private NodeList<Node> getServiceObjectNewMembers(ObjectTypeDescriptorNode prevServiceObject,
-//                                                      ObjectTypeDescriptorNode nextServiceObject) throws Exception {
+//                                                      ObjectTypeDescriptorNode nextServiceObject)  {
 //        NodeList<Node> members = prevServiceObject.members();
 //        for (Node nextMember : nextServiceObject.members()) {
 //            boolean foundMatch = false;
@@ -812,8 +816,7 @@ public class ServiceCombiner {
 //    }
 
     private ServiceObjectEqualityResult isServiceObjectEquals(ObjectTypeDescriptorNode prevServiceObject,
-                                                              ObjectTypeDescriptorNode nextServiceObject)
-            throws Exception {
+                                                              ObjectTypeDescriptorNode nextServiceObject) {
         ServiceObjectEqualityResult serviceObjectEquality = new ServiceObjectEqualityResult();
 
         for (Node prevMember : prevServiceObject.members()) {
@@ -854,8 +857,7 @@ public class ServiceCombiner {
     }
 
     private MethodDeclarationEqualityResult isMethodDeclarationEquals(MethodDeclarationNode prevMethodDeclaration,
-                                                                      MethodDeclarationNode nextMethodDeclaration)
-            throws Exception {
+                                                                      MethodDeclarationNode nextMethodDeclaration) {
         MethodDeclarationEqualityResult methodDeclarationEquality = new MethodDeclarationEqualityResult();
         methodDeclarationEquality.setPrevFunctionName(getMethodDeclarationName(prevMethodDeclaration));
         methodDeclarationEquality.setNextFunctionName(getMethodDeclarationName(nextMethodDeclaration));
@@ -906,8 +908,7 @@ public class ServiceCombiner {
         return true;
     }
 
-    private boolean isClassDefEquals(ClassDefinitionNode prevClassDef, ClassDefinitionNode nextClassDef)
-            throws Exception {
+    private boolean isClassDefEquals(ClassDefinitionNode prevClassDef, ClassDefinitionNode nextClassDef) {
         if (!prevClassDef.className().text().equals(nextClassDef.className().text())) {
             return false;
         }
@@ -1077,7 +1078,7 @@ public class ServiceCombiner {
     }
 
     private FunctionDefinitionEqualityResult isFuncDefEquals(FunctionDefinitionNode prevClassFuncDef,
-                                                             FunctionDefinitionNode nextClassFuncDef) throws Exception {
+                                                             FunctionDefinitionNode nextClassFuncDef) {
         FunctionDefinitionEqualityResult functionDefinitionEquality = new FunctionDefinitionEqualityResult();
         functionDefinitionEquality.setPrevFunctionName(getFunctionName(prevClassFuncDef));
         functionDefinitionEquality.setNextFunctionName(getFunctionName(nextClassFuncDef));
@@ -1119,8 +1120,7 @@ public class ServiceCombiner {
     }
 
     private FunctionSignatureEqualityResult isFuncSignatureEquals(FunctionSignatureNode prevFunctionSignature,
-                                                                  FunctionSignatureNode nextFunctionSignature)
-            throws Exception {
+                                                                  FunctionSignatureNode nextFunctionSignature) {
         FunctionSignatureEqualityResult equalityResult = new FunctionSignatureEqualityResult();
         HashMap<ParameterNode, Boolean> nextParameterAvailable = new HashMap<>();
         for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
@@ -1198,7 +1198,7 @@ public class ServiceCombiner {
 //        return null;
 //    }
 
-    private TypeEqualityResult isTypeEquals(Node prevType, Node nextType) throws Exception {
+    private TypeEqualityResult isTypeEquals(Node prevType, Node nextType) {
         TypeEqualityResult equalityResult = new TypeEqualityResult();
         equalityResult.setPrevType(getTypeName(prevType));
         equalityResult.setNextType(getTypeName(nextType));
@@ -1265,7 +1265,7 @@ public class ServiceCombiner {
         return equalityResult;
     }
 
-    private String getTypeName(Node type) throws Exception {
+    private String getTypeName(Node type) {
         if (type instanceof BuiltinSimpleNameReferenceNode) {
             BuiltinSimpleNameReferenceNode typeName = (BuiltinSimpleNameReferenceNode) type;
             return typeName.name().text();
@@ -1292,12 +1292,12 @@ public class ServiceCombiner {
             }
             return String.format("stream<%s>", typesCommaSeparatedNames);
         } else {
-            throw new Exception("No valid type: " + type.getClass());
+            // throw new Exception("No valid type: " + type.getClass());
+            return null;
         }
     }
 
-    private ParameterEqualityResult isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter)
-            throws Exception {
+    private ParameterEqualityResult isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter) {
         ParameterEqualityResult parameterEquality = new ParameterEqualityResult(prevParameter, nextParameter);
         parameterEquality.setPrevParameterName(getParameterName(prevParameter));
         parameterEquality.setNextParameterName(getParameterName(nextParameter));
@@ -1328,7 +1328,7 @@ public class ServiceCombiner {
         return parameterEquality;
     }
 
-    private Node getParameterType(ParameterNode parameter) throws Exception {
+    private Node getParameterType(ParameterNode parameter) {
         if (parameter instanceof RequiredParameterNode) {
             RequiredParameterNode requiredParameter = (RequiredParameterNode) parameter;
             return requiredParameter.typeName();
@@ -1336,7 +1336,8 @@ public class ServiceCombiner {
             DefaultableParameterNode defaultableParameter = (DefaultableParameterNode) parameter;
             return defaultableParameter.typeName();
         } else {
-            throw new Exception("No valid parameter type: " + parameter.getClass().toString());
+            // throw new Exception("No valid parameter type: " + parameter.getClass().toString());
+            return null;
         }
     }
 

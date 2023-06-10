@@ -20,16 +20,23 @@ package io.ballerina.graphql.generator.service.generator;
 
 import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.service.Constants;
+import io.ballerina.graphql.generator.service.ServiceCombiner;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import org.ballerinalang.formatter.core.FormatterException;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,19 +59,19 @@ public class ServiceCodeGenerator extends CodeGenerator {
         try {
             List<SrcFilePojo> genSources = generateBalSources(project);
             writeGeneratedSources(genSources, Path.of(outputPath));
-        } catch (ServiceGenerationException | IOException e) {
+        } catch (ServiceGenerationException | IOException | FormatterException e) {
             throw new GenerationException(e.getMessage(), project.getName());
         }
     }
 
     public List<SrcFilePojo> generateBalSources(GraphqlProject project)
-            throws ServiceGenerationException, ServiceTypesGenerationException {
+            throws ServiceGenerationException, ServiceTypesGenerationException, IOException, FormatterException {
         String projectName = project.getName();
         String fileName = project.getFileName();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
-        generateServiceTypes(projectName, fileName, graphQLSchema, sourceFiles);
+        generateServiceTypes(projectName, fileName, project.getOutputPath(), graphQLSchema, sourceFiles);
         generateServices(projectName, fileName, sourceFiles);
         return sourceFiles;
     }
@@ -79,15 +86,23 @@ public class ServiceCodeGenerator extends CodeGenerator {
                         serviceSrc));
     }
 
-    private void generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema,
+    private void generateServiceTypes(String projectName, String fileName, String outputPath,
+                                      GraphQLSchema graphQLSchema,
                                       List<SrcFilePojo> sourceFiles)
-            throws ServiceTypesGenerationException {
+            throws ServiceTypesGenerationException, IOException, FormatterException {
         this.serviceTypesGenerator.setFileName(fileName);
-        String typesFileContent = this.serviceTypesGenerator.generateSrc(graphQLSchema);
+        // get already available content in output file
+        Path outputFilePath = Paths.get(outputPath, CodeGeneratorConstants.TYPES_FILE_NAME);
+        String availableOutputFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(outputFilePath));
+        ModulePartNode availableOutputFileNode = NodeParser.parseModulePart(availableOutputFileContent);
+        ModulePartNode newTypesFileContentNode = serviceTypesGenerator.generateContentNode(graphQLSchema);
+        ServiceCombiner serviceCombiner =
+                new ServiceCombiner(availableOutputFileNode, newTypesFileContentNode, graphQLSchema);
+        String mergedTypesFileContent = serviceCombiner.generateMergedSrc();
         setServiceMethodDeclarations(this.serviceTypesGenerator.getServiceMethodDeclarations());
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
-                        typesFileContent));
+                        mergedTypesFileContent));
     }
 
     public void enableToUseRecords() {

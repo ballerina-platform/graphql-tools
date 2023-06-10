@@ -30,4 +30,5 @@ public class Constants {
             "Union type can only have object types as members. But found: \"%s\" with different type.";
     public static final String RESOURCE = "resource";
     public static final String REMOTE = "remote";
+    public static final String NEW_LINE = "\n";
 }
