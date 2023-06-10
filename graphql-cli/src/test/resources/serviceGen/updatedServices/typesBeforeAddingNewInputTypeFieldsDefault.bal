@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaWithNewInputTypeFieldsApi service object {
+type SchemaWithAddedNewInputTypeFieldsApi service object {
     *graphql:Service;
     resource function get book(int id, string? title) returns Book?;
     resource function get books() returns Book?[]?;
@@ -12,15 +12,12 @@ type SchemaWithNewInputTypeFieldsApi service object {
 public type CreateAuthorInput record {|
     string name;
     string email;
-    string address;
-    int age = 18;
 |};
 
 public type CreateBookInput record {|
     string title;
     int? authorId;
     float price;
-    string version;
 |};
 
 public distinct service class Author {

@@ -327,13 +327,13 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceTypesContent);
     }
 
-    @Test(description = "Test combining updated schema with new input type fields")
-    public void testCombiningUpdatedSchemaWithNewInputTypeFields() throws Exception {
-        String beforeBalFileName = "typesBeforeNewInputTypeFieldsDefault";
-        String expectedBalFileName = "typesWithNewInputTypeFieldsDefault";
-        String newSchemaFileName = "SchemaWithNewInputTypeFieldsApi";
+    @Test(description = "Test combining updated schema with new added input type fields")
+    public void testCombiningUpdatedSchemaWithAddedNewInputTypeFields() throws Exception {
+        String beforeBalFileName = "typesBeforeAddingNewInputTypeFieldsDefault";
+        String expectedBalFileName = "typesWithAddedNewInputTypeFieldsDefault";
+        String newSchemaFileName = "SchemaWithAddedNewInputTypeFieldsApi";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
         Path newSchemaPath = this.resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
         Path mergedBalFilePath = this.resourceDir.resolve(
