@@ -176,16 +176,17 @@ public class ServiceCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceTypesContent);
     }
 
-    @Test(description = "Test combining updated schema with object use records if possible")
-    public void testCombiningUpdatedSchemaWithObjectUseRecordsIfPossible() throws Exception {
-        String balFileName = "typesWithObjectTakingInputArgumentRecordsAllowed";
-        String newSchemaFileName = "SchemaWithObjectTakingInputArgumentApi";
+    @Test(description = "Test combining updated schema with added new object type using records if possible")
+    public void testCombiningUpdatedSchemaWithAddedNewObjectTypeUsingRecordsIfPossible() throws Exception {
+        String newSchemaFileName = "SchemaWithAddedNewObjectTypeUsingRecordsIfPossibleApi";
+        String beforeBalFileName = "typesBeforeAddingNewObjectTypeUsingRecordsIfPossibleDefault";
+        String expectedBalFileName = "typesWithAddedNewObjectTypeUsingRecordsIfPossibleDefault";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "addType", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "addType", balFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
