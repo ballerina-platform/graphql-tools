@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
@@ -132,6 +134,64 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String newSchemaFileName = "SchemaWithChangedReturnTypeInFunctionsApi";
         String beforeBalFileName = "serviceBeforeChangingReturnTypeInFunctions";
         String expectedBalFileName = "serviceWithChangedReturnTypeInFunctions";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+
+        ServiceGenerator serviceGenerator = new ServiceGenerator();
+        serviceGenerator.setFileName(newSchemaFileName);
+        serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ModulePartNode nextBalFileNode = serviceGenerator.generateContentNode();
+        ServiceFileCombiner serviceFileCombiner = new ServiceFileCombiner(updateBalFileNode, nextBalFileNode);
+        String result = serviceFileCombiner.generateMergedSrc().trim();
+        String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(result, expectedServiceContent);
+
+        List<String> breakingChangeWarnings = serviceFileCombiner.getBreakingChangeWarnings();
+        List<String> warnings = new ArrayList<>();
+        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'book' function " +
+                "definition return type has changed from 'Book?' to 'Book'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'books' function " +
+                "definition return type has changed from 'Book?[]?' to 'Book[]?'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'authors' function " +
+                "definition return type has changed from 'Author[]' to 'Author[]?'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'createBook' function " +
+                "definition return type has changed from 'Book?' to 'Book'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'createAuthor' function" +
+                " definition return type has changed from 'Author' to 'Author?'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'createAuthor' function" +
+                " definition 'name' parameter type change from 'String' to 'string'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'bookTitles' function " +
+                "definition return type has changed from 'stream<string?>' to 'stream<string>'. This can break " +
+                "existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'authorNames' function " +
+                "definition return type has changed from 'stream<string>' to 'stream<string?>'. This can break " +
+                "existing clients.");
+        Assert.assertEquals(breakingChangeWarnings.size(), warnings.size());
+        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warnings.get(i));
+        }
+    }
+
+    @Test(description = "Test combining updated schema with changed parameters in functions")
+    public void testCombiningUpdatedSchemaWithChangedParametersInFunctions()
+            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+        String newSchemaFileName = "SchemaWithChangedParametersInFunctionsApi";
+        String beforeBalFileName = "serviceBeforeChangingParametersInFunctions";
+        String expectedBalFileName = "serviceWithChangedParametersInFunctions";
         Path updatedBalFilePath = this.resourceDir.resolve(
                 Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
         Path newSchemaPath = this.resourceDir.resolve(
