@@ -28,6 +28,7 @@ import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.service.Constants;
 import io.ballerina.graphql.generator.service.ServiceCombiner;
+import io.ballerina.graphql.generator.service.ServiceFileCombiner;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
@@ -72,18 +73,24 @@ public class ServiceCodeGenerator extends CodeGenerator {
 
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
         generateServiceTypes(projectName, fileName, project.getOutputPath(), graphQLSchema, sourceFiles);
-        generateServices(projectName, fileName, sourceFiles);
+        generateServices(projectName, fileName, project.getOutputPath(), sourceFiles);
         return sourceFiles;
     }
 
-    private void generateServices(String projectName, String fileName, List<SrcFilePojo> sourceFiles)
-            throws ServiceGenerationException {
+    private void generateServices(String projectName, String fileName, String outputPath, List<SrcFilePojo> sourceFiles)
+            throws IOException, FormatterException {
         this.serviceGenerator.setFileName(fileName);
+        Path outputFilePath = Paths.get(outputPath, CodeGeneratorConstants.SERVICE_FILE_NAME);
+        String availableOutputFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(outputFilePath));
+        ModulePartNode availableOutputFileNode = NodeParser.parseModulePart(availableOutputFileContent);
         this.serviceGenerator.setMethodDeclarations(this.serviceMethodDeclarations);
-        String serviceSrc = this.serviceGenerator.generateSrc();
+        ModulePartNode newServiceFileContentNode = this.serviceGenerator.generateContentNode();
+        ServiceFileCombiner serviceFileCombiner =
+                new ServiceFileCombiner(availableOutputFileNode, newServiceFileContentNode);
+        String mergedServiceFileContent = serviceFileCombiner.generateMergedSrc();
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName, CodeGeneratorConstants.SERVICE_FILE_NAME,
-                        serviceSrc));
+                        mergedServiceFileContent));
     }
 
     private void generateServiceTypes(String projectName, String fileName, String outputPath,
