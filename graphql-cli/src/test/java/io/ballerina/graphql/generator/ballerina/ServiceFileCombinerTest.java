@@ -217,5 +217,57 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String result = serviceFileCombiner.generateMergedSrc().trim();
         String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceContent);
+
+        List<String> breakingChangeWarnings = serviceFileCombiner.getBreakingChangeWarnings();
+        List<String> warnings = new ArrayList<>();
+        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'book' function " +
+                "definition 'title' parameter added without default value. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'book' function " +
+                "definition 'id' parameter type change from 'int?' to 'int'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'books' function " +
+                "definition 'ids' parameter removed. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'authors' function " +
+                "definition 'ids' parameter type change from 'int[]' to 'string[]'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'addBook' function " +
+                "definition 'price' parameter type change from 'int' to 'float'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'addBook' function " +
+                "'title' parameter assigned '\"No title\"' default value has removed. This can break existing clients" +
+                ".");
+        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warnings.get(i));
+        }
+    }
+
+    @Test(description = "Test combining updated schema with changed qualifiers in functions")
+    public void testCombiningUpdatedSchemaWithChangedQualifiersInFunctions()
+            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+        String newSchemaFileName = "SchemaWithChangedQualifiersInFunctionsApi";
+        String beforeBalFileName = "serviceBeforeChangingQualifiersInFunctions";
+        String expectedBalFileName = "serviceWithChangedQualifiersInFunctions";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+
+        ServiceGenerator serviceGenerator = new ServiceGenerator();
+        serviceGenerator.setFileName(newSchemaFileName);
+        serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ModulePartNode nextBalFileNode = serviceGenerator.generateContentNode();
+        ServiceFileCombiner serviceFileCombiner = new ServiceFileCombiner(updateBalFileNode, nextBalFileNode);
+        String result = serviceFileCombiner.generateMergedSrc().trim();
+        String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(result, expectedServiceContent);
     }
 }
