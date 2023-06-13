@@ -269,5 +269,60 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String result = serviceFileCombiner.generateMergedSrc().trim();
         String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceContent);
+
+        List<String> breakingChangeWarnings = serviceFileCombiner.getBreakingChangeWarnings();
+        List<String> warnings = new ArrayList<>();
+        warnings.add("warning: In 'SchemaWithChangedQualifiersInFunctionsApi' service 'books' function qualifier " +
+                "changed from 'remote' to 'resource'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithChangedQualifiersInFunctionsApi' service 'createBook' function qualifier" +
+                " changed from 'resource' to 'remote'. This can break existing clients.");
+        Assert.assertEquals(breakingChangeWarnings.size(), warnings.size());
+        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warnings.get(i));
+        }
+    }
+
+    @Test(description = "Test combining updated schema with interchanged query and subscription fields")
+    public void testCombiningUpdatedSchemaWithInterchangedQueryAndSubscriptionFields()
+            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+        String newSchemaFileName = "SchemaWithInterchangedQueryAndSubscriptionFieldsApi";
+        String beforeBalFileName = "serviceBeforeInterchangingQueryAndSubscriptionFields";
+        String expectedBalFileName = "serviceWithInterchangedQueryAndSubscriptionFields";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+
+        ServiceGenerator serviceGenerator = new ServiceGenerator();
+        serviceGenerator.setFileName(newSchemaFileName);
+        serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ModulePartNode nextBalFileNode = serviceGenerator.generateContentNode();
+        ServiceFileCombiner serviceFileCombiner = new ServiceFileCombiner(updateBalFileNode, nextBalFileNode);
+        String result = serviceFileCombiner.generateMergedSrc().trim();
+        String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(result, expectedServiceContent);
+
+        List<String> breakingChangeWarnings = serviceFileCombiner.getBreakingChangeWarnings();
+        List<String> warnings = new ArrayList<>();
+        warnings.add("warning: In 'SchemaWithInterchangedQueryAndSubscriptionFieldsApi' service class 'book' method " +
+                "changed from 'subscribe' to 'get'. This can break existing clients.");
+        warnings.add("warning: In 'SchemaWithInterchangedQueryAndSubscriptionFieldsApi' service class 'bookTitles' " +
+                "method changed from 'get' to 'subscribe'. This can break existing clients.");
+        Assert.assertEquals(breakingChangeWarnings.size(), warnings.size());
+        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warnings.get(i));
+        }
     }
 }
