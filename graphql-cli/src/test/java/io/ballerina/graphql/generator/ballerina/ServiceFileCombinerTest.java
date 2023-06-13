@@ -125,4 +125,37 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceContent);
     }
+
+    @Test(description = "Test combining updated schema with changed return type in functions")
+    public void testCombiningUpdatedSchemaWithChangedReturnTypeInFunctions()
+            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+        String newSchemaFileName = "SchemaWithChangedReturnTypeInFunctionsApi";
+        String beforeBalFileName = "serviceBeforeChangingReturnTypeInFunctions";
+        String expectedBalFileName = "serviceWithChangedReturnTypeInFunctions";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+
+        ServiceGenerator serviceGenerator = new ServiceGenerator();
+        serviceGenerator.setFileName(newSchemaFileName);
+        serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ModulePartNode nextBalFileNode = serviceGenerator.generateContentNode();
+        ServiceFileCombiner serviceFileCombiner = new ServiceFileCombiner(updateBalFileNode, nextBalFileNode);
+        String result = serviceFileCombiner.generateMergedSrc().trim();
+        String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(result, expectedServiceContent);
+    }
 }
