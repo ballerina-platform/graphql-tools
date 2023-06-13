@@ -54,11 +54,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createCommentMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
-import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEndOfLineMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createIdentifierToken;
-import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createSeparatedNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
@@ -89,11 +88,14 @@ public class ServiceGenerator {
     private String fileName;
     private List<MethodDeclarationNode> methodDeclarations;
 
-    private SyntaxTree generateSyntaxTree() throws IOException {
+    public ModulePartNode generateContentNode() {
         NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
         NodeList<ModuleMemberDeclarationNode> serviceBody = generateMembers();
-        ModulePartNode modulePartNode = createModulePartNode(imports, serviceBody, createToken(SyntaxKind.EOF_TOKEN));
+        return createModulePartNode(imports, serviceBody, createToken(SyntaxKind.EOF_TOKEN));
+    }
 
+    private SyntaxTree generateSyntaxTree() throws IOException {
+        ModulePartNode modulePartNode = generateContentNode();
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
         return syntaxTree.modifyWith(modulePartNode);
@@ -137,19 +139,25 @@ public class ServiceGenerator {
         for (int methodDeclarationInd = 0; methodDeclarationInd < this.methodDeclarations.size();
              methodDeclarationInd++) {
             MethodDeclarationNode methodDeclaration = this.methodDeclarations.get(methodDeclarationInd);
-            MinutiaeList functionBodyTraillingMinutiaeList =
-                    createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
-            if (methodDeclarationInd != this.methodDeclarations.size() - 1) {
-                functionBodyTraillingMinutiaeList =
-                        functionBodyTraillingMinutiaeList.add(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
+            MinutiaeList leadingMinutiaeList = createEmptyMinutiaeList();
+            NodeList<Token> finalQualifiers;
+            if (methodDeclarationInd == 0) {
+                finalQualifiers = methodDeclaration.qualifierList();
+            } else {
+                leadingMinutiaeList = leadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+                Token firstQualifier = methodDeclaration.qualifierList().get(0);
+                finalQualifiers = methodDeclaration.qualifierList().remove(0);
+                Token newLineAddedFirstQualifier =
+                        firstQualifier.modify(leadingMinutiaeList, createEmptyMinutiaeList());
+                finalQualifiers = finalQualifiers.add(0, newLineAddedFirstQualifier);
             }
             FunctionBodyBlockNode emptyFunctionBody =
                     createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
                             createToken(SyntaxKind.CLOSE_BRACE_TOKEN, createEmptyMinutiaeList(),
-                                    functionBodyTraillingMinutiaeList), null);
+                                    createEmptyMinutiaeList()), null);
             FunctionDefinitionNode functionDefinition =
                     createFunctionDefinitionNode(getDefinitionKindFromDeclarationKind(methodDeclaration.kind()),
-                            methodDeclaration.metadata().orElse(null), methodDeclaration.qualifierList(),
+                            methodDeclaration.metadata().orElse(null), finalQualifiers,
                             methodDeclaration.functionKeyword(), methodDeclaration.methodName(),
                             methodDeclaration.relativeResourcePath(), methodDeclaration.methodSignature(),
                             emptyFunctionBody);
