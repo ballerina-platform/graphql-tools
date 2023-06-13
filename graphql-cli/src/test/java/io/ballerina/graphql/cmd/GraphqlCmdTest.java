@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_GRAPHQL_FILE_WITH_NO_MODE;
@@ -74,6 +75,46 @@ public class GraphqlCmdTest extends GraphqlTest {
         } catch (BLauncherException | IOException e) {
             String output = e.toString();
             Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test graphql command execution for service generation when output files are " +
+            "already populated")
+    public void testExecutionForServiceGenerationOutputFilesAreAlreadyPopulated() {
+        Path newGraphqlSchemaPath = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewQueryFieldsApi.graphql"));
+        Path currentTypesFilePath = resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation",
+                        "typesBeforeAddingNewQueryFieldsDefault.bal"));
+        Path currentServiceFilePath =
+                resourceDir.resolve(Paths.get("serviceGen", "updatedServices", "serviceBeforeAddingQueryFields.bal"));
+        String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        try {
+            String currentTypesFileContent = readContentWithFormat(currentTypesFilePath);
+            String currentServiceFileContent = readContentWithFormat(currentServiceFilePath);
+            Files.writeString(Paths.get(this.tmpDir.toString(), "types.bal"), currentTypesFileContent,
+                    StandardOpenOption.CREATE);
+            Files.writeString(Paths.get(this.tmpDir.toString(), "service.bal"), currentServiceFileContent,
+                    StandardOpenOption.CREATE);
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            Path expectedServiceFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "updated", "serviceWithAddedQueryFields.bal"));
+            Path expectedTypesFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "updated", "typesWithAddedNewQueryFieldsDefault.bal"));
+            String expectedServiceContent = readContentWithFormat(expectedServiceFile);
+            String expectedTypesContent = readContentWithFormat(expectedTypesFile);
+
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
+            String generatedServiceContent = readContentWithFormat(this.tmpDir.resolve("service.bal"));
+            String generatedTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+
+            Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.toString());
         }
     }
 
