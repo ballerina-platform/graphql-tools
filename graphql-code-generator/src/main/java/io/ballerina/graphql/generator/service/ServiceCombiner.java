@@ -50,6 +50,7 @@ import org.ballerinalang.formatter.core.FormatterException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -317,10 +318,12 @@ public class ServiceCombiner {
 
             } else {
                 if (!serviceObjectEquals.getRemovedMethodDeclarations().isEmpty()) {
-                    for (String removedMethodDeclarationName : serviceObjectEquals.getRemovedMethodDeclarations()) {
+                    for (MethodDeclarationNode removedMethodDeclaration :
+                            serviceObjectEquals.getRemovedResolverMethodDeclarations()) {
                         breakingChangeWarnings.add(
                                 String.format(WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION,
-                                        prevTypeDef.typeName().text(), removedMethodDeclarationName));
+                                        prevTypeDef.typeName().text(),
+                                        getMethodDeclarationName(removedMethodDeclaration)));
                     }
                 }
                 List<MethodDeclarationEqualityResult> updatedMethodDeclarations =
@@ -401,20 +404,20 @@ public class ServiceCombiner {
                     }
                 }
             }
-//
+            List<Node> serviceObjectNewMembers = serviceObjectEquals.generateCombinedMembers();
+
 //            NodeList<Node> serviceObjectNewMembers = getServiceObjectNewMembers(prevServiceObject, nextServiceObject);
 //
-//            ObjectTypeDescriptorNode modifiedPrevServiceObject =
-//                    prevServiceObject.modify(prevServiceObject.objectTypeQualifiers(),
-//                            prevServiceObject.objectKeyword(), prevServiceObject.openBrace(),
-//                            serviceObjectNewMembers,
-//                            prevServiceObject.closeBrace());
-//            TypeDefinitionNode modifiedPrevServiceType = prevTypeDef.modify(prevTypeDef.metadata().orElse(null),
-//                    prevTypeDef.visibilityQualifier().orElse(null),
-//                    prevTypeDef.typeKeyword(), prevTypeDef.typeName(), modifiedPrevServiceObject,
-//                    prevTypeDef.semicolonToken());
-//            moduleMembers.add(modifiedPrevServiceType);
-            moduleMembers.add(nextTypeDef);
+            ObjectTypeDescriptorNode modifiedPrevServiceObject =
+                    prevServiceObject.modify(prevServiceObject.objectTypeQualifiers(),
+                            prevServiceObject.objectKeyword(), prevServiceObject.openBrace(),
+                            createNodeList(serviceObjectNewMembers),
+                            prevServiceObject.closeBrace());
+            TypeDefinitionNode modifiedPrevServiceType = prevTypeDef.modify(prevTypeDef.metadata().orElse(null),
+                    prevTypeDef.visibilityQualifier().orElse(null),
+                    prevTypeDef.typeKeyword(), prevTypeDef.typeName(), modifiedPrevServiceObject,
+                    prevTypeDef.semicolonToken());
+            moduleMembers.add(modifiedPrevServiceType);
             return true;
         } else if (prevTypeDef.typeDescriptor() instanceof DistinctTypeDescriptorNode &&
                 nextTypeDef.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
@@ -456,10 +459,11 @@ public class ServiceCombiner {
                                         .getReturnTypeEqualityResult().getNextType()));
                     }
                 }
-                for (String removedMethod : serviceObjectEquals.getRemovedMethodDeclarations()) {
+                for (MethodDeclarationNode removedMethodDeclaration :
+                        serviceObjectEquals.getRemovedMethodDeclarations()) {
                     breakingChangeWarnings.add(
                             String.format(WARNING_MESSAGE_REMOVE_INTERFACE_SERVICE_OBJECT_METHOD_DECLARATION,
-                                    prevTypeDef.typeName().text(), removedMethod));
+                                    prevTypeDef.typeName().text(), getMethodDeclarationName(removedMethodDeclaration)));
                 }
             }
             interfaceTypesModuleMembers.add(nextTypeDef);
@@ -818,7 +822,10 @@ public class ServiceCombiner {
     private ServiceObjectEqualityResult isServiceObjectEquals(ObjectTypeDescriptorNode prevServiceObject,
                                                               ObjectTypeDescriptorNode nextServiceObject) {
         ServiceObjectEqualityResult serviceObjectEquality = new ServiceObjectEqualityResult();
-
+        LinkedHashMap<Node, Boolean> nextServiceObjectMemberAvailable = new LinkedHashMap<>();
+        for (Node nextMember : nextServiceObject.members()) {
+            nextServiceObjectMemberAvailable.put(nextMember, false);
+        }
         for (Node prevMember : prevServiceObject.members()) {
             boolean foundMatch = false;
             for (Node nextMember : nextServiceObject.members()) {
@@ -829,6 +836,9 @@ public class ServiceCombiner {
                             isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
                     if (typeEquality.isEqual()) {
                         foundMatch = true;
+                        nextServiceObjectMemberAvailable.put(nextMember, true);
+                        serviceObjectEquality.addToKeptTypeReferences(prevTypeRefMember);
+                        break;
                     }
                 } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
@@ -837,19 +847,37 @@ public class ServiceCombiner {
                             isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration);
                     if (methodDeclarationEquals.isEqual()) {
                         foundMatch = true;
+                        nextServiceObjectMemberAvailable.put(nextMember, true);
+                        serviceObjectEquality.addToKeptMethodDeclarations(prevMethodDeclaration);
+                        break;
                     } else if (methodDeclarationEquals.isMatch()) {
                         foundMatch = true;
+                        nextServiceObjectMemberAvailable.put(nextMember, true);
                         serviceObjectEquality.addToUpdatedMethodDeclarations(methodDeclarationEquals);
+                        break;
                     }
                 }
             }
             if (!foundMatch) {
                 if (prevMember instanceof TypeReferenceNode) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
+                    serviceObjectEquality.addToRemovedTypeReferences(prevTypeRefMember);
                 } else if (prevMember instanceof MethodDeclarationNode) {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
-                    serviceObjectEquality.addToRemovedMethodDeclarations(
-                            getMethodDeclarationName(prevMethodDeclaration));
+                    serviceObjectEquality.addToRemovedMethodDeclarations(prevMethodDeclaration);
+                }
+            }
+        }
+        for (Map.Entry<Node, Boolean> nextMemberAvailableEntry : nextServiceObjectMemberAvailable.entrySet()) {
+            Boolean nextMemberAvailable = nextMemberAvailableEntry.getValue();
+            if (!nextMemberAvailable) {
+                Node newServiceObjectMember = nextMemberAvailableEntry.getKey();
+                if (newServiceObjectMember instanceof TypeReferenceNode) {
+                    TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) newServiceObjectMember;
+                    serviceObjectEquality.addToAddedTypeReferences(nextTypeRefMember);
+                } else if (newServiceObjectMember instanceof MethodDeclarationNode) {
+                    MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) newServiceObjectMember;
+                    serviceObjectEquality.addToAddedMethodDeclarations(nextMethodDeclaration);
                 }
             }
         }
@@ -859,6 +887,8 @@ public class ServiceCombiner {
     private MethodDeclarationEqualityResult isMethodDeclarationEquals(MethodDeclarationNode prevMethodDeclaration,
                                                                       MethodDeclarationNode nextMethodDeclaration) {
         MethodDeclarationEqualityResult methodDeclarationEquality = new MethodDeclarationEqualityResult();
+        methodDeclarationEquality.setPrevMethodDeclaration(prevMethodDeclaration);
+        methodDeclarationEquality.setNextMethodDeclaration(nextMethodDeclaration);
         methodDeclarationEquality.setPrevFunctionName(getMethodDeclarationName(prevMethodDeclaration));
         methodDeclarationEquality.setNextFunctionName(getMethodDeclarationName(nextMethodDeclaration));
         methodDeclarationEquality.setPrevQualifiers(prevMethodDeclaration.qualifierList());

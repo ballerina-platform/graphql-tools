@@ -1,5 +1,7 @@
 package io.ballerina.graphql.generator.service;
 
+import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
@@ -19,6 +21,8 @@ public class MethodDeclarationEqualityResult {
     private String prevMethodType;
     private String nextMethodType;
     private boolean isRelativeResourcePathsEqual;
+    private MethodDeclarationNode prevMethodDeclaration;
+    private MethodDeclarationNode nextMethodDeclaration;
 
     public MethodDeclarationEqualityResult() {
         isRelativeResourcePathsEqual = false;
@@ -144,5 +148,24 @@ public class MethodDeclarationEqualityResult {
             return true;
         }
         return false;
+    }
+
+    public void setPrevMethodDeclaration(MethodDeclarationNode prevMethodDeclaration) {
+        this.prevMethodDeclaration = prevMethodDeclaration;
+    }
+
+    public void setNextMethodDeclaration(MethodDeclarationNode nextMethodDeclaration) {
+        this.nextMethodDeclaration = nextMethodDeclaration;
+    }
+
+    public MethodDeclarationNode generateCombinedMethodDeclaration() {
+        MetadataNode finalMetadata = nextMethodDeclaration.metadata().orElse(null);
+        if (finalMetadata == null) {
+            finalMetadata = prevMethodDeclaration.metadata().orElse(null);
+        }
+        return prevMethodDeclaration.modify(prevMethodDeclaration.kind(), finalMetadata,
+                nextMethodDeclaration.qualifierList(), nextMethodDeclaration.functionKeyword(),
+                nextMethodDeclaration.methodName(), nextMethodDeclaration.relativeResourcePath(),
+                nextMethodDeclaration.methodSignature(), nextMethodDeclaration.semicolon());
     }
 }

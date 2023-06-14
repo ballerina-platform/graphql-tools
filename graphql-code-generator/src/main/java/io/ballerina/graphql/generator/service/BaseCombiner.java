@@ -254,10 +254,12 @@ public class BaseCombiner {
 
             } else {
                 if (!serviceObjectEquals.getRemovedMethodDeclarations().isEmpty()) {
-                    for (String removedMethodDeclarationName : serviceObjectEquals.getRemovedMethodDeclarations()) {
+                    for (MethodDeclarationNode removedMethodDeclaration :
+                            serviceObjectEquals.getRemovedMethodDeclarations()) {
                         breakingChangeWarnings.add(
                                 String.format(WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION,
-                                        prevTypeDef.typeName().text(), removedMethodDeclarationName));
+                                        prevTypeDef.typeName().text(),
+                                        getMethodDeclarationName(removedMethodDeclaration)));
                     }
                 }
                 List<MethodDeclarationEqualityResult> updatedMethodDeclarations =
@@ -380,10 +382,11 @@ public class BaseCombiner {
                                                 .getReturnTypeEqualityResult().getNextType()));
                     }
                 }
-                for (String removedMethod : serviceObjectEquals.getRemovedMethodDeclarations()) {
+                for (MethodDeclarationNode removedMethodDeclaration :
+                        serviceObjectEquals.getRemovedMethodDeclarations()) {
                     breakingChangeWarnings.add(
                             String.format(WARNING_MESSAGE_REMOVE_INTERFACE_SERVICE_OBJECT_METHOD_DECLARATION,
-                                    prevTypeDef.typeName().text(), removedMethod));
+                                    prevTypeDef.typeName().text(), getMethodDeclarationName(removedMethodDeclaration)));
                 }
             }
             interfaceTypesModuleMembers.add(nextTypeDef);
@@ -617,7 +620,7 @@ public class BaseCombiner {
                 } else if (prevMember instanceof MethodDeclarationNode) {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
                     serviceObjectEquality.addToRemovedMethodDeclarations(
-                            getMethodDeclarationName(prevMethodDeclaration));
+                            prevMethodDeclaration);
                 }
             }
         }
@@ -1020,4 +1023,14 @@ public class BaseCombiner {
         return syntaxTree.modifyWith(contentNode);
     }
 
+    public static String getMainQualifier(NodeList<Token> qualifiers) {
+        for (Token qualifier : qualifiers) {
+            if (qualifier.text().equals(Constants.RESOURCE)) {
+                return Constants.RESOURCE;
+            } else if (qualifier.text().equals(Constants.REMOTE)) {
+                return Constants.REMOTE;
+            }
+        }
+        return null;
+    }
 }
