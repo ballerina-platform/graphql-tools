@@ -30,6 +30,24 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode
  * Utility class for combining available service file content with generated service file content for a GraphQL schema.
  */
 public class ServiceFileCombiner {
+    private static final String WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE = "warning: In '%s' " +
+            "GraphQL service '%s' function definition return type has changed from '%s' to '%s'. This can break " +
+            "existing clients.";
+    private static final String WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE = "warning: In '%s' " +
+            "GraphQL service '%s' function definition '%s' parameter added without default value. This can break " +
+            "existing clients.";
+    private static final String WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE = "warning: In '%s' GraphQL service " +
+            "'%s' function definition '%s' parameter removed. This can break existing clients.";
+    private static final String WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE = "warning: In '%s' GraphQL " +
+            "service '%s' function definition '%s' parameter type change from '%s' to '%s'. This can break existing " +
+            "clients.";
+    private static final String WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_FUNC =
+            "warning: In '%s' GraphQL service '%s' function '%s' parameter assigned '%s' default value has removed. " +
+                    "This can break existing clients.";
+    private static final String WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_FUNC = "warning: In '%s' service " +
+            "'%s' function qualifier changed from '%s' to '%s'. This can break existing clients.";
+    private static final String WARNING_MESSAGE_GET_SUBSCRIBE_INTERCHANGED_IN_SERVICE_FUNC = "warning: In " +
+            "'%s' service class '%s' method changed from '%s' to '%s'. This can break existing clients.";
     private ModulePartNode prevContentNode;
     private ModulePartNode nextContentNode;
     private List<ModuleMemberDeclarationNode> moduleMembers;
@@ -133,9 +151,11 @@ public class ServiceFileCombiner {
         if (prevServiceName == null ^ nextServiceName == null) {
             return false;
         }
+        String prevServiceNameStr = "";
+        String nextServiceNameStr = "";
         if (prevServiceName != null && nextServiceName != null) {
-            String prevServiceNameStr = BaseCombiner.getTypeName(prevServiceName);
-            String nextServiceNameStr = BaseCombiner.getTypeName(nextServiceName);
+            prevServiceNameStr = BaseCombiner.getTypeName(prevServiceName);
+            nextServiceNameStr = BaseCombiner.getTypeName(nextServiceName);
             if (!prevServiceNameStr.equals(nextServiceNameStr)) {
                 return false;
             }
@@ -160,6 +180,64 @@ public class ServiceFileCombiner {
                         break;
                     } else if (funcDefEquals.isMatch()) {
                         foundMatch = true;
+                        FunctionSignatureEqualityResult functionSignatureEquality =
+                                funcDefEquals.getFunctionSignatureEqualityResult();
+                        if (!functionSignatureEquality.getReturnTypeEqualityResult().isEqual()) {
+                            breakingChangeWarnings.add(
+                                    String.format(WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE,
+                                            prevServiceNameStr, funcDefEquals.getPrevFunctionName(),
+                                            functionSignatureEquality.getReturnTypeEqualityResult().getPrevType(),
+                                            functionSignatureEquality.getReturnTypeEqualityResult().getNextType()));
+                        }
+                        if (!functionSignatureEquality.getAddedViolatedParameters().isEmpty()) {
+                            for (String addedParameterName : functionSignatureEquality.getAddedViolatedParameters()) {
+                                breakingChangeWarnings.add(
+                                        String.format(WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE,
+                                                prevServiceNameStr, funcDefEquals.getPrevFunctionName(),
+                                                addedParameterName));
+                            }
+                        }
+                        if (!functionSignatureEquality.getRemovedParameters().isEmpty()) {
+                            for (String removedParameterName : functionSignatureEquality.getRemovedParameters()) {
+                                breakingChangeWarnings.add(
+                                        String.format(WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE, prevServiceNameStr,
+                                                funcDefEquals.getPrevFunctionName(), removedParameterName));
+                            }
+                        }
+                        if (!functionSignatureEquality.getTypeChangedParameters().isEmpty()) {
+                            for (ParameterEqualityResult parameterEquals :
+                                    functionSignatureEquality.getTypeChangedParameters()) {
+                                breakingChangeWarnings.add(
+                                        String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE,
+                                                prevServiceNameStr, funcDefEquals.getPrevFunctionName(),
+                                                parameterEquals.getPrevParameterName(),
+                                                parameterEquals.getTypeEquality().getPrevType(),
+                                                parameterEquals.getTypeEquality().getNextType()));
+                            }
+                        }
+                        if (!functionSignatureEquality.getDefaultValueRemovedParameters().isEmpty()) {
+                            for (ParameterEqualityResult defaultValueRemovedParameterEquality :
+                                    functionSignatureEquality.getDefaultValueRemovedParameters()) {
+                                breakingChangeWarnings.add(
+                                        String.format(WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_FUNC,
+                                                prevServiceNameStr, funcDefEquals.getPrevFunctionName(),
+                                                defaultValueRemovedParameterEquality.getPrevParameterName(),
+                                                defaultValueRemovedParameterEquality.getPrevParameterDefaultValue()));
+                            }
+                        }
+                        if (!funcDefEquals.isQualifierSimilar()) {
+                            breakingChangeWarnings.add(
+                                    String.format(WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_FUNC,
+                                            prevServiceNameStr, funcDefEquals.getPrevFunctionName(),
+                                            funcDefEquals.getPrevMainQualifier(),
+                                            funcDefEquals.getNextMainQualifier()));
+                        }
+                        if (funcDefEquals.isGetAndSubscribeInterchanged()) {
+                            breakingChangeWarnings.add(
+                                    String.format(WARNING_MESSAGE_GET_SUBSCRIBE_INTERCHANGED_IN_SERVICE_FUNC,
+                                            prevServiceNameStr, funcDefEquals.getPrevFunctionName(),
+                                            funcDefEquals.getPrevMethodType(), funcDefEquals.getNextMethodType()));
+                        }
                         FunctionDefinitionNode modifiedFunctionDef =
                                 nextFunctionDef.modify(nextFunctionDef.kind(), prevFunctionDef.metadata().orElse(null),
                                         nextFunctionDef.qualifierList(), nextFunctionDef.functionKeyword(),
@@ -190,10 +268,10 @@ public class ServiceFileCombiner {
                 nextServiceDeclaration.modify(prevServiceDeclaration.metadata().orElse(null),
                         nextServiceDeclaration.qualifiers(), nextServiceDeclaration.serviceKeyword(),
                         nextServiceDeclaration.typeDescriptor().orElse(null),
-                        nextServiceDeclaration.absoluteResourcePath(),
-                        nextServiceDeclaration.onKeyword(), nextServiceDeclaration.expressions(),
-                        nextServiceDeclaration.openBraceToken(), createNodeList(finalServiceDeclarationMembers),
-                        nextServiceDeclaration.closeBraceToken(), nextServiceDeclaration.semicolonToken().orElse(null));
+                        nextServiceDeclaration.absoluteResourcePath(), nextServiceDeclaration.onKeyword(),
+                        nextServiceDeclaration.expressions(), nextServiceDeclaration.openBraceToken(),
+                        createNodeList(finalServiceDeclarationMembers), nextServiceDeclaration.closeBraceToken(),
+                        nextServiceDeclaration.semicolonToken().orElse(null));
         moduleServiceDeclarations.add(modifiedServiceDeclaration);
         return true;
     }
@@ -206,6 +284,9 @@ public class ServiceFileCombiner {
         return false;
     }
 
+    public List<String> getBreakingChangeWarnings() {
+        return breakingChangeWarnings;
+    }
 //    private boolean isMemberEquals(ModuleMemberDeclarationNode prevMember, ModuleMemberDeclarationNode nextMember) {
 //        if (prevMember instanceof ModuleVariableDeclarationNode &&
 //        nextMember instanceof ModuleVariableDeclarationNode) {
