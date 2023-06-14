@@ -251,6 +251,12 @@ public class ServiceFileCombiner {
             }
             if (!foundMatch) {
                 // prevMember removed
+                if (prevMember instanceof FunctionDefinitionNode) {
+                    FunctionDefinitionNode prevFuncDef = (FunctionDefinitionNode) prevMember;
+                    if (prevFuncDef.qualifierList().size() == 0) {
+                        finalServiceDeclarationMembers.add(prevFuncDef);
+                    }
+                }
             }
         }
         for (Map.Entry<Node, Boolean> availableEntry : nextMemberAvailable.entrySet()) {
