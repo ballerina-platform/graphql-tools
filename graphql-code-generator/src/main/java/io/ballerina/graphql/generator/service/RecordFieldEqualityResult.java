@@ -1,56 +1,81 @@
 package io.ballerina.graphql.generator.service;
 
 
+import io.ballerina.compiler.syntax.tree.MetadataNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.RecordFieldNode;
+import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
+import io.ballerina.compiler.syntax.tree.Token;
+
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getRecordFieldType;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isTypeEquals;
+
 /**
  * Utility class to store result comparing record fields.
  */
 public class RecordFieldEqualityResult {
     private TypeEqualityResult typeEquality;
-    private String prevRecordFieldName;
-    private String nextRecordFieldName;
-    private String prevRecordFieldDefaultValue;
-    private String nextRecordFieldDefaultValue;
+    private Node prevField;
+    private Node nextField;
 
-    public RecordFieldEqualityResult(TypeEqualityResult typeEquality, String prevRecordFieldName,
-                                     String nextRecordFieldName, String prevRecordFieldDefaultValue,
-                                     String nextRecordFieldDefaultValue) {
-        this.typeEquality = typeEquality;
-        this.prevRecordFieldName = prevRecordFieldName;
-        this.nextRecordFieldName = nextRecordFieldName;
-        this.prevRecordFieldDefaultValue = prevRecordFieldDefaultValue;
-        this.nextRecordFieldDefaultValue = nextRecordFieldDefaultValue;
-    }
-
-    public RecordFieldEqualityResult(TypeEqualityResult typeEquality, String prevRecordFieldName,
-                                     String nextRecordFieldName) {
-        this.typeEquality = typeEquality;
-        this.prevRecordFieldName = prevRecordFieldName;
-        this.nextRecordFieldName = nextRecordFieldName;
-        this.prevRecordFieldDefaultValue = null;
-        this.nextRecordFieldDefaultValue = null;
+    public RecordFieldEqualityResult(Node prevField, Node nextField) {
+        this.prevField = prevField;
+        this.nextField = nextField;
+        typeEquality = isTypeEquals(getRecordFieldType(prevField), getRecordFieldType(nextField));
     }
 
     public boolean isEqual() {
-        return isRecordFieldNameEqual() && isDefaultValueEqual() && typeEquality.isEqual();
+        return isMatch() && isDefaultValueEqual() && typeEquality.isEqual();
     }
 
     public boolean isMatch() {
-        return isRecordFieldNameEqual();
+        String prevFieldName = getRecordFieldName(prevField);
+        String nextFieldName = getRecordFieldName(nextField);
+        return prevFieldName != null && nextFieldName != null && prevFieldName.equals(nextFieldName);
     }
 
-    private boolean isRecordFieldNameEqual() {
-        return prevRecordFieldName.equals(nextRecordFieldName);
+    private String getRecordFieldName(Node field) {
+        if (field instanceof RecordFieldNode) {
+            RecordFieldNode recordField = (RecordFieldNode) field;
+            return recordField.fieldName().text();
+        } else if (field instanceof RecordFieldWithDefaultValueNode) {
+            RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
+            return recordFieldWithDefaultValue.fieldName().text();
+        }
+        return null;
+    }
+
+    private String getRecordFieldDefaultValue(Node field) {
+        if (field instanceof RecordFieldWithDefaultValueNode) {
+            RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
+            return recordFieldWithDefaultValue.expression().toString();
+        }
+        return null;
     }
 
     private boolean isDefaultValueEqual() {
-        if (prevRecordFieldDefaultValue != null && nextRecordFieldDefaultValue != null) {
-            return prevRecordFieldDefaultValue.equals(nextRecordFieldDefaultValue);
+        String prevFieldDefaultValue = getRecordFieldDefaultValue(prevField);
+        String nextFieldDefaultValue = getRecordFieldDefaultValue(nextField);
+        if (prevFieldDefaultValue == null && nextFieldDefaultValue == null) {
+            return true;
+        } else if (prevFieldDefaultValue != null && nextFieldDefaultValue != null) {
+            return prevFieldDefaultValue.equals(nextFieldDefaultValue);
         }
-        return prevRecordFieldDefaultValue == null && nextRecordFieldDefaultValue == null;
+        return false;
     }
 
     public boolean isDefaultValueRemoved() {
-        return prevRecordFieldDefaultValue != null && nextRecordFieldDefaultValue == null;
+        return prevField instanceof RecordFieldWithDefaultValueNode && nextField instanceof RecordFieldNode;
+    }
+
+    public boolean isFieldTypeChanged() {
+        Node prevFieldType = getRecordFieldType(prevField);
+        Node nextFieldType = getRecordFieldType(nextField);
+        String prevFieldTypeName = getTypeName(prevFieldType);
+        String nextFieldTypeName = getTypeName(nextFieldType);
+        return !prevFieldTypeName.equals(nextFieldTypeName);
     }
 
     public TypeEqualityResult getTypeEquality() {
@@ -58,10 +83,49 @@ public class RecordFieldEqualityResult {
     }
 
     public String getPrevRecordFieldName() {
-        return prevRecordFieldName;
+        return getRecordFieldName(prevField);
     }
 
     public String getPrevRecordFieldDefaultValue() {
-        return prevRecordFieldDefaultValue;
+        return getRecordFieldDefaultValue(prevField);
+    }
+
+    public Node generateCombinedRecordField() {
+        MetadataNode mergedMetadata = getMergedMetadata(getMetadata(prevField), getMetadata(nextField));
+        if (nextField instanceof RecordFieldNode) {
+            RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
+            return nextRecordField.modify(mergedMetadata, getReadonlyKeyword(prevField),
+                    nextRecordField.typeName(), nextRecordField.fieldName(),
+                    nextRecordField.questionMarkToken().orElse(null), nextRecordField.semicolonToken());
+        } else if (nextField instanceof RecordFieldWithDefaultValueNode) {
+            RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) nextField;
+            return nextRecordField.modify(mergedMetadata, getReadonlyKeyword(prevField),
+                    nextRecordField.typeName(), nextRecordField.fieldName(),
+                    nextRecordField.equalsToken(),
+                    nextRecordField.expression(), nextRecordField.semicolonToken());
+        }
+        return null;
+    }
+
+    private MetadataNode getMetadata(Node field) {
+        if (field instanceof RecordFieldNode) {
+            RecordFieldNode recordField = (RecordFieldNode) field;
+            return recordField.metadata().orElse(null);
+        } else if (field instanceof RecordFieldWithDefaultValueNode) {
+            RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
+            return recordFieldWithDefaultValue.metadata().orElse(null);
+        }
+        return null;
+    }
+
+    private Token getReadonlyKeyword(Node field) {
+        if (field instanceof RecordFieldNode) {
+            RecordFieldNode recordField = (RecordFieldNode) field;
+            return recordField.readonlyKeyword().orElse(null);
+        } else if (field instanceof RecordFieldWithDefaultValueNode) {
+            RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
+            return recordFieldWithDefaultValue.readonlyKeyword().orElse(null);
+        }
+        return null;
     }
 }

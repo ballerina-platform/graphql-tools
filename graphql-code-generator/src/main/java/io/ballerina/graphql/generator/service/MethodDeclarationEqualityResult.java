@@ -24,7 +24,10 @@ public class MethodDeclarationEqualityResult {
     private MethodDeclarationNode prevMethodDeclaration;
     private MethodDeclarationNode nextMethodDeclaration;
 
-    public MethodDeclarationEqualityResult() {
+    public MethodDeclarationEqualityResult(MethodDeclarationNode prevMethodDeclaration, MethodDeclarationNode
+            nextMethodDeclaration) {
+        this.prevMethodDeclaration = prevMethodDeclaration;
+        this.nextMethodDeclaration = nextMethodDeclaration;
         isRelativeResourcePathsEqual = false;
     }
 

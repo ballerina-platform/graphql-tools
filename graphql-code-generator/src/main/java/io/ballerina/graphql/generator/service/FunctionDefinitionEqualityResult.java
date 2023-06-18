@@ -1,11 +1,15 @@
 package io.ballerina.graphql.generator.service;
 
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedQualifiers;
 
 /**
  * Utility class to store result of comparing two function definitions.
@@ -15,11 +19,19 @@ public class FunctionDefinitionEqualityResult {
     private String prevFunctionName;
     private String nextFunctionName;
     private NodeList<Token> prevQualifiers;
-    private NodeList<Token>  nextQualifiers;
+    private NodeList<Token> nextQualifiers;
     private String prevMethodType;
     private String nextMethodType;
     private boolean isFunctionNameEqual;
     private boolean isRelativeResourcePathsEqual;
+    private FunctionDefinitionNode prevFunctionDefinition;
+    private FunctionDefinitionNode nextFunctionDefinition;
+
+    public FunctionDefinitionEqualityResult(FunctionDefinitionNode prevFunctionDefinition,
+                                            FunctionDefinitionNode nextFunctionDefinition) {
+        this.prevFunctionDefinition = prevFunctionDefinition;
+        this.nextFunctionDefinition = nextFunctionDefinition;
+    }
 
     public boolean isEqual() {
         return isQualifierSimilar() && isFunctionNameEqual && isRelativeResourcePathsEqual &&
@@ -47,10 +59,6 @@ public class FunctionDefinitionEqualityResult {
         this.prevFunctionName = prevFunctionName;
     }
 
-    public String getNextFunctionName() {
-        return nextFunctionName;
-    }
-
     public void setNextFunctionName(String nextFunctionName) {
         this.nextFunctionName = nextFunctionName;
     }
@@ -63,14 +71,6 @@ public class FunctionDefinitionEqualityResult {
         isRelativeResourcePathsEqual = relativeResourcePathsEqual;
     }
 
-    public void setPrevQualifiers(NodeList<Token>  prevQualifiers) {
-        this.prevQualifiers = prevQualifiers;
-    }
-
-    public void setNextQualifiers(NodeList<Token>  nextQualifiers) {
-        this.nextQualifiers = nextQualifiers;
-    }
-
     private List<String> getPrevQualifiers() {
         List<String> results = new ArrayList<>();
         for (Token qualifierToken : prevQualifiers) {
@@ -79,12 +79,20 @@ public class FunctionDefinitionEqualityResult {
         return results;
     }
 
+    public void setPrevQualifiers(NodeList<Token> prevQualifiers) {
+        this.prevQualifiers = prevQualifiers;
+    }
+
     private List<String> getNextQualifiers() {
         List<String> results = new ArrayList<>();
         for (Token qualifierToken : nextQualifiers) {
             results.add(qualifierToken.text());
         }
         return results;
+    }
+
+    public void setNextQualifiers(NodeList<Token> nextQualifiers) {
+        this.nextQualifiers = nextQualifiers;
     }
 
     public String getPrevMainQualifier() {
@@ -152,4 +160,15 @@ public class FunctionDefinitionEqualityResult {
         return false;
     }
 
+    public FunctionDefinitionNode generateCombinedFunctionDefinition() {
+        MetadataNode finalMetadata = nextFunctionDefinition.metadata().orElse(null);
+        if (finalMetadata == null) {
+            finalMetadata = prevFunctionDefinition.metadata().orElse(null);
+        }
+        return prevFunctionDefinition.modify(prevFunctionDefinition.kind(), finalMetadata,
+                getMergedQualifiers(prevFunctionDefinition.qualifierList(), nextFunctionDefinition.qualifierList()),
+                prevFunctionDefinition.functionKeyword(),
+                nextFunctionDefinition.functionName(), nextFunctionDefinition.relativeResourcePath(),
+                nextFunctionDefinition.functionSignature(), prevFunctionDefinition.functionBody());
+    }
 }

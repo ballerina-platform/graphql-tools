@@ -2,32 +2,111 @@ package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
+import static io.ballerina.graphql.generator.service.BaseCombiner.isMethodDeclarationEquals;
+import static io.ballerina.graphql.generator.service.BaseCombiner.isResolverMethod;
+import static io.ballerina.graphql.generator.service.BaseCombiner.isTypeEquals;
 
 /**
  * Utility class to store result comparing two service objects.
  */
 public class ServiceObjectEqualityResult {
-    private List<MethodDeclarationNode> keptMethodDeclarations;
+    private final ObjectTypeDescriptorNode prevObjectType;
+    private final ObjectTypeDescriptorNode nextObjectType;
     private List<MethodDeclarationNode> removedMethodDeclarations;
     private List<MethodDeclarationNode> addedMethodDeclarations;
-    private List<TypeReferenceNode> keptTypeReferences;
     private List<TypeReferenceNode> removedTypeReferences;
     private List<TypeReferenceNode> addedTypeReferences;
     private List<MethodDeclarationEqualityResult> updatedMethodDeclarations;
-    private List<MethodDeclarationEqualityResult> qualifierListChangedMethodDeclarations;
+    private List<Node> finalMembers;
 
-    public ServiceObjectEqualityResult() {
+    public ServiceObjectEqualityResult(ObjectTypeDescriptorNode prevObjectType,
+                                       ObjectTypeDescriptorNode nextObjectType) {
         removedTypeReferences = new ArrayList<>();
         removedMethodDeclarations = new ArrayList<>();
         addedMethodDeclarations = new ArrayList<>();
-        keptMethodDeclarations = new ArrayList<>();
         addedTypeReferences = new ArrayList<>();
-        keptTypeReferences = new ArrayList<>();
         updatedMethodDeclarations = new ArrayList<>();
+        finalMembers = new ArrayList<>();
+        this.prevObjectType = prevObjectType;
+        this.nextObjectType = nextObjectType;
+        separateMembers();
+    }
+
+    public void separateMembers() {
+        LinkedHashMap<Node, Boolean> nextServiceObjectMemberAvailable = new LinkedHashMap<>();
+        for (Node nextMember : nextObjectType.members()) {
+            nextServiceObjectMemberAvailable.put(nextMember, false);
+        }
+        for (Node prevMember : prevObjectType.members()) {
+            boolean foundMatch = false;
+            for (Node nextMember : nextObjectType.members()) {
+                if (prevMember instanceof TypeReferenceNode && nextMember instanceof TypeReferenceNode) {
+                    TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
+                    TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextMember;
+                    TypeEqualityResult typeEquality =
+                            isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
+                    if (typeEquality.isEqual()) {
+                        foundMatch = true;
+                        nextServiceObjectMemberAvailable.put(nextMember, true);
+                        finalMembers.add(prevTypeRefMember);
+                        break;
+                    }
+                } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
+                    MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
+                    MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) nextMember;
+                    MethodDeclarationEqualityResult methodDeclarationEquals =
+                            isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration);
+                    if (methodDeclarationEquals.isEqual()) {
+                        foundMatch = true;
+                        nextServiceObjectMemberAvailable.put(nextMember, true);
+                        finalMembers.add(prevMethodDeclaration);
+                        break;
+                    } else if (methodDeclarationEquals.isMatch()) {
+                        foundMatch = true;
+                        nextServiceObjectMemberAvailable.put(nextMember, true);
+                        finalMembers.add(methodDeclarationEquals.generateCombinedMethodDeclaration());
+                        updatedMethodDeclarations.add(methodDeclarationEquals);
+                        break;
+                    }
+                }
+            }
+            if (!foundMatch) {
+                if (prevMember instanceof TypeReferenceNode) {
+                    TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
+                    finalMembers.add(prevTypeRefMember);
+                } else if (prevMember instanceof MethodDeclarationNode) {
+                    MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
+                    if (isResolverMethod(prevMethodDeclaration)) {
+                        removedMethodDeclarations.add(prevMethodDeclaration);
+                    } else {
+                        finalMembers.add(prevMethodDeclaration);
+                    }
+                }
+            }
+        }
+        for (Map.Entry<Node, Boolean> nextMemberAvailableEntry : nextServiceObjectMemberAvailable.entrySet()) {
+            Boolean nextMemberAvailable = nextMemberAvailableEntry.getValue();
+            if (!nextMemberAvailable) {
+                Node newServiceObjectMember = nextMemberAvailableEntry.getKey();
+                if (newServiceObjectMember instanceof TypeReferenceNode) {
+                    TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) newServiceObjectMember;
+                    finalMembers.add(nextTypeRefMember);
+                } else if (newServiceObjectMember instanceof MethodDeclarationNode) {
+                    MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) newServiceObjectMember;
+                    finalMembers.add(nextMethodDeclaration);
+                }
+            }
+        }
     }
 
     public boolean isEqual() {
@@ -40,54 +119,13 @@ public class ServiceObjectEqualityResult {
         removedMethodDeclarations.add(methodDeclarationName);
     }
 
-    public void addToKeptMethodDeclarations(MethodDeclarationNode methodDeclaration) {
-        keptMethodDeclarations.add(methodDeclaration);
-    }
-
     public void addToUpdatedMethodDeclarations(MethodDeclarationEqualityResult methodDeclarationEquality) {
         updatedMethodDeclarations.add(methodDeclarationEquality);
     }
 
-    public void addToAddedMethodDeclarations(MethodDeclarationNode methodDeclarationName) {
-        addedMethodDeclarations.add(methodDeclarationName);
-    }
-
-    public void addToQualifierListChangedMethodDeclarations(MethodDeclarationEqualityResult methodDeclarationEquality) {
-        qualifierListChangedMethodDeclarations.add(methodDeclarationEquality);
-    }
-
-    public void addToRemovedTypeReferences(TypeReferenceNode typeReference) {
-        removedTypeReferences.add(typeReference);
-    }
-
-    public void addToKeptTypeReferences(TypeReferenceNode typeReference) {
-        keptTypeReferences.add(typeReference);
-    }
-
-    public void addToAddedTypeReferences(TypeReferenceNode typeReference) {
-        addedTypeReferences.add(typeReference);
-    }
-
-    public List<Node> generateCombinedMembers() {
-        List<Node> combinedMembers = new ArrayList<>();
-        combinedMembers.addAll(keptTypeReferences);
-        combinedMembers.addAll(removedTypeReferences);
-        combinedMembers.addAll(addedTypeReferences);
-        combinedMembers.addAll(keptMethodDeclarations);
-        combinedMembers.addAll(addedMethodDeclarations);
-        for (MethodDeclarationNode removedMethodDeclaration : removedMethodDeclarations) {
-            if (removedMethodDeclaration.qualifierList().size() == 0) {
-                combinedMembers.add(removedMethodDeclaration);
-            }
-        }
-        for (MethodDeclarationEqualityResult updatedMethodDeclarationEquality : updatedMethodDeclarations) {
-            combinedMembers.add(updatedMethodDeclarationEquality.generateCombinedMethodDeclaration());
-        }
-        return combinedMembers;
-    }
-
-    public List<MethodDeclarationNode> getAddedMethodDeclarations() {
-        return addedMethodDeclarations;
+    public ObjectTypeDescriptorNode generateCombinedObjectTypeDescriptor() {
+        return prevObjectType.modify(prevObjectType.objectTypeQualifiers(), nextObjectType.objectKeyword(),
+                nextObjectType.openBrace(), createNodeList(finalMembers), nextObjectType.closeBrace());
     }
 
     public List<MethodDeclarationNode> getRemovedMethodDeclarations() {
@@ -98,28 +136,12 @@ public class ServiceObjectEqualityResult {
         return updatedMethodDeclarations;
     }
 
-    public List<MethodDeclarationNode> getKeptMethodDeclarations() {
-        return keptMethodDeclarations;
-    }
-
-    public List<TypeReferenceNode> getKeptTypeReferences() {
-        return keptTypeReferences;
-    }
-
-    public List<TypeReferenceNode> getRemovedTypeReferences() {
-        return removedTypeReferences;
-    }
-
-    public List<TypeReferenceNode> getAddedTypeReferences() {
-        return addedTypeReferences;
-    }
-
     public List<MethodDeclarationNode> getRemovedResolverMethodDeclarations() {
         List<MethodDeclarationNode> removedResolverMethodDeclarations = new ArrayList<>();
         for (MethodDeclarationNode removedMethodDeclaration : removedMethodDeclarations) {
-            String mainQualifier = BaseCombiner.getMainQualifier(removedMethodDeclaration.qualifierList());
-            if (mainQualifier != null && (mainQualifier.equals(Constants.RESOURCE) ||
-                    mainQualifier.equals(Constants.REMOTE))) {
+            Token mainQualifier = BaseCombiner.getMainQualifier(removedMethodDeclaration.qualifierList());
+            if (mainQualifier != null && (mainQualifier.text().equals(Constants.RESOURCE) ||
+                    mainQualifier.text().equals(Constants.REMOTE))) {
                 removedResolverMethodDeclarations.add(removedMethodDeclaration);
             }
         }

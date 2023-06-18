@@ -1,103 +1,104 @@
 package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 
 /**
  * Utility class to store result comparing record types.
  */
 public class RecordTypeEqualityResult {
-    private Node prevRecordField;
+    private final RecordTypeDescriptorNode prevRecordType;
+    private final RecordTypeDescriptorNode nextRecordType;
+    private List<Node> addedFields;
+    private List<RecordFieldEqualityResult> updatedRecordFields;
+    private List<Node> removedFields;
+    private List<Node> finalMembers;
 
-    private List<String> additions;
-    private List<String> violatedAdditions;
-    private List<String> removals;
-    private String prevRecordKeyword;
-    private String nextRecordKeyword;
-    private String prevStartDelimiter;
-    private String nextStartDelimiter;
-    private String prevEndDelimiter;
-    private String nextEndDelimiter;
-    private List<RecordFieldEqualityResult> typeChangedRecordFields;
-    private List<RecordFieldWithDefaultValueEqualityResult> typeChangedRecordFieldsWithDefaultValues;
-    private List<RecordFieldEqualityResult> defaultValueRemovedFields;
+    public RecordTypeEqualityResult(RecordTypeDescriptorNode prevRecordType, RecordTypeDescriptorNode nextRecordType) {
+        this.prevRecordType = prevRecordType;
+        this.nextRecordType = nextRecordType;
+        updatedRecordFields = new ArrayList<>();
+        addedFields = new ArrayList<>();
+        removedFields = new ArrayList<>();
+        finalMembers = new ArrayList<>();
+    }
 
-    public RecordTypeEqualityResult(String prevRecordKeyword, String nextRecordKeyword, String prevStartDelimiter,
-                                    String nextStartDelimiter, String prevEndDelimiter, String nextEndDelimiter) {
-        this.prevRecordKeyword = prevRecordKeyword;
-        this.nextRecordKeyword = nextRecordKeyword;
-        this.prevStartDelimiter = prevStartDelimiter;
-        this.nextStartDelimiter = nextStartDelimiter;
-        this.prevEndDelimiter = prevEndDelimiter;
-        this.nextEndDelimiter = nextEndDelimiter;
-        typeChangedRecordFields = new ArrayList<>();
-        defaultValueRemovedFields = new ArrayList<>();
-        additions = new ArrayList<>();
-        violatedAdditions = new ArrayList<>();
-        removals = new ArrayList<>();
+    public void separateMembers() {
+        LinkedHashMap<Node, Boolean> nextRecordFieldsAvailability = new LinkedHashMap<>();
+        for (Node nextField : nextRecordType.fields()) {
+            nextRecordFieldsAvailability.put(nextField, false);
+        }
+        for (Node prevField : prevRecordType.fields()) {
+            boolean foundPrevMatch = false;
+            for (Node nextField : nextRecordType.fields()) {
+                RecordFieldEqualityResult recordFieldEquality =
+                        new RecordFieldEqualityResult(prevField, nextField);
+                if (recordFieldEquality.isEqual()) {
+                    foundPrevMatch = true;
+                    nextRecordFieldsAvailability.put(nextField, true);
+                    finalMembers.add(recordFieldEquality.generateCombinedRecordField());
+                    break;
+                } else if (recordFieldEquality.isMatch()) {
+                    foundPrevMatch = true;
+                    nextRecordFieldsAvailability.put(nextField, true);
+                    updatedRecordFields.add(recordFieldEquality);
+                    finalMembers.add(recordFieldEquality.generateCombinedRecordField());
+                    break;
+                }
+            }
+            if (!foundPrevMatch) {
+                removedFields.add(prevField);
+            }
+        }
+        for (Map.Entry<Node, Boolean> availabilityMapEntry : nextRecordFieldsAvailability.entrySet()) {
+            Boolean nextRecordFieldAvailable = availabilityMapEntry.getValue();
+            if (!nextRecordFieldAvailable) {
+                Node newRecordField = availabilityMapEntry.getKey();
+                addedFields.add(newRecordField);
+                finalMembers.add(newRecordField);
+            }
+        }
+    }
+
+    public List<Node> getRemovedFields() {
+        return removedFields;
     }
 
     private boolean isRecordKeywordEquals() {
-        return prevRecordKeyword.equals(nextRecordKeyword);
+        return prevRecordType.recordKeyword().text().equals(nextRecordType.recordKeyword().text());
     }
 
     private boolean isStartDelimiterEquals() {
-        return prevStartDelimiter.equals(nextStartDelimiter);
+        return prevRecordType.bodyStartDelimiter().text().equals(nextRecordType.bodyStartDelimiter().text());
     }
 
     private boolean isEndDelimiterEquals() {
-        return prevEndDelimiter.equals(nextEndDelimiter);
+        return prevRecordType.bodyEndDelimiter().text().equals(nextRecordType.bodyEndDelimiter().text());
     }
 
-    public void addToTypeChangedRecordFields(RecordFieldEqualityResult recordFieldEqualityResult) {
-        typeChangedRecordFields.add(recordFieldEqualityResult);
-    }
-
-    public void addToTypeChangedRecordFieldsWithDefaultValues(
-            RecordFieldWithDefaultValueEqualityResult recordFieldWithDefaultValueEqualityResult) {
-        typeChangedRecordFieldsWithDefaultValues.add(recordFieldWithDefaultValueEqualityResult);
-    }
-
-    public void addToDefaultValueRemovedFields(RecordFieldEqualityResult recordFieldEqualityResult) {
-        defaultValueRemovedFields.add(recordFieldEqualityResult);
-    }
-
-    public void addToAdditions(String addition) {
-        additions.add(addition);
-    }
-
-    public void addToViolatedAdditions(String violatedAddition) {
-        violatedAdditions.add(violatedAddition);
-    }
-
-    public void addToRemovals(String removal) {
-        removals.add(removal);
-    }
-
-    public List<RecordFieldEqualityResult> getTypeChangedRecordFields() {
-        return typeChangedRecordFields;
-    }
-
-    public List<RecordFieldWithDefaultValueEqualityResult> getTypeChangedRecordFieldsWithDefaultValues() {
-        return typeChangedRecordFieldsWithDefaultValues;
+    public List<RecordFieldEqualityResult> getUpdatedRecordFields() {
+        return updatedRecordFields;
     }
 
     public boolean isEqual() {
-        return isRecordKeywordEquals() && isStartDelimiterEquals() && isEndDelimiterEquals() && additions.isEmpty() &&
-                removals.isEmpty() && defaultValueRemovedFields.isEmpty() && typeChangedRecordFields.isEmpty();
+        return isRecordKeywordEquals() && isStartDelimiterEquals() && isEndDelimiterEquals() && addedFields.isEmpty() &&
+                removedFields.isEmpty() && updatedRecordFields.isEmpty();
     }
 
-    public List<String> getViolatedAdditions() {
-        return violatedAdditions;
+    public RecordTypeDescriptorNode generateCombinedRecordType() {
+        return prevRecordType.modify(nextRecordType.recordKeyword(), prevRecordType.bodyStartDelimiter(),
+                createNodeList(finalMembers), prevRecordType.recordRestDescriptor().orElse(null),
+                prevRecordType.bodyEndDelimiter());
     }
 
-    public List<String> getRemovals() {
-        return removals;
-    }
-
-    public List<RecordFieldEqualityResult> getDefaultValueRemovedFields() {
-        return defaultValueRemovedFields;
+    public List<Node> getAddedFields() {
+        return addedFields;
     }
 }
