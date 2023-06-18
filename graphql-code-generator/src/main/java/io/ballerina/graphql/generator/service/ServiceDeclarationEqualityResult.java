@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
-import static io.ballerina.graphql.generator.service.BaseCombiner.getFunctionName;
-import static io.ballerina.graphql.generator.service.BaseCombiner.getMergedMetadata;
-import static io.ballerina.graphql.generator.service.BaseCombiner.getTypeName;
-import static io.ballerina.graphql.generator.service.BaseCombiner.isFuncDefEquals;
-import static io.ballerina.graphql.generator.service.BaseCombiner.isResolverFunction;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isFuncDefEquals;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverFunction;
 
 /**
  * Utility class to store result comparing service declarations.

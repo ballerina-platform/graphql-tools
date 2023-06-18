@@ -9,10 +9,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.graphql.generator.service.BaseCombiner.getMergedMetadata;
+
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getCommaAddedSeparatedNodeList;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMemberName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMetadata;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
 
 /**
  * Utility class to store result comparing enum declarations.

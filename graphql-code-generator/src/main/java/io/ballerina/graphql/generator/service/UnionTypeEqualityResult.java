@@ -7,7 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.graphql.generator.service.BaseCombiner.getTypeName;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
+
 
 /**
  * Utility class to store result comparing union types.

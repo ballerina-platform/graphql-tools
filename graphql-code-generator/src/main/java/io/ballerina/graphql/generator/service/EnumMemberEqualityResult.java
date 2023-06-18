@@ -4,9 +4,10 @@ import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 
-import static io.ballerina.graphql.generator.service.BaseCombiner.getMergedMetadata;
+
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMemberMetadata;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMemberName;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
 
 /**
  * Utility class to store result comparing enum members.

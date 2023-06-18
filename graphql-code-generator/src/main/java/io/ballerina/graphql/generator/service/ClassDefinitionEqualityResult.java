@@ -13,10 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
-import static io.ballerina.graphql.generator.service.BaseCombiner.getFunctionName;
-import static io.ballerina.graphql.generator.service.BaseCombiner.isFuncDefEquals;
-import static io.ballerina.graphql.generator.service.BaseCombiner.isResolverFunction;
-import static io.ballerina.graphql.generator.service.BaseCombiner.isTypeEquals;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isFuncDefEquals;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverFunction;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isTypeEquals;
 
 /**
  * Utility class used to store result comparing two class definitions.
@@ -154,7 +155,7 @@ public class ClassDefinitionEqualityResult {
         }
         combinedMembers.addAll(addedFunctionDefinitions);
         for (FunctionDefinitionNode removedFunctionDefinition : removedFunctionDefinitions) {
-            Token mainQualifier = BaseCombiner.getMainQualifier(removedFunctionDefinition.qualifierList());
+            Token mainQualifier = getMainQualifier(removedFunctionDefinition.qualifierList());
             if (mainQualifier.text() == null ||
                     (!mainQualifier.text().equals(Constants.RESOURCE) &&
                             !mainQualifier.text().equals(Constants.REMOTE))) {

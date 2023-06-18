@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
-import static io.ballerina.graphql.generator.service.BaseCombiner.isMethodDeclarationEquals;
-import static io.ballerina.graphql.generator.service.BaseCombiner.isResolverMethod;
-import static io.ballerina.graphql.generator.service.BaseCombiner.isTypeEquals;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isMethodDeclarationEquals;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverMethod;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isTypeEquals;
+
 
 /**
  * Utility class to store result comparing two service objects.
@@ -139,7 +141,7 @@ public class ServiceObjectEqualityResult {
     public List<MethodDeclarationNode> getRemovedResolverMethodDeclarations() {
         List<MethodDeclarationNode> removedResolverMethodDeclarations = new ArrayList<>();
         for (MethodDeclarationNode removedMethodDeclaration : removedMethodDeclarations) {
-            Token mainQualifier = BaseCombiner.getMainQualifier(removedMethodDeclaration.qualifierList());
+            Token mainQualifier = getMainQualifier(removedMethodDeclaration.qualifierList());
             if (mainQualifier != null && (mainQualifier.text().equals(Constants.RESOURCE) ||
                     mainQualifier.text().equals(Constants.REMOTE))) {
                 removedResolverMethodDeclarations.add(removedMethodDeclaration);

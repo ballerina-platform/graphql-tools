@@ -14,9 +14,9 @@ import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.ballerina.graphql.generator.service.BaseCombiner.getMergedMetadata;
-import static io.ballerina.graphql.generator.service.BaseCombiner.getMethodDeclarationName;
-import static io.ballerina.graphql.generator.service.BaseCombiner.getRecordFieldName;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMethodDeclarationName;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getRecordFieldName;
 
 /**
  * Utility class to store result comparing type definitions.
