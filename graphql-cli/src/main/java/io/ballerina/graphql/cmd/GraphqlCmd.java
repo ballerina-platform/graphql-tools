@@ -115,6 +115,7 @@ public class GraphqlCmd implements BLauncherCmd {
 
     private ClientCodeGenerator clientCodeGenerator;
     private ServiceCodeGenerator serviceCodeGenerator;
+    private List<String> warnings;
 
     /**
      * Constructor that initialize with the default values.
@@ -144,6 +145,7 @@ public class GraphqlCmd implements BLauncherCmd {
         this.outStream = outStream;
         this.executionPath = executionDir;
         this.exitWhenFinish = exitWhenFinish;
+        warnings = new ArrayList<>();
     }
 
     /**
@@ -261,6 +263,13 @@ public class GraphqlCmd implements BLauncherCmd {
             setServiceCodeGenerator(new ServiceCodeGenerator());
             generateService(filePath);
         }
+        printWarnings();
+    }
+
+    private void printWarnings() {
+        for (String warning : warnings) {
+            outStream.println(warning);
+        }
     }
 
     /**
@@ -302,6 +311,7 @@ public class GraphqlCmd implements BLauncherCmd {
             this.serviceCodeGenerator.enableToUseRecords();
         }
         this.serviceCodeGenerator.generate(graphqlProject);
+        warnings.addAll(this.serviceCodeGenerator.getWarnings());
     }
 
     /**

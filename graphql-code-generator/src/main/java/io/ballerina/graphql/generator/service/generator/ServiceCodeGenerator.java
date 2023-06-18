@@ -48,10 +48,12 @@ public class ServiceCodeGenerator extends CodeGenerator {
     private ServiceGenerator serviceGenerator;
     private ServiceTypesGenerator serviceTypesGenerator;
     private List<MethodDeclarationNode> serviceMethodDeclarations;
+    private List<String> warnings;
 
     public ServiceCodeGenerator() {
         this.serviceGenerator = new ServiceGenerator();
         this.serviceTypesGenerator = new ServiceTypesGenerator();
+        warnings = new ArrayList<>();
     }
 
     @Override
@@ -106,6 +108,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
         ServiceCombiner serviceCombiner =
                 new ServiceCombiner(availableOutputFileNode, newTypesFileContentNode, graphQLSchema);
         String mergedTypesFileContent = serviceCombiner.generateMergedSrc();
+        warnings.addAll(serviceCombiner.getBreakingChangeWarnings());
         setServiceMethodDeclarations(this.serviceTypesGenerator.getServiceMethodDeclarations());
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
@@ -118,5 +121,9 @@ public class ServiceCodeGenerator extends CodeGenerator {
 
     public void setServiceMethodDeclarations(List<MethodDeclarationNode> serviceMethodDeclarations) {
         this.serviceMethodDeclarations = serviceMethodDeclarations;
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
     }
 }
