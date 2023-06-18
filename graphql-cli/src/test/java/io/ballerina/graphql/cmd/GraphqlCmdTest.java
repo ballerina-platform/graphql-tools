@@ -118,6 +118,56 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test printing breaking change warning messages when generating service upon already " +
+            "populated service")
+    public void testPrintingWarningMessagesWhenExecutionForServiceGenerationOutputFilesAreAlreadyPopulated() {
+        Path newGraphqlSchemaPath = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewInputTypeFieldsApi.graphql"));
+        Path currentTypesFilePath = resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "typesBeforeAddingNewInputTypeFieldsDefault.bal"));
+        Path currentServiceFilePath =
+                resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
+                        "serviceBeforeAddingNewInputTypeFieldsDefault.bal"));
+        String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        String expectedWarning =
+                "warning: In 'CreateAuthorInput' input type 'address' field is introduced without a default value. This can brake available clients\n" +
+                        "warning: In 'CreateBookInput' input type 'version' field is introduced without a default value. This" +
+                        " can brake available clients";
+        String printedWarning = "";
+        try {
+            String currentTypesFileContent = readContentWithFormat(currentTypesFilePath);
+            String currentServiceFileContent = readContentWithFormat(currentServiceFilePath);
+            Files.writeString(Paths.get(this.tmpDir.toString(), "types.bal"), currentTypesFileContent,
+                    StandardOpenOption.CREATE);
+            Files.writeString(Paths.get(this.tmpDir.toString(), "service.bal"), currentServiceFileContent,
+                    StandardOpenOption.CREATE);
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            Path expectedServiceFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "updated", "serviceWithAddedNewInputTypeFieldsDefault" +
+                            ".bal"));
+            Path expectedTypesFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "updated",
+                            "typesWithAddedNewInputTypeFieldsDefault.bal"));
+            String expectedServiceContent = readContentWithFormat(expectedServiceFile);
+            String expectedTypesContent = readContentWithFormat(expectedTypesFile);
+
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
+            String generatedServiceContent = readContentWithFormat(this.tmpDir.resolve("service.bal"));
+            String generatedTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+
+            Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+
+            printedWarning = readOutput(true);
+            Assert.assertTrue(printedWarning.contains(expectedWarning));
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.toString());
+        }
+    }
+
     @Test(description = "Test graphql command execution with mode flag")
     public void testExecuteWithModeFlag() {
         Path graphql = resourceDir.resolve(
