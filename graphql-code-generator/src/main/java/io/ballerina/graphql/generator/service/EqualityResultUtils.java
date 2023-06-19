@@ -10,6 +10,7 @@ import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
+import io.ballerina.compiler.syntax.tree.MinutiaeList;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
@@ -32,6 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createCommentMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEndOfLineMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createMinutiaeList;
@@ -360,19 +362,25 @@ public class EqualityResultUtils {
         return false;
     }
 
-    public static NodeList<Token> getMergedQualifiers(NodeList<Token> prevQualifiers, NodeList<Token> nextQualifiers) {
+    public static NodeList<Token> getMergedQualifiers(
+            NodeList<Token> prevQualifiers, NodeList<Token> nextQualifiers, boolean isFirstFunctionDefinition) {
         List<Token> mergedQualifiers = new ArrayList<>();
         Token prevMainQualifier = getMainQualifier(prevQualifiers);
         Token nextMainQualifier = getMainQualifier(nextQualifiers);
         if (prevMainQualifier == null) {
             return nextQualifiers;
         } else {
+            boolean addNewLineInFront = true;
             for (Token prevQualifier : prevQualifiers) {
                 if (!prevQualifier.equals(prevMainQualifier)) {
                     mergedQualifiers.add(prevQualifier);
                 } else {
-                    mergedQualifiers.add(nextMainQualifier);
+                    Token modifiedNextMainQualifier =
+                            generateQualifierToken(nextMainQualifier.text(),
+                                    addNewLineInFront && !isFirstFunctionDefinition);
+                    mergedQualifiers.add(modifiedNextMainQualifier);
                 }
+                addNewLineInFront = false;
             }
         }
         return createNodeList(mergedQualifiers);
@@ -383,5 +391,20 @@ public class EqualityResultUtils {
             return prevMetadata;
         }
         return nextMetadata;
+    }
+
+    public static Token generateQualifierToken(String qualifier, boolean addNewLineInFront) {
+        MinutiaeList leadingMinutiaeList = createEmptyMinutiaeList();
+        if (addNewLineInFront) {
+            leadingMinutiaeList =
+                    leadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+        }
+        SyntaxKind keyword = null;
+        if (qualifier.equals(Constants.REMOTE)) {
+            keyword = SyntaxKind.REMOTE_KEYWORD;
+        } else if (qualifier.equals(Constants.RESOURCE)) {
+            keyword = SyntaxKind.RESOURCE_KEYWORD;
+        }
+        return createToken(keyword, leadingMinutiaeList, createEmptyMinutiaeList());
     }
 }

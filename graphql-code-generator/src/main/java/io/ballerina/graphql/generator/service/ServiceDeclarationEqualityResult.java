@@ -74,6 +74,7 @@ public class ServiceDeclarationEqualityResult {
         for (Node nextServiceMember : nextServiceDeclaration.members()) {
             nextServiceMemberAvailability.put(nextServiceMember, false);
         }
+        boolean isFirstMember = true;
         for (Node prevServiceMember : prevServiceDeclaration.members()) {
             boolean foundMatch = false;
             for (Node nextServiceMember : nextServiceDeclaration.members()) {
@@ -90,7 +91,7 @@ public class ServiceDeclarationEqualityResult {
                         break;
                     } else if (funcDefEquality.isMatch()) {
                         foundMatch = true;
-                        finalMembers.add(funcDefEquality.generateCombinedFunctionDefinition());
+                        finalMembers.add(funcDefEquality.generateCombinedFunctionDefinition(isFirstMember));
                         nextServiceMemberAvailability.put(nextServiceMember, true);
                         updatedFunctionEqualityResults.add(funcDefEquality);
                         break;
@@ -107,6 +108,7 @@ public class ServiceDeclarationEqualityResult {
                     }
                 }
             }
+            isFirstMember = false;
         }
         for (Map.Entry<Node, Boolean> nextServiceMemberAvailableEntry : nextServiceMemberAvailability.entrySet()) {
             Boolean nextServiceMemberAvailable = nextServiceMemberAvailableEntry.getValue();
