@@ -142,14 +142,16 @@ public class EqualityResultUtils {
 
     public static String getMethodDeclarationName(MethodDeclarationNode methodDeclaration) {
         if (methodDeclaration.qualifierList().size() > 0) {
-            String firstQualifier = methodDeclaration.qualifierList().get(0).text();
-            if (firstQualifier.equals(Constants.RESOURCE)) {
+            String mainQualifier = getMainQualifier(methodDeclaration.qualifierList()).text();
+            if (mainQualifier.equals(Constants.RESOURCE)) {
                 Node methodDeclarationNameNode = methodDeclaration.relativeResourcePath().get(0);
                 if (methodDeclarationNameNode instanceof IdentifierToken) {
                     IdentifierToken methodDeclarationName = (IdentifierToken) methodDeclarationNameNode;
                     return methodDeclarationName.text();
                 }
-            } else if (firstQualifier.equals(Constants.REMOTE)) {
+            } else if (mainQualifier.equals(Constants.REMOTE)) {
+                return methodDeclaration.methodName().text();
+            } else {
                 return methodDeclaration.methodName().text();
             }
         } else {
@@ -160,14 +162,14 @@ public class EqualityResultUtils {
 
     public static String getFunctionName(FunctionDefinitionNode functionDefinition) {
         if (functionDefinition.qualifierList().size() > 0) {
-            String firstQualifier = functionDefinition.qualifierList().get(0).text();
-            if (firstQualifier.equals(Constants.RESOURCE)) {
+            String mainQualifier = getMainQualifier(functionDefinition.qualifierList()).text();
+            if (mainQualifier.equals(Constants.RESOURCE)) {
                 Node functionNameNode = functionDefinition.relativeResourcePath().get(0);
                 if (functionNameNode instanceof IdentifierToken) {
                     IdentifierToken functionNameToken = (IdentifierToken) functionNameNode;
                     return functionNameToken.text();
                 }
-            } else if (firstQualifier.equals(Constants.REMOTE)) {
+            } else if (mainQualifier.equals(Constants.REMOTE)) {
                 return functionDefinition.functionName().text();
             }
         } else {
@@ -181,17 +183,17 @@ public class EqualityResultUtils {
                                                                    FunctionDefinitionNode nextClassFuncDef) {
         FunctionDefinitionEqualityResult functionDefinitionEquality =
                 new FunctionDefinitionEqualityResult(prevClassFuncDef, nextClassFuncDef);
-        functionDefinitionEquality.setPrevFunctionName(getFunctionName(prevClassFuncDef));
-        functionDefinitionEquality.setNextFunctionName(getFunctionName(nextClassFuncDef));
-        functionDefinitionEquality.setPrevQualifiers(prevClassFuncDef.qualifierList());
-        functionDefinitionEquality.setNextQualifiers(nextClassFuncDef.qualifierList());
-        functionDefinitionEquality.setPrevMethodType(prevClassFuncDef.functionName().text());
-        functionDefinitionEquality.setNextMethodType(nextClassFuncDef.functionName().text());
-        functionDefinitionEquality.setFunctionNameEqual(
-                prevClassFuncDef.functionName().text().equals(nextClassFuncDef.functionName().text()));
-        functionDefinitionEquality.setRelativeResourcePathsEqual(
-                isRelativeResourcePathEquals(prevClassFuncDef.relativeResourcePath(),
-                        nextClassFuncDef.relativeResourcePath()));
+//        functionDefinitionEquality.setPrevFunctionName(getFunctionName(prevClassFuncDef));
+//        functionDefinitionEquality.setNextFunctionName(getFunctionName(nextClassFuncDef));
+//        functionDefinitionEquality.setPrevQualifiers(prevClassFuncDef.qualifierList());
+//        functionDefinitionEquality.setNextQualifiers(nextClassFuncDef.qualifierList());
+//        functionDefinitionEquality.setPrevMethodType(prevClassFuncDef.functionName().text());
+//        functionDefinitionEquality.setNextMethodType(nextClassFuncDef.functionName().text());
+//        functionDefinitionEquality.setFunctionNameEqual(
+//                prevClassFuncDef.functionName().text().equals(nextClassFuncDef.functionName().text()));
+//        functionDefinitionEquality.setRelativeResourcePathsEqual(
+//                isRelativeResourcePathEquals(prevClassFuncDef.relativeResourcePath(),
+//                        nextClassFuncDef.relativeResourcePath()));
         FunctionSignatureEqualityResult funcSignatureEquals =
                 isFuncSignatureEquals(prevClassFuncDef.functionSignature(), nextClassFuncDef.functionSignature());
         functionDefinitionEquality.setFunctionSignatureEqualityResult(funcSignatureEquals);
