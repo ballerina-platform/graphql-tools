@@ -12,8 +12,7 @@ public class FunctionSignatureEqualityResult {
     private List<String> removedParameters;
     private List<ParameterEqualityResult> typeChangedParameters;
     private List<ParameterEqualityResult> defaultValueRemovedParameters;
-    private TypeEqualityResult returnTypeEqualityResult;
-
+    private ReturnTypeDescriptorEqualityResult returnTypeEqualityResult;
 
     public FunctionSignatureEqualityResult() {
         addedParameters = new ArrayList<>();
@@ -49,7 +48,7 @@ public class FunctionSignatureEqualityResult {
         removedParameters.add(parameterName);
     }
 
-    public void setTypeEqualityResult(TypeEqualityResult returnTypeEqualityResult) {
+    public void setReturnTypeEqualityResult(ReturnTypeDescriptorEqualityResult returnTypeEqualityResult) {
         this.returnTypeEqualityResult = returnTypeEqualityResult;
     }
 
@@ -69,7 +68,7 @@ public class FunctionSignatureEqualityResult {
         return typeChangedParameters;
     }
 
-    public TypeEqualityResult getReturnTypeEqualityResult() {
+    public ReturnTypeDescriptorEqualityResult getReturnTypeEqualityResult() {
         return returnTypeEqualityResult;
     }
 
