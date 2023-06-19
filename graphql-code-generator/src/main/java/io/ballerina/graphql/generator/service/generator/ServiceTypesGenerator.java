@@ -692,8 +692,12 @@ public class ServiceTypesGenerator extends TypesGenerator {
             annotations.add(annotation);
             markdownDocumentationLines.addAll(generateMarkdownDocumentationLinesForDeprecated(deprecationReason));
         }
-        return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
-                createNodeList(annotations));
+        if (markdownDocumentationLines.isEmpty() && annotations.isEmpty()) {
+            return null;
+        } else {
+            return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
+                    createNodeList(annotations));
+        }
     }
 
     private List<Node> generateMarkdownDocumentationLinesForDeprecated(String deprecationReason) {
