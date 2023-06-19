@@ -243,11 +243,11 @@ public class EqualityResultUtils {
                 equalityResult.addToAddedParameters(newParameterName);
             }
         }
-        ReturnTypeDescriptorNode prevReturnType = prevFunctionSignature.returnTypeDesc().orElseThrow();
-        ReturnTypeDescriptorNode nextReturnType = nextFunctionSignature.returnTypeDesc().orElseThrow();
-
-        TypeEqualityResult returnTypeEqualityResult = isTypeEquals(prevReturnType.type(), nextReturnType.type());
-        equalityResult.setTypeEqualityResult(returnTypeEqualityResult);
+        ReturnTypeDescriptorNode prevReturnType = prevFunctionSignature.returnTypeDesc().orElse(null);
+        ReturnTypeDescriptorNode nextReturnType = nextFunctionSignature.returnTypeDesc().orElse(null);
+        ReturnTypeDescriptorEqualityResult returnTypeEquality =
+                new ReturnTypeDescriptorEqualityResult(prevReturnType, nextReturnType);
+        equalityResult.setReturnTypeEqualityResult(returnTypeEquality);
         return equalityResult;
     }
 
