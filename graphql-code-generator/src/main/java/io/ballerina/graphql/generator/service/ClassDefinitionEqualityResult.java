@@ -4,7 +4,7 @@ import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 
 import java.util.ArrayList;
@@ -14,7 +14,6 @@ import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isFuncDefEquals;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverFunction;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isTypeEquals;
@@ -51,6 +50,7 @@ public class ClassDefinitionEqualityResult {
     private List<TypeReferenceNode> keptTypeReferences;
     private List<TypeReferenceNode> removedTypeReferences;
     private List<TypeReferenceNode> addedTypeReferences;
+    private List<Node> finalMembers;
 
     public ClassDefinitionEqualityResult(ClassDefinitionNode prevClassDefinition,
                                          ClassDefinitionNode nextClassDefinition) {
@@ -63,6 +63,7 @@ public class ClassDefinitionEqualityResult {
         keptTypeReferences = new ArrayList<>();
         removedTypeReferences = new ArrayList<>();
         addedTypeReferences = new ArrayList<>();
+        finalMembers = new ArrayList<>();
         separateClassMembers();
     }
 
@@ -81,6 +82,7 @@ public class ClassDefinitionEqualityResult {
                 nextClassMemberAvailability.put(nextClassTypeReference, false);
             }
         }
+        boolean isFirstMember = true;
         for (Node prevClassMember : prevClassDefinition.members()) {
             boolean foundMatch = false;
             for (Node nextClassMember : nextClassDefinition.members()) {
@@ -92,7 +94,7 @@ public class ClassDefinitionEqualityResult {
                     if (typeEquality.isEqual()) {
                         foundMatch = true;
                         nextClassMemberAvailability.put(nextTypeRefMember, true);
-                        keptTypeReferences.add(prevTypeRefMember);
+                        finalMembers.add(prevTypeRefMember);
                         break;
                     }
                 } else if (prevClassMember instanceof FunctionDefinitionNode &&
@@ -104,11 +106,12 @@ public class ClassDefinitionEqualityResult {
                     if (funcDefEquals.isEqual()) {
                         foundMatch = true;
                         nextClassMemberAvailability.put(nextFunctionDefinition, true);
-                        keptFunctionDefinitions.add(prevFunctionDefinition);
+                        finalMembers.add(prevFunctionDefinition);
                         break;
                     } else if (funcDefEquals.isMatch()) {
                         foundMatch = true;
                         nextClassMemberAvailability.put(nextFunctionDefinition, true);
+                        finalMembers.add(funcDefEquals.generateCombinedFunctionDefinition(isFirstMember));
                         updatedFunctionDefinitions.add(funcDefEquals);
                         break;
                     }
@@ -123,10 +126,13 @@ public class ClassDefinitionEqualityResult {
                     if (isResolverFunction(prevFunctionDefinition)) {
                         removedFunctionDefinitions.add(prevFunctionDefinition);
                     } else {
-                        keptFunctionDefinitions.add(prevFunctionDefinition);
+                        finalMembers.add(prevFunctionDefinition);
                     }
+                } else if (prevClassMember instanceof ObjectFieldNode) {
+                    finalMembers.add(prevClassMember);
                 }
             }
+            isFirstMember = false;
         }
         for (Map.Entry<Node, Boolean> nextClassMemberAvailableEntry : nextClassMemberAvailability.entrySet()) {
             Boolean nextClassMemberAvailable = nextClassMemberAvailableEntry.getValue();
@@ -135,34 +141,14 @@ public class ClassDefinitionEqualityResult {
                 if (newClassMember instanceof TypeReferenceNode) {
                     TypeReferenceNode nextTypeRefMember =
                             (TypeReferenceNode) nextClassMemberAvailableEntry.getKey();
-                    addedTypeReferences.add(nextTypeRefMember);
+                    finalMembers.add(nextTypeRefMember);
                 } else if (newClassMember instanceof FunctionDefinitionNode) {
                     FunctionDefinitionNode nextFunctionDefinition =
                             (FunctionDefinitionNode) nextClassMemberAvailableEntry.getKey();
-                    addedFunctionDefinitions.add(nextFunctionDefinition);
+                    finalMembers.add(nextFunctionDefinition);
                 }
             }
         }
-    }
-
-    private List<Node> generateCombinedMembers() {
-        List<Node> combinedMembers = new ArrayList<>();
-        combinedMembers.addAll(keptTypeReferences);
-        combinedMembers.addAll(keptFunctionDefinitions);
-        combinedMembers.addAll(addedTypeReferences);
-        for (FunctionDefinitionEqualityResult updatedFunctionDefinitionEquality : updatedFunctionDefinitions) {
-            combinedMembers.add(updatedFunctionDefinitionEquality.generateCombinedFunctionDefinition());
-        }
-        combinedMembers.addAll(addedFunctionDefinitions);
-        for (FunctionDefinitionNode removedFunctionDefinition : removedFunctionDefinitions) {
-            Token mainQualifier = getMainQualifier(removedFunctionDefinition.qualifierList());
-            if (mainQualifier.text() == null ||
-                    (!mainQualifier.text().equals(Constants.RESOURCE) &&
-                            !mainQualifier.text().equals(Constants.REMOTE))) {
-                combinedMembers.add(removedFunctionDefinition);
-            }
-        }
-        return combinedMembers;
     }
 
     public ClassDefinitionNode generateCombinedClassDefinition() {
@@ -173,7 +159,7 @@ public class ClassDefinitionEqualityResult {
         return prevClassDefinition.modify(finalMetadata, prevClassDefinition.visibilityQualifier().orElse(null),
                 prevClassDefinition.classTypeQualifiers(), prevClassDefinition.classKeyword(),
                 prevClassDefinition.className(), prevClassDefinition.openBrace(),
-                createNodeList(generateCombinedMembers()), prevClassDefinition.closeBrace(),
+                createNodeList(finalMembers), prevClassDefinition.closeBrace(),
                 prevClassDefinition.semicolonToken().orElse(null));
     }
 
