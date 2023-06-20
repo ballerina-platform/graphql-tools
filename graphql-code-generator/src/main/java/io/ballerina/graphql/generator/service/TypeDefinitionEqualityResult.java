@@ -3,6 +3,7 @@ package io.ballerina.graphql.generator.service;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLType;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.IntersectionTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
@@ -14,6 +15,7 @@ import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.generateObjectType;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMethodDeclarationName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getRecordFieldName;
 
@@ -77,30 +79,25 @@ public class TypeDefinitionEqualityResult {
     }
 
     public void handleMergeTypeDescriptor(GraphQLType graphqlType) {
-        if (prevTypeDefinition.typeDescriptor() instanceof ObjectTypeDescriptorNode &&
-                nextTypeDefinition.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
-            ObjectTypeDescriptorNode prevObjectType = (ObjectTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-            ObjectTypeDescriptorNode nextObjectType = (ObjectTypeDescriptorNode) nextTypeDefinition.typeDescriptor();
-            ServiceObjectEqualityResult objectTypeEquality =
-                    new ServiceObjectEqualityResult(prevObjectType, nextObjectType);
-            handleObjectTypeBreakingChanges(objectTypeEquality);
-            mergedTypeDescriptor = objectTypeEquality.generateCombinedObjectTypeDescriptor();
-        } else if (prevTypeDefinition.typeDescriptor() instanceof DistinctTypeDescriptorNode &&
-                nextTypeDefinition.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
-            DistinctTypeDescriptorNode prevDistinctServiceObject =
+        ObjectTypeDescriptorNode nextObjectType = generateObjectType(nextTypeDefinition.typeDescriptor());
+        if (prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
+            IntersectionTypeDescriptorNode prevIntersectionType =
+                    (IntersectionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
+            if (nextObjectType != null) {
+                mergedTypeDescriptor = handleMergeObjectType(prevIntersectionType, nextObjectType);
+            }
+        } else if (prevTypeDefinition.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
+            DistinctTypeDescriptorNode prevDistinctType =
                     (DistinctTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-            DistinctTypeDescriptorNode nextDistinctServiceObject =
-                    (DistinctTypeDescriptorNode) nextTypeDefinition.typeDescriptor();
-
-            ObjectTypeDescriptorNode prevServiceObject =
-                    (ObjectTypeDescriptorNode) prevDistinctServiceObject.typeDescriptor();
-            ObjectTypeDescriptorNode nextServiceObject =
-                    (ObjectTypeDescriptorNode) nextDistinctServiceObject.typeDescriptor();
-            ServiceObjectEqualityResult objectTypeEquality =
-                    new ServiceObjectEqualityResult(prevServiceObject, nextServiceObject);
-            handleDistinctObjectTypeBreakingChanges(objectTypeEquality);
-            mergedTypeDescriptor = prevDistinctServiceObject.modify(nextDistinctServiceObject.distinctKeyword(),
-                    objectTypeEquality.generateCombinedObjectTypeDescriptor());
+            if (nextObjectType != null) {
+                mergedTypeDescriptor = handleMergeObjectType(prevDistinctType, nextObjectType);
+            }
+        } else if (prevTypeDefinition.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
+            ObjectTypeDescriptorNode prevObjectType =
+                    (ObjectTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
+            if (nextObjectType != null) {
+                mergedTypeDescriptor = handleMergeObjectType(prevObjectType, nextObjectType);
+            }
         } else if (prevTypeDefinition.typeDescriptor() instanceof RecordTypeDescriptorNode &&
                 nextTypeDefinition.typeDescriptor() instanceof RecordTypeDescriptorNode) {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
@@ -121,11 +118,36 @@ public class TypeDefinitionEqualityResult {
         }
     }
 
+    private Node handleMergeObjectType(Node prevType, ObjectTypeDescriptorNode nextObjectType) {
+        if (prevType instanceof ObjectTypeDescriptorNode) {
+            ObjectTypeDescriptorNode prevObjectType = (ObjectTypeDescriptorNode) prevType;
+            ServiceObjectEqualityResult objectTypeEquality =
+                    new ServiceObjectEqualityResult(prevObjectType, nextObjectType);
+            handleObjectTypeBreakingChanges(objectTypeEquality);
+            return objectTypeEquality.generateCombinedObjectTypeDescriptor();
+        } else if (prevType instanceof DistinctTypeDescriptorNode) {
+            DistinctTypeDescriptorNode prevDistinctObjectType = (DistinctTypeDescriptorNode) prevType;
+            ObjectTypeDescriptorNode prevServiceObject =
+                    (ObjectTypeDescriptorNode) prevDistinctObjectType.typeDescriptor();
+            ServiceObjectEqualityResult objectTypeEquality =
+                    new ServiceObjectEqualityResult(prevServiceObject, nextObjectType);
+            handleDistinctObjectTypeBreakingChanges(objectTypeEquality);
+            return prevDistinctObjectType.modify(prevDistinctObjectType.distinctKeyword(),
+                    objectTypeEquality.generateCombinedObjectTypeDescriptor());
+        } else if (prevType instanceof IntersectionTypeDescriptorNode) {
+            IntersectionTypeDescriptorNode prevIntersectionType = (IntersectionTypeDescriptorNode) prevType;
+            return prevIntersectionType.modify(prevIntersectionType.leftTypeDesc(),
+                    prevIntersectionType.bitwiseAndToken(),
+                    handleMergeObjectType(prevIntersectionType.rightTypeDesc(), nextObjectType));
+        }
+        return null;
+    }
+
     private void handleUnionTypeBreakingChanges(UnionTypeEqualityResult unionTypeEquality) {
         for (String removedUnionMember : unionTypeEquality.getRemovedUnionMembers()) {
-                    breakingChangeWarnings.add(
-                            String.format(WARNING_MESSAGE_REMOVE_UNION_MEMBER, prevTypeDefinition.typeName().text(),
-                                    removedUnionMember));
+            breakingChangeWarnings.add(
+                    String.format(WARNING_MESSAGE_REMOVE_UNION_MEMBER, prevTypeDefinition.typeName().text(),
+                            removedUnionMember));
         }
     }
 

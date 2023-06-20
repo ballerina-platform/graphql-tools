@@ -4,6 +4,7 @@ import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
+import io.ballerina.compiler.syntax.tree.IntersectionTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -146,7 +147,8 @@ public class ServiceCombiner {
         Node mergedTypeDescriptor = typeDefinitionEquality.getMergedTypeDescriptor();
         if (mergedTypeDescriptor instanceof ObjectTypeDescriptorNode) {
             moduleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
-        } else if (mergedTypeDescriptor instanceof DistinctTypeDescriptorNode) {
+        } else if (mergedTypeDescriptor instanceof DistinctTypeDescriptorNode ||
+                mergedTypeDescriptor instanceof IntersectionTypeDescriptorNode) {
             interfaceTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
         } else if (mergedTypeDescriptor instanceof RecordTypeDescriptorNode) {
             inputObjectTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());

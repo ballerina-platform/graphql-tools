@@ -3,16 +3,19 @@ package io.ballerina.graphql.generator.service;
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
+import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
 import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
+import io.ballerina.compiler.syntax.tree.IntersectionTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MinutiaeList;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
@@ -416,5 +419,20 @@ public class EqualityResultUtils {
             keyword = SyntaxKind.RESOURCE_KEYWORD;
         }
         return createToken(keyword, leadingMinutiaeList, createEmptyMinutiaeList());
+    }
+
+    public static ObjectTypeDescriptorNode generateObjectType(Node typeDescriptor) {
+        if (typeDescriptor instanceof IntersectionTypeDescriptorNode) {
+            IntersectionTypeDescriptorNode intersectionTypeDescriptor = (IntersectionTypeDescriptorNode) typeDescriptor;
+            return generateObjectType(intersectionTypeDescriptor.rightTypeDesc());
+        } else if (typeDescriptor instanceof ObjectTypeDescriptorNode) {
+            ObjectTypeDescriptorNode objectType = (ObjectTypeDescriptorNode) typeDescriptor;
+            return objectType;
+        } else if (typeDescriptor instanceof DistinctTypeDescriptorNode) {
+            DistinctTypeDescriptorNode distinctTypeDescriptor = (DistinctTypeDescriptorNode) typeDescriptor;
+            return generateObjectType(distinctTypeDescriptor.typeDescriptor());
+        } else {
+            return null;
+        }
     }
 }
