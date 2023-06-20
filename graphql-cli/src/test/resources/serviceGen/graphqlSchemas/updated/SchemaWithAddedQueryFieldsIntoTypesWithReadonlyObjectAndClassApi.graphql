@@ -1,0 +1,14 @@
+type Query {
+    book(id: Int!, title: String): Book
+    bookById(id: Int!): Book
+    books: [Book!]
+}
+
+interface Info {
+    name: String!
+}
+
+type Book implements Info {
+    id: Int!
+    name: String!
+}
