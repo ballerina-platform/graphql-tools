@@ -393,6 +393,16 @@ public class EqualityResultUtils {
         return nextMetadata;
     }
 
+    public static boolean isMetadataEqual(MetadataNode prevMetadata, MetadataNode nextMetadata) {
+        if (prevMetadata == null && nextMetadata == null) {
+            return true;
+        } else if (prevMetadata != null && nextMetadata != null) {
+            return prevMetadata.toString().equals(nextMetadata.toString());
+        } else {
+            return false;
+        }
+    }
+
     public static Token generateQualifierToken(String qualifier, boolean addNewLineInFront) {
         MinutiaeList leadingMinutiaeList = createEmptyMinutiaeList();
         if (addNewLineInFront) {

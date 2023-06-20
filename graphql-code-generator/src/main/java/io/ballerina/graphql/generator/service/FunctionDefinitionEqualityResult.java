@@ -12,6 +12,7 @@ import java.util.List;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedQualifiers;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedQualifiers;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isRelativeResourcePathEquals;
 
 /**
@@ -154,11 +155,7 @@ public class FunctionDefinitionEqualityResult {
     }
 
     public FunctionDefinitionNode generateCombinedFunctionDefinition(boolean isFirstFunctionDefinition) {
-        MetadataNode finalMetadata = nextFunctionDefinition.metadata().orElse(null);
-        if (finalMetadata == null) {
-            finalMetadata = prevFunctionDefinition.metadata().orElse(null);
-        }
-        return prevFunctionDefinition.modify(prevFunctionDefinition.kind(), finalMetadata,
+        return prevFunctionDefinition.modify(prevFunctionDefinition.kind(), nextFunctionDefinition.metadata().orElse(null),
                 getMergedQualifiers(
                         prevFunctionDefinition.qualifierList(),
                         nextFunctionDefinition.qualifierList(),

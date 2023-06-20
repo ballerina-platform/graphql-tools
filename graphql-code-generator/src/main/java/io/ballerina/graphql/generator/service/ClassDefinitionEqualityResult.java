@@ -2,7 +2,6 @@ package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
@@ -152,11 +151,8 @@ public class ClassDefinitionEqualityResult {
     }
 
     public ClassDefinitionNode generateCombinedClassDefinition() {
-        MetadataNode finalMetadata = nextClassDefinition.metadata().orElse(null);
-        if (finalMetadata == null) {
-            finalMetadata = prevClassDefinition.metadata().orElse(null);
-        }
-        return prevClassDefinition.modify(finalMetadata, prevClassDefinition.visibilityQualifier().orElse(null),
+        return prevClassDefinition.modify(nextClassDefinition.metadata().orElse(null),
+                prevClassDefinition.visibilityQualifier().orElse(null),
                 prevClassDefinition.classTypeQualifiers(), prevClassDefinition.classKeyword(),
                 prevClassDefinition.className(), prevClassDefinition.openBrace(),
                 createNodeList(finalMembers), prevClassDefinition.closeBrace(),

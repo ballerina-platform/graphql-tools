@@ -1,7 +1,6 @@
 package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
-import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 
 import java.util.ArrayList;
@@ -9,11 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getCommaAddedSeparatedNodeList;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMemberName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMetadata;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
 
 /**
  * Utility class to store result comparing enum declarations.
@@ -73,9 +69,9 @@ public class EnumDeclarationEqualityResult {
     }
 
     public EnumDeclarationNode generateCombinedResult() {
-        MetadataNode mergedMetadata = getMergedMetadata(getEnumMetadata(prevEnum), getEnumMetadata(nextEnum));
-        return nextEnum.modify(mergedMetadata, prevEnum.qualifier().orElse(null), nextEnum.enumKeywordToken(),
-                nextEnum.identifier(), prevEnum.openBraceToken(), getCommaAddedSeparatedNodeList(finalMembers),
+        return nextEnum.modify(nextEnum.metadata().orElse(null), prevEnum.qualifier().orElse(null),
+                nextEnum.enumKeywordToken(), nextEnum.identifier(), prevEnum.openBraceToken(),
+                getCommaAddedSeparatedNodeList(finalMembers),
                 prevEnum.closeBraceToken(), nextEnum.semicolonToken().orElse(null));
     }
 

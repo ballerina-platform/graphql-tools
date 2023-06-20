@@ -1,13 +1,11 @@
 package io.ballerina.graphql.generator.service;
 
 
-import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.Token;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getRecordFieldType;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isTypeEquals;
@@ -91,29 +89,17 @@ public class RecordFieldEqualityResult {
     }
 
     public Node generateCombinedRecordField() {
-        MetadataNode mergedMetadata = getMergedMetadata(getMetadata(prevField), getMetadata(nextField));
         if (nextField instanceof RecordFieldNode) {
             RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
-            return nextRecordField.modify(mergedMetadata, getReadonlyKeyword(prevField),
+            return nextRecordField.modify(nextRecordField.metadata().orElse(null), getReadonlyKeyword(prevField),
                     nextRecordField.typeName(), nextRecordField.fieldName(),
                     nextRecordField.questionMarkToken().orElse(null), nextRecordField.semicolonToken());
         } else if (nextField instanceof RecordFieldWithDefaultValueNode) {
             RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) nextField;
-            return nextRecordField.modify(mergedMetadata, getReadonlyKeyword(prevField),
+            return nextRecordField.modify(nextRecordField.metadata().orElse(null), getReadonlyKeyword(prevField),
                     nextRecordField.typeName(), nextRecordField.fieldName(),
                     nextRecordField.equalsToken(),
                     nextRecordField.expression(), nextRecordField.semicolonToken());
-        }
-        return null;
-    }
-
-    private MetadataNode getMetadata(Node field) {
-        if (field instanceof RecordFieldNode) {
-            RecordFieldNode recordField = (RecordFieldNode) field;
-            return recordField.metadata().orElse(null);
-        } else if (field instanceof RecordFieldWithDefaultValueNode) {
-            RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
-            return recordFieldWithDefaultValue.metadata().orElse(null);
         }
         return null;
     }

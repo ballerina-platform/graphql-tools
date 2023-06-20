@@ -1,13 +1,9 @@
 package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.EnumMemberNode;
-import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 
-
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMemberMetadata;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMemberName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
 
 /**
  * Utility class to store result comparing enum members.
@@ -26,11 +22,9 @@ public class EnumMemberEqualityResult {
     }
 
     public Node generateCombinedResult() {
-        MetadataNode mergedMetadata =
-                getMergedMetadata(getEnumMemberMetadata(prevMember), getEnumMemberMetadata(nextMember));
         if (nextMember instanceof EnumMemberNode) {
             EnumMemberNode nextEnumMember = (EnumMemberNode) nextMember;
-            return nextEnumMember.modify(mergedMetadata, nextEnumMember.identifier(),
+            return nextEnumMember.modify(nextEnumMember.metadata().orElse(null), nextEnumMember.identifier(),
                     nextEnumMember.equalToken().orElse(null), nextEnumMember.constExprNode().orElse(null));
         }
         return null;

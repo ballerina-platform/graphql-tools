@@ -1,7 +1,6 @@
 package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -14,7 +13,6 @@ import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isFuncDefEquals;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverFunction;
@@ -196,10 +194,8 @@ public class ServiceDeclarationEqualityResult {
     }
 
     public ModuleMemberDeclarationNode generateCombinedResult() {
-        MetadataNode mergedMetadata =
-                getMergedMetadata(prevServiceDeclaration.metadata().orElse(null),
-                        nextServiceDeclaration.metadata().orElse(null));
-        return nextServiceDeclaration.modify(mergedMetadata, prevServiceDeclaration.qualifiers(),
+        return nextServiceDeclaration.modify(
+                nextServiceDeclaration.metadata().orElse(null), prevServiceDeclaration.qualifiers(),
                 nextServiceDeclaration.serviceKeyword(), nextServiceDeclaration.typeDescriptor().orElse(null),
                 prevServiceDeclaration.absoluteResourcePath(), nextServiceDeclaration.onKeyword(),
                 prevServiceDeclaration.expressions(), prevServiceDeclaration.openBraceToken(),

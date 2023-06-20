@@ -14,7 +14,6 @@ import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMetadata;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMethodDeclarationName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getRecordFieldName;
 
@@ -288,11 +287,12 @@ public class TypeDefinitionEqualityResult {
     }
 
     public TypeDefinitionNode generateCombinedTypeDefinition() {
-        return prevTypeDefinition.modify(getMergedMetadata(prevTypeDefinition.metadata().orElse(null),
-                        nextTypeDefinition.metadata().orElse(null)),
+        return prevTypeDefinition.modify(
+                nextTypeDefinition.metadata().orElse(null),
                 prevTypeDefinition.visibilityQualifier().orElse(null),
                 nextTypeDefinition.typeKeyword(), nextTypeDefinition.typeName(), mergedTypeDescriptor,
-                nextTypeDefinition.semicolonToken());
+                nextTypeDefinition.semicolonToken()
+        );
     }
 
     public List<String> getBreakingChangeWarnings() {

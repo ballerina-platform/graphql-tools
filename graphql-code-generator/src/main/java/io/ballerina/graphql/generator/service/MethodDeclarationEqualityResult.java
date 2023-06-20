@@ -1,6 +1,5 @@
 package io.ballerina.graphql.generator.service;
 
-import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -8,6 +7,8 @@ import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isMetadataEqual;
 
 /**
  * Utility class used to store result comparing two method declarations.
@@ -24,8 +25,8 @@ public class MethodDeclarationEqualityResult {
     private MethodDeclarationNode prevMethodDeclaration;
     private MethodDeclarationNode nextMethodDeclaration;
 
-    public MethodDeclarationEqualityResult(MethodDeclarationNode prevMethodDeclaration, MethodDeclarationNode
-            nextMethodDeclaration) {
+    public MethodDeclarationEqualityResult(MethodDeclarationNode prevMethodDeclaration,
+                                           MethodDeclarationNode nextMethodDeclaration) {
         this.prevMethodDeclaration = prevMethodDeclaration;
         this.nextMethodDeclaration = nextMethodDeclaration;
         isRelativeResourcePathsEqual = false;
@@ -44,7 +45,8 @@ public class MethodDeclarationEqualityResult {
     }
 
     public boolean isEqual() {
-        return isQualifierSimilar() && isMatch() && isRelativeResourcePathsEqual &&
+        return isQualifierSimilar() && isMetadataEqual(prevMethodDeclaration.metadata().orElse(null),
+                nextMethodDeclaration.metadata().orElse(null)) && isMatch() && isRelativeResourcePathsEqual &&
                 functionSignatureEqualityResult.isEqual();
     }
 
@@ -153,20 +155,8 @@ public class MethodDeclarationEqualityResult {
         return false;
     }
 
-    public void setPrevMethodDeclaration(MethodDeclarationNode prevMethodDeclaration) {
-        this.prevMethodDeclaration = prevMethodDeclaration;
-    }
-
-    public void setNextMethodDeclaration(MethodDeclarationNode nextMethodDeclaration) {
-        this.nextMethodDeclaration = nextMethodDeclaration;
-    }
-
     public MethodDeclarationNode generateCombinedMethodDeclaration() {
-        MetadataNode finalMetadata = nextMethodDeclaration.metadata().orElse(null);
-        if (finalMetadata == null) {
-            finalMetadata = prevMethodDeclaration.metadata().orElse(null);
-        }
-        return prevMethodDeclaration.modify(prevMethodDeclaration.kind(), finalMetadata,
+        return prevMethodDeclaration.modify(prevMethodDeclaration.kind(), nextMethodDeclaration.metadata().orElse(null),
                 nextMethodDeclaration.qualifierList(), nextMethodDeclaration.functionKeyword(),
                 nextMethodDeclaration.methodName(), nextMethodDeclaration.relativeResourcePath(),
                 nextMethodDeclaration.methodSignature(), nextMethodDeclaration.semicolon());
