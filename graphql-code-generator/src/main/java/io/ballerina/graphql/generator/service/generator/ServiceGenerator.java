@@ -94,11 +94,10 @@ public class ServiceGenerator {
         return createModulePartNode(imports, serviceBody, createToken(SyntaxKind.EOF_TOKEN));
     }
 
-    private SyntaxTree generateSyntaxTree() throws IOException {
-        ModulePartNode modulePartNode = generateContentNode();
+    public SyntaxTree generateSyntaxTree(ModulePartNode contentNode) throws IOException {
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
-        return syntaxTree.modifyWith(modulePartNode);
+        return syntaxTree.modifyWith(contentNode);
     }
 
     private NodeList<ModuleMemberDeclarationNode> generateMembers() {
@@ -198,10 +197,10 @@ public class ServiceGenerator {
         this.methodDeclarations = methodDeclarations;
     }
 
-    public String generateSrc() throws ServiceGenerationException {
+    public String generateSrc(SyntaxTree contentSyntaxTree) throws ServiceGenerationException {
         try {
-            return Formatter.format(generateSyntaxTree()).toString();
-        } catch (FormatterException | IOException e) {
+            return Formatter.format(contentSyntaxTree).toString();
+        } catch (FormatterException e) {
             throw new ServiceGenerationException(e.getMessage());
         }
     }

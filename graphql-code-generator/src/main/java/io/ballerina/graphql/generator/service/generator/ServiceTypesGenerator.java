@@ -178,9 +178,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
         this.useRecordsForObjects = useRecordsForObjects;
     }
 
-    public String generateSrc(GraphQLSchema schema) throws ServiceTypesGenerationException {
+    public String generateSrc(SyntaxTree contentSyntaxTree) throws ServiceTypesGenerationException {
         try {
-            String generatedSyntaxTree = Formatter.format(this.generateSyntaxTree(schema)).toString();
+            String generatedSyntaxTree = Formatter.format(contentSyntaxTree).toString();
             return Formatter.format(generatedSyntaxTree);
         } catch (FormatterException e) {
             throw new ServiceTypesGenerationException(e.getMessage());
@@ -207,11 +207,10 @@ public class ServiceTypesGenerator extends TypesGenerator {
         return createModulePartNode(imports, moduleMemberNodes, createToken(SyntaxKind.EOF_TOKEN));
     }
 
-    public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceTypesGenerationException {
-        ModulePartNode modulePartNode = generateContentNode(schema);
+    public SyntaxTree generateSyntaxTree(ModulePartNode contentNode) throws ServiceTypesGenerationException {
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
-        return syntaxTree.modifyWith(modulePartNode);
+        return syntaxTree.modifyWith(contentNode);
     }
 
     private void addTypeDefinitions(GraphQLSchema schema) throws ServiceTypesGenerationException {

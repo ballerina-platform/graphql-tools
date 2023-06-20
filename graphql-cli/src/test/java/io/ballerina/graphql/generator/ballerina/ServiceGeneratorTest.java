@@ -19,6 +19,8 @@
 package io.ballerina.graphql.generator.ballerina;
 
 import graphql.schema.GraphQLSchema;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
@@ -53,12 +55,16 @@ public class ServiceGeneratorTest extends GraphqlTest {
 
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
-            serviceTypesGenerator.generateSrc(graphQLSchema);
+            ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
+            SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+            serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
             ServiceGenerator serviceGenerator = new ServiceGenerator();
             serviceGenerator.setFileName(fileName);
             serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
-            String generatedServiceContent = serviceGenerator.generateSrc();
+            ModulePartNode serviceContent = serviceGenerator.generateContentNode();
+            SyntaxTree serviceSyntaxTree = serviceGenerator.generateSyntaxTree(serviceContent);
+            String generatedServiceContent = serviceGenerator.generateSrc(serviceSyntaxTree);
             writeContentTo(generatedServiceContent, this.tmpDir);
             Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);

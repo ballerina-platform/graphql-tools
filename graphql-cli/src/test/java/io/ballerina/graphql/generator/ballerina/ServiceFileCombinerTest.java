@@ -2,6 +2,7 @@ package io.ballerina.graphql.generator.ballerina;
 
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeParser;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.cmd.Constants;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.common.GraphqlTest;
@@ -47,7 +48,9 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
-        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
         ServiceGenerator serviceGenerator = new ServiceGenerator();
         serviceGenerator.setFileName(newSchemaFileName);
@@ -80,7 +83,9 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
-        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
         ServiceGenerator serviceGenerator = new ServiceGenerator();
         serviceGenerator.setFileName(newSchemaFileName);
@@ -113,7 +118,9 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
-        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
         ServiceGenerator serviceGenerator = new ServiceGenerator();
         serviceGenerator.setFileName(newSchemaFileName);
@@ -146,7 +153,9 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
-        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
         ServiceGenerator serviceGenerator = new ServiceGenerator();
         serviceGenerator.setFileName(newSchemaFileName);
@@ -204,7 +213,9 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
-        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
         ServiceGenerator serviceGenerator = new ServiceGenerator();
         serviceGenerator.setFileName(newSchemaFileName);
@@ -256,7 +267,9 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
-        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
         ServiceGenerator serviceGenerator = new ServiceGenerator();
         serviceGenerator.setFileName(newSchemaFileName);
@@ -300,7 +313,9 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
-        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
         ServiceGenerator serviceGenerator = new ServiceGenerator();
         serviceGenerator.setFileName(newSchemaFileName);
@@ -344,7 +359,9 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
-        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
         ServiceGenerator serviceGenerator = new ServiceGenerator();
         serviceGenerator.setFileName(newSchemaFileName);
@@ -377,7 +394,9 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setFileName(newSchemaFileName);
-        serviceTypesGenerator.generateSrc(newGraphqlProject.getGraphQLSchema());
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
 
         ServiceGenerator serviceGenerator = new ServiceGenerator();
         serviceGenerator.setFileName(newSchemaFileName);
