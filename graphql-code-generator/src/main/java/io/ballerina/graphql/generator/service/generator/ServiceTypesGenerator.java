@@ -290,7 +290,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 interfaceType.getFields()), createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
         DistinctTypeDescriptorNode distinctInterfaceObjectType =
                 createDistinctTypeDescriptorNode(createToken(SyntaxKind.DISTINCT_KEYWORD), interfaceObjectType);
-        return createTypeDefinitionNode(generateMetadataForDescription(interfaceType.getDescription()),
+        return createTypeDefinitionNode(generateMetadataForDescription(interfaceType.getDescription(), false),
                 createToken(SyntaxKind.PUBLIC_KEYWORD), createToken(SyntaxKind.TYPE_KEYWORD),
                 createIdentifierToken(interfaceType.getName()), distinctInterfaceObjectType,
                 createToken(SyntaxKind.SEMICOLON_TOKEN));
@@ -321,7 +321,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             generateMethodSignatureReturnType(field.getType()));
             MethodDeclarationNode methodDeclaration = createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION,
                     generateMetadata(field.getDescription(), field.getArguments(), field.isDeprecated(),
-                            field.getDeprecationReason()), resourceQualifier, createToken(SyntaxKind.FUNCTION_KEYWORD),
+                            field.getDeprecationReason(), false), resourceQualifier,
+                    createToken(SyntaxKind.FUNCTION_KEYWORD),
                     createIdentifierToken(CodeGeneratorConstants.GET), fieldName, methodSignatureNode,
                     createToken(SyntaxKind.SEMICOLON_TOKEN));
             members.add(methodDeclaration);
@@ -404,7 +405,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
             GraphQLEnumValueDefinition enumValue = enumValues.get(valueIdx);
             EnumMemberNode enumMember = createEnumMemberNode(
                     generateMetadata(enumValue.getDescription(), null, enumValue.isDeprecated(),
-                            enumValue.getDeprecationReason()), createIdentifierToken(enumValue.getName()), null, null);
+                            enumValue.getDeprecationReason(), false), createIdentifierToken(enumValue.getName()), null,
+                    null);
             enumMembers.add(enumMember);
             if (valueIdx != enumValues.size() - 1) {
                 enumMembers.add(createToken(SyntaxKind.COMMA_TOKEN, createEmptyMinutiaeList(),
@@ -452,12 +454,12 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 ExpressionNode generatedDefaultValue = generateArgDefaultValue(value);
                 fields.add(createRecordFieldWithDefaultValueNode(
                         generateMetadata(field.getDescription(), null, field.isDeprecated(),
-                                field.getDeprecationReason()), null, generateTypeDescriptor(field.getType()),
+                                field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
                         createIdentifierToken(field.getName()), createToken(SyntaxKind.EQUAL_TOKEN),
                         generatedDefaultValue, createToken(SyntaxKind.SEMICOLON_TOKEN)));
             } else {
                 fields.add(createRecordFieldNode(generateMetadata(field.getDescription(), null, field.isDeprecated(),
-                                field.getDeprecationReason()), null, generateTypeDescriptor(field.getType()),
+                                field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
                         createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
             }
         }
@@ -470,7 +472,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         for (GraphQLFieldDefinition field : typeInputFields) {
             fields.add(createRecordFieldNode(
                     generateMetadata(field.getDescription(), field.getArguments(), field.isDeprecated(),
-                            field.getDeprecationReason()), null, generateTypeDescriptor(field.getType()),
+                            field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
                     createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
         }
         return createNodeList(fields);
@@ -501,15 +503,19 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
 
         NodeList<Node> serviceClassTypeMembers = createNodeList(serviceClassTypeMembersList);
-        return createClassDefinitionNode(generateMetadataForDescription(type.getDescription()),
+        return createClassDefinitionNode(generateMetadataForDescription(type.getDescription(), false),
                 createToken(SyntaxKind.PUBLIC_KEYWORD), qualifierDistinctService, createToken(SyntaxKind.CLASS_KEYWORD),
                 createIdentifierToken(type.getName()), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
                 serviceClassTypeMembers, createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
 
     private MetadataNode generateMetadataForDescription(String description) {
+        return generateMetadataForDescription(description, false);
+    }
+
+    private MetadataNode generateMetadataForDescription(String description, boolean addAdditionalNewLine) {
         if (description != null) {
-            List<Node> documentationLines = generateMarkdownDocumentationLines(description);
+            List<Node> documentationLines = generateMarkdownDocumentationLines(description, addAdditionalNewLine);
             return createMetadataNode(createMarkdownDocumentationNode(createNodeList(documentationLines)),
                     createEmptyNodeList());
         } else {
@@ -561,7 +567,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 functionBodyTraillingMinutiaeList), null);
         return createFunctionDefinitionNode(SyntaxKind.RESOURCE_ACCESSOR_DEFINITION,
                 generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                        fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason()), qualifierResource,
+                        fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason(), addAdditionalNewLine),
+                qualifierResource,
                 createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET), fieldName,
                 functionSignature, functionBody);
     }
@@ -618,7 +625,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureReturnType(fieldDefinition.getType(), true));
                 MetadataNode metadata =
                         generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
+                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason(), false);
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, metadata,
                                 createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
@@ -643,7 +650,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureReturnType(fieldDefinition.getType(), false));
                 MetadataNode metadata =
                         generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
+                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason(), false);
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
                                 createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD)),
@@ -667,7 +674,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                             generateMethodSignatureReturnType(field.getType(), false));
             MetadataNode metadata = generateMetadata(field.getDescription(), field.getArguments(), field.isDeprecated(),
-                    field.getDeprecationReason());
+                    field.getDeprecationReason(), false);
             MethodDeclarationNode methodDeclaration =
                     createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, metadata,
                             createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
@@ -679,19 +686,29 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private MetadataNode generateMetadata(String description, List<GraphQLArgument> arguments, boolean isDeprecated,
-                                          String deprecationReason) {
+                                          String deprecationReason, boolean addNewLineInFront) {
         List<AnnotationNode> annotations = new ArrayList<>();
-        List<Node> markdownDocumentationLines = new ArrayList<>(generateMarkdownDocumentationLines(description));
+        List<Node> markdownDocumentationLines = new ArrayList<>();
+        if (description != null) {
+            markdownDocumentationLines = new ArrayList<>(
+                    generateMarkdownDocumentationLines(description, addNewLineInFront));
+            addNewLineInFront = false;
+        }
+
         if (arguments != null) {
             for (GraphQLArgument argument : arguments) {
-                markdownDocumentationLines.addAll(generateMarkdownParameterDocumentationLines(argument));
+                markdownDocumentationLines.addAll(
+                        generateMarkdownParameterDocumentationLines(argument, addNewLineInFront));
+                addNewLineInFront = false;
             }
         }
         if (isDeprecated) {
             AnnotationNode annotation = createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
                     createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null);
             annotations.add(annotation);
-            markdownDocumentationLines.addAll(generateMarkdownDocumentationLinesForDeprecated(deprecationReason));
+            markdownDocumentationLines.addAll(
+                    generateMarkdownDocumentationLinesForDeprecated(deprecationReason, addNewLineInFront));
+            addNewLineInFront = false;
         }
         if (markdownDocumentationLines.isEmpty() && annotations.isEmpty()) {
             return null;
@@ -701,20 +718,28 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    private List<Node> generateMarkdownDocumentationLinesForDeprecated(String deprecationReason) {
+    private List<Node> generateMarkdownDocumentationLinesForDeprecated(String deprecationReason,
+                                                                       boolean addNewLineInFront) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
+        MinutiaeList leadingMinutiaeList = createEmptyMinutiaeList();
+        if (addNewLineInFront) {
+            leadingMinutiaeList = leadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+            addNewLineInFront = false;
+        }
         markdownDocumentationLines.add(
                 createMarkdownDocumentationLineNode(SyntaxKind.MARKDOWN_DEPRECATION_DOCUMENTATION_LINE,
-                        createToken(SyntaxKind.HASH_TOKEN), createNodeList(
+                        createToken(SyntaxKind.HASH_TOKEN, leadingMinutiaeList, createEmptyMinutiaeList()),
+                        createNodeList(
                                 createLiteralValueToken(SyntaxKind.DEPRECATION_LITERAL,
                                         CodeGeneratorConstants.HASH_DEPRECATED, createEmptyMinutiaeList(),
                                         createMinutiaeList(
                                                 createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE))))));
-        markdownDocumentationLines.addAll(generateMarkdownDocumentationLines(deprecationReason));
+        markdownDocumentationLines.addAll(generateMarkdownDocumentationLines(deprecationReason, false));
         return markdownDocumentationLines;
     }
 
-    private List<Node> generateMarkdownParameterDocumentationLines(GraphQLArgument argument) {
+    private List<Node> generateMarkdownParameterDocumentationLines(GraphQLArgument argument,
+                                                                   boolean addNewLineInFront) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
         if (argument.getDescription() != null) {
             String[] lines = argument.getDescription().split(CodeGeneratorConstants.NEW_LINE);
@@ -722,17 +747,22 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 String line = lines[lineIdx];
                 if (lineIdx == 0) {
                     markdownDocumentationLines.add(
-                            generateMarkdownParameterDocumentationLine(line, argument.getName()));
+                            generateMarkdownParameterDocumentationLine(line, argument.getName(), addNewLineInFront));
+                    addNewLineInFront = false;
                 } else {
-                    markdownDocumentationLines.add(generateMarkdownDocumentationLine(line));
+                    markdownDocumentationLines.add(generateMarkdownDocumentationLine(line, addNewLineInFront));
                 }
             }
         }
         return markdownDocumentationLines;
     }
 
-    private MarkdownParameterDocumentationLineNode generateMarkdownParameterDocumentationLine(String descriptionLine,
-                                                                                              String argumentName) {
+    private MarkdownParameterDocumentationLineNode generateMarkdownParameterDocumentationLine
+            (String descriptionLine, String argumentName, boolean addNewLineInFront) {
+        MinutiaeList leadingMinutiaeList = createEmptyMinutiaeList();
+        if (addNewLineInFront) {
+            leadingMinutiaeList = leadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+        }
         LiteralValueToken parameterName =
                 createLiteralValueToken(SyntaxKind.PARAMETER_NAME, argumentName, createEmptyMinutiaeList(),
                         createMinutiaeList(createWhitespaceMinutiae(CodeGeneratorConstants.WHITESPACE)));
@@ -741,25 +771,34 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         createEmptyMinutiaeList(),
                         createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE))));
         return createMarkdownParameterDocumentationLineNode(SyntaxKind.MARKDOWN_PARAMETER_DOCUMENTATION_LINE,
-                createToken(SyntaxKind.HASH_TOKEN), createToken(SyntaxKind.PLUS_TOKEN), parameterName,
+                createToken(SyntaxKind.HASH_TOKEN, leadingMinutiaeList, createEmptyMinutiaeList()),
+                createToken(SyntaxKind.PLUS_TOKEN),
+                parameterName,
                 createToken(SyntaxKind.MINUS_TOKEN), parameterDescription);
     }
 
-    private List<Node> generateMarkdownDocumentationLines(String description) {
+    private List<Node> generateMarkdownDocumentationLines(String description, boolean addNewLineInFront) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
         if (description != null) {
             String[] lines = description.split(CodeGeneratorConstants.NEW_LINE);
             for (String line : lines) {
-                MarkdownDocumentationLineNode markdownDocumentationLine = generateMarkdownDocumentationLine(line);
+                MarkdownDocumentationLineNode markdownDocumentationLine =
+                        generateMarkdownDocumentationLine(line, addNewLineInFront);
                 markdownDocumentationLines.add(markdownDocumentationLine);
+                addNewLineInFront = false;
             }
         }
         return markdownDocumentationLines;
     }
 
-    private MarkdownDocumentationLineNode generateMarkdownDocumentationLine(String descriptionLine) {
+    private MarkdownDocumentationLineNode generateMarkdownDocumentationLine(String descriptionLine,
+                                                                            boolean addNewLineInFront) {
+        MinutiaeList leadingMinutiaeList = createEmptyMinutiaeList();
+        if (addNewLineInFront) {
+            leadingMinutiaeList = leadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+        }
         return createMarkdownDocumentationLineNode(SyntaxKind.MARKDOWN_DOCUMENTATION_LINE,
-                createToken(SyntaxKind.HASH_TOKEN), createNodeList(
+                createToken(SyntaxKind.HASH_TOKEN, leadingMinutiaeList, createEmptyMinutiaeList()), createNodeList(
                         createLiteralValueToken(SyntaxKind.DOCUMENTATION_DESCRIPTION, descriptionLine,
                                 createEmptyMinutiaeList(),
                                 createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE)))));
