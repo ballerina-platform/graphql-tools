@@ -1,0 +1,75 @@
+type Query {
+    "Fetch a book by id and title"
+    book(
+        "The id of the book to fetch"
+        id: Int!,
+        "The title of the book to fetch"
+        title: String
+    ): Book
+    "Fetch all books"
+    books: [Book!]
+    "Fetch all authors"
+    authors: [Author!]
+}
+
+type Mutation {
+    "Add a new book to the database"
+    addBook(
+        "The book info to add"
+        bookInfo: BookInfo!
+    ): Book
+}
+
+"Represents new book information"
+input BookInfo {
+    "The title of the book"
+    title: String!
+    "The author of the book"
+    author: String! @deprecated(reason: "No longer needed")
+}
+
+"Represents availability of a book"
+enum Availability {
+    AVAILABLE
+    BORROWED
+    UNAVAILABLE @deprecated(reason: "no longer used")
+    LOST
+}
+
+"Contact information of a person"
+interface ContactInfo {
+    email: String!
+    name: String! @deprecated(reason: "no longer used, use email.")
+}
+
+"Represents a book written by an author"
+type Book {
+    "The id of the book, unique identifier"
+    id: Int!
+    "The title of the book"
+    title: String! @deprecated(reason: "Use `name` instead")
+    "The name of the book"
+    name: String!
+}
+
+"""
+Represents an author of a book
+Person who writes books
+"""
+type Author implements ContactInfo {
+    "The name of the author"
+    name: String!
+    "The email of the author"
+    email: String!
+}
+
+"Represents a student"
+type Student {
+    "The name of the student"
+    name: String!
+    "The email of the student"
+    email: String!
+}
+
+"It can be either a student or an author"
+union Profile = Student | Author
