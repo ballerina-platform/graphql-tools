@@ -9,7 +9,10 @@ import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedQualifiers;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.isRelativeResourcePathEquals;
 
 /**
  * Utility class to store result of comparing two function definitions.
@@ -17,13 +20,10 @@ import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMerg
 public class FunctionDefinitionEqualityResult {
     private FunctionSignatureEqualityResult functionSignatureEqualityResult;
     private String prevFunctionName;
-    private String nextFunctionName;
     private NodeList<Token> prevQualifiers;
     private NodeList<Token> nextQualifiers;
     private String prevMethodType;
     private String nextMethodType;
-    private boolean isFunctionNameEqual;
-    private boolean isRelativeResourcePathsEqual;
     private FunctionDefinitionNode prevFunctionDefinition;
     private FunctionDefinitionNode nextFunctionDefinition;
 
@@ -34,12 +34,14 @@ public class FunctionDefinitionEqualityResult {
     }
 
     public boolean isEqual() {
-        return isQualifierSimilar() && isFunctionNameEqual && isRelativeResourcePathsEqual &&
-                functionSignatureEqualityResult.isEqual() && isMatch();
+        return isQualifiersEquals() && isMetadataEquals() && isMatch() &&
+                isRelativeResourcePathEquals(prevFunctionDefinition.relativeResourcePath(),
+                        nextFunctionDefinition.relativeResourcePath()) &&
+                functionSignatureEqualityResult.isEqual();
     }
 
     public boolean isMatch() {
-        return prevFunctionName.equals(nextFunctionName);
+        return getFunctionName(prevFunctionDefinition).equals(getFunctionName(nextFunctionDefinition));
     }
 
     public FunctionSignatureEqualityResult getFunctionSignatureEqualityResult() {
@@ -52,23 +54,7 @@ public class FunctionDefinitionEqualityResult {
     }
 
     public String getPrevFunctionName() {
-        return prevFunctionName;
-    }
-
-    public void setPrevFunctionName(String prevFunctionName) {
-        this.prevFunctionName = prevFunctionName;
-    }
-
-    public void setNextFunctionName(String nextFunctionName) {
-        this.nextFunctionName = nextFunctionName;
-    }
-
-    public void setFunctionNameEqual(boolean functionNameEqual) {
-        isFunctionNameEqual = functionNameEqual;
-    }
-
-    public void setRelativeResourcePathsEqual(boolean relativeResourcePathsEqual) {
-        isRelativeResourcePathsEqual = relativeResourcePathsEqual;
+        return getFunctionName(prevFunctionDefinition);
     }
 
     private List<String> getPrevQualifiers() {
@@ -79,10 +65,6 @@ public class FunctionDefinitionEqualityResult {
         return results;
     }
 
-    public void setPrevQualifiers(NodeList<Token> prevQualifiers) {
-        this.prevQualifiers = prevQualifiers;
-    }
-
     private List<String> getNextQualifiers() {
         List<String> results = new ArrayList<>();
         for (Token qualifierToken : nextQualifiers) {
@@ -91,44 +73,30 @@ public class FunctionDefinitionEqualityResult {
         return results;
     }
 
-    public void setNextQualifiers(NodeList<Token> nextQualifiers) {
-        this.nextQualifiers = nextQualifiers;
-    }
-
     public String getPrevMainQualifier() {
-        if (getPrevQualifiers().contains(Constants.RESOURCE)) {
-            return Constants.RESOURCE;
-        } else if (getPrevQualifiers().contains(Constants.REMOTE)) {
-            return Constants.REMOTE;
-        }
-        return null;
+        return getMainQualifier(prevFunctionDefinition.qualifierList()).text();
     }
 
     public String getNextMainQualifier() {
-        if (getNextQualifiers().contains(Constants.RESOURCE)) {
-            return Constants.RESOURCE;
-        } else if (getNextQualifiers().contains(Constants.REMOTE)) {
-            return Constants.REMOTE;
-        }
-        return null;
+        return getMainQualifier(nextFunctionDefinition.qualifierList()).text();
     }
 
     public String getPrevMethodType() {
-        return prevMethodType;
-    }
-
-    public void setPrevMethodType(String methodType) {
-        if (methodType.equals(CodeGeneratorConstants.GET)) {
-            this.prevMethodType = methodType;
-        } else if (methodType.equals(CodeGeneratorConstants.SUBSCRIBE)) {
-            this.prevMethodType = methodType;
-        } else {
-            this.prevMethodType = null;
-        }
+        return getFunctionDefinitionResolverType(prevFunctionDefinition);
     }
 
     public String getNextMethodType() {
-        return nextMethodType;
+        return getFunctionDefinitionResolverType(nextFunctionDefinition);
+    }
+
+    public String getFunctionDefinitionResolverType(FunctionDefinitionNode functionDefinition) {
+        String prevFunctionName = functionDefinition.functionName().text();
+        if (prevFunctionName.equals(CodeGeneratorConstants.GET)) {
+            return CodeGeneratorConstants.GET;
+        } else if (prevFunctionName.equals(CodeGeneratorConstants.SUBSCRIBE)) {
+            return CodeGeneratorConstants.SUBSCRIBE;
+        }
+        return null;
     }
 
     public void setNextMethodType(String methodType) {
@@ -142,6 +110,8 @@ public class FunctionDefinitionEqualityResult {
     }
 
     public boolean isGetAndSubscribeInterchanged() {
+        String prevMethodType = getFunctionDefinitionResolverType(prevFunctionDefinition);
+        String nextMethodType = getFunctionDefinitionResolverType(nextFunctionDefinition);
         if (prevMethodType != null && nextMethodType != null) {
             return (prevMethodType.equals(CodeGeneratorConstants.GET) &&
                     nextMethodType.equals(CodeGeneratorConstants.SUBSCRIBE)) ||
@@ -151,22 +121,49 @@ public class FunctionDefinitionEqualityResult {
         return false;
     }
 
-    public boolean isQualifierSimilar() {
-        if (getPrevQualifiers().contains(Constants.RESOURCE) && getNextQualifiers().contains(Constants.RESOURCE)) {
-            return true;
-        } else if (getPrevQualifiers().contains(Constants.REMOTE) && getNextQualifiers().contains(Constants.REMOTE)) {
+    private boolean isQualifiersEquals() {
+        if (prevFunctionDefinition.qualifierList().size() == nextFunctionDefinition.qualifierList().size()) {
+            for (int i = 0; i < prevFunctionDefinition.qualifierList().size(); i++) {
+                String prevQualifierName = prevFunctionDefinition.qualifierList().get(i).text();
+                String nextQualifierName = nextFunctionDefinition.qualifierList().get(i).text();
+                if (!prevQualifierName.equals(nextQualifierName)) {
+                    return false;
+                }
+            }
             return true;
         }
         return false;
     }
 
-    public FunctionDefinitionNode generateCombinedFunctionDefinition() {
+    public boolean isQualifierSimilar() {
+        Token prevMainQualifier = getMainQualifier(prevFunctionDefinition.qualifierList());
+        Token nextMainQualifier = getMainQualifier(nextFunctionDefinition.qualifierList());
+        if (prevMainQualifier != null && nextMainQualifier != null) {
+            return prevMainQualifier.text().equals(nextMainQualifier.text());
+        }
+        return prevMainQualifier == null && nextMainQualifier == null;
+    }
+
+    public boolean isMetadataEquals() {
+        MetadataNode prevMetadata = prevFunctionDefinition.metadata().orElse(null);
+        MetadataNode nextMetadata = nextFunctionDefinition.metadata().orElse(null);
+        if (prevMetadata != null && nextMetadata != null) {
+            return prevMetadata.toString().equals(nextMetadata.toString());
+        }
+        return prevMetadata == null && nextMetadata == null;
+    }
+
+    public FunctionDefinitionNode generateCombinedFunctionDefinition(boolean isFirstFunctionDefinition) {
         MetadataNode finalMetadata = nextFunctionDefinition.metadata().orElse(null);
         if (finalMetadata == null) {
             finalMetadata = prevFunctionDefinition.metadata().orElse(null);
         }
         return prevFunctionDefinition.modify(prevFunctionDefinition.kind(), finalMetadata,
-                getMergedQualifiers(prevFunctionDefinition.qualifierList(), nextFunctionDefinition.qualifierList()),
+                getMergedQualifiers(
+                        prevFunctionDefinition.qualifierList(),
+                        nextFunctionDefinition.qualifierList(),
+                        isFirstFunctionDefinition
+                ),
                 prevFunctionDefinition.functionKeyword(),
                 nextFunctionDefinition.functionName(), nextFunctionDefinition.relativeResourcePath(),
                 nextFunctionDefinition.functionSignature(), prevFunctionDefinition.functionBody());
