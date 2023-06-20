@@ -22,6 +22,7 @@ import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeParser;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.GenerationException;
@@ -34,6 +35,7 @@ import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationEx
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import org.ballerinalang.formatter.core.FormatterException;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,16 +82,24 @@ public class ServiceCodeGenerator extends CodeGenerator {
     }
 
     private void generateServices(String projectName, String fileName, String outputPath, List<SrcFilePojo> sourceFiles)
-            throws IOException, FormatterException {
+            throws IOException, FormatterException, ServiceGenerationException {
         this.serviceGenerator.setFileName(fileName);
-        Path outputFilePath = Paths.get(outputPath, CodeGeneratorConstants.SERVICE_FILE_NAME);
-        String availableOutputFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(outputFilePath));
-        ModulePartNode availableOutputFileNode = NodeParser.parseModulePart(availableOutputFileContent);
         this.serviceGenerator.setMethodDeclarations(this.serviceMethodDeclarations);
         ModulePartNode newServiceFileContentNode = this.serviceGenerator.generateContentNode();
-        ServiceFileCombiner serviceFileCombiner =
-                new ServiceFileCombiner(availableOutputFileNode, newServiceFileContentNode);
-        String mergedServiceFileContent = serviceFileCombiner.generateMergedSrc();
+        String mergedServiceFileContent = "";
+        Path outputFilePath = Paths.get(outputPath, CodeGeneratorConstants.SERVICE_FILE_NAME);
+        File outputFile = new File(outputFilePath.toString());
+        if (outputFile.exists()) {
+            String availableOutputFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(outputFilePath));
+            ModulePartNode availableOutputFileNode = NodeParser.parseModulePart(availableOutputFileContent);
+            ServiceFileCombiner serviceFileCombiner =
+                    new ServiceFileCombiner(availableOutputFileNode, newServiceFileContentNode);
+            mergedServiceFileContent = serviceFileCombiner.generateMergedSrc();
+            warnings.addAll(serviceFileCombiner.getBreakingChangeWarnings());
+        } else {
+            SyntaxTree newServiceFileSyntaxTree = serviceGenerator.generateSyntaxTree(newServiceFileContentNode);
+            mergedServiceFileContent = serviceGenerator.generateSrc(newServiceFileSyntaxTree);
+        }
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName, CodeGeneratorConstants.SERVICE_FILE_NAME,
                         mergedServiceFileContent));
@@ -100,15 +110,22 @@ public class ServiceCodeGenerator extends CodeGenerator {
                                       List<SrcFilePojo> sourceFiles)
             throws ServiceTypesGenerationException, IOException, FormatterException {
         this.serviceTypesGenerator.setFileName(fileName);
-        // get already available content in output file
-        Path outputFilePath = Paths.get(outputPath, CodeGeneratorConstants.TYPES_FILE_NAME);
-        String availableOutputFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(outputFilePath));
-        ModulePartNode availableOutputFileNode = NodeParser.parseModulePart(availableOutputFileContent);
         ModulePartNode newTypesFileContentNode = serviceTypesGenerator.generateContentNode(graphQLSchema);
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(availableOutputFileNode, newTypesFileContentNode, graphQLSchema);
-        String mergedTypesFileContent = serviceCombiner.generateMergedSrc();
-        warnings.addAll(serviceCombiner.getBreakingChangeWarnings());
+        String mergedTypesFileContent = "";
+        Path outputFilePath = Paths.get(outputPath, CodeGeneratorConstants.TYPES_FILE_NAME);
+        File outputFile = new File(outputFilePath.toString());
+        if (outputFile.exists()) {
+            String availableOutputFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(outputFilePath));
+            ModulePartNode availableOutputFileNode = NodeParser.parseModulePart(availableOutputFileContent);
+            ServiceCombiner serviceCombiner =
+                    new ServiceCombiner(availableOutputFileNode, newTypesFileContentNode, graphQLSchema);
+            mergedTypesFileContent = serviceCombiner.generateMergedSrc();
+            warnings.addAll(serviceCombiner.getBreakingChangeWarnings());
+        } else {
+            SyntaxTree mergedTypesSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newTypesFileContentNode);
+            mergedTypesFileContent = serviceTypesGenerator.generateSrc(mergedTypesSyntaxTree);
+        }
+
         setServiceMethodDeclarations(this.serviceTypesGenerator.getServiceMethodDeclarations());
         sourceFiles.add(
                 new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
