@@ -23,6 +23,7 @@ import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.projects.DiagnosticResult;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -54,6 +55,19 @@ public class ServiceGenerationTest extends GraphqlTest {
     @AfterClass
     public void removeBalTomlFile() throws IOException {
         Files.deleteIfExists(this.tmpDir.resolve(balTomlPath.getFileName()));
+    }
+
+    @AfterMethod
+    public void afterTestCase() {
+        File directory = new File(this.tmpDir.toString());
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            for (File file : files) {
+                if (file.isFile() && !file.getName().endsWith("Ballerina.toml")) {
+                    file.delete();
+                }
+            }
+        }
     }
 
     @Test(description = "Test graphql command execution for service generation with invalid schema")
