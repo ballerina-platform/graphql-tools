@@ -28,6 +28,13 @@ public class Constants {
     public static final String ONLY_SCALAR_TYPE_ALLOWED = "Should be a scalar type but found \"%s\".";
     public static final String NOT_ALLOWED_UNION_SUB_TYPE =
             "Union type can only have object types as members. But found: \"%s\" with different type.";
+    public static final String MESSAGE_FOR_COMBINE_INTO_EMPTY_SERVICE_TYPES_FILE = "Service types file combination " +
+            "failed. The service types file \"%s\" available in \"%s\" output location is empty. It should be deleted" +
+            " or it should be a GraphQL service types file.";
+    public static final String MESSAGE_FOR_COMBINE_INTO_EMPTY_SERVICE_FILE = "Service file combination failed. The " +
+            "service file \"%s\" available in \"%s\" output location is empty. It should be deleted or it should be a" +
+            " GraphQL service file.";
+
     public static final String RESOURCE = "resource";
     public static final String REMOTE = "remote";
     public static final String NEW_LINE = "\n";
