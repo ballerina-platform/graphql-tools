@@ -23,10 +23,12 @@ import io.ballerina.graphql.common.GraphqlTest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,6 +47,19 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
  */
 public class GraphqlCmdTest extends GraphqlTest {
     private static final Log log = LogFactory.getLog(GraphqlCmdTest.class);
+
+    @AfterMethod
+    public void afterTestCase() {
+        File directory = new File(this.tmpDir.toString());
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            for (File file : files) {
+                if (file.isFile()) {
+                    file.delete();
+                }
+            }
+        }
+    }
 
     @Test(description = "Test successful graphql command execution")
     public void testExecute() {
