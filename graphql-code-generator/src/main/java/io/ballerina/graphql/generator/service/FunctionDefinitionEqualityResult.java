@@ -35,10 +35,14 @@ public class FunctionDefinitionEqualityResult {
     }
 
     public boolean isEqual() {
-        return isQualifiersEquals() && isMetadataEquals() && isMatch() &&
+        return isQualifiersEquals() && isMetadataEquals() && isFunctionNameEquals() &&
                 isRelativeResourcePathEquals(prevFunctionDefinition.relativeResourcePath(),
                         nextFunctionDefinition.relativeResourcePath()) &&
                 functionSignatureEqualityResult.isEqual();
+    }
+
+    private boolean isFunctionNameEquals() {
+        return prevFunctionDefinition.functionName().text().equals(nextFunctionDefinition.functionName().text());
     }
 
     public boolean isMatch() {
