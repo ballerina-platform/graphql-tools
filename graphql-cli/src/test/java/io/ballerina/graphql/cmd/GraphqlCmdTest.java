@@ -168,6 +168,37 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test generating service when service file is available but empty")
+    public void testExecutionForServiceGenerationWhenAvailableServiceFileEmpty() {
+        Path newGraphqlSchemaPath = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewInputTypeFieldsApi.graphql"));
+        Path currentTypesFilePath = resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", "typesBeforeAddingNewInputTypeFieldsDefault.bal"));
+        Path currentServiceFilePath =
+                resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
+                        "emptyFile.bal"));
+        String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        String message = String.format("Service file combination failed. The " +
+                        "service file \"%s\" available in \"%s\" output location is empty. It should be deleted or it should be a" +
+                        " GraphQL service file.", "service.bal",
+                this.tmpDir.toString());
+        try {
+            String currentTypesFileContent = readContentWithFormat(currentTypesFilePath);
+            String currentServiceFileContent = readContentWithFormat(currentServiceFilePath);
+            Files.writeString(Paths.get(this.tmpDir.toString(), "types.bal"), currentTypesFileContent,
+                    StandardOpenOption.CREATE);
+            Files.writeString(Paths.get(this.tmpDir.toString(), "service.bal"), currentServiceFileContent,
+                    StandardOpenOption.CREATE);
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains(message));
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.toString());
+        }
+    }
+
     @Test(description = "Test graphql command execution with mode flag")
     public void testExecuteWithModeFlag() {
         Path graphql = resourceDir.resolve(
