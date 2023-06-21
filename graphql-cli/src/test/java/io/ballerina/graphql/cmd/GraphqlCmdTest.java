@@ -130,9 +130,9 @@ public class GraphqlCmdTest extends GraphqlTest {
                         "serviceBeforeAddingNewInputTypeFieldsDefault.bal"));
         String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         String expectedWarning =
-                "warning: In 'CreateAuthorInput' input type 'address' field is introduced without a default value. This can brake available clients\n" +
-                        "warning: In 'CreateBookInput' input type 'version' field is introduced without a default value. This" +
-                        " can brake available clients";
+                "warning: In 'CreateAuthorInput' input type 'address' field is introduced without a default value. " +
+                        "This can brake available clients\nwarning: In 'CreateBookInput' input type 'version' field " +
+                        "is introduced without a default value. This can brake available clients";
         String printedWarning = "";
         try {
             String currentTypesFileContent = readContentWithFormat(currentTypesFilePath);
@@ -178,10 +178,9 @@ public class GraphqlCmdTest extends GraphqlTest {
                 resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
                         "emptyFile.bal"));
         String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
-        String message = String.format("Service file combination failed. The " +
-                        "service file \"%s\" available in \"%s\" output location is empty. It should be deleted or it should be a" +
-                        " GraphQL service file.", "service.bal",
-                this.tmpDir.toString());
+        String message = String.format("Service file combination failed. The service file \"%s\" available in \"%s\"" +
+                        " output location is empty. It should be deleted or it should be a GraphQL service file.",
+                "service.bal", this.tmpDir.toString());
         try {
             String currentTypesFileContent = readContentWithFormat(currentTypesFilePath);
             String currentServiceFileContent = readContentWithFormat(currentServiceFilePath);
@@ -209,9 +208,9 @@ public class GraphqlCmdTest extends GraphqlTest {
                 resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
                         "serviceBeforeAddingNewInputTypeFieldsDefault.bal"));
         String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
-        String message = String.format("Service types file combination " +
-                        "failed. The service types file \"%s\" available in \"%s\" output location is empty. It should be deleted" +
-                        " or it should be a GraphQL service types file.", "types.bal", this.tmpDir.toString());
+        String message = String.format("Service types file combination failed. The service types file \"%s\" " +
+                "available in \"%s\" output location is empty. It should be deleted or it should be a GraphQL service" +
+                " types file.", "types.bal", this.tmpDir.toString());
         try {
             String currentTypesFileContent = readContentWithFormat(currentTypesFilePath);
             String currentServiceFileContent = readContentWithFormat(currentServiceFilePath);
@@ -268,7 +267,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             Path expectedServiceFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "serviceForSchemaWithObjectTakingInputArgument.bal"));
+                    Paths.get("serviceGen", "expectedServices",
+                            "serviceForSchemaWithObjectTakingInputArgument.bal"));
             Path expectedTypesFile = resourceDir.resolve(
                     Paths.get("serviceGen", "expectedServices",
                             "typesWithObjectTakingInputArgumentRecordsAllowed.bal"));

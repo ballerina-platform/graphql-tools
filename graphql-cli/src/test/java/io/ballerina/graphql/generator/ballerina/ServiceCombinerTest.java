@@ -1280,7 +1280,8 @@ public class ServiceCombinerTest extends GraphqlTest {
         warningMessages.add("warning: In 'SchemaWithInterchangedQueryAndSubscriptionMethodsApi' service object " +
                 "'authorNames' method changed from 'subscribe' to 'get'. This can break existing clients.");
         warningMessages.add("warning: In 'SchemaWithInterchangedQueryAndSubscriptionMethodsApi' service object " +
-                "'authorNames' method declaration return type has changed from 'stream<string>' to 'string'. This can break existing clients.");
+                "'authorNames' method declaration return type has changed from 'stream<string>' to 'string'. This " +
+                "can break existing clients.");
         warningMessages.add("warning: In 'SchemaWithInterchangedQueryAndSubscriptionMethodsApi' service object 'book'" +
                 " method changed from 'get' to 'subscribe'. This can break existing clients.");
         warningMessages.add("warning: In 'SchemaWithInterchangedQueryAndSubscriptionMethodsApi' service object 'book'" +
