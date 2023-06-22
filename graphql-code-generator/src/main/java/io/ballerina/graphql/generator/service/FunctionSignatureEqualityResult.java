@@ -1,5 +1,7 @@
 package io.ballerina.graphql.generator.service;
 
+import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,20 +14,29 @@ public class FunctionSignatureEqualityResult {
     private List<String> removedParameters;
     private List<ParameterEqualityResult> typeChangedParameters;
     private List<ParameterEqualityResult> defaultValueRemovedParameters;
+    private List<ParameterEqualityResult> defaultValueChangedParameters;
     private ReturnTypeDescriptorEqualityResult returnTypeEqualityResult;
+    private final FunctionSignatureNode prevFunctionSignature;
+    private final FunctionSignatureNode nextFunctionSignature;
 
-    public FunctionSignatureEqualityResult() {
+    public FunctionSignatureEqualityResult(FunctionSignatureNode prevFunctionSignature,
+                                           FunctionSignatureNode nextFunctionSignature) {
+        this.prevFunctionSignature = prevFunctionSignature;
+        this.nextFunctionSignature = nextFunctionSignature;
         addedParameters = new ArrayList<>();
         addedViolatedParameters = new ArrayList<>();
         removedParameters = new ArrayList<>();
         typeChangedParameters = new ArrayList<>();
         defaultValueRemovedParameters = new ArrayList<>();
+        defaultValueChangedParameters = new ArrayList<>();
     }
 
     public boolean isEqual() {
         return addedParameters.isEmpty() && removedParameters.isEmpty()
                 && typeChangedParameters.isEmpty() && returnTypeEqualityResult.isEqual()
-                && defaultValueRemovedParameters.isEmpty();
+                && defaultValueRemovedParameters.isEmpty() && defaultValueChangedParameters.isEmpty() &&
+                prevFunctionSignature.openParenToken().text().equals(nextFunctionSignature.openParenToken().text()) &&
+                prevFunctionSignature.closeParenToken().text().equals(nextFunctionSignature.closeParenToken().text());
     }
 
     public void addToAddedParameters(String parameterName) {
@@ -42,6 +53,10 @@ public class FunctionSignatureEqualityResult {
 
     public void addToDefaultValueRemovedParameters(ParameterEqualityResult parameterEqualityResult) {
         defaultValueRemovedParameters.add(parameterEqualityResult);
+    }
+
+    public void addToDefaultValueChangedParameters(ParameterEqualityResult parameterEqualityResult) {
+        defaultValueChangedParameters.add(parameterEqualityResult);
     }
 
     public void addToRemovedParameters(String parameterName) {

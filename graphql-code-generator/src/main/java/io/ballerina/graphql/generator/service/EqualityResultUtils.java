@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createCommentMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
@@ -190,7 +189,8 @@ public class EqualityResultUtils {
 
     public static FunctionSignatureEqualityResult isFuncSignatureEquals(FunctionSignatureNode prevFunctionSignature,
                                                                         FunctionSignatureNode nextFunctionSignature) {
-        FunctionSignatureEqualityResult equalityResult = new FunctionSignatureEqualityResult();
+        FunctionSignatureEqualityResult equalityResult = new FunctionSignatureEqualityResult(prevFunctionSignature,
+                nextFunctionSignature);
         LinkedHashMap<ParameterNode, Boolean> nextParameterAvailable = new LinkedHashMap<>();
         for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
             nextParameterAvailable.put(nextParameter, false);
@@ -212,6 +212,8 @@ public class EqualityResultUtils {
                         }
                         if (parameterEquals.isDefaultValueRemoved()) {
                             equalityResult.addToDefaultValueRemovedParameters(parameterEquals);
+                        } else if (parameterEquals.isDefaultValueChanged()) {
+                            equalityResult.addToDefaultValueChangedParameters(parameterEquals);
                         }
                     }
                 }

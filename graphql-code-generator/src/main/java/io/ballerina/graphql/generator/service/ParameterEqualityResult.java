@@ -74,4 +74,16 @@ public class ParameterEqualityResult {
     public String getPrevParameterDefaultValue() {
         return prevParameterDefaultValue;
     }
+
+    public boolean isDefaultValueChanged() {
+        if (prevParameterDefaultValue != null && nextParameterDefaultValue != null) {
+            if (!prevParameterDefaultValue.equals(nextParameterDefaultValue)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 }
