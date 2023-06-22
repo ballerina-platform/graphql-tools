@@ -2,8 +2,6 @@ package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isTypeEquals;
-
 /**
  * Utility class to store result comparing return type descriptors.
  */
@@ -17,7 +15,8 @@ public class ReturnTypeDescriptorEqualityResult {
         this.prevReturnTypeDescriptor = prevReturnTypeDescriptor;
         this.nextReturnTypeDescriptor = nextReturnTypeDescriptor;
         if (prevReturnTypeDescriptor != null && nextReturnTypeDescriptor != null) {
-            returnTypeEquality = isTypeEquals(prevReturnTypeDescriptor.type(), nextReturnTypeDescriptor.type());
+            returnTypeEquality =
+                    new TypeEqualityResult(prevReturnTypeDescriptor.type(), nextReturnTypeDescriptor.type());
         }
     }
 

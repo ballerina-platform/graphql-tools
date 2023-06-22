@@ -212,11 +212,6 @@ public class EqualityResultUtils {
         return null;
     }
 
-    public static TypeEqualityResult isTypeEquals(Node prevType, Node nextType) {
-        TypeEqualityResult equalityResult = new TypeEqualityResult(prevType, nextType);
-        return equalityResult;
-    }
-
     public static String getTypeName(Node type) {
         if (type instanceof BuiltinSimpleNameReferenceNode) {
             BuiltinSimpleNameReferenceNode typeName = (BuiltinSimpleNameReferenceNode) type;
@@ -250,7 +245,8 @@ public class EqualityResultUtils {
 
     public static ParameterEqualityResult isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter) {
         ParameterEqualityResult parameterEquality = new ParameterEqualityResult(prevParameter, nextParameter);
-        TypeEqualityResult typeEquals = isTypeEquals(getParameterType(prevParameter), getParameterType(nextParameter));
+        TypeEqualityResult typeEquals =
+                new TypeEqualityResult(getParameterType(prevParameter), getParameterType(nextParameter));
         parameterEquality.setTypeEquality(typeEquals);
         return parameterEquality;
     }

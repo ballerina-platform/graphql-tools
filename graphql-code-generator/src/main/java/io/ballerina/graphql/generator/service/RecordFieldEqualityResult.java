@@ -8,7 +8,6 @@ import io.ballerina.compiler.syntax.tree.Token;
 
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getRecordFieldType;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isTypeEquals;
 
 /**
  * Utility class to store result comparing record fields.
@@ -21,7 +20,7 @@ public class RecordFieldEqualityResult {
     public RecordFieldEqualityResult(Node prevField, Node nextField) {
         this.prevField = prevField;
         this.nextField = nextField;
-        typeEquality = isTypeEquals(getRecordFieldType(prevField), getRecordFieldType(nextField));
+        typeEquality = new TypeEqualityResult(getRecordFieldType(prevField), getRecordFieldType(nextField));
     }
 
     public boolean isEqual() {

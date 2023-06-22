@@ -15,7 +15,6 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeLi
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isMethodDeclarationEquals;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverMethod;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isTypeEquals;
 
 
 /**
@@ -56,7 +55,7 @@ public class ServiceObjectEqualityResult {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextMember;
                     TypeEqualityResult typeEquality =
-                            isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
+                            new TypeEqualityResult(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
                     if (typeEquality.isEqual()) {
                         foundMatch = true;
                         nextServiceObjectMemberAvailable.put(nextMember, true);
@@ -127,7 +126,7 @@ public class ServiceObjectEqualityResult {
 
     public ObjectTypeDescriptorNode generateCombinedObjectTypeDescriptor() {
         return prevObjectType.modify(prevObjectType.objectTypeQualifiers(), nextObjectType.objectKeyword(),
-                nextObjectType.openBrace(), createNodeList(finalMembers), nextObjectType.closeBrace());
+                prevObjectType.openBrace(), createNodeList(finalMembers), prevObjectType.closeBrace());
     }
 
     public List<MethodDeclarationNode> getRemovedMethodDeclarations() {

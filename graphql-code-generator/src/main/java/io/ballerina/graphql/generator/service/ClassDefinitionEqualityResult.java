@@ -80,7 +80,7 @@ public class ClassDefinitionEqualityResult {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevClassMember;
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextClassMember;
                     TypeEqualityResult typeEquality =
-                            isTypeEquals(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
+                            new TypeEqualityResult(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
                     if (typeEquality.isEqual()) {
                         foundMatch = true;
                         nextClassMemberAvailability.put(nextTypeRefMember, true);
