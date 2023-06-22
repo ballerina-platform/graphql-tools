@@ -60,10 +60,6 @@ public class MethodDeclarationEqualityResult {
         return functionSignatureEqualityResult;
     }
 
-    public void setFunctionSignatureEqualityResult(FunctionSignatureEqualityResult functionSignatureEqualityResult) {
-        this.functionSignatureEqualityResult = functionSignatureEqualityResult;
-    }
-
     public String getPrevFunctionName() {
         return getMethodDeclarationName(prevMethodDeclaration);
     }

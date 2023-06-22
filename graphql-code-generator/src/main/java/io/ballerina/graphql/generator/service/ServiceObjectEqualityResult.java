@@ -115,21 +115,9 @@ public class ServiceObjectEqualityResult {
                 addedTypeReferences.isEmpty();
     }
 
-    public void addToRemovedMethodDeclarations(MethodDeclarationNode methodDeclarationName) {
-        removedMethodDeclarations.add(methodDeclarationName);
-    }
-
-    public void addToUpdatedMethodDeclarations(MethodDeclarationEqualityResult methodDeclarationEquality) {
-        updatedMethodDeclarations.add(methodDeclarationEquality);
-    }
-
     public ObjectTypeDescriptorNode generateCombinedObjectTypeDescriptor() {
         return prevObjectType.modify(prevObjectType.objectTypeQualifiers(), nextObjectType.objectKeyword(),
                 prevObjectType.openBrace(), createNodeList(finalMembers), prevObjectType.closeBrace());
-    }
-
-    public List<MethodDeclarationNode> getRemovedMethodDeclarations() {
-        return removedMethodDeclarations;
     }
 
     public List<MethodDeclarationEqualityResult> getUpdatedMethodDeclarations() {

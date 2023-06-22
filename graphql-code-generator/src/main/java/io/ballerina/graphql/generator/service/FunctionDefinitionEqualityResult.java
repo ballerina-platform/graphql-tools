@@ -47,11 +47,6 @@ public class FunctionDefinitionEqualityResult {
         return functionSignatureEqualityResult;
     }
 
-    public void setFunctionSignatureEqualityResult(
-            FunctionSignatureEqualityResult functionSignatureEqualityResult) {
-        this.functionSignatureEqualityResult = functionSignatureEqualityResult;
-    }
-
     public String getPrevFunctionName() {
         return getFunctionName(prevFunctionDefinition);
     }
