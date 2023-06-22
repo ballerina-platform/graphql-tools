@@ -1,0 +1,23 @@
+type Query {
+    "Fetch book by its id and title"
+    book("represents id of a book" id: Int!, "represents title of a book" title: String): Book
+    "Fetch book only by id"
+    bookById(id: Int!): Book
+    "Fetch books"
+    books: [Book!]
+}
+
+type Mutation {
+    "Insert a book"
+    addBook(id: Int!): Book!
+}
+
+type Subscription {
+    "Fetch book titles in a stream"
+    bookTitles: String!
+}
+
+type Book {
+    id: Int!
+    title: String!
+}

@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
@@ -246,6 +244,41 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String newSchemaFileName = "SchemaWithInterchangedQueryAndSubscriptionFieldsApi";
         String beforeBalFileName = "serviceBeforeInterchangingQueryAndSubscriptionFields";
         String expectedBalFileName = "serviceWithInterchangedQueryAndSubscriptionFields";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        ModulePartNode newContent = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+        SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+        serviceTypesGenerator.generateSrc(newContentSyntaxTree);
+
+        ServiceGenerator serviceGenerator = new ServiceGenerator();
+        serviceGenerator.setFileName(newSchemaFileName);
+        serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ModulePartNode nextBalFileNode = serviceGenerator.generateContentNode();
+        ServiceFileCombiner serviceFileCombiner = new ServiceFileCombiner(updateBalFileNode, nextBalFileNode);
+        String result = serviceFileCombiner.generateMergedSrc().trim();
+        String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(result, expectedServiceContent);
+    }
+
+    @Test(description = "Test combining updated schema with added metadata in resolver functions")
+    public void testCombiningUpdatedSchemaWithAddedMetadataInResolverFunctions()
+            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+        String newSchemaFileName = "SchemaWithAddedMetadataInResolverFunctionsApi";
+        String beforeBalFileName = "serviceBeforeAddingMetadataInResolverFunctions";
+        String expectedBalFileName = "serviceAfterAddingMetadataInResolverFunctions";
         Path updatedBalFilePath = this.resourceDir.resolve(
                 Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
         Path newSchemaPath = this.resourceDir.resolve(
