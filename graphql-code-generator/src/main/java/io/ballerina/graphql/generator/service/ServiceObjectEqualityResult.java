@@ -13,7 +13,6 @@ import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isMethodDeclarationEquals;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverMethod;
 
 
@@ -66,7 +65,7 @@ public class ServiceObjectEqualityResult {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
                     MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) nextMember;
                     MethodDeclarationEqualityResult methodDeclarationEquals =
-                            isMethodDeclarationEquals(prevMethodDeclaration, nextMethodDeclaration);
+                            new MethodDeclarationEqualityResult(prevMethodDeclaration, nextMethodDeclaration);
                     if (methodDeclarationEquals.isEqual()) {
                         foundMatch = true;
                         nextServiceObjectMemberAvailable.put(nextMember, true);

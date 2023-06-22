@@ -23,6 +23,8 @@ public class MethodDeclarationEqualityResult {
                                            MethodDeclarationNode nextMethodDeclaration) {
         this.prevMethodDeclaration = prevMethodDeclaration;
         this.nextMethodDeclaration = nextMethodDeclaration;
+        functionSignatureEqualityResult = new FunctionSignatureEqualityResult(prevMethodDeclaration.methodSignature()
+                , nextMethodDeclaration.methodSignature());
     }
 
     public boolean isMatch() {

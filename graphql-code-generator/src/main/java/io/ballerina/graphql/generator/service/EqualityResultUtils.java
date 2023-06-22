@@ -85,17 +85,6 @@ public class EqualityResultUtils {
         return null;
     }
 
-    public static MethodDeclarationEqualityResult isMethodDeclarationEquals(
-            MethodDeclarationNode prevMethodDeclaration, MethodDeclarationNode nextMethodDeclaration) {
-        MethodDeclarationEqualityResult methodDeclarationEquality =
-                new MethodDeclarationEqualityResult(prevMethodDeclaration, nextMethodDeclaration);
-        FunctionSignatureEqualityResult funcSignatureEquals =
-                new FunctionSignatureEqualityResult(prevMethodDeclaration.methodSignature(),
-                        nextMethodDeclaration.methodSignature());
-        methodDeclarationEquality.setFunctionSignatureEqualityResult(funcSignatureEquals);
-        return methodDeclarationEquality;
-    }
-
     public static boolean isRelativeResourcePathEquals(NodeList<Node> prevRelativeResourcePath,
                                                        NodeList<Node> nextRelativeResourcePath) {
         if (!(prevRelativeResourcePath.size() == nextRelativeResourcePath.size())) {
@@ -338,8 +327,7 @@ public class EqualityResultUtils {
             IntersectionTypeDescriptorNode intersectionTypeDescriptor = (IntersectionTypeDescriptorNode) typeDescriptor;
             return generateObjectType(intersectionTypeDescriptor.rightTypeDesc());
         } else if (typeDescriptor instanceof ObjectTypeDescriptorNode) {
-            ObjectTypeDescriptorNode objectType = (ObjectTypeDescriptorNode) typeDescriptor;
-            return objectType;
+            return (ObjectTypeDescriptorNode) typeDescriptor;
         } else if (typeDescriptor instanceof DistinctTypeDescriptorNode) {
             DistinctTypeDescriptorNode distinctTypeDescriptor = (DistinctTypeDescriptorNode) typeDescriptor;
             return generateObjectType(distinctTypeDescriptor.typeDescriptor());
