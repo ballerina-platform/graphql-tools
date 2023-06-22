@@ -34,7 +34,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createModulePartNode
 /**
  * Utility class for combining available service with generated service for a GraphQL schema.
  */
-public class ServiceCombiner {
+public class ServiceTypesFileCombiner {
     private final ModulePartNode nextContentNode;
     private final ModulePartNode prevContentNode;
     private GraphQLSchema nextGraphqlSchema;
@@ -46,8 +46,8 @@ public class ServiceCombiner {
     private List<ModuleMemberDeclarationNode> objectTypesModuleMembers;
     private List<String> breakingChangeWarnings;
 
-    public ServiceCombiner(ModulePartNode prevContentNode, ModulePartNode nextContentNode,
-                           GraphQLSchema nextGraphqlSchema) {
+    public ServiceTypesFileCombiner(ModulePartNode prevContentNode, ModulePartNode nextContentNode,
+                                    GraphQLSchema nextGraphqlSchema) {
         this.prevContentNode = prevContentNode;
         this.nextContentNode = nextContentNode;
         this.nextGraphqlSchema = nextGraphqlSchema;

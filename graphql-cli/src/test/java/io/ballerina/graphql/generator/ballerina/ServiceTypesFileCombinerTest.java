@@ -7,7 +7,7 @@ import io.ballerina.graphql.cmd.Constants;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
-import io.ballerina.graphql.generator.service.combiner.ServiceCombiner;
+import io.ballerina.graphql.generator.service.combiner.ServiceTypesFileCombiner;
 import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;
 import org.ballerinalang.formatter.core.Formatter;
 import org.testng.Assert;
@@ -25,7 +25,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  * Test class for ServiceCombiner.
  * Test the successful combination of available service file and generated service file from schema
  */
-public class ServiceCombinerTest extends GraphqlTest {
+public class ServiceTypesFileCombinerTest extends GraphqlTest {
     @Test(description = "Test combining updated schema with added new object type")
     public void testCombiningUpdatedSchemaWithAddedNewObjectType() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewObjectTypeApi";
@@ -48,9 +48,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -78,9 +78,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -108,9 +108,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -138,9 +138,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -168,9 +168,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -199,9 +199,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -229,9 +229,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -259,9 +259,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -289,9 +289,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -319,9 +319,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -349,9 +349,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
@@ -361,7 +361,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "a default value. This can brake available clients");
         warnings.add("warning: In 'CreateBookInput' input type 'version' field is introduced without a " +
                 "default value. This can brake available clients");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warnings.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(warnings.get(i), breakingChangeWarnings.get(i));
@@ -390,9 +390,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -420,9 +420,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -451,9 +451,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -481,9 +481,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -510,9 +510,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -524,7 +524,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "warning: In 'CreateBookInput' input type 'authorId' field has removed. This can brake clients");
         warningMessages.add(
                 "warning: In 'CreateBookInput' input type 'price' field has removed. This can brake clients");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 3);
         for (int i = 0; i < 3; i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -552,16 +552,16 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
 
         List<String> warningMessages = new ArrayList<>();
         warningMessages.add("warning: In 'Gender' enum 'FEMALE' member has removed. This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 1);
         for (int i = 0; i < 1; i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -590,9 +590,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -600,7 +600,7 @@ public class ServiceCombinerTest extends GraphqlTest {
         List<String> warningMessages = new ArrayList<>();
         warningMessages.add("warning: In 'Book' service class 'title' function definition has removed. " +
                 "This can break available clients");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 1);
         Assert.assertEquals(breakingChangeWarnings.get(0), warningMessages.get(0));
     }
@@ -627,9 +627,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -638,7 +638,7 @@ public class ServiceCombinerTest extends GraphqlTest {
         warningMessages.add(
                 "warning: In 'Book' class 'price' function definition return type has changed from 'int' to 'float'. " +
                         "This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < warningMessages.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(0), warningMessages.get(0));
@@ -669,9 +669,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -682,7 +682,7 @@ public class ServiceCombinerTest extends GraphqlTest {
         warningMessages.add(
                 "warning: In 'Book' class 'id' function definition return type has changed from 'int' to 'string'. " +
                         "This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 2);
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -713,9 +713,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -725,7 +725,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "This can break existing clients.");
         warningMessages.add("warning: In 'Child' class 'pass' function definition 'score3' parameter removed. " +
                 "This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 2);
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -756,9 +756,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -772,7 +772,7 @@ public class ServiceCombinerTest extends GraphqlTest {
         warningMessages.add(
                 "warning: In 'Child' class 'knowsWords' function definition 'word' parameter removed. This can break " +
                         "existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 3);
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -801,9 +801,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -819,7 +819,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                         "method declaration has removed. This can break existing clients.");
         warningMessages.add("warning: In 'SchemaWithRemovedFieldsInQueryMutationAndSubscriptionApi' service object " +
                 "'authorIds' method declaration has removed. This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -849,9 +849,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -867,7 +867,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "warning: In 'SchemaWithRemovedParametersInQueryMutationAndSubscriptionFieldsApi' service object " +
                         "'bookTitles' method declaration 'ids' parameter has removed. " +
                         "This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -896,9 +896,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -945,7 +945,7 @@ public class ServiceCombinerTest extends GraphqlTest {
         warningMessages.add("warning: In 'SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi' service " +
                 "object 'authorNames' method declaration return type has changed from 'stream<string>' to " +
                 "'stream<string?>'. This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -975,9 +975,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -994,7 +994,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "warning: In 'SchemaWithAddedParametersInQueryMutationAndSubscriptionFieldsApi' service object " +
                         "'authorNames' method declaration 'ids' parameter added without default value. This can break" +
                         " existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -1023,9 +1023,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1056,7 +1056,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "'\"\"' default value has removed. This can break existing clients.");
         warningMessages.add("warning: In 'Book' service class 'price' function 'copiesSold' parameter assigned '0' " +
                 "default value has removed. This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -1085,9 +1085,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1097,7 +1097,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "clients.");
         warningMessages.add("warning: In 'Profile' union type 'Clerk' member has removed. This can break existing " +
                 "clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -1126,9 +1126,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1138,7 +1138,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 " can break existing clients.");
         warningMessages.add("warning: In 'Info' interface service object 'email' method declaration has removed. This" +
                 " can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -1168,9 +1168,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1186,7 +1186,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "This can break existing clients.");
         warningMessages.add("warning: In 'Book' record type 'soldAmount' field type has changed from 'float' to 'int'" +
                 ". This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -1216,9 +1216,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1240,7 +1240,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "to 'resource'. This can break existing clients.");
         warningMessages.add("warning: In 'Book' service class 'price' function qualifier list changed from 'remote' " +
                 "to 'resource'. This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -1269,9 +1269,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1299,7 +1299,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "'stream<string>' to 'string'. This can break existing clients.");
         warningMessages.add("warning: In 'Book' service class 'titles' method changed from 'subscribe' to 'get'. This" +
                 " can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -1329,9 +1329,9 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
@@ -1343,7 +1343,7 @@ public class ServiceCombinerTest extends GraphqlTest {
                 "has removed. This can break existing clients.");
         warningMessages.add("warning: In 'CreateBookInput' record type 'version' field assigned '\"v1.0\"' default " +
                 "value has removed. This can break existing clients.");
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
@@ -1372,14 +1372,14 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
 
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
@@ -1406,14 +1406,14 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
 
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
@@ -1440,14 +1440,14 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
 
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
@@ -1474,14 +1474,14 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
 
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
@@ -1508,14 +1508,14 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
 
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
@@ -1542,14 +1542,14 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
 
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
@@ -1576,14 +1576,14 @@ public class ServiceCombinerTest extends GraphqlTest {
         serviceTypesGenerator.setFileName(newSchemaFileName);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
-        ServiceCombiner serviceCombiner =
-                new ServiceCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
-        SyntaxTree mergedSyntaxTree = serviceCombiner.generateMergedSyntaxTree();
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
 
-        List<String> breakingChangeWarnings = serviceCombiner.getBreakingChangeWarnings();
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 

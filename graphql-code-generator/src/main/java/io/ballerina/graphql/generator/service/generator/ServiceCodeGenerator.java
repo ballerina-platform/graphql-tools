@@ -28,8 +28,8 @@ import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.service.Constants;
-import io.ballerina.graphql.generator.service.combiner.ServiceCombiner;
 import io.ballerina.graphql.generator.service.combiner.ServiceFileCombiner;
+import io.ballerina.graphql.generator.service.combiner.ServiceTypesFileCombiner;
 import io.ballerina.graphql.generator.service.exception.ServiceFileCombinerException;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesFileCombinerException;
@@ -133,10 +133,10 @@ public class ServiceCodeGenerator extends CodeGenerator {
             } else {
                 String availableOutputFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(outputFilePath));
                 ModulePartNode availableOutputFileNode = NodeParser.parseModulePart(availableOutputFileContent);
-                ServiceCombiner serviceCombiner =
-                        new ServiceCombiner(availableOutputFileNode, newTypesFileContentNode, graphQLSchema);
-                mergedTypesFileContent = serviceCombiner.generateMergedSrc();
-                warnings.addAll(serviceCombiner.getBreakingChangeWarnings());
+                ServiceTypesFileCombiner serviceTypesFileCombiner =
+                        new ServiceTypesFileCombiner(availableOutputFileNode, newTypesFileContentNode, graphQLSchema);
+                mergedTypesFileContent = serviceTypesFileCombiner.generateMergedSrc();
+                warnings.addAll(serviceTypesFileCombiner.getBreakingChangeWarnings());
             }
         } else {
             SyntaxTree mergedTypesSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newTypesFileContentNode);

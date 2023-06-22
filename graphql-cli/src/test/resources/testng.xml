@@ -37,7 +37,7 @@
             <class name="io.ballerina.graphql.generator.ballerina.ServiceTypesGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.ClientGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.ServiceGeneratorTest"/>
-            <class name="io.ballerina.graphql.generator.ballerina.ServiceCombinerTest"/>
+            <class name="io.ballerina.graphql.generator.ballerina.ServiceTypesFileCombinerTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.ServiceFileCombinerTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.UtilsGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.ConfigTypesGeneratorTest"/>
