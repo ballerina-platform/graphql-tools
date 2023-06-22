@@ -75,4 +75,38 @@ public class ServiceGeneratorTest extends GraphqlTest {
             Assert.fail(e.getMessage());
         }
     }
+
+    @Test(description = "Test the successful generation of service code for schema with documentation in resolver " +
+            "functions")
+    public void testGenerateServiceForSchemaWithDocumentationInResolverFunctions() {
+        String fileName = "SchemaDocsWithMutationAndSubscriptionResolversApi";
+        String expectedFile = "serviceForSchemaDocsWithMutationAndSubscriptionResolvers.bal";
+        try {
+            GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                            .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setFileName(fileName);
+            ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
+            SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
+            serviceTypesGenerator.generateSrc(newContentSyntaxTree);
+
+            ServiceGenerator serviceGenerator = new ServiceGenerator();
+            serviceGenerator.setFileName(fileName);
+            serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
+            ModulePartNode serviceContent = serviceGenerator.generateContentNode();
+            SyntaxTree serviceSyntaxTree = serviceGenerator.generateSyntaxTree(serviceContent);
+            String generatedServiceContent = serviceGenerator.generateSrc(serviceSyntaxTree);
+            writeContentTo(generatedServiceContent, this.tmpDir);
+            Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceContent = readContentWithFormat(expectedServiceFile);
+            String writtenServiceTypesContent =
+                    readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
+        } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | ValidationException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
 }
