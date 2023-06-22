@@ -1,10 +1,11 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
+import io.ballerina.graphql.generator.service.Constants;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -12,25 +13,25 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverMethod;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMainQualifier;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isResolverMethod;
 
 
 /**
  * Utility class to store result comparing two service objects.
  */
-public class ServiceObjectEqualityResult {
+public class ServiceObjectComparator {
     private final ObjectTypeDescriptorNode prevObjectType;
     private final ObjectTypeDescriptorNode nextObjectType;
     private List<MethodDeclarationNode> removedMethodDeclarations;
     private List<MethodDeclarationNode> addedMethodDeclarations;
     private List<TypeReferenceNode> removedTypeReferences;
     private List<TypeReferenceNode> addedTypeReferences;
-    private List<MethodDeclarationEqualityResult> updatedMethodDeclarations;
+    private List<MethodDeclarationComparator> updatedMethodDeclarations;
     private List<Node> finalMembers;
 
-    public ServiceObjectEqualityResult(ObjectTypeDescriptorNode prevObjectType,
-                                       ObjectTypeDescriptorNode nextObjectType) {
+    public ServiceObjectComparator(ObjectTypeDescriptorNode prevObjectType,
+                                   ObjectTypeDescriptorNode nextObjectType) {
         removedTypeReferences = new ArrayList<>();
         removedMethodDeclarations = new ArrayList<>();
         addedMethodDeclarations = new ArrayList<>();
@@ -53,8 +54,8 @@ public class ServiceObjectEqualityResult {
                 if (prevMember instanceof TypeReferenceNode && nextMember instanceof TypeReferenceNode) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextMember;
-                    TypeEqualityResult typeEquality =
-                            new TypeEqualityResult(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
+                    TypeComparator typeEquality =
+                            new TypeComparator(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
                     if (typeEquality.isEqual()) {
                         foundMatch = true;
                         nextServiceObjectMemberAvailable.put(nextMember, true);
@@ -64,8 +65,8 @@ public class ServiceObjectEqualityResult {
                 } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
                     MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) nextMember;
-                    MethodDeclarationEqualityResult methodDeclarationEquals =
-                            new MethodDeclarationEqualityResult(prevMethodDeclaration, nextMethodDeclaration);
+                    MethodDeclarationComparator methodDeclarationEquals =
+                            new MethodDeclarationComparator(prevMethodDeclaration, nextMethodDeclaration);
                     if (methodDeclarationEquals.isEqual()) {
                         foundMatch = true;
                         nextServiceObjectMemberAvailable.put(nextMember, true);
@@ -120,7 +121,7 @@ public class ServiceObjectEqualityResult {
                 prevObjectType.openBrace(), createNodeList(finalMembers), prevObjectType.closeBrace());
     }
 
-    public List<MethodDeclarationEqualityResult> getUpdatedMethodDeclarations() {
+    public List<MethodDeclarationComparator> getUpdatedMethodDeclarations() {
         return updatedMethodDeclarations;
     }
 

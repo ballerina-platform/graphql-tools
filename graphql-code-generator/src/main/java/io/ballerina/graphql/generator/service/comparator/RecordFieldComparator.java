@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 
 import io.ballerina.compiler.syntax.tree.Node;
@@ -6,21 +6,21 @@ import io.ballerina.compiler.syntax.tree.RecordFieldNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.Token;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getRecordFieldType;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getRecordFieldType;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getTypeName;
 
 /**
  * Utility class to store result comparing record fields.
  */
-public class RecordFieldEqualityResult {
-    private TypeEqualityResult typeEquality;
+public class RecordFieldComparator {
+    private TypeComparator typeEquality;
     private Node prevField;
     private Node nextField;
 
-    public RecordFieldEqualityResult(Node prevField, Node nextField) {
+    public RecordFieldComparator(Node prevField, Node nextField) {
         this.prevField = prevField;
         this.nextField = nextField;
-        typeEquality = new TypeEqualityResult(getRecordFieldType(prevField), getRecordFieldType(nextField));
+        typeEquality = new TypeComparator(getRecordFieldType(prevField), getRecordFieldType(nextField));
     }
 
     public boolean isEqual() {
@@ -75,7 +75,7 @@ public class RecordFieldEqualityResult {
         return !prevFieldTypeName.equals(nextFieldTypeName);
     }
 
-    public TypeEqualityResult getTypeEquality() {
+    public TypeComparator getTypeEquality() {
         return typeEquality;
     }
 

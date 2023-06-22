@@ -1,18 +1,18 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.Node;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMemberName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getEnumMemberName;
 
 /**
  * Utility class to store result comparing enum members.
  */
-public class EnumMemberEqualityResult {
+public class EnumMemberComparator {
     private final Node prevMember;
     private final Node nextMember;
 
-    public EnumMemberEqualityResult(Node prevMember, Node nextMember) {
+    public EnumMemberComparator(Node prevMember, Node nextMember) {
         this.prevMember = prevMember;
         this.nextMember = nextMember;
     }

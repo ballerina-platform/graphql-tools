@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
@@ -9,25 +9,25 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getParameterName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isParameterEquals;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getParameterName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isParameterEquals;
 
 /**
  * Utility class to store result comparing two function signatures.
  */
-public class FunctionSignatureEqualityResult {
+public class FunctionSignatureComparator {
     private List<String> addedParameters;
     private List<String> addedViolatedParameters;
     private List<String> removedParameters;
-    private List<ParameterEqualityResult> typeChangedParameters;
-    private List<ParameterEqualityResult> defaultValueRemovedParameters;
-    private List<ParameterEqualityResult> defaultValueChangedParameters;
-    private ReturnTypeDescriptorEqualityResult returnTypeEqualityResult;
+    private List<ParameterComparator> typeChangedParameters;
+    private List<ParameterComparator> defaultValueRemovedParameters;
+    private List<ParameterComparator> defaultValueChangedParameters;
+    private ReturnTypeDescriptorComparator returnTypeEqualityResult;
     private final FunctionSignatureNode prevFunctionSignature;
     private final FunctionSignatureNode nextFunctionSignature;
 
-    public FunctionSignatureEqualityResult(FunctionSignatureNode prevFunctionSignature,
-                                           FunctionSignatureNode nextFunctionSignature) {
+    public FunctionSignatureComparator(FunctionSignatureNode prevFunctionSignature,
+                                       FunctionSignatureNode nextFunctionSignature) {
         this.prevFunctionSignature = prevFunctionSignature;
         this.nextFunctionSignature = nextFunctionSignature;
         addedParameters = new ArrayList<>();
@@ -47,7 +47,7 @@ public class FunctionSignatureEqualityResult {
         for (ParameterNode prevParameter : prevFunctionSignature.parameters()) {
             boolean foundMatch = false;
             for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
-                ParameterEqualityResult parameterEquals = isParameterEquals(prevParameter, nextParameter);
+                ParameterComparator parameterEquals = isParameterEquals(prevParameter, nextParameter);
                 if (parameterEquals.isEqual()) {
                     foundMatch = true;
                     nextParameterAvailable.put(nextParameter, true);
@@ -81,7 +81,7 @@ public class FunctionSignatureEqualityResult {
             }
         }
         returnTypeEqualityResult =
-                new ReturnTypeDescriptorEqualityResult(prevFunctionSignature.returnTypeDesc().orElse(null),
+                new ReturnTypeDescriptorComparator(prevFunctionSignature.returnTypeDesc().orElse(null),
                         nextFunctionSignature.returnTypeDesc().orElse(null));
     }
 
@@ -101,15 +101,15 @@ public class FunctionSignatureEqualityResult {
         return removedParameters;
     }
 
-    public List<ParameterEqualityResult> getTypeChangedParameters() {
+    public List<ParameterComparator> getTypeChangedParameters() {
         return typeChangedParameters;
     }
 
-    public ReturnTypeDescriptorEqualityResult getReturnTypeEqualityResult() {
+    public ReturnTypeDescriptorComparator getReturnTypeEqualityResult() {
         return returnTypeEqualityResult;
     }
 
-    public List<ParameterEqualityResult> getDefaultValueRemovedParameters() {
+    public List<ParameterComparator> getDefaultValueRemovedParameters() {
         return defaultValueRemovedParameters;
     }
 }

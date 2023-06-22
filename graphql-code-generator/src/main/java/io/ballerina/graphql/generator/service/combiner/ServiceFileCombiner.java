@@ -8,7 +8,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.service.ServiceDeclarationEqualityResult;
+import io.ballerina.graphql.generator.service.comparator.ServiceDeclarationComparator;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
@@ -113,8 +113,8 @@ public class ServiceFileCombiner {
 
     private boolean isServiceDeclarationMatch(ServiceDeclarationNode prevServiceDeclaration,
                                               ServiceDeclarationNode nextServiceDeclaration) {
-        ServiceDeclarationEqualityResult serviceDeclarationEquality =
-                new ServiceDeclarationEqualityResult(prevServiceDeclaration, nextServiceDeclaration);
+        ServiceDeclarationComparator serviceDeclarationEquality =
+                new ServiceDeclarationComparator(prevServiceDeclaration, nextServiceDeclaration);
         if (!serviceDeclarationEquality.isMatch()) {
             return false;
         }

@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
@@ -13,15 +13,15 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeLi
 /**
  * Utility class to store result comparing record types.
  */
-public class RecordTypeEqualityResult {
+public class RecordTypeComparator {
     private final RecordTypeDescriptorNode prevRecordType;
     private final RecordTypeDescriptorNode nextRecordType;
     private List<Node> addedFields;
-    private List<RecordFieldEqualityResult> updatedRecordFields;
+    private List<RecordFieldComparator> updatedRecordFields;
     private List<Node> removedFields;
     private List<Node> finalMembers;
 
-    public RecordTypeEqualityResult(RecordTypeDescriptorNode prevRecordType, RecordTypeDescriptorNode nextRecordType) {
+    public RecordTypeComparator(RecordTypeDescriptorNode prevRecordType, RecordTypeDescriptorNode nextRecordType) {
         this.prevRecordType = prevRecordType;
         this.nextRecordType = nextRecordType;
         updatedRecordFields = new ArrayList<>();
@@ -39,8 +39,8 @@ public class RecordTypeEqualityResult {
         for (Node prevField : prevRecordType.fields()) {
             boolean foundPrevMatch = false;
             for (Node nextField : nextRecordType.fields()) {
-                RecordFieldEqualityResult recordFieldEquality =
-                        new RecordFieldEqualityResult(prevField, nextField);
+                RecordFieldComparator recordFieldEquality =
+                        new RecordFieldComparator(prevField, nextField);
                 if (recordFieldEquality.isEqual()) {
                     foundPrevMatch = true;
                     nextRecordFieldsAvailability.put(nextField, true);
@@ -84,7 +84,7 @@ public class RecordTypeEqualityResult {
         return prevRecordType.bodyEndDelimiter().text().equals(nextRecordType.bodyEndDelimiter().text());
     }
 
-    public List<RecordFieldEqualityResult> getUpdatedRecordFields() {
+    public List<RecordFieldComparator> getUpdatedRecordFields() {
         return updatedRecordFields;
     }
 

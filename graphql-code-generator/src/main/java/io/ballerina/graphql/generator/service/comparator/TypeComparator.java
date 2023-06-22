@@ -1,17 +1,17 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.Node;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getTypeName;
 
 /**
  * Utility class to store result comparing two types.
  */
-public class TypeEqualityResult {
+public class TypeComparator {
     private String prevType;
     private String nextType;
 
-    public TypeEqualityResult(Node prevType, Node nextType) {
+    public TypeComparator(Node prevType, Node nextType) {
         this.prevType = getTypeName(prevType);
         this.nextType = getTypeName(nextType);
     }

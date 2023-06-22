@@ -1,30 +1,30 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionDefinitionResolverType;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedFunctionDefinitionQualifiers;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isRelativeResourcePathEquals;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getFunctionDefinitionResolverType;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getFunctionName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMainQualifier;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMergedFunctionDefinitionQualifiers;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isRelativeResourcePathEquals;
 
 /**
  * Utility class to store result of comparing two function definitions.
  */
-public class FunctionDefinitionEqualityResult {
-    private FunctionSignatureEqualityResult functionSignatureEqualityResult;
+public class FunctionDefinitionComparator {
+    private FunctionSignatureComparator functionSignatureComparator;
     private FunctionDefinitionNode prevFunctionDefinition;
     private FunctionDefinitionNode nextFunctionDefinition;
 
-    public FunctionDefinitionEqualityResult(FunctionDefinitionNode prevFunctionDefinition,
-                                            FunctionDefinitionNode nextFunctionDefinition) {
+    public FunctionDefinitionComparator(FunctionDefinitionNode prevFunctionDefinition,
+                                        FunctionDefinitionNode nextFunctionDefinition) {
         this.prevFunctionDefinition = prevFunctionDefinition;
         this.nextFunctionDefinition = nextFunctionDefinition;
-        functionSignatureEqualityResult =
-                new FunctionSignatureEqualityResult(prevFunctionDefinition.functionSignature(),
+        functionSignatureComparator =
+                new FunctionSignatureComparator(prevFunctionDefinition.functionSignature(),
                         nextFunctionDefinition.functionSignature());
     }
 
@@ -32,7 +32,7 @@ public class FunctionDefinitionEqualityResult {
         return isQualifiersEquals() && isMetadataEquals() && isFunctionNameEquals() &&
                 isRelativeResourcePathEquals(prevFunctionDefinition.relativeResourcePath(),
                         nextFunctionDefinition.relativeResourcePath()) &&
-                functionSignatureEqualityResult.isEqual();
+                functionSignatureComparator.isEqual();
     }
 
     private boolean isFunctionNameEquals() {
@@ -43,8 +43,8 @@ public class FunctionDefinitionEqualityResult {
         return getFunctionName(prevFunctionDefinition).equals(getFunctionName(nextFunctionDefinition));
     }
 
-    public FunctionSignatureEqualityResult getFunctionSignatureEqualityResult() {
-        return functionSignatureEqualityResult;
+    public FunctionSignatureComparator getFunctionSignatureEqualityResult() {
+        return functionSignatureComparator;
     }
 
     public String getPrevFunctionName() {

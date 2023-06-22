@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -8,13 +8,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getCommaAddedSeparatedNodeList;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getEnumMemberName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getCommaAddedSeparatedNodeList;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getEnumMemberName;
 
 /**
  * Utility class to store result comparing enum declarations.
  */
-public class EnumDeclarationEqualityResult {
+public class EnumDeclarationComparator {
     private static final String REMOVE_ENUM_MEMBER_MESSAGE =
             "warning: In '%s' enum '%s' member has removed. This can break existing clients.";
 
@@ -23,7 +23,7 @@ public class EnumDeclarationEqualityResult {
     private List<String> removedMembers;
     private List<Node> finalMembers;
 
-    public EnumDeclarationEqualityResult(EnumDeclarationNode prevEnum, EnumDeclarationNode nextEnum) {
+    public EnumDeclarationComparator(EnumDeclarationNode prevEnum, EnumDeclarationNode nextEnum) {
         this.prevEnum = prevEnum;
         this.nextEnum = nextEnum;
         removedMembers = new ArrayList<>();
@@ -45,8 +45,8 @@ public class EnumDeclarationEqualityResult {
         for (Node prevMember : prevEnum.enumMemberList()) {
             boolean foundMatch = false;
             for (Node nextMember : nextEnum.enumMemberList()) {
-                EnumMemberEqualityResult enumMemberEquality =
-                        new EnumMemberEqualityResult(prevMember, nextMember);
+                EnumMemberComparator enumMemberEquality =
+                        new EnumMemberComparator(prevMember, nextMember);
                 if (enumMemberEquality.isMatch()) {
                     foundMatch = true;
                     nextMemberAvailability.put(nextMember, true);

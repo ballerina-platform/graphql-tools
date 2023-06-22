@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLType;
@@ -15,14 +15,14 @@ import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.generateObjectType;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMethodDeclarationName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getRecordFieldName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.generateObjectType;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMethodDeclarationName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getRecordFieldName;
 
 /**
  * Utility class to store result comparing type definitions.
  */
-public class TypeDefinitionEqualityResult {
+public class TypeDefinitionComparator {
     private static final String WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD = "warning: In '%s' record type" +
             " '%s' field assigned '%s' default value has removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_RECORD_FIELD_TYPE_CHANGED = "warning: In '%s' record type '%s' " +
@@ -63,7 +63,7 @@ public class TypeDefinitionEqualityResult {
     private List<String> breakingChangeWarnings;
     private Node mergedTypeDescriptor;
 
-    public TypeDefinitionEqualityResult(TypeDefinitionNode prevTypeDefinition, TypeDefinitionNode nextTypeDefinition
+    public TypeDefinitionComparator(TypeDefinitionNode prevTypeDefinition, TypeDefinitionNode nextTypeDefinition
     ) {
         this.prevTypeDefinition = prevTypeDefinition;
         this.nextTypeDefinition = nextTypeDefinition;
@@ -102,15 +102,15 @@ public class TypeDefinitionEqualityResult {
                 nextTypeDefinition.typeDescriptor() instanceof RecordTypeDescriptorNode) {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDefinition.typeDescriptor();
-            RecordTypeEqualityResult recordTypeEquality =
-                    new RecordTypeEqualityResult(prevRecordType, nextRecordType);
+            RecordTypeComparator recordTypeEquality =
+                    new RecordTypeComparator(prevRecordType, nextRecordType);
             handleRecordTypeBreakingChanges(recordTypeEquality, graphqlType instanceof GraphQLInputObjectType);
             mergedTypeDescriptor = recordTypeEquality.generateCombinedRecordType();
         } else if (prevTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode &&
                 nextTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode) {
             UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
             UnionTypeDescriptorNode nextUnionType = (UnionTypeDescriptorNode) nextTypeDefinition.typeDescriptor();
-            UnionTypeEqualityResult unionTypeEquality = new UnionTypeEqualityResult(prevUnionType, nextUnionType);
+            UnionTypeComparator unionTypeEquality = new UnionTypeComparator(prevUnionType, nextUnionType);
             handleUnionTypeBreakingChanges(unionTypeEquality);
             mergedTypeDescriptor = unionTypeEquality.generateCombinedUnionType();
         }
@@ -119,16 +119,16 @@ public class TypeDefinitionEqualityResult {
     private Node handleMergeObjectType(Node prevType, ObjectTypeDescriptorNode nextObjectType) {
         if (prevType instanceof ObjectTypeDescriptorNode) {
             ObjectTypeDescriptorNode prevObjectType = (ObjectTypeDescriptorNode) prevType;
-            ServiceObjectEqualityResult objectTypeEquality =
-                    new ServiceObjectEqualityResult(prevObjectType, nextObjectType);
+            ServiceObjectComparator objectTypeEquality =
+                    new ServiceObjectComparator(prevObjectType, nextObjectType);
             handleObjectTypeBreakingChanges(objectTypeEquality);
             return objectTypeEquality.generateCombinedObjectTypeDescriptor();
         } else if (prevType instanceof DistinctTypeDescriptorNode) {
             DistinctTypeDescriptorNode prevDistinctObjectType = (DistinctTypeDescriptorNode) prevType;
             ObjectTypeDescriptorNode prevServiceObject =
                     (ObjectTypeDescriptorNode) prevDistinctObjectType.typeDescriptor();
-            ServiceObjectEqualityResult objectTypeEquality =
-                    new ServiceObjectEqualityResult(prevServiceObject, nextObjectType);
+            ServiceObjectComparator objectTypeEquality =
+                    new ServiceObjectComparator(prevServiceObject, nextObjectType);
             handleDistinctObjectTypeBreakingChanges(objectTypeEquality);
             return prevDistinctObjectType.modify(prevDistinctObjectType.distinctKeyword(),
                     objectTypeEquality.generateCombinedObjectTypeDescriptor());
@@ -141,7 +141,7 @@ public class TypeDefinitionEqualityResult {
         return null;
     }
 
-    private void handleUnionTypeBreakingChanges(UnionTypeEqualityResult unionTypeEquality) {
+    private void handleUnionTypeBreakingChanges(UnionTypeComparator unionTypeEquality) {
         for (String removedUnionMember : unionTypeEquality.getRemovedUnionMembers()) {
             breakingChangeWarnings.add(
                     String.format(WARNING_MESSAGE_REMOVE_UNION_MEMBER, prevTypeDefinition.typeName().text(),
@@ -149,7 +149,7 @@ public class TypeDefinitionEqualityResult {
         }
     }
 
-    private void handleRecordTypeBreakingChanges(RecordTypeEqualityResult recordTypeEquality,
+    private void handleRecordTypeBreakingChanges(RecordTypeComparator recordTypeEquality,
                                                  boolean isGraphqlInputType) {
         for (Node removedField : recordTypeEquality.getRemovedFields()) {
             breakingChangeWarnings.add(
@@ -163,7 +163,7 @@ public class TypeDefinitionEqualityResult {
                                 prevTypeDefinition.typeName().text(), getRecordFieldName(addedField)));
             }
         }
-        for (RecordFieldEqualityResult updatedRecordFieldEquality : recordTypeEquality.getUpdatedRecordFields()) {
+        for (RecordFieldComparator updatedRecordFieldEquality : recordTypeEquality.getUpdatedRecordFields()) {
             if (updatedRecordFieldEquality.isDefaultValueRemoved() && isGraphqlInputType) {
                 breakingChangeWarnings.add(String.format(
                         WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD,
@@ -180,23 +180,23 @@ public class TypeDefinitionEqualityResult {
         }
     }
 
-    private void handleDistinctObjectTypeBreakingChanges(ServiceObjectEqualityResult objectTypeEquality) {
+    private void handleDistinctObjectTypeBreakingChanges(ServiceObjectComparator objectTypeEquality) {
         for (MethodDeclarationNode removedMethodDeclaration :
                 objectTypeEquality.getRemovedResolverMethodDeclarations()) {
             breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_INTERFACE_SERVICE_OBJECT_METHOD_DECLARATION,
                     prevTypeDefinition.typeName().text(), getMethodDeclarationName(removedMethodDeclaration)));
         }
-        List<MethodDeclarationEqualityResult> updatedMethodDeclarations =
+        List<MethodDeclarationComparator> updatedMethodDeclarations =
                 objectTypeEquality.getUpdatedMethodDeclarations();
-        for (MethodDeclarationEqualityResult updatedMethodDeclarationEquality : updatedMethodDeclarations) {
-            FunctionSignatureEqualityResult updatedMethodSignatureEquality =
+        for (MethodDeclarationComparator updatedMethodDeclarationEquality : updatedMethodDeclarations) {
+            FunctionSignatureComparator updatedMethodSignatureEquality =
                     updatedMethodDeclarationEquality.getFunctionSignatureEqualityResult();
             for (String removedParameterName : updatedMethodSignatureEquality.getRemovedParameters()) {
                 breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
                         prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
                         removedParameterName));
             }
-            for (ParameterEqualityResult parameterEquality :
+            for (ParameterComparator parameterEquality :
                     updatedMethodSignatureEquality.getTypeChangedParameters()) {
                 breakingChangeWarnings.add(String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT,
                         prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
@@ -231,7 +231,7 @@ public class TypeDefinitionEqualityResult {
                                 prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(), addedViolatedParameterName));
             }
-            for (ParameterEqualityResult defaultValueRemovedParameterEquality :
+            for (ParameterComparator defaultValueRemovedParameterEquality :
                     updatedMethodSignatureEquality.getDefaultValueRemovedParameters()) {
                 breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_OBJECT_METHOD,
@@ -243,23 +243,23 @@ public class TypeDefinitionEqualityResult {
         }
     }
 
-    private void handleObjectTypeBreakingChanges(ServiceObjectEqualityResult objectTypeEquality) {
+    private void handleObjectTypeBreakingChanges(ServiceObjectComparator objectTypeEquality) {
         for (MethodDeclarationNode removedMethodDeclaration :
                 objectTypeEquality.getRemovedResolverMethodDeclarations()) {
             breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION,
                     prevTypeDefinition.typeName().text(), getMethodDeclarationName(removedMethodDeclaration)));
         }
-        List<MethodDeclarationEqualityResult> updatedMethodDeclarations =
+        List<MethodDeclarationComparator> updatedMethodDeclarations =
                 objectTypeEquality.getUpdatedMethodDeclarations();
-        for (MethodDeclarationEqualityResult updatedMethodDeclarationEquality : updatedMethodDeclarations) {
-            FunctionSignatureEqualityResult updatedMethodSignatureEquality =
+        for (MethodDeclarationComparator updatedMethodDeclarationEquality : updatedMethodDeclarations) {
+            FunctionSignatureComparator updatedMethodSignatureEquality =
                     updatedMethodDeclarationEquality.getFunctionSignatureEqualityResult();
             for (String removedParameterName : updatedMethodSignatureEquality.getRemovedParameters()) {
                 breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
                         prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
                         removedParameterName));
             }
-            for (ParameterEqualityResult parameterEquality :
+            for (ParameterComparator parameterEquality :
                     updatedMethodSignatureEquality.getTypeChangedParameters()) {
                 breakingChangeWarnings.add(String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT,
                         prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
@@ -294,7 +294,7 @@ public class TypeDefinitionEqualityResult {
                                 prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(), addedViolatedParameterName));
             }
-            for (ParameterEqualityResult defaultValueRemovedParameterEquality :
+            for (ParameterComparator defaultValueRemovedParameterEquality :
                     updatedMethodSignatureEquality.getDefaultValueRemovedParameters()) {
                 breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_OBJECT_METHOD,

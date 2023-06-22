@@ -1,29 +1,29 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMainQualifier;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMergedMethodDeclarationQualifiers;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMethodDeclarationName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getMethodDeclarationResolverType;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isMetadataEqual;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isRelativeResourcePathEquals;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMainQualifier;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMergedMethodDeclarationQualifiers;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMethodDeclarationName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMethodDeclarationResolverType;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isMetadataEqual;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isRelativeResourcePathEquals;
 
 /**
  * Utility class used to store result comparing two method declarations.
  */
-public class MethodDeclarationEqualityResult {
-    private FunctionSignatureEqualityResult functionSignatureEqualityResult;
+public class MethodDeclarationComparator {
+    private FunctionSignatureComparator functionSignatureComparator;
     private MethodDeclarationNode prevMethodDeclaration;
     private MethodDeclarationNode nextMethodDeclaration;
 
-    public MethodDeclarationEqualityResult(MethodDeclarationNode prevMethodDeclaration,
-                                           MethodDeclarationNode nextMethodDeclaration) {
+    public MethodDeclarationComparator(MethodDeclarationNode prevMethodDeclaration,
+                                       MethodDeclarationNode nextMethodDeclaration) {
         this.prevMethodDeclaration = prevMethodDeclaration;
         this.nextMethodDeclaration = nextMethodDeclaration;
-        functionSignatureEqualityResult = new FunctionSignatureEqualityResult(prevMethodDeclaration.methodSignature()
+        functionSignatureComparator = new FunctionSignatureComparator(prevMethodDeclaration.methodSignature()
                 , nextMethodDeclaration.methodSignature());
     }
 
@@ -35,7 +35,7 @@ public class MethodDeclarationEqualityResult {
         return isQualifiersEquals() && isMetadataEqual(prevMethodDeclaration.metadata().orElse(null),
                 nextMethodDeclaration.metadata().orElse(null)) && isMethodNameEquals() &&
                 isRelativeResourcePathEquals(prevMethodDeclaration.relativeResourcePath(),
-                        nextMethodDeclaration.relativeResourcePath()) && functionSignatureEqualityResult.isEqual();
+                        nextMethodDeclaration.relativeResourcePath()) && functionSignatureComparator.isEqual();
     }
 
     private boolean isQualifiersEquals() {
@@ -56,8 +56,8 @@ public class MethodDeclarationEqualityResult {
         return prevMethodDeclaration.methodName().text().equals(nextMethodDeclaration.methodName().text());
     }
 
-    public FunctionSignatureEqualityResult getFunctionSignatureEqualityResult() {
-        return functionSignatureEqualityResult;
+    public FunctionSignatureComparator getFunctionSignatureEqualityResult() {
+        return functionSignatureComparator;
     }
 
     public String getPrevFunctionName() {

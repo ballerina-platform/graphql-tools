@@ -1,23 +1,23 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getParameterDefaultValue;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getParameterName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getParameterDefaultValue;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getParameterName;
 
 /**
  * Utility class to store result comparing two parameters.
  */
-public class ParameterEqualityResult {
+public class ParameterComparator {
     private String prevParameterName;
     private String nextParameterName;
     private String prevParameterDefaultValue;
     private String nextParameterDefaultValue;
-    private TypeEqualityResult typeEquality;
+    private TypeComparator typeEquality;
     private ParameterNode prevParameter;
     private ParameterNode nextParameter;
 
-    public ParameterEqualityResult(ParameterNode prevParameter, ParameterNode nextParameter) {
+    public ParameterComparator(ParameterNode prevParameter, ParameterNode nextParameter) {
         this.prevParameter = prevParameter;
         this.nextParameter = nextParameter;
         prevParameterName = getParameterName(prevParameter);
@@ -26,7 +26,7 @@ public class ParameterEqualityResult {
         nextParameterDefaultValue = getParameterDefaultValue(nextParameter);
     }
 
-    public void setTypeEquality(TypeEqualityResult typeEquality) {
+    public void setTypeEquality(TypeComparator typeEquality) {
         this.typeEquality = typeEquality;
     }
 
@@ -49,7 +49,7 @@ public class ParameterEqualityResult {
         return prevParameterDefaultValue != null && nextParameterDefaultValue == null;
     }
 
-    public TypeEqualityResult getTypeEquality() {
+    public TypeComparator getTypeEquality() {
         return typeEquality;
     }
 

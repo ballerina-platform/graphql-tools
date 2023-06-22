@@ -1,22 +1,22 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 
 /**
  * Utility class to store result comparing return type descriptors.
  */
-public class ReturnTypeDescriptorEqualityResult {
+public class ReturnTypeDescriptorComparator {
     private final ReturnTypeDescriptorNode prevReturnTypeDescriptor;
     private final ReturnTypeDescriptorNode nextReturnTypeDescriptor;
-    private TypeEqualityResult returnTypeEquality;
+    private TypeComparator returnTypeEquality;
 
-    public ReturnTypeDescriptorEqualityResult(ReturnTypeDescriptorNode prevReturnTypeDescriptor,
-                                              ReturnTypeDescriptorNode nextReturnTypeDescriptor) {
+    public ReturnTypeDescriptorComparator(ReturnTypeDescriptorNode prevReturnTypeDescriptor,
+                                          ReturnTypeDescriptorNode nextReturnTypeDescriptor) {
         this.prevReturnTypeDescriptor = prevReturnTypeDescriptor;
         this.nextReturnTypeDescriptor = nextReturnTypeDescriptor;
         if (prevReturnTypeDescriptor != null && nextReturnTypeDescriptor != null) {
             returnTypeEquality =
-                    new TypeEqualityResult(prevReturnTypeDescriptor.type(), nextReturnTypeDescriptor.type());
+                    new TypeComparator(prevReturnTypeDescriptor.type(), nextReturnTypeDescriptor.type());
         }
     }
 

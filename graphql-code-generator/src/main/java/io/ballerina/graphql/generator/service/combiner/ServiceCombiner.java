@@ -16,9 +16,9 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.service.ClassDefinitionEqualityResult;
-import io.ballerina.graphql.generator.service.EnumDeclarationEqualityResult;
-import io.ballerina.graphql.generator.service.TypeDefinitionEqualityResult;
+import io.ballerina.graphql.generator.service.comparator.ClassDefinitionComparator;
+import io.ballerina.graphql.generator.service.comparator.EnumDeclarationComparator;
+import io.ballerina.graphql.generator.service.comparator.TypeDefinitionComparator;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
@@ -128,8 +128,8 @@ public class ServiceCombiner {
     }
 
     private boolean isEnumDecEquals(EnumDeclarationNode prevEnumDec, EnumDeclarationNode nextEnumDec) {
-        EnumDeclarationEqualityResult enumDeclarationEquality =
-                new EnumDeclarationEqualityResult(prevEnumDec, nextEnumDec);
+        EnumDeclarationComparator enumDeclarationEquality =
+                new EnumDeclarationComparator(prevEnumDec, nextEnumDec);
         if (!enumDeclarationEquality.isMatch()) {
             return false;
         }
@@ -139,8 +139,8 @@ public class ServiceCombiner {
     }
 
     private boolean isTypeDefEquals(TypeDefinitionNode prevTypeDef, TypeDefinitionNode nextTypeDef) {
-        TypeDefinitionEqualityResult typeDefinitionEquality =
-                new TypeDefinitionEqualityResult(prevTypeDef, nextTypeDef);
+        TypeDefinitionComparator typeDefinitionEquality =
+                new TypeDefinitionComparator(prevTypeDef, nextTypeDef);
         if (!typeDefinitionEquality.isMatch()) {
             return false;
         }
@@ -161,13 +161,13 @@ public class ServiceCombiner {
     }
 
     private boolean isClassDefEquals(ClassDefinitionNode prevClassDef, ClassDefinitionNode nextClassDef) {
-        ClassDefinitionEqualityResult classDefinitionEqualityResult =
-                new ClassDefinitionEqualityResult(prevClassDef, nextClassDef);
-        if (!classDefinitionEqualityResult.isMatch()) {
+        ClassDefinitionComparator classDefinitionComparator =
+                new ClassDefinitionComparator(prevClassDef, nextClassDef);
+        if (!classDefinitionComparator.isMatch()) {
             return false;
         }
-        breakingChangeWarnings.addAll(classDefinitionEqualityResult.generateBreakingChangeWarnings());
-        objectTypesModuleMembers.add(classDefinitionEqualityResult.generateCombinedResult());
+        breakingChangeWarnings.addAll(classDefinitionComparator.generateBreakingChangeWarnings());
+        objectTypesModuleMembers.add(classDefinitionComparator.generateCombinedResult());
         return true;
     }
 

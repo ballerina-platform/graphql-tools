@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverFunction;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getFunctionName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isResolverFunction;
 
 /**
  * Utility class used to store result comparing two class definitions.
  */
-public class ClassDefinitionEqualityResult {
+public class ClassDefinitionComparator {
     private static final String WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE = "warning: In '%s' class " +
             "'%s' function definition return type has changed from '%s' to '%s'. This can break existing clients.";
     private static final String WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_CLASS = "warning: In '%s'" +
@@ -41,12 +41,12 @@ public class ClassDefinitionEqualityResult {
     private final ClassDefinitionNode prevClassDefinition;
     private final ClassDefinitionNode nextClassDefinition;
     private List<FunctionDefinitionNode> removedFunctionDefinitions;
-    private List<FunctionDefinitionEqualityResult> updatedFunctionDefinitions;
+    private List<FunctionDefinitionComparator> updatedFunctionDefinitions;
     private List<TypeReferenceNode> removedTypeReferences;
     private List<Node> finalMembers;
 
-    public ClassDefinitionEqualityResult(ClassDefinitionNode prevClassDefinition,
-                                         ClassDefinitionNode nextClassDefinition) {
+    public ClassDefinitionComparator(ClassDefinitionNode prevClassDefinition,
+                                     ClassDefinitionNode nextClassDefinition) {
         this.prevClassDefinition = prevClassDefinition;
         this.nextClassDefinition = nextClassDefinition;
         removedFunctionDefinitions = new ArrayList<>();
@@ -80,8 +80,8 @@ public class ClassDefinitionEqualityResult {
                 if (prevClassMember instanceof TypeReferenceNode && nextClassMember instanceof TypeReferenceNode) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevClassMember;
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextClassMember;
-                    TypeEqualityResult typeEquality =
-                            new TypeEqualityResult(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
+                    TypeComparator typeEquality =
+                            new TypeComparator(prevTypeRefMember.typeName(), nextTypeRefMember.typeName());
                     if (typeEquality.isEqual()) {
                         foundMatch = true;
                         nextClassMemberAvailability.put(nextTypeRefMember, true);
@@ -92,8 +92,8 @@ public class ClassDefinitionEqualityResult {
                         nextClassMember instanceof FunctionDefinitionNode) {
                     FunctionDefinitionNode prevFunctionDefinition = (FunctionDefinitionNode) prevClassMember;
                     FunctionDefinitionNode nextFunctionDefinition = (FunctionDefinitionNode) nextClassMember;
-                    FunctionDefinitionEqualityResult funcDefEquals =
-                            new FunctionDefinitionEqualityResult(prevFunctionDefinition, nextFunctionDefinition);
+                    FunctionDefinitionComparator funcDefEquals =
+                            new FunctionDefinitionComparator(prevFunctionDefinition, nextFunctionDefinition);
                     if (funcDefEquals.isEqual()) {
                         foundMatch = true;
                         nextClassMemberAvailability.put(nextFunctionDefinition, true);
@@ -153,8 +153,8 @@ public class ClassDefinitionEqualityResult {
 
     public List<String> generateBreakingChangeWarnings() {
         List<String> breakingChangeWarnings = new ArrayList<>();
-        for (FunctionDefinitionEqualityResult updatedFunctionDefinitionEquality : updatedFunctionDefinitions) {
-            FunctionSignatureEqualityResult updateFunctionSignatureEquality =
+        for (FunctionDefinitionComparator updatedFunctionDefinitionEquality : updatedFunctionDefinitions) {
+            FunctionSignatureComparator updateFunctionSignatureEquality =
                     updatedFunctionDefinitionEquality.getFunctionSignatureEqualityResult();
             if (!updateFunctionSignatureEquality.getReturnTypeEqualityResult().isEqual()) {
                 breakingChangeWarnings.add(String.format(WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE,
@@ -174,13 +174,13 @@ public class ClassDefinitionEqualityResult {
                         prevClassDefinition.className().text(), updatedFunctionDefinitionEquality.getPrevFunctionName(),
                         removedParameterName));
             }
-            for (ParameterEqualityResult parameterEquals : updateFunctionSignatureEquality.getTypeChangedParameters()) {
+            for (ParameterComparator parameterEquals : updateFunctionSignatureEquality.getTypeChangedParameters()) {
                 breakingChangeWarnings.add(String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_CLASS,
                         prevClassDefinition.className().text(), updatedFunctionDefinitionEquality.getPrevFunctionName(),
                         parameterEquals.getPrevParameterName(), parameterEquals.getTypeEquality().getPrevType(),
                         parameterEquals.getTypeEquality().getNextType()));
             }
-            for (ParameterEqualityResult defaultValueRemovedParameterEquality :
+            for (ParameterComparator defaultValueRemovedParameterEquality :
                     updateFunctionSignatureEquality.getDefaultValueRemovedParameters()) {
                 breakingChangeWarnings.add(String.format(
                         WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_CLASS_FUNC,

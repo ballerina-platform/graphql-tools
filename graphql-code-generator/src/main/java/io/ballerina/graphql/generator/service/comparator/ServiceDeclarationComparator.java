@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
@@ -12,22 +12,22 @@ import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverFunction;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getFunctionName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getTypeName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isResolverFunction;
 
 /**
  * Utility class to store result comparing service declarations.
  */
-public class ServiceDeclarationEqualityResult {
+public class ServiceDeclarationComparator {
     private final ServiceDeclarationNode prevServiceDeclaration;
     private final ServiceDeclarationNode nextServiceDeclaration;
     private List<Node> finalMembers;
-    private List<FunctionDefinitionEqualityResult> updatedFunctionEqualityResults;
+    private List<FunctionDefinitionComparator> updatedFunctionEqualityResults;
     private List<String> removedFunctionDefinitions;
 
-    public ServiceDeclarationEqualityResult(ServiceDeclarationNode prevServiceDeclaration,
-                                            ServiceDeclarationNode nextServiceDeclaration) {
+    public ServiceDeclarationComparator(ServiceDeclarationNode prevServiceDeclaration,
+                                        ServiceDeclarationNode nextServiceDeclaration) {
         this.prevServiceDeclaration = prevServiceDeclaration;
         this.nextServiceDeclaration = nextServiceDeclaration;
         finalMembers = new ArrayList<>();
@@ -63,8 +63,8 @@ public class ServiceDeclarationEqualityResult {
                         nextServiceMember instanceof FunctionDefinitionNode) {
                     FunctionDefinitionNode prevFunctionDef = (FunctionDefinitionNode) prevServiceMember;
                     FunctionDefinitionNode nextFunctionDef = (FunctionDefinitionNode) nextServiceMember;
-                    FunctionDefinitionEqualityResult funcDefEquality =
-                            new FunctionDefinitionEqualityResult(prevFunctionDef, nextFunctionDef);
+                    FunctionDefinitionComparator funcDefEquality =
+                            new FunctionDefinitionComparator(prevFunctionDef, nextFunctionDef);
                     if (funcDefEquality.isEqual()) {
                         foundMatch = true;
                         nextServiceMemberAvailability.put(nextServiceMember, true);

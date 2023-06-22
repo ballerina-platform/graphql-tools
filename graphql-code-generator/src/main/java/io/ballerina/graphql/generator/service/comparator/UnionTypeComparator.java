@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 
@@ -7,12 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getTypeName;
 
 /**
  * Utility class to store result comparing union types.
  */
-public class UnionTypeEqualityResult {
+public class UnionTypeComparator {
     private List<String> addedUnionMembers;
     private List<String> removedUnionMembers;
     private UnionTypeDescriptorNode prevUnionType;
@@ -20,7 +20,7 @@ public class UnionTypeEqualityResult {
     private List<String> prevUnionMembers;
     private List<String> nextUnionMembers;
 
-    public UnionTypeEqualityResult(UnionTypeDescriptorNode prevUnionType, UnionTypeDescriptorNode nextUnionType) {
+    public UnionTypeComparator(UnionTypeDescriptorNode prevUnionType, UnionTypeDescriptorNode nextUnionType) {
         this.prevUnionType = prevUnionType;
         this.nextUnionType = nextUnionType;
         prevUnionMembers = new ArrayList<>();
@@ -32,7 +32,7 @@ public class UnionTypeEqualityResult {
         separateMembers();
     }
 
-    public UnionTypeEqualityResult() {
+    public UnionTypeComparator() {
         addedUnionMembers = new ArrayList<>();
         removedUnionMembers = new ArrayList<>();
     }

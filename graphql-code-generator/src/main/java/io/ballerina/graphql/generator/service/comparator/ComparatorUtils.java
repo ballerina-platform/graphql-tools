@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.ArrayTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
@@ -27,6 +27,7 @@ import io.ballerina.compiler.syntax.tree.StreamTypeParamsNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
+import io.ballerina.graphql.generator.service.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
 /**
  * Utility class with helper functions needed for EqualityResult classes.
  */
-public class EqualityResultUtils {
+public class ComparatorUtils {
     public static String getEnumMemberName(Node enumMember) {
         if (enumMember instanceof EnumMemberNode) {
             EnumMemberNode enumMemberNode = (EnumMemberNode) enumMember;
@@ -214,10 +215,10 @@ public class EqualityResultUtils {
         }
     }
 
-    public static ParameterEqualityResult isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter) {
-        ParameterEqualityResult parameterEquality = new ParameterEqualityResult(prevParameter, nextParameter);
-        TypeEqualityResult typeEquals =
-                new TypeEqualityResult(getParameterType(prevParameter), getParameterType(nextParameter));
+    public static ParameterComparator isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter) {
+        ParameterComparator parameterEquality = new ParameterComparator(prevParameter, nextParameter);
+        TypeComparator typeEquals =
+                new TypeComparator(getParameterType(prevParameter), getParameterType(nextParameter));
         parameterEquality.setTypeEquality(typeEquals);
         return parameterEquality;
     }
