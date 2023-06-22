@@ -28,6 +28,9 @@ public class EnumDeclarationEqualityResult {
         this.nextEnum = nextEnum;
         removedMembers = new ArrayList<>();
         finalMembers = new ArrayList<>();
+        if (isMatch()) {
+            separateMembers();
+        }
     }
 
     public boolean isMatch() {

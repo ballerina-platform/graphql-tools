@@ -53,7 +53,9 @@ public class ClassDefinitionEqualityResult {
         updatedFunctionDefinitions = new ArrayList<>();
         removedTypeReferences = new ArrayList<>();
         finalMembers = new ArrayList<>();
-        separateClassMembers();
+        if (isMatch()) {
+            separateClassMembers();
+        }
     }
 
     public boolean isMatch() {

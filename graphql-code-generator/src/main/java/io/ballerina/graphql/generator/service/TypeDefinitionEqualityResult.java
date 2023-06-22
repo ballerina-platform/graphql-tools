@@ -104,7 +104,6 @@ public class TypeDefinitionEqualityResult {
             RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDefinition.typeDescriptor();
             RecordTypeEqualityResult recordTypeEquality =
                     new RecordTypeEqualityResult(prevRecordType, nextRecordType);
-            recordTypeEquality.separateMembers();
             handleRecordTypeBreakingChanges(recordTypeEquality, graphqlType instanceof GraphQLInputObjectType);
             mergedTypeDescriptor = recordTypeEquality.generateCombinedRecordType();
         } else if (prevTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode &&
@@ -112,7 +111,6 @@ public class TypeDefinitionEqualityResult {
             UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
             UnionTypeDescriptorNode nextUnionType = (UnionTypeDescriptorNode) nextTypeDefinition.typeDescriptor();
             UnionTypeEqualityResult unionTypeEquality = new UnionTypeEqualityResult(prevUnionType, nextUnionType);
-            unionTypeEquality.separateMembers();
             handleUnionTypeBreakingChanges(unionTypeEquality);
             mergedTypeDescriptor = unionTypeEquality.generateCombinedUnionType();
         }

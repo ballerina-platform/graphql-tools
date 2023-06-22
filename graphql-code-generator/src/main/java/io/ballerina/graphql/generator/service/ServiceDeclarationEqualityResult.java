@@ -33,6 +33,9 @@ public class ServiceDeclarationEqualityResult {
         finalMembers = new ArrayList<>();
         removedFunctionDefinitions = new ArrayList<>();
         updatedFunctionEqualityResults = new ArrayList<>();
+        if (isMatch()) {
+            separateMembers();
+        }
     }
 
     public boolean isMatch() {

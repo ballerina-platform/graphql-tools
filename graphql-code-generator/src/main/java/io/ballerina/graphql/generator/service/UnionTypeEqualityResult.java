@@ -29,6 +29,7 @@ public class UnionTypeEqualityResult {
         addedUnionMembers = new ArrayList<>();
         populateUnionMemberNames(prevUnionType, prevUnionMembers);
         populateUnionMemberNames(nextUnionType, nextUnionMembers);
+        separateMembers();
     }
 
     public UnionTypeEqualityResult() {

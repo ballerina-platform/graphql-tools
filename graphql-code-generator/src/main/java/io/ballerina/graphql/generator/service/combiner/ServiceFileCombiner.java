@@ -118,7 +118,6 @@ public class ServiceFileCombiner {
         if (!serviceDeclarationEquality.isMatch()) {
             return false;
         }
-        serviceDeclarationEquality.separateMembers();
         moduleServiceDeclarations.add(serviceDeclarationEquality.generateCombinedResult());
         return true;
     }

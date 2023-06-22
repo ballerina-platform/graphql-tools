@@ -133,7 +133,6 @@ public class ServiceCombiner {
         if (!enumDeclarationEquality.isMatch()) {
             return false;
         }
-        enumDeclarationEquality.separateMembers();
         breakingChangeWarnings.addAll(enumDeclarationEquality.generateBreakingChangeWarnings());
         enumTypesModuleMembers.add(enumDeclarationEquality.generateCombinedResult());
         return true;

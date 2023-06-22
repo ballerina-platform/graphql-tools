@@ -28,6 +28,7 @@ public class RecordTypeEqualityResult {
         addedFields = new ArrayList<>();
         removedFields = new ArrayList<>();
         finalMembers = new ArrayList<>();
+        separateMembers();
     }
 
     public void separateMembers() {
