@@ -36,6 +36,7 @@ public class FunctionSignatureEqualityResult {
         typeChangedParameters = new ArrayList<>();
         defaultValueRemovedParameters = new ArrayList<>();
         defaultValueChangedParameters = new ArrayList<>();
+        separateMembers();
     }
 
     public void separateMembers() {

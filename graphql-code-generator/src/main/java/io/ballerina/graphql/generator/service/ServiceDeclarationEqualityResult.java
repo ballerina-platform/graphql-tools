@@ -14,7 +14,6 @@ import java.util.Map;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getTypeName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isFuncDefEquals;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverFunction;
 
 /**
@@ -81,7 +80,7 @@ public class ServiceDeclarationEqualityResult {
                     FunctionDefinitionNode prevFunctionDef = (FunctionDefinitionNode) prevServiceMember;
                     FunctionDefinitionNode nextFunctionDef = (FunctionDefinitionNode) nextServiceMember;
                     FunctionDefinitionEqualityResult funcDefEquality =
-                            isFuncDefEquals(prevFunctionDef, nextFunctionDef);
+                            new FunctionDefinitionEqualityResult(prevFunctionDef, nextFunctionDef);
                     if (funcDefEquality.isEqual()) {
                         foundMatch = true;
                         nextServiceMemberAvailability.put(nextServiceMember, true);

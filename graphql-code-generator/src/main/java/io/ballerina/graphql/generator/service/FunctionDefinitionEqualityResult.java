@@ -23,6 +23,9 @@ public class FunctionDefinitionEqualityResult {
                                             FunctionDefinitionNode nextFunctionDefinition) {
         this.prevFunctionDefinition = prevFunctionDefinition;
         this.nextFunctionDefinition = nextFunctionDefinition;
+        functionSignatureEqualityResult =
+                new FunctionSignatureEqualityResult(prevFunctionDefinition.functionSignature(),
+                        nextFunctionDefinition.functionSignature());
     }
 
     public boolean isEqual() {
@@ -114,7 +117,8 @@ public class FunctionDefinitionEqualityResult {
     }
 
     public FunctionDefinitionNode generateCombinedFunctionDefinition(boolean isFirstFunctionDefinition) {
-        return prevFunctionDefinition.modify(prevFunctionDefinition.kind(), nextFunctionDefinition.metadata().orElse(null),
+        return prevFunctionDefinition.modify(prevFunctionDefinition.kind(),
+                nextFunctionDefinition.metadata().orElse(null),
                 getMergedFunctionDefinitionQualifiers(
                         prevFunctionDefinition.qualifierList(),
                         nextFunctionDefinition.qualifierList(),

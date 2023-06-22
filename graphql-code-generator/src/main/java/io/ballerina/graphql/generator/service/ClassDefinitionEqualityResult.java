@@ -13,7 +13,6 @@ import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isFuncDefEquals;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverFunction;
 
 /**
@@ -92,7 +91,7 @@ public class ClassDefinitionEqualityResult {
                     FunctionDefinitionNode prevFunctionDefinition = (FunctionDefinitionNode) prevClassMember;
                     FunctionDefinitionNode nextFunctionDefinition = (FunctionDefinitionNode) nextClassMember;
                     FunctionDefinitionEqualityResult funcDefEquals =
-                            isFuncDefEquals(prevFunctionDefinition, nextFunctionDefinition);
+                            new FunctionDefinitionEqualityResult(prevFunctionDefinition, nextFunctionDefinition);
                     if (funcDefEquals.isEqual()) {
                         foundMatch = true;
                         nextClassMemberAvailability.put(nextFunctionDefinition, true);

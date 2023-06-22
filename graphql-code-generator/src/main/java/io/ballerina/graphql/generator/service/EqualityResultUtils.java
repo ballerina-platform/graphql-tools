@@ -6,7 +6,6 @@ import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.IntersectionTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
@@ -91,7 +90,8 @@ public class EqualityResultUtils {
         MethodDeclarationEqualityResult methodDeclarationEquality =
                 new MethodDeclarationEqualityResult(prevMethodDeclaration, nextMethodDeclaration);
         FunctionSignatureEqualityResult funcSignatureEquals =
-                isFuncSignatureEquals(prevMethodDeclaration.methodSignature(), nextMethodDeclaration.methodSignature());
+                new FunctionSignatureEqualityResult(prevMethodDeclaration.methodSignature(),
+                        nextMethodDeclaration.methodSignature());
         methodDeclarationEquality.setFunctionSignatureEqualityResult(funcSignatureEquals);
         return methodDeclarationEquality;
     }
@@ -172,24 +172,6 @@ public class EqualityResultUtils {
         }
 
         return null;
-    }
-
-    public static FunctionDefinitionEqualityResult isFuncDefEquals(FunctionDefinitionNode prevClassFuncDef,
-                                                                   FunctionDefinitionNode nextClassFuncDef) {
-        FunctionDefinitionEqualityResult functionDefinitionEquality =
-                new FunctionDefinitionEqualityResult(prevClassFuncDef, nextClassFuncDef);
-        FunctionSignatureEqualityResult funcSignatureEquals =
-                isFuncSignatureEquals(prevClassFuncDef.functionSignature(), nextClassFuncDef.functionSignature());
-        functionDefinitionEquality.setFunctionSignatureEqualityResult(funcSignatureEquals);
-        return functionDefinitionEquality;
-    }
-
-    public static FunctionSignatureEqualityResult isFuncSignatureEquals(FunctionSignatureNode prevFunctionSignature,
-                                                                        FunctionSignatureNode nextFunctionSignature) {
-        FunctionSignatureEqualityResult equalityResult = new FunctionSignatureEqualityResult(prevFunctionSignature,
-                nextFunctionSignature);
-        equalityResult.separateMembers();
-        return equalityResult;
     }
 
     public static String getParameterName(ParameterNode parameter) {
