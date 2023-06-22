@@ -15,7 +15,6 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeLi
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.getFunctionName;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isFuncDefEquals;
 import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResolverFunction;
-import static io.ballerina.graphql.generator.service.EqualityResultUtils.isTypeEquals;
 
 /**
  * Utility class used to store result comparing two class definitions.
@@ -42,26 +41,18 @@ public class ClassDefinitionEqualityResult {
 
     private final ClassDefinitionNode prevClassDefinition;
     private final ClassDefinitionNode nextClassDefinition;
-    private List<FunctionDefinitionNode> keptFunctionDefinitions;
     private List<FunctionDefinitionNode> removedFunctionDefinitions;
-    private List<FunctionDefinitionNode> addedFunctionDefinitions;
     private List<FunctionDefinitionEqualityResult> updatedFunctionDefinitions;
-    private List<TypeReferenceNode> keptTypeReferences;
     private List<TypeReferenceNode> removedTypeReferences;
-    private List<TypeReferenceNode> addedTypeReferences;
     private List<Node> finalMembers;
 
     public ClassDefinitionEqualityResult(ClassDefinitionNode prevClassDefinition,
                                          ClassDefinitionNode nextClassDefinition) {
         this.prevClassDefinition = prevClassDefinition;
         this.nextClassDefinition = nextClassDefinition;
-        keptFunctionDefinitions = new ArrayList<>();
         removedFunctionDefinitions = new ArrayList<>();
-        addedFunctionDefinitions = new ArrayList<>();
         updatedFunctionDefinitions = new ArrayList<>();
-        keptTypeReferences = new ArrayList<>();
         removedTypeReferences = new ArrayList<>();
-        addedTypeReferences = new ArrayList<>();
         finalMembers = new ArrayList<>();
         separateClassMembers();
     }
@@ -150,7 +141,7 @@ public class ClassDefinitionEqualityResult {
         }
     }
 
-    public ClassDefinitionNode generateCombinedClassDefinition() {
+    public ClassDefinitionNode generateCombinedResult() {
         return prevClassDefinition.modify(nextClassDefinition.metadata().orElse(null),
                 prevClassDefinition.visibilityQualifier().orElse(null),
                 prevClassDefinition.classTypeQualifiers(), prevClassDefinition.classKeyword(),
