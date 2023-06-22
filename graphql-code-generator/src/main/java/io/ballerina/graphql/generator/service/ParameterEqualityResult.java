@@ -2,6 +2,9 @@ package io.ballerina.graphql.generator.service;
 
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getParameterDefaultValue;
+import static io.ballerina.graphql.generator.service.EqualityResultUtils.getParameterName;
+
 /**
  * Utility class to store result comparing two parameters.
  */
@@ -10,26 +13,17 @@ public class ParameterEqualityResult {
     private String nextParameterName;
     private String prevParameterDefaultValue;
     private String nextParameterDefaultValue;
-    private boolean isEqual;
     private TypeEqualityResult typeEquality;
     private ParameterNode prevParameter;
     private ParameterNode nextParameter;
 
-    public ParameterEqualityResult() {
-        isEqual = false;
-    }
-
     public ParameterEqualityResult(ParameterNode prevParameter, ParameterNode nextParameter) {
         this.prevParameter = prevParameter;
         this.nextParameter = nextParameter;
-    }
-
-    public void setPrevParameterName(String prevParameterName) {
-        this.prevParameterName = prevParameterName;
-    }
-
-    public void setNextParameterName(String nextParameterName) {
-        this.nextParameterName = nextParameterName;
+        prevParameterName = getParameterName(prevParameter);
+        nextParameterName = getParameterName(nextParameter);
+        prevParameterDefaultValue = getParameterDefaultValue(prevParameter);
+        nextParameterDefaultValue = getParameterDefaultValue(nextParameter);
     }
 
     public void setTypeEquality(TypeEqualityResult typeEquality) {
@@ -61,14 +55,6 @@ public class ParameterEqualityResult {
 
     public String getPrevParameterName() {
         return prevParameterName;
-    }
-
-    public void setPrevParameterDefaultValue(String prevParameterDefaultValue) {
-        this.prevParameterDefaultValue = prevParameterDefaultValue;
-    }
-
-    public void setNextParameterDefaultValue(String nextParameterDefaultValue) {
-        this.nextParameterDefaultValue = nextParameterDefaultValue;
     }
 
     public String getPrevParameterDefaultValue() {

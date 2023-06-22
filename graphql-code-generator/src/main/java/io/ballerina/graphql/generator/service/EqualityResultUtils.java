@@ -213,9 +213,7 @@ public class EqualityResultUtils {
     }
 
     public static TypeEqualityResult isTypeEquals(Node prevType, Node nextType) {
-        TypeEqualityResult equalityResult = new TypeEqualityResult();
-        equalityResult.setPrevType(getTypeName(prevType));
-        equalityResult.setNextType(getTypeName(nextType));
+        TypeEqualityResult equalityResult = new TypeEqualityResult(prevType, nextType);
         return equalityResult;
     }
 
@@ -252,10 +250,6 @@ public class EqualityResultUtils {
 
     public static ParameterEqualityResult isParameterEquals(ParameterNode prevParameter, ParameterNode nextParameter) {
         ParameterEqualityResult parameterEquality = new ParameterEqualityResult(prevParameter, nextParameter);
-        parameterEquality.setPrevParameterName(getParameterName(prevParameter));
-        parameterEquality.setNextParameterName(getParameterName(nextParameter));
-        parameterEquality.setPrevParameterDefaultValue(getParameterDefaultValue(prevParameter));
-        parameterEquality.setNextParameterDefaultValue(getParameterDefaultValue(nextParameter));
         TypeEqualityResult typeEquals = isTypeEquals(getParameterType(prevParameter), getParameterType(nextParameter));
         parameterEquality.setTypeEquality(typeEquals);
         return parameterEquality;
