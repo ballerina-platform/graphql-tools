@@ -21,7 +21,6 @@ import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
-import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.StreamTypeDescriptorNode;
@@ -31,9 +30,7 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createCommentMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
@@ -191,53 +188,7 @@ public class EqualityResultUtils {
                                                                         FunctionSignatureNode nextFunctionSignature) {
         FunctionSignatureEqualityResult equalityResult = new FunctionSignatureEqualityResult(prevFunctionSignature,
                 nextFunctionSignature);
-        LinkedHashMap<ParameterNode, Boolean> nextParameterAvailable = new LinkedHashMap<>();
-        for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
-            nextParameterAvailable.put(nextParameter, false);
-        }
-        for (ParameterNode prevParameter : prevFunctionSignature.parameters()) {
-            boolean foundMatch = false;
-            for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
-                ParameterEqualityResult parameterEquals = isParameterEquals(prevParameter, nextParameter);
-                if (parameterEquals.isEqual()) {
-                    foundMatch = true;
-                    nextParameterAvailable.put(nextParameter, true);
-                    break;
-                } else {
-                    if (parameterEquals.isMatch()) {
-                        foundMatch = true;
-                        nextParameterAvailable.put(nextParameter, true);
-                        if (!parameterEquals.getTypeEquality().isEqual()) {
-                            equalityResult.addToTypeChangedParameters(parameterEquals);
-                        }
-                        if (parameterEquals.isDefaultValueRemoved()) {
-                            equalityResult.addToDefaultValueRemovedParameters(parameterEquals);
-                        } else if (parameterEquals.isDefaultValueChanged()) {
-                            equalityResult.addToDefaultValueChangedParameters(parameterEquals);
-                        }
-                    }
-                }
-            }
-            if (!foundMatch) {
-                equalityResult.addToRemovedParameters(getParameterName(prevParameter));
-            }
-        }
-        for (Map.Entry<ParameterNode, Boolean> entry : nextParameterAvailable.entrySet()) {
-            Boolean parameterAvailable = entry.getValue();
-            if (!parameterAvailable) {
-                ParameterNode newParameter = entry.getKey();
-                String newParameterName = getParameterName(newParameter);
-                if (newParameter instanceof RequiredParameterNode) {
-                    equalityResult.addToAddedViolatedParameters(newParameterName);
-                }
-                equalityResult.addToAddedParameters(newParameterName);
-            }
-        }
-        ReturnTypeDescriptorNode prevReturnType = prevFunctionSignature.returnTypeDesc().orElse(null);
-        ReturnTypeDescriptorNode nextReturnType = nextFunctionSignature.returnTypeDesc().orElse(null);
-        ReturnTypeDescriptorEqualityResult returnTypeEquality =
-                new ReturnTypeDescriptorEqualityResult(prevReturnType, nextReturnType);
-        equalityResult.setReturnTypeEqualityResult(returnTypeEquality);
+        equalityResult.separateMembers();
         return equalityResult;
     }
 
