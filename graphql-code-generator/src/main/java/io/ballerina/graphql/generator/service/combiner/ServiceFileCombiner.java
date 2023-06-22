@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.combiner;
 
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -8,6 +8,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
+import io.ballerina.graphql.generator.service.ServiceDeclarationEqualityResult;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;

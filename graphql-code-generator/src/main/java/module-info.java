@@ -38,5 +38,6 @@ module io.ballerina.graphql.generator {
     exports io.ballerina.graphql.generator.service.exception;
     exports io.ballerina.graphql.generator.service.generator;
     exports io.ballerina.graphql.generator.client.generator;
+    exports io.ballerina.graphql.generator.service.combiner;
 
 }

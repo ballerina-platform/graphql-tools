@@ -8,7 +8,7 @@ import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
-import io.ballerina.graphql.generator.service.ServiceFileCombiner;
+import io.ballerina.graphql.generator.service.combiner.ServiceFileCombiner;
 import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceGenerator;
 import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;

@@ -7,7 +7,7 @@ import io.ballerina.graphql.cmd.Constants;
 import io.ballerina.graphql.cmd.Utils;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
-import io.ballerina.graphql.generator.service.ServiceCombiner;
+import io.ballerina.graphql.generator.service.combiner.ServiceCombiner;
 import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;
 import org.ballerinalang.formatter.core.Formatter;
 import org.testng.Assert;

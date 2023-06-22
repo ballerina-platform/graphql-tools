@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.combiner;
 
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;

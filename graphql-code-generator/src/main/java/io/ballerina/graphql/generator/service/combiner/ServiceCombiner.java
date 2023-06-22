@@ -1,4 +1,4 @@
-package io.ballerina.graphql.generator.service;
+package io.ballerina.graphql.generator.service.combiner;
 
 import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
@@ -16,6 +16,9 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
+import io.ballerina.graphql.generator.service.ClassDefinitionEqualityResult;
+import io.ballerina.graphql.generator.service.EnumDeclarationEqualityResult;
+import io.ballerina.graphql.generator.service.TypeDefinitionEqualityResult;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 import org.ballerinalang.formatter.core.Formatter;
