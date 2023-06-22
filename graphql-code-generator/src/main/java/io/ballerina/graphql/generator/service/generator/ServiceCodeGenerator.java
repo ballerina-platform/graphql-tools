@@ -106,7 +106,6 @@ public class ServiceCodeGenerator extends CodeGenerator {
                 ServiceFileCombiner serviceFileCombiner =
                         new ServiceFileCombiner(availableOutputFileNode, newServiceFileContentNode);
                 mergedServiceFileContent = serviceFileCombiner.generateMergedSrc();
-                warnings.addAll(serviceFileCombiner.getBreakingChangeWarnings());
             }
         } else {
             SyntaxTree newServiceFileSyntaxTree = serviceGenerator.generateSyntaxTree(newServiceFileContentNode);

@@ -168,31 +168,6 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String result = serviceFileCombiner.generateMergedSrc().trim();
         String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceContent);
-
-        List<String> breakingChangeWarnings = serviceFileCombiner.getBreakingChangeWarnings();
-        List<String> warnings = new ArrayList<>();
-        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'book' function " +
-                "definition return type has changed from 'Book?' to 'Book'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'books' function " +
-                "definition return type has changed from 'Book?[]?' to 'Book[]?'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'authors' function " +
-                "definition return type has changed from 'Author[]' to 'Author[]?'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'createBook' function " +
-                "definition return type has changed from 'Book?' to 'Book'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'createAuthor' function" +
-                " definition return type has changed from 'Author' to 'Author?'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'createAuthor' function" +
-                " definition 'name' parameter type change from 'String' to 'string'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'bookTitles' function " +
-                "definition return type has changed from 'stream<string?>' to 'stream<string>'. This can break " +
-                "existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedReturnTypeInFunctionsApi' GraphQL service 'authorNames' function " +
-                "definition return type has changed from 'stream<string>' to 'stream<string?>'. This can break " +
-                "existing clients.");
-        Assert.assertEquals(breakingChangeWarnings.size(), warnings.size());
-        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
-            Assert.assertEquals(breakingChangeWarnings.get(i), warnings.get(i));
-        }
     }
 
     @Test(description = "Test combining updated schema with changed parameters in functions")
@@ -228,25 +203,6 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String result = serviceFileCombiner.generateMergedSrc().trim();
         String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceContent);
-
-        List<String> breakingChangeWarnings = serviceFileCombiner.getBreakingChangeWarnings();
-        List<String> warnings = new ArrayList<>();
-        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'book' function " +
-                "definition 'title' parameter added without default value. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'book' function " +
-                "definition 'id' parameter type change from 'int?' to 'int'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'books' function " +
-                "definition 'ids' parameter removed. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'authors' function " +
-                "definition 'ids' parameter type change from 'int[]' to 'string[]'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'addBook' function " +
-                "definition 'price' parameter type change from 'int' to 'float'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedParametersInFunctionsApi' GraphQL service 'addBook' function " +
-                "'title' parameter assigned '\"No title\"' default value has removed. This can break existing clients" +
-                ".");
-        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
-            Assert.assertEquals(breakingChangeWarnings.get(i), warnings.get(i));
-        }
     }
 
     @Test(description = "Test combining updated schema with changed qualifiers in functions")
@@ -282,17 +238,6 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String result = serviceFileCombiner.generateMergedSrc().trim();
         String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceContent);
-
-        List<String> breakingChangeWarnings = serviceFileCombiner.getBreakingChangeWarnings();
-        List<String> warnings = new ArrayList<>();
-        warnings.add("warning: In 'SchemaWithChangedQualifiersInFunctionsApi' service 'books' function qualifier " +
-                "changed from 'remote' to 'resource'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithChangedQualifiersInFunctionsApi' service 'createBook' function qualifier" +
-                " changed from 'resource' to 'remote'. This can break existing clients.");
-        Assert.assertEquals(breakingChangeWarnings.size(), warnings.size());
-        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
-            Assert.assertEquals(breakingChangeWarnings.get(i), warnings.get(i));
-        }
     }
 
     @Test(description = "Test combining updated schema with interchanged query and subscription fields")
@@ -328,17 +273,6 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String result = serviceFileCombiner.generateMergedSrc().trim();
         String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceContent);
-
-        List<String> breakingChangeWarnings = serviceFileCombiner.getBreakingChangeWarnings();
-        List<String> warnings = new ArrayList<>();
-        warnings.add("warning: In 'SchemaWithInterchangedQueryAndSubscriptionFieldsApi' service class 'book' method " +
-                "changed from 'subscribe' to 'get'. This can break existing clients.");
-        warnings.add("warning: In 'SchemaWithInterchangedQueryAndSubscriptionFieldsApi' service class 'bookTitles' " +
-                "method changed from 'get' to 'subscribe'. This can break existing clients.");
-        Assert.assertEquals(breakingChangeWarnings.size(), warnings.size());
-        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
-            Assert.assertEquals(breakingChangeWarnings.get(i), warnings.get(i));
-        }
     }
 
     @Test(description = "Test combining updated schema into service with basic functions")
@@ -480,7 +414,6 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         String expectedServiceContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceContent);
     }
-
 
     @Test(description = "Test combining updated schema with added query fields into service run on different port")
     public void testCombiningUpdatedSchemaWithAddedQueryFieldsIntoServiceRunOnDifferentPort()

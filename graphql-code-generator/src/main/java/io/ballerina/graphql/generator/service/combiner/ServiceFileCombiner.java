@@ -32,7 +32,6 @@ public class ServiceFileCombiner {
     private List<ModuleMemberDeclarationNode> moduleMembers;
     private List<ModuleMemberDeclarationNode> moduleVariables;
     private List<ModuleMemberDeclarationNode> moduleServiceDeclarations;
-    private List<String> breakingChangeWarnings;
 
     public ServiceFileCombiner(ModulePartNode prevContentNode, ModulePartNode nextContentNode) {
         this.prevContentNode = prevContentNode;
@@ -40,7 +39,6 @@ public class ServiceFileCombiner {
         moduleMembers = new ArrayList<>();
         moduleVariables = new ArrayList<>();
         moduleServiceDeclarations = new ArrayList<>();
-        breakingChangeWarnings = new ArrayList<>();
     }
 
     public String generateMergedSrc() throws FormatterException {
@@ -121,12 +119,7 @@ public class ServiceFileCombiner {
             return false;
         }
         serviceDeclarationEquality.separateMembers();
-        breakingChangeWarnings.addAll(serviceDeclarationEquality.generateBreakingChangeWarnings());
         moduleServiceDeclarations.add(serviceDeclarationEquality.generateCombinedResult());
         return true;
-    }
-
-    public List<String> getBreakingChangeWarnings() {
-        return breakingChangeWarnings;
     }
 }

@@ -20,25 +20,6 @@ import static io.ballerina.graphql.generator.service.EqualityResultUtils.isResol
  * Utility class to store result comparing service declarations.
  */
 public class ServiceDeclarationEqualityResult {
-    private static final String WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE = "warning: In '%s' " +
-            "GraphQL service '%s' function definition return type has changed from '%s' to '%s'. This can break " +
-            "existing clients.";
-    private static final String WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE = "warning: In '%s' " +
-            "GraphQL service '%s' function definition '%s' parameter added without default value. This can break " +
-            "existing clients.";
-    private static final String WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE = "warning: In '%s' GraphQL service " +
-            "'%s' function definition '%s' parameter removed. This can break existing clients.";
-    private static final String WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE = "warning: In '%s' GraphQL " +
-            "service '%s' function definition '%s' parameter type change from '%s' to '%s'. This can break existing " +
-            "clients.";
-    private static final String WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_FUNC =
-            "warning: In '%s' GraphQL service '%s' function '%s' parameter assigned '%s' default value has removed. " +
-                    "This can break existing clients.";
-    private static final String WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_FUNC = "warning: In '%s' service " +
-            "'%s' function qualifier changed from '%s' to '%s'. This can break existing clients.";
-    private static final String WARNING_MESSAGE_GET_SUBSCRIBE_INTERCHANGED_IN_SERVICE_FUNC = "warning: In " +
-            "'%s' service class '%s' method changed from '%s' to '%s'. This can break existing clients.";
-
     private final ServiceDeclarationNode prevServiceDeclaration;
     private final ServiceDeclarationNode nextServiceDeclaration;
     private List<Node> finalMembers;
@@ -126,70 +107,6 @@ public class ServiceDeclarationEqualityResult {
         } else {
             return null;
         }
-    }
-
-    public List<String> generateBreakingChangeWarnings() {
-        List<String> breakingChangeWarnings = new ArrayList<>();
-        for (FunctionDefinitionEqualityResult updatedFunctionEquality : updatedFunctionEqualityResults) {
-            FunctionSignatureEqualityResult functionSignatureEquality =
-                    updatedFunctionEquality.getFunctionSignatureEqualityResult();
-            if (!functionSignatureEquality.getReturnTypeEqualityResult().isEqual()) {
-                breakingChangeWarnings.add(String.format(WARNING_MESSAGE_FUNCTION_DEFINITION_CHANGE_RETURN_TYPE,
-                        getServiceDeclarationName(prevServiceDeclaration),
-                        updatedFunctionEquality.getPrevFunctionName(),
-                        functionSignatureEquality.getReturnTypeEqualityResult().getPrevType(),
-                        functionSignatureEquality.getReturnTypeEqualityResult().getNextType()));
-            }
-            for (String addedParameterName : functionSignatureEquality.getAddedViolatedParameters()) {
-                breakingChangeWarnings.add(
-                        String.format(WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE,
-                                getServiceDeclarationName(prevServiceDeclaration),
-                                updatedFunctionEquality.getPrevFunctionName(),
-                                addedParameterName));
-            }
-            for (String removedParameterName : functionSignatureEquality.getRemovedParameters()) {
-                breakingChangeWarnings.add(
-                        String.format(WARNING_MESSAGE_PARAMETER_REMOVED_IN_SERVICE,
-                                getServiceDeclarationName(prevServiceDeclaration),
-                                updatedFunctionEquality.getPrevFunctionName(), removedParameterName));
-            }
-            for (ParameterEqualityResult parameterEquals :
-                    functionSignatureEquality.getTypeChangedParameters()) {
-                breakingChangeWarnings.add(
-                        String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE,
-                                getServiceDeclarationName(prevServiceDeclaration),
-                                updatedFunctionEquality.getPrevFunctionName(),
-                                parameterEquals.getPrevParameterName(),
-                                parameterEquals.getTypeEquality().getPrevType(),
-                                parameterEquals.getTypeEquality().getNextType()));
-            }
-            for (ParameterEqualityResult defaultValueRemovedParameterEquality :
-                    functionSignatureEquality.getDefaultValueRemovedParameters()) {
-                breakingChangeWarnings.add(
-                        String.format(WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_FUNC,
-                                getServiceDeclarationName(prevServiceDeclaration),
-                                updatedFunctionEquality.getPrevFunctionName(),
-                                defaultValueRemovedParameterEquality.getPrevParameterName(),
-                                defaultValueRemovedParameterEquality.getPrevParameterDefaultValue()));
-            }
-            if (!updatedFunctionEquality.isQualifierSimilar()) {
-                breakingChangeWarnings.add(
-                        String.format(WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_FUNC,
-                                getServiceDeclarationName(prevServiceDeclaration),
-                                updatedFunctionEquality.getPrevFunctionName(),
-                                updatedFunctionEquality.getPrevMainQualifier(),
-                                updatedFunctionEquality.getNextMainQualifier()));
-            }
-            if (updatedFunctionEquality.isGetAndSubscribeInterchanged()) {
-                breakingChangeWarnings.add(
-                        String.format(WARNING_MESSAGE_GET_SUBSCRIBE_INTERCHANGED_IN_SERVICE_FUNC,
-                                getServiceDeclarationName(prevServiceDeclaration),
-                                updatedFunctionEquality.getPrevFunctionName(),
-                                updatedFunctionEquality.getPrevMethodType(),
-                                updatedFunctionEquality.getNextMethodType()));
-            }
-        }
-        return breakingChangeWarnings;
     }
 
     public ModuleMemberDeclarationNode generateCombinedResult() {
