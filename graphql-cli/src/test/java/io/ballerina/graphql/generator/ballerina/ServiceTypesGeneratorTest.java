@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static io.ballerina.graphql.common.TestUtils.writeContentTo;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 
 /**
  * Test class for ServiceTypesGenerator.
@@ -53,7 +54,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -78,7 +79,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -103,7 +104,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -128,7 +129,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -153,7 +154,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -178,7 +179,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -207,7 +208,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             serviceTypesGenerator.setUseRecordsForObjects(true);
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -233,7 +234,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             serviceTypesGenerator.setUseRecordsForObjects(true);
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -259,7 +260,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             serviceTypesGenerator.setUseRecordsForObjects(true);
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -284,7 +285,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -309,7 +310,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -334,7 +335,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -359,7 +360,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -387,7 +388,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -412,7 +413,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -447,7 +448,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -472,7 +473,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -501,7 +502,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -529,7 +530,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -554,7 +555,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -580,7 +581,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             serviceTypesGenerator.setUseRecordsForObjects(true);
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -605,7 +606,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -630,7 +631,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -655,7 +656,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -680,7 +681,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -714,7 +715,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -740,7 +741,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             serviceTypesGenerator.setUseRecordsForObjects(true);
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -765,7 +766,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
@@ -793,7 +794,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
             serviceTypesGenerator.setFileName(fileName);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
