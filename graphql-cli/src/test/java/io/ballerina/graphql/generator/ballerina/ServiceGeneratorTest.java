@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static io.ballerina.graphql.common.TestUtils.writeContentTo;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.SERVICE_FILE_NAME;
 
 /**
  * Test class for ServiceGenerator.
@@ -65,11 +66,11 @@ public class ServiceGeneratorTest extends GraphqlTest {
             ModulePartNode serviceContent = serviceGenerator.generateContentNode();
             SyntaxTree serviceSyntaxTree = serviceGenerator.generateSyntaxTree(serviceContent);
             String generatedServiceContent = serviceGenerator.generateSrc(serviceSyntaxTree);
-            writeContentTo(generatedServiceContent, this.tmpDir);
+            writeContentTo(generatedServiceContent, this.tmpDir, SERVICE_FILE_NAME);
             Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);
             String writtenServiceTypesContent =
-                    readContentWithFormat(this.tmpDir.resolve("types.bal"));
+                    readContentWithFormat(this.tmpDir.resolve(SERVICE_FILE_NAME));
             Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
         } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | ValidationException e) {
             Assert.fail(e.getMessage());
@@ -99,11 +100,11 @@ public class ServiceGeneratorTest extends GraphqlTest {
             ModulePartNode serviceContent = serviceGenerator.generateContentNode();
             SyntaxTree serviceSyntaxTree = serviceGenerator.generateSyntaxTree(serviceContent);
             String generatedServiceContent = serviceGenerator.generateSrc(serviceSyntaxTree);
-            writeContentTo(generatedServiceContent, this.tmpDir);
+            writeContentTo(generatedServiceContent, this.tmpDir, SERVICE_FILE_NAME);
             Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);
             String writtenServiceTypesContent =
-                    readContentWithFormat(this.tmpDir.resolve("types.bal"));
+                    readContentWithFormat(this.tmpDir.resolve(SERVICE_FILE_NAME));
             Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
         } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | ValidationException e) {
             Assert.fail(e.getMessage());

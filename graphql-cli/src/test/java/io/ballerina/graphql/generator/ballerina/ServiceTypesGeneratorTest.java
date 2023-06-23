@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static io.ballerina.graphql.common.TestUtils.writeContentTo;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 
 /**
  * Test class for ServiceTypesGenerator.
@@ -57,12 +58,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -84,12 +85,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -111,12 +112,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -138,12 +139,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -165,12 +166,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -192,12 +193,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -221,12 +222,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -249,12 +250,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -277,12 +278,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -304,12 +305,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -331,12 +332,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent.trim(), writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -358,12 +359,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -385,12 +386,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -413,12 +414,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -440,12 +441,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -474,12 +475,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -501,12 +502,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -530,12 +531,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -558,12 +559,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -585,12 +586,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -613,12 +614,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -640,12 +641,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -667,12 +668,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -694,12 +695,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -721,12 +722,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -754,12 +755,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -782,12 +783,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -809,12 +810,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
@@ -837,12 +838,12 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             ModulePartNode newContent = serviceTypesGenerator.generateContentNode(graphQLSchema);
             SyntaxTree newContentSyntaxTree = serviceTypesGenerator.generateSyntaxTree(newContent);
             String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(newContentSyntaxTree);
-            writeContentTo(generatedServiceTypesContent, this.tmpDir);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
 
             Path expectedServiceTypesFile =
                     resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
-            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve(TYPES_FILE_NAME));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
         } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
             Assert.fail(e.getMessage());
