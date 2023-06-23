@@ -4,17 +4,20 @@ import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLType;
 import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.IntersectionTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.generateObjectType;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMethodDeclarationName;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getRecordFieldName;
@@ -62,12 +65,21 @@ public class TypeDefinitionComparator {
     private final TypeDefinitionNode nextTypeDefinition;
     private List<String> breakingChangeWarnings;
     private Node mergedTypeDescriptor;
+    private MetadataNode mergedMetadata;
+    private Token mergedVisibilityQualifier;
+    private Token mergedTypeKeyword;
 
     public TypeDefinitionComparator(TypeDefinitionNode prevTypeDefinition, TypeDefinitionNode nextTypeDefinition
     ) {
         this.prevTypeDefinition = prevTypeDefinition;
         this.nextTypeDefinition = nextTypeDefinition;
+        mergedMetadata = nextTypeDefinition.metadata().orElse(null);
+        mergedVisibilityQualifier = prevTypeDefinition.visibilityQualifier().orElse(null);
+        mergedTypeKeyword = prevTypeDefinition.typeKeyword();
         breakingChangeWarnings = new ArrayList<>();
+        if (isMatch()) {
+            handleFrontNewLine();
+        }
     }
 
     public boolean isMatch() {
@@ -307,12 +319,20 @@ public class TypeDefinitionComparator {
     }
 
     public TypeDefinitionNode generateCombinedTypeDefinition() {
-        return prevTypeDefinition.modify(
-                nextTypeDefinition.metadata().orElse(null),
-                prevTypeDefinition.visibilityQualifier().orElse(null),
-                nextTypeDefinition.typeKeyword(), nextTypeDefinition.typeName(), mergedTypeDescriptor,
+        return prevTypeDefinition.modify(mergedMetadata, mergedVisibilityQualifier, mergedTypeKeyword,
+                nextTypeDefinition.typeName(), mergedTypeDescriptor,
                 nextTypeDefinition.semicolonToken()
         );
+    }
+
+    private void handleFrontNewLine() {
+        if (mergedMetadata != null) {
+            if (mergedVisibilityQualifier != null) {
+                mergedVisibilityQualifier = mergedVisibilityQualifier.modify(createEmptyMinutiaeList(),
+                        createEmptyMinutiaeList());
+            }
+            mergedTypeKeyword = mergedTypeKeyword.modify(createEmptyMinutiaeList(), createEmptyMinutiaeList());
+        }
     }
 
     public List<String> getBreakingChangeWarnings() {
