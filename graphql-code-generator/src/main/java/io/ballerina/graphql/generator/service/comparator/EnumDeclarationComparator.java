@@ -1,13 +1,16 @@
 package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.Token;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getCommaAddedSeparatedNodeList;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getEnumMemberName;
 
@@ -22,14 +25,21 @@ public class EnumDeclarationComparator {
     private final EnumDeclarationNode nextEnum;
     private List<String> removedMembers;
     private List<Node> finalMembers;
+    private MetadataNode mergedMetadata;
+    private Token mergedQualifier;
+    private Token mergedEnumKeyword;
 
     public EnumDeclarationComparator(EnumDeclarationNode prevEnum, EnumDeclarationNode nextEnum) {
         this.prevEnum = prevEnum;
         this.nextEnum = nextEnum;
         removedMembers = new ArrayList<>();
         finalMembers = new ArrayList<>();
+        mergedMetadata = nextEnum.metadata().orElse(null);
+        mergedQualifier = prevEnum.qualifier().orElse(null);
+        mergedEnumKeyword = prevEnum.enumKeywordToken();
         if (isMatch()) {
             separateMembers();
+            handleFrontNewLine();
         }
     }
 
@@ -68,10 +78,19 @@ public class EnumDeclarationComparator {
     }
 
     public EnumDeclarationNode generateCombinedResult() {
-        return nextEnum.modify(nextEnum.metadata().orElse(null), prevEnum.qualifier().orElse(null),
-                nextEnum.enumKeywordToken(), nextEnum.identifier(), prevEnum.openBraceToken(),
-                getCommaAddedSeparatedNodeList(finalMembers),
-                prevEnum.closeBraceToken(), nextEnum.semicolonToken().orElse(null));
+        return nextEnum.modify(mergedMetadata, mergedQualifier, mergedEnumKeyword, nextEnum.identifier(),
+                prevEnum.openBraceToken(), getCommaAddedSeparatedNodeList(finalMembers), prevEnum.closeBraceToken(),
+                nextEnum.semicolonToken().orElse(null));
+    }
+
+    private void handleFrontNewLine() {
+        if (mergedMetadata != null) {
+            if (mergedQualifier != null) {
+                mergedQualifier = mergedQualifier.modify(createEmptyMinutiaeList(), createEmptyMinutiaeList());
+            }
+            mergedEnumKeyword = mergedEnumKeyword.modify(createEmptyMinutiaeList(), createEmptyMinutiaeList());
+        }
+
     }
 
     public List<String> generateBreakingChangeWarnings() {
