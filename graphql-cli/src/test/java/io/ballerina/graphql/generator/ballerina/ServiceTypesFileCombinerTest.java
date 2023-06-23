@@ -54,6 +54,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new enum")
@@ -84,6 +87,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new interface")
@@ -114,6 +120,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new input type")
@@ -144,6 +153,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new union")
@@ -174,6 +186,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new object type using records if possible")
@@ -205,6 +220,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new query fields")
@@ -235,6 +253,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new mutation fields")
@@ -265,6 +286,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new subscription fields")
@@ -295,6 +319,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new enum fields")
@@ -325,6 +352,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(mergedSyntaxTree).toString().trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(result, expectedServiceTypesContent);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with new added input type fields")
@@ -396,6 +426,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new object type fields")
@@ -426,8 +459,44 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
+    @Test(description = "Test combining updated schema with added new object type fields when represented in records")
+    public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFieldsWhenRepresentedInRecords() throws Exception {
+        String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsRecordsAllowed";
+        String expectedBalFileName = "typesAfterAddingNewObjectTypeFieldsRecordsAllowed";
+        String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setUseRecordsForObjects(true);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
+    }
 
     @Test(description = "Test combining updated schema with added new object type fields in multiple objects")
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFieldsInMultipleObjects() throws Exception {
@@ -457,6 +526,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with added new interface type fields")
@@ -487,6 +559,9 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
         String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
         Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
     @Test(description = "Test combining updated schema with removed input type fields")
@@ -562,7 +637,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         List<String> warningMessages = new ArrayList<>();
         warningMessages.add("warning: In 'Gender' enum 'FEMALE' member has removed. This can break existing clients.");
         List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
-        Assert.assertTrue(breakingChangeWarnings.size() == 1);
+        Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < 1; i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
         }
@@ -601,7 +676,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         warningMessages.add("warning: In 'Book' service class 'title' function definition has removed. " +
                 "This can break available clients");
         List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
-        Assert.assertTrue(breakingChangeWarnings.size() == 1);
+        Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         Assert.assertEquals(breakingChangeWarnings.get(0), warningMessages.get(0));
     }
 
@@ -726,7 +801,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         warningMessages.add("warning: In 'Child' class 'pass' function definition 'score3' parameter removed. " +
                 "This can break existing clients.");
         List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
-        Assert.assertTrue(breakingChangeWarnings.size() == 2);
+        Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
         }
@@ -773,7 +848,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
                 "warning: In 'Child' class 'knowsWords' function definition 'word' parameter removed. This can break " +
                         "existing clients.");
         List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
-        Assert.assertTrue(breakingChangeWarnings.size() == 3);
+        Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
         for (int i = 0; i < breakingChangeWarnings.size(); i++) {
             Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
         }
