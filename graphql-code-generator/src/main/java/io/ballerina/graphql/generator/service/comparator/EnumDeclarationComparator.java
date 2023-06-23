@@ -90,7 +90,6 @@ public class EnumDeclarationComparator {
             }
             mergedEnumKeyword = mergedEnumKeyword.modify(createEmptyMinutiaeList(), createEmptyMinutiaeList());
         }
-
     }
 
     public List<String> generateBreakingChangeWarnings() {

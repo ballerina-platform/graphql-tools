@@ -1812,23 +1812,4 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
-
-    @Test(description = "Test combining updated schema with new interface fields")
-    public void testNodeParser() throws Exception {
-        String balFileName = "typesDocsWithEnumDefault.bal";
-        Path balFilePath = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", balFileName));
-        String balFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(balFilePath));
-        balFileContent = "type Foo object {\n" +
-                "    function foo();\n" +
-                "    function bar();\n" +
-                "};\n" +
-                "\n" +
-                "type Bar object {\n" +
-                "    function bar();\n" +
-                "};\n" +
-                "\n" +
-                "type FooBar readonly & Bar;";
-        ModulePartNode balFileNode = NodeParser.parseModulePart(balFileContent);
-        Assert.assertTrue(balFileNode != null);
-    }
 }

@@ -103,15 +103,6 @@ public class ServiceDeclarationComparator {
         }
     }
 
-    private String getServiceDeclarationName(ServiceDeclarationNode serviceDeclaration) {
-        TypeDescriptorNode serviceName = serviceDeclaration.typeDescriptor().orElse(null);
-        if (serviceName != null) {
-            return getTypeName(serviceName);
-        } else {
-            return null;
-        }
-    }
-
     public ModuleMemberDeclarationNode generateCombinedResult() {
         return nextServiceDeclaration.modify(
                 nextServiceDeclaration.metadata().orElse(null), prevServiceDeclaration.qualifiers(),
