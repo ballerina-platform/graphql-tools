@@ -193,9 +193,9 @@ public class GraphqlCmdTest extends GraphqlTest {
                 resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
                         "emptyFile.bal"));
         String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
-        String message = String.format("Service file combination failed. The service file \"%s\" available in \"%s\"" +
-                        " output location is empty. It should be deleted or it should be a GraphQL service file.",
-                "service.bal", this.tmpDir.toString());
+        String message = String.format("Service file combination failed because the service file \"%s\" available in" +
+                        " \"%s\" output location is empty. It should be deleted or it should be a GraphQL service " +
+                        "file.", "service.bal", this.tmpDir.toString());
         try {
             String currentTypesFileContent = readContentWithFormat(currentTypesFilePath);
             String currentServiceFileContent = readContentWithFormat(currentServiceFilePath);
@@ -223,7 +223,7 @@ public class GraphqlCmdTest extends GraphqlTest {
                 resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
                         "serviceBeforeAddingNewInputTypeFieldsDefault.bal"));
         String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
-        String message = String.format("Service types file combination failed. The service types file \"%s\" " +
+        String message = String.format("Service types file combination failed because the service types file \"%s\" " +
                 "available in \"%s\" output location is empty. It should be deleted or it should be a GraphQL service" +
                 " types file.", "types.bal", this.tmpDir.toString());
         try {
