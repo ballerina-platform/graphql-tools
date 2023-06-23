@@ -336,4 +336,8 @@ public class ComparatorUtils {
             return null;
         }
     }
+
+    public static MinutiaeList createMinutiaeListWithNewLine() {
+        return createMinutiaeList(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+    }
 }
