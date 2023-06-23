@@ -2,8 +2,11 @@ package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 
 import java.util.ArrayList;
@@ -11,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getFunctionName;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isResolverFunction;
@@ -44,6 +48,10 @@ public class ClassDefinitionComparator {
     private List<FunctionDefinitionComparator> updatedFunctionDefinitions;
     private List<TypeReferenceNode> removedTypeReferences;
     private List<Node> finalMembers;
+    private MetadataNode mergedMetadata;
+    private Token mergedVisibilityQualifier;
+    private NodeList<Token> mergedQualifiers;
+    private Token mergedClassKeyword;
 
     public ClassDefinitionComparator(ClassDefinitionNode prevClassDefinition,
                                      ClassDefinitionNode nextClassDefinition) {
@@ -53,8 +61,13 @@ public class ClassDefinitionComparator {
         updatedFunctionDefinitions = new ArrayList<>();
         removedTypeReferences = new ArrayList<>();
         finalMembers = new ArrayList<>();
+        mergedMetadata = nextClassDefinition.metadata().orElse(null);
+        mergedVisibilityQualifier = prevClassDefinition.visibilityQualifier().orElse(null);
+        mergedQualifiers = prevClassDefinition.classTypeQualifiers();
+        mergedClassKeyword = prevClassDefinition.classKeyword();
         if (isMatch()) {
             separateClassMembers();
+            handleFrontNewLine();
         }
     }
 
@@ -143,12 +156,28 @@ public class ClassDefinitionComparator {
     }
 
     public ClassDefinitionNode generateCombinedResult() {
-        return prevClassDefinition.modify(nextClassDefinition.metadata().orElse(null),
-                prevClassDefinition.visibilityQualifier().orElse(null),
-                prevClassDefinition.classTypeQualifiers(), prevClassDefinition.classKeyword(),
-                prevClassDefinition.className(), prevClassDefinition.openBrace(),
+        return prevClassDefinition.modify(mergedMetadata, mergedVisibilityQualifier, mergedQualifiers,
+                mergedClassKeyword, prevClassDefinition.className(), prevClassDefinition.openBrace(),
                 createNodeList(finalMembers), prevClassDefinition.closeBrace(),
                 prevClassDefinition.semicolonToken().orElse(null));
+    }
+
+    private void handleFrontNewLine() {
+        if (mergedMetadata != null) {
+            if (mergedVisibilityQualifier != null) {
+                mergedVisibilityQualifier = mergedVisibilityQualifier.modify(createEmptyMinutiaeList(),
+                        createEmptyMinutiaeList());
+            }
+            if (mergedQualifiers.size() != 0) {
+                Token firstQualifier = mergedQualifiers.get(0);
+                Token modifiedFirstQualifier = firstQualifier.modify(
+                        createEmptyMinutiaeList(),
+                        createEmptyMinutiaeList());
+                mergedQualifiers = mergedQualifiers.remove(0);
+                mergedQualifiers = mergedQualifiers.add(0, modifiedFirstQualifier);
+            }
+            mergedClassKeyword = mergedClassKeyword.modify(createEmptyMinutiaeList(), createEmptyMinutiaeList());
+        }
     }
 
     public List<String> generateBreakingChangeWarnings() {
