@@ -145,8 +145,9 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         String expectedWarning =
                 "warning: In 'CreateAuthorInput' input type 'address' field is introduced without a default value. " +
-                        "This can brake available clients\nwarning: In 'CreateBookInput' input type 'version' field " +
-                        "is introduced without a default value. This can brake available clients";
+                        "This can brake available clients" + System.lineSeparator() + "warning: In 'CreateBookInput' " +
+                        "input type 'version' field is introduced without a default value. This can brake available " +
+                        "clients";
         String printedWarning = "";
         try {
             String currentTypesFileContent = readContentWithFormat(currentTypesFilePath);
