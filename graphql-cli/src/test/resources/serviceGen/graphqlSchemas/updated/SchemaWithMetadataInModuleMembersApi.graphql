@@ -1,0 +1,40 @@
+type Query {
+    book(id: Int!): Book
+}
+
+type Mutation {
+    addBook(input: CreateBookInput!): Book!
+}
+
+"Availability of a book"
+enum Available {
+    YES
+    NO
+}
+
+"Interface to represent information of book"
+interface Info {
+    name: String!
+}
+
+"Represents a book"
+type Book implements Info {
+    id: Int!
+    name: String!
+    isAvailable: Available!
+}
+
+"Represents a novel"
+type Novel implements Info {
+    id: Int!
+    name: String!
+    isAvailable: Available!
+}
+
+"Represents any reading material"
+union ReadingMaterial = Book | Novel
+
+"Create book input data"
+input CreateBookInput {
+    name: String!
+}
