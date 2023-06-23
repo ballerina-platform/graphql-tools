@@ -538,6 +538,47 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test combining updated schema with changed object field type when represented in records")
+    public void testCombiningUpdatedSchemaWithChangedObjectFieldTypeWhenRepresentedInRecords() throws Exception {
+        String beforeBalFileName = "typesBeforeChangingObjectFieldTypeRecordsAllowed";
+        String expectedBalFileName = "typesAfterChangingObjectFieldTypeRecordsAllowed";
+        String newSchemaFileName = "SchemaWithChangedObjectFieldTypeApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setUseRecordsForObjects(true);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> warningMessages = new ArrayList<>();
+        warningMessages.add(
+                "warning: In 'Book' record type 'id' field type has changed from 'int' to 'string'. This can break " +
+                        "existing clients.");
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == warningMessages.size());
+        for (int i = 0; i < breakingChangeWarnings.size(); i++) {
+            Assert.assertEquals(breakingChangeWarnings.get(i), warningMessages.get(i));
+        }
+    }
+
     @Test(description = "Test combining updated schema with added new object type fields in multiple objects")
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFieldsInMultipleObjects() throws Exception {
         String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsInMultipleObjectsDefault";
