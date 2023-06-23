@@ -28,10 +28,14 @@ import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.
 public class TypeDefinitionComparator {
     private static final String WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD = "warning: In '%s' record type" +
             " '%s' field assigned '%s' default value has removed. This can break existing clients.";
-    private static final String WARNING_MESSAGE_RECORD_FIELD_TYPE_CHANGED = "warning: In '%s' record type '%s' " +
+    private static final String WARNING_MESSAGE_CHANGE_OBJECT_RECORD_FIELD_TYPE = "warning: In '%s' record type '%s' " +
             "field type has changed from '%s' to '%s'. This can break existing clients.";
-    private static final String REMOVE_INPUT_TYPE_FIELD_MESSAGE =
-            "warning: In '%s' input type '%s' field has removed. This can brake clients";
+    private static final String WARNING_MESSAGE_CHANGE_INPUT_RECORD_FIELD_TYPE = "warning: In '%s' record type '%s' " +
+            "field type has changed from '%s' to '%s'. This can break existing clients.";
+    private static final String WARNING_MESSAGE_REMOVE_INPUT_RECORD_FIELD = "warning: In '%s' input type '%s' field " +
+            "has removed. This can brake clients.";
+    private static final String WARNING_MESSAGE_REMOVE_OBJECT_RECORD_FIELD = "warning: In '%s' record type " +
+            "'%s' field has removed. This can brake clients.";
     private static final String WARNING_MESSAGE_REMOVE_UNION_MEMBER =
             "warning: In '%s' union type '%s' member has " + "removed. This can break existing clients.";
     private static final String WARNING_MESSAGE_ADD_INPUT_TYPE_FIELD_WITH_NO_DEFAULT_VALUE = "warning: In '%s' input " +
@@ -164,12 +168,17 @@ public class TypeDefinitionComparator {
     private void handleRecordTypeBreakingChanges(RecordTypeComparator recordTypeEquality,
                                                  boolean isGraphqlInputType) {
         for (Node removedField : recordTypeEquality.getRemovedFields()) {
-            breakingChangeWarnings.add(
-                    String.format(REMOVE_INPUT_TYPE_FIELD_MESSAGE, prevTypeDefinition.typeName().text(),
-                            getRecordFieldName(removedField)));
+            if (isGraphqlInputType) {
+                breakingChangeWarnings.add(
+                        String.format(WARNING_MESSAGE_REMOVE_INPUT_RECORD_FIELD, prevTypeDefinition.typeName().text(),
+                                getRecordFieldName(removedField)));
+            } else {
+                breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_OBJECT_RECORD_FIELD,
+                        prevTypeDefinition.typeName().text(), getRecordFieldName(removedField)));
+            }
         }
         for (Node addedField : recordTypeEquality.getAddedFields()) {
-            if (addedField instanceof RecordFieldNode) {
+            if (addedField instanceof RecordFieldNode && isGraphqlInputType) {
                 breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_ADD_INPUT_TYPE_FIELD_WITH_NO_DEFAULT_VALUE,
                                 prevTypeDefinition.typeName().text(), getRecordFieldName(addedField)));
@@ -183,11 +192,19 @@ public class TypeDefinitionComparator {
                         updatedRecordFieldEquality.getPrevRecordFieldDefaultValue()));
             }
             if (updatedRecordFieldEquality.isFieldTypeChanged()) {
-                breakingChangeWarnings.add(String.format(
-                        WARNING_MESSAGE_RECORD_FIELD_TYPE_CHANGED,
-                        prevTypeDefinition.typeName().text(), updatedRecordFieldEquality.getPrevRecordFieldName(),
-                        updatedRecordFieldEquality.getTypeEquality().getPrevType(),
-                        updatedRecordFieldEquality.getTypeEquality().getNextType()));
+                if (isGraphqlInputType) {
+                    breakingChangeWarnings.add(String.format(
+                            WARNING_MESSAGE_CHANGE_INPUT_RECORD_FIELD_TYPE,
+                            prevTypeDefinition.typeName().text(), updatedRecordFieldEquality.getPrevRecordFieldName(),
+                            updatedRecordFieldEquality.getTypeEquality().getPrevType(),
+                            updatedRecordFieldEquality.getTypeEquality().getNextType()));
+                } else {
+                    breakingChangeWarnings.add(String.format(
+                            WARNING_MESSAGE_CHANGE_OBJECT_RECORD_FIELD_TYPE,
+                            prevTypeDefinition.typeName().text(), updatedRecordFieldEquality.getPrevRecordFieldName(),
+                            updatedRecordFieldEquality.getTypeEquality().getPrevType(),
+                            updatedRecordFieldEquality.getTypeEquality().getNextType()));
+                }
             }
         }
     }
