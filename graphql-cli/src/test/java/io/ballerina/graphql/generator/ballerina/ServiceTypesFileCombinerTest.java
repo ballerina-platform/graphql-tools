@@ -1776,6 +1776,41 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
+    @Test(description = "Test combining updated schema into input types with readonly")
+    public void testCombiningUpdatedSchemaIntoInputTypesWithReadonly() throws Exception {
+        String beforeBalFileName =
+                "typesWithReadonlyInputTypesBeforeAddingInputFields";
+        String expectedBalFileName = "typesWithReadonlyInputTypesAfterAddingInputFields";
+        String newSchemaFileName = "SchemaWithAddedInputFieldsIntoTypesWithReadonlyInputTypesApi";
+        Path updatedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+        Path newSchemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+        Path mergedBalFilePath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+
+        GraphqlServiceProject newGraphqlProject =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
+        Utils.validateGraphqlProject(newGraphqlProject);
+
+        String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
+        ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
+        ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setUseRecordsForObjects(true);
+        ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
+
+        ServiceTypesFileCombiner serviceTypesFileCombiner =
+                new ServiceTypesFileCombiner(updateBalFileNode, nextSchemaNode, newGraphqlProject.getGraphQLSchema());
+        SyntaxTree mergedSyntaxTree = serviceTypesFileCombiner.generateMergedSyntaxTree();
+        String result = Formatter.format(Formatter.format(mergedSyntaxTree).toString().trim()).trim();
+        String expectedServiceTypesContent = readContentWithFormat(mergedBalFilePath);
+        Assert.assertEquals(expectedServiceTypesContent, result);
+
+        List<String> breakingChangeWarnings = serviceTypesFileCombiner.getBreakingChangeWarnings();
+        Assert.assertTrue(breakingChangeWarnings.size() == 0);
+    }
+
     @Test(description = "Test combining updated schema with new interface fields")
     public void testNodeParser() throws Exception {
         String balFileName = "typesDocsWithEnumDefault";
