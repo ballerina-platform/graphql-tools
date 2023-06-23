@@ -1,13 +1,24 @@
 import ballerina/graphql;
 
-type SchemaWithSubscriptionApi service object {
+type SchemaWithRemovedInputTypeFieldsApi service object {
     *graphql:Service;
     resource function get book(int id, string? title) returns Book?;
     resource function get books() returns Book?[]?;
     resource function get authors() returns Author[];
-    resource function subscribe bookTitles() returns stream<string>;
-    resource function subscribe authorNames() returns stream<string>;
+    remote function createBook(CreateBookInput input) returns Book;
+    remote function createAuthor(CreateAuthorInput? input) returns Author?;
 };
+
+public type CreateAuthorInput record {|
+    string name;
+    string email;
+|};
+
+public type CreateBookInput record {|
+    string title;
+    int? authorId;
+    float price;
+|};
 
 public distinct service class Author {
     resource function get id() returns int {
@@ -21,7 +32,7 @@ public distinct service class Author {
 
 public distinct service class Book {
     resource function get id() returns int {
-        return 1;
+        return 10;
     }
 
     resource function get title() returns string {

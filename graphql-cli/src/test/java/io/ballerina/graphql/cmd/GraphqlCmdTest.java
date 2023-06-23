@@ -99,8 +99,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path newGraphqlSchemaPath = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewQueryFieldsApi.graphql"));
         Path currentTypesFilePath = resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation",
-                        "typesBeforeAddingNewQueryFieldsDefault.bal"));
+                Paths.get("serviceGen", "updatedServices", "typesBeforeAddingNewQueryFields.bal"));
         Path currentServiceFilePath =
                 resourceDir.resolve(Paths.get("serviceGen", "updatedServices", "serviceBeforeAddingQueryFields.bal"));
         String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
@@ -115,9 +114,9 @@ public class GraphqlCmdTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             Path expectedServiceFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "updated", "serviceWithAddedQueryFields.bal"));
+                    Paths.get("serviceGen", "expectedServices", "updated", "serviceAfterAddingQueryFields.bal"));
             Path expectedTypesFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "updated", "typesWithAddedNewQueryFieldsDefault.bal"));
+                    Paths.get("serviceGen", "expectedServices", "updated", "typesAfterAddingNewQueryFields.bal"));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);
             String expectedTypesContent = readContentWithFormat(expectedTypesFile);
 
@@ -139,10 +138,10 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path newGraphqlSchemaPath = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewInputTypeFieldsApi.graphql"));
         Path currentTypesFilePath = resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "typesBeforeAddingNewInputTypeFieldsDefault.bal"));
+                Paths.get("serviceGen", "updatedServices", "typesBeforeAddingNewInputTypeFields.bal"));
         Path currentServiceFilePath =
                 resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
-                        "serviceBeforeAddingNewInputTypeFieldsDefault.bal"));
+                        "serviceBeforeAddingNewInputTypeFields.bal"));
         String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         String expectedWarning =
                 "warning: In 'CreateAuthorInput' input type 'address' field is introduced without a default value. " +
@@ -160,11 +159,11 @@ public class GraphqlCmdTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             Path expectedServiceFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "updated", "serviceWithAddedNewInputTypeFieldsDefault" +
-                            ".bal"));
+                    Paths.get("serviceGen", "expectedServices", "updated",
+                            "serviceAfterAddingNewInputTypeFields.bal"));
             Path expectedTypesFile = resourceDir.resolve(
                     Paths.get("serviceGen", "expectedServices", "updated",
-                            "typesWithAddedNewInputTypeFieldsDefault.bal"));
+                            "typesAfterAddingNewInputTypeFields.bal"));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);
             String expectedTypesContent = readContentWithFormat(expectedTypesFile);
 
@@ -188,7 +187,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path newGraphqlSchemaPath = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewInputTypeFieldsApi.graphql"));
         Path currentTypesFilePath = resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "typesBeforeAddingNewInputTypeFieldsDefault.bal"));
+                Paths.get("serviceGen", "updatedServices", "typesBeforeAddingNewInputTypeFields.bal"));
         Path currentServiceFilePath =
                 resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
                         "emptyFile.bal"));
@@ -221,7 +220,7 @@ public class GraphqlCmdTest extends GraphqlTest {
                 Paths.get("serviceGen", "updatedServices", "emptyFile.bal"));
         Path currentServiceFilePath =
                 resourceDir.resolve(Paths.get("serviceGen", "updatedServices",
-                        "serviceBeforeAddingNewInputTypeFieldsDefault.bal"));
+                        "serviceBeforeAddingNewInputTypeFields.bal"));
         String[] args = {"-i", newGraphqlSchemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         String message = String.format("Service types file combination failed because the service types file \"%s\" " +
                 "available in \"%s\" output location is empty. It should be deleted or it should be a GraphQL service" +

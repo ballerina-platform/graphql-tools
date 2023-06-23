@@ -28,15 +28,15 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
 public class ServiceTypesFileCombinerTest extends GraphqlTest {
     @Test(description = "Test combining updated schema with added new object type")
     public void testCombiningUpdatedSchemaWithAddedNewObjectType() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewObjectTypeApi";
-        String beforeBalFileName = "typesBeforeAddingNewObjectTypeDefault";
-        String expectedBalFileName = "typesWithAddedNewObjectTypeDefault";
+        String newSchemaFileName = "SchemaWithAddedNewObjectTypeApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewObjectType.bal";
+        String expectedBalFileName = "typesAfterAddingNewObjectType.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -45,7 +45,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -61,15 +61,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new enum")
     public void testCombiningUpdatedSchemaWithAddedNewEnum() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewEnumApi";
-        String beforeBalFileName = "typesBeforeAddingNewEnumDefault";
-        String expectedBalFileName = "typesWithAddedNewEnumDefault";
+        String newSchemaFileName = "SchemaWithAddedNewEnumApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewEnum.bal";
+        String expectedBalFileName = "typesAfterAddingNewEnum.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -78,7 +78,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -94,15 +94,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new interface")
     public void testCombiningUpdatedSchemaWithAddedNewInterface() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewInterfaceApi";
-        String beforeBalFileName = "typesBeforeAddingNewInterfaceDefault";
-        String expectedBalFileName = "typesWithAddedNewInterfaceDefault";
+        String newSchemaFileName = "SchemaWithAddedNewInterfaceApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewInterface.bal";
+        String expectedBalFileName = "typesAfterAddingNewInterface.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -111,7 +111,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -127,15 +127,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new input type")
     public void testCombiningUpdatedSchemaWithAddedNewInputType() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewInputTypeApi";
-        String beforeBalFileName = "typesBeforeAddingNewInputTypeDefault";
-        String expectedBalFileName = "typesWithAddedNewInputTypeDefault";
+        String newSchemaFileName = "SchemaWithAddedNewInputTypeApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewInputType.bal";
+        String expectedBalFileName = "typesAfterAddingNewInputType.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -144,7 +144,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -160,15 +160,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new union")
     public void testCombiningUpdatedSchemaWithAddedNewUnion() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewUnionApi";
-        String beforeBalFileName = "typesBeforeAddingNewUnionDefault";
-        String expectedBalFileName = "typesWithAddedNewUnionDefault";
+        String newSchemaFileName = "SchemaWithAddedNewUnionApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewUnion.bal";
+        String expectedBalFileName = "typesAfterAddingNewUnion.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -177,7 +177,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -193,15 +193,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new object type using records if possible")
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeUsingRecordsIfPossible() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewObjectTypeUsingRecordsIfPossibleApi";
-        String beforeBalFileName = "typesBeforeAddingNewObjectTypeUsingRecordsIfPossibleDefault";
-        String expectedBalFileName = "typesWithAddedNewObjectTypeUsingRecordsIfPossibleDefault";
+        String newSchemaFileName = "SchemaWithAddedNewObjectTypeUsingRecordsIfPossibleApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewObjectTypeUsingRecordsIfPossible.bal";
+        String expectedBalFileName = "typesAfterAddingNewObjectTypeUsingRecordsIfPossible.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -211,7 +211,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setUseRecordsForObjects(true);
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -227,15 +227,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new query fields")
     public void testCombiningUpdatedSchemaWithAddedNewQueryFields() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi";
-        String beforeBalFileName = "typesBeforeAddingNewQueryFieldsDefault";
-        String expectedBalFileName = "typesWithAddedNewQueryFieldsDefault";
+        String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewQueryFields.bal";
+        String expectedBalFileName = "typesAfterAddingNewQueryFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -244,7 +244,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -260,15 +260,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new mutation fields")
     public void testCombiningUpdatedSchemaWithAddedNewMutationFields() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewMutationFieldsApi";
-        String beforeBalFileName = "typesBeforeAddingNewMutationFieldsDefault";
-        String expectedBalFileName = "typesWithAddedNewMutationFieldsDefault";
+        String newSchemaFileName = "SchemaWithAddedNewMutationFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewMutationFields.bal";
+        String expectedBalFileName = "typesAfterAddingNewMutationFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -277,7 +277,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -293,15 +293,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new subscription fields")
     public void testCombiningUpdatedSchemaWithAddedNewSubscriptionFields() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewSubscriptionFieldsApi";
-        String beforeBalFileName = "typesBeforeAddingNewSubscriptionFieldsDefault";
-        String expectedBalFileName = "typesWithAddedNewSubscriptionFieldsDefault";
+        String newSchemaFileName = "SchemaWithAddedNewSubscriptionFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewSubscriptionFields.bal";
+        String expectedBalFileName = "typesAfterAddingNewSubscriptionFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -310,7 +310,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -326,15 +326,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new enum fields")
     public void testCombiningUpdatedSchemaWithAddedNewEnumFields() throws Exception {
-        String newSchemaFileName = "SchemaWithAddedNewEnumFieldsApi";
-        String beforeBalFileName = "typesBeforeAddingNewEnumFieldsDefault";
-        String expectedBalFileName = "typesWithAddedNewEnumFieldsDefault";
+        String newSchemaFileName = "SchemaWithAddedNewEnumFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewEnumFields.bal";
+        String expectedBalFileName = "typesAfterAddingNewEnumFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -343,7 +343,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -359,15 +359,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with new added input type fields")
     public void testCombiningUpdatedSchemaWithAddedNewInputTypeFields() throws Exception {
-        String beforeBalFileName = "typesBeforeAddingNewInputTypeFieldsDefault";
-        String expectedBalFileName = "typesWithAddedNewInputTypeFieldsDefault";
-        String newSchemaFileName = "SchemaWithAddedNewInputTypeFieldsApi";
+        String newSchemaFileName = "SchemaWithAddedNewInputTypeFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewInputTypeFields.bal";
+        String expectedBalFileName = "typesAfterAddingNewInputTypeFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -376,7 +376,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -400,15 +400,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new union members")
     public void testCombiningUpdatedSchemaWithAddedNewUnionMembers() throws Exception {
-        String beforeBalFileName = "typesBeforeAddingNewUnionMembersDefault";
-        String expectedBalFileName = "typesWithAddedNewUnionMembersDefault";
-        String newSchemaFileName = "SchemaWithAddedNewUnionMembersApi";
+        String newSchemaFileName = "SchemaWithAddedNewUnionMembersApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewUnionMembers.bal";
+        String expectedBalFileName = "typesAfterAddingNewUnionMembers.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -417,7 +417,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -433,15 +433,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new object type fields")
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFields() throws Exception {
-        String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsDefault";
-        String expectedBalFileName = "typesWithAddedNewObjectTypeFieldsDefault";
-        String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsApi";
+        String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewObjectTypeFields.bal";
+        String expectedBalFileName = "typesAfterAddingNewObjectTypeFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -450,7 +450,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -466,15 +466,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new object type fields when represented in records")
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFieldsWhenRepresentedInRecords() throws Exception {
-        String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsRecordsAllowed";
-        String expectedBalFileName = "typesAfterAddingNewObjectTypeFieldsRecordsAllowed";
-        String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsApi";
+        String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsRecordsAllowed.bal";
+        String expectedBalFileName = "typesAfterAddingNewObjectTypeFieldsRecordsAllowed.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -483,7 +483,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         serviceTypesGenerator.setUseRecordsForObjects(true);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
@@ -500,15 +500,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed object type fields when represented in records")
     public void testCombiningUpdatedSchemaWithRemovedObjectTypeFieldsWhenRepresentedInRecords() throws Exception {
-        String beforeBalFileName = "typesBeforeRemovingObjectTypeFieldsRecordsAllowed";
-        String expectedBalFileName = "typesAfterRemovingObjectTypeFieldsRecordsAllowed";
-        String newSchemaFileName = "SchemaWithRemovedObjectTypeFieldsApi";
+        String newSchemaFileName = "SchemaWithRemovedObjectTypeFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingObjectTypeFieldsRecordsAllowed.bal";
+        String expectedBalFileName = "typesAfterRemovingObjectTypeFieldsRecordsAllowed.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -517,7 +517,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         serviceTypesGenerator.setUseRecordsForObjects(true);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
@@ -540,15 +540,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with changed object field type when represented in records")
     public void testCombiningUpdatedSchemaWithChangedObjectFieldTypeWhenRepresentedInRecords() throws Exception {
-        String beforeBalFileName = "typesBeforeChangingObjectFieldTypeRecordsAllowed";
-        String expectedBalFileName = "typesAfterChangingObjectFieldTypeRecordsAllowed";
-        String newSchemaFileName = "SchemaWithChangedObjectFieldTypeApi";
+        String newSchemaFileName = "SchemaWithChangedObjectFieldTypeApi.graphql";
+        String beforeBalFileName = "typesBeforeChangingObjectFieldTypeRecordsAllowed.bal";
+        String expectedBalFileName = "typesAfterChangingObjectFieldTypeRecordsAllowed.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -557,7 +557,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         serviceTypesGenerator.setUseRecordsForObjects(true);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
@@ -581,15 +581,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new object type fields in multiple objects")
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFieldsInMultipleObjects() throws Exception {
-        String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsInMultipleObjectsDefault";
-        String expectedBalFileName = "typesWithAddedNewObjectTypeFieldsInMultipleObjectsDefault";
-        String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsInMultipleObjectsApi";
+        String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsInMultipleObjectsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsInMultipleObjects.bal";
+        String expectedBalFileName = "typesAfterAddingNewObjectTypeFieldsInMultipleObjects.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -598,7 +598,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -614,15 +614,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with added new interface type fields")
     public void testCombiningUpdatedSchemaWithAddedNewInterfaceTypeFields() throws Exception {
-        String beforeBalFileName = "typesBeforeAddingNewInterfaceTypeFieldsDefault";
-        String expectedBalFileName = "typesWithAddedNewInterfaceTypeFieldsDefault";
-        String newSchemaFileName = "SchemaWithAddedNewInterfaceTypeFieldsApi";
+        String newSchemaFileName = "SchemaWithAddedNewInterfaceTypeFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingNewInterfaceTypeFields.bal";
+        String expectedBalFileName = "typesAfterAddingNewInterfaceTypeFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -631,7 +631,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -647,14 +647,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed input type fields")
     public void testCombiningUpdatedSchemaWithRemovedInputTypeFields() throws Exception {
-        String balFileName = "typesWithInputsDefault";
-        String newSchemaFileName = "SchemaWithInputsApi";
+        String newSchemaFileName = "SchemaWithRemovedInputTypeFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingInputTypeFields.bal";
+        String expectedBalFileName = "typesAfterRemovingInputTypeFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", balFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -663,7 +664,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -689,14 +690,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed enum fields")
     public void testCombiningUpdatedSchemaWithRemovedEnumFields() throws Exception {
-        String balFileName = "typesWithEnumDefault";
-        String newSchemaFileName = "SchemaWithEnumApi";
+        String newSchemaFileName = "SchemaWithRemovedEnumFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingEnumFields.bal";
+        String expectedBalFileName = "typesAfterRemovingEnumFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", balFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", balFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -705,7 +707,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -726,15 +728,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed object fields represented in service class")
     public void testCombiningUpdatedSchemaWithRemovedObjectFieldsRepresentedInServiceClass() throws Exception {
-        String beforeBalFileName = "typesBeforeSingleObjectRemoveFieldDefault";
-        String expectedBalFileName = "typesWithSingleObjectRemoveFieldDefault";
-        String newSchemaFileName = "SchemaWithSingleObjectRemoveFieldApi";
+        String newSchemaFileName = "SchemaWithSingleObjectRemoveFieldApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingFieldObject.bal";
+        String expectedBalFileName = "typesAfterRemovingObjectField.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -743,7 +745,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -763,15 +765,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with changed type in object field represented in service class")
     public void testCombiningUpdatedSchemaWithChangedTypeInObjectFieldRepresentedInServiceClass() throws Exception {
-        String beforeBalFileName = "typesBeforeSingleObjectChangedTypeInObjectFieldDefault";
-        String expectedBalFileName = "typesWithSingleObjectChangedTypeInObjectFieldDefault";
-        String newSchemaFileName = "SchemaWithSingleObjectChangedTypeInObjectFieldApi";
+        String newSchemaFileName = "SchemaWithSingleObjectChangedTypeInObjectFieldApi.graphql";
+        String beforeBalFileName = "typesBeforeChangingTypeInSingleObjectField.bal";
+        String expectedBalFileName = "typesAfterChangingTypeInSingleObjectField.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -780,7 +782,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -805,15 +807,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
             "service class")
     public void testCombiningUpdatedSchemaWithChangedTypeInMultipleObjectFieldsRepresentedInServiceClass()
             throws Exception {
-        String beforeBalFileName = "typesBeforeMultipleChangedTypesInObjectFieldsDefault";
-        String expectedBalFileName = "typesWithMultipleChangedTypesInObjectFieldsDefault";
-        String newSchemaFileName = "SchemaWithMultipleChangedTypesInObjectFieldsApi";
+        String newSchemaFileName = "SchemaWithMultipleChangedTypesInObjectFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeChangingTypesInMultipleObjectFields.bal";
+        String expectedBalFileName = "typesAfterChangingTypesInMultipleObjectFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -822,7 +824,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -849,15 +851,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
             "represented in service class")
     public void testCombiningUpdatedSchemaWithRemovedParametersInObjectFieldsRepresentedInServiceClass()
             throws Exception {
-        String beforeBalFileName = "typesBeforeRemovingParametersInObjectFieldsDefault";
-        String expectedBalFileName = "typesWithRemovedParametersInObjectFieldsDefault";
-        String newSchemaFileName = "SchemaWithRemovedParametersInObjectFieldsApi";
+        String newSchemaFileName = "SchemaWithRemovedParametersInObjectFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingParametersInObjectFields.bal";
+        String expectedBalFileName = "typesAfterRemovingParametersInObjectFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -866,7 +868,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -892,15 +894,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
             "represented in service class")
     public void testCombiningUpdatedSchemaWithAddedParametersInObjectFieldsRepresentedInServiceClass()
             throws Exception {
-        String beforeBalFileName = "typesBeforeAddingParametersInObjectFieldsDefault";
-        String expectedBalFileName = "typesWithAddedParametersInObjectFieldsDefault";
-        String newSchemaFileName = "SchemaWithAddedParametersInObjectFieldsApi";
+        String newSchemaFileName = "SchemaWithAddedParametersInObjectFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingParametersInObjectFields.bal";
+        String expectedBalFileName = "typesAfterAddingParametersInObjectFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -909,7 +911,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -937,15 +939,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed fields in query, mutation and subscription")
     public void testCombiningUpdatedSchemaWithRemovedFieldsInQueryMutationAndSubscription() throws Exception {
-        String beforeBalFileName = "typesBeforeRemovingFieldsInQueryMutationAndSubscriptionDefault";
-        String expectedBalFileName = "typesWithRemovedFieldsInQueryMutationAndSubscriptionDefault";
-        String newSchemaFileName = "SchemaWithRemovedFieldsInQueryMutationAndSubscriptionApi";
+        String newSchemaFileName = "SchemaWithRemovedFieldsInQueryMutationAndSubscriptionApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingFieldsInQueryMutationAndSubscription.bal";
+        String expectedBalFileName = "typesAfterRemovingFieldsInQueryMutationAndSubscription.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -954,7 +956,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -985,15 +987,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
     @Test(description = "Test combining updated schema with removed parameters in query, mutation and subscription " +
             "fields")
     public void testCombiningUpdatedSchemaWithRemovedParametersInQueryMutationAndSubscriptionFields() throws Exception {
-        String beforeBalFileName = "typesBeforeRemovingParametersInQueryMutationAndSubscriptionFieldsDefault";
-        String expectedBalFileName = "typesWithRemovedParametersInQueryMutationAndSubscriptionFieldsDefault";
-        String newSchemaFileName = "SchemaWithRemovedParametersInQueryMutationAndSubscriptionFieldsApi";
+        String newSchemaFileName = "SchemaWithRemovedParametersInQueryMutationAndSubscriptionFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingParametersInQueryMutationAndSubscriptionFields.bal";
+        String expectedBalFileName = "typesAfterRemovingParametersInQueryMutationAndSubscriptionFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1002,7 +1004,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1032,15 +1034,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with types changed in query, mutation and subscription fields")
     public void testCombiningUpdatedSchemaWithTypesChangedInQueryMutationAndSubscriptionFields() throws Exception {
-        String beforeBalFileName = "typesBeforeChangingTypesInQueryMutationAndSubscriptionFieldsDefault";
-        String expectedBalFileName = "typesWithTypesChangedInQueryMutationAndSubscriptionFieldsDefault";
-        String newSchemaFileName = "SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi";
+        String newSchemaFileName = "SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeChangingTypesInQueryMutationAndSubscriptionFields.bal";
+        String expectedBalFileName = "typesAfterChangingTypesInQueryMutationAndSubscriptionFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", "removeField", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", "removeField", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1049,7 +1051,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1111,15 +1113,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
     @Test(description = "Test combining updated schema with added parameters in query, mutation and subscription " +
             "fields")
     public void testCombiningUpdatedSchemaWithAddedParametersInQueryMutationAndSubscriptionFields() throws Exception {
-        String beforeBalFileName = "typesBeforeAddingParametersInQueryMutationAndSubscriptionFieldsDefault";
-        String expectedBalFileName = "typesWithAddedParametersInQueryMutationAndSubscriptionFieldsDefault";
-        String newSchemaFileName = "SchemaWithAddedParametersInQueryMutationAndSubscriptionFieldsApi";
+        String newSchemaFileName = "SchemaWithAddedParametersInQueryMutationAndSubscriptionFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingParametersInQueryMutationAndSubscriptionFields.bal";
+        String expectedBalFileName = "typesAfterAddingParametersInQueryMutationAndSubscriptionFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1128,7 +1130,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1159,15 +1161,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed parameter default values")
     public void testCombiningUpdatedSchemaWithRemovedParameterDefaultValues() throws Exception {
-        String beforeBalFileName = "typesBeforeRemovingParameterDefaultValuesDefault";
-        String expectedBalFileName = "typesWithRemovedParameterDefaultValuesDefault";
-        String newSchemaFileName = "SchemaWithRemovedParameterDefaultValuesApi";
+        String newSchemaFileName = "SchemaWithRemovedParameterDefaultValuesApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingParameterDefaultValues.bal";
+        String expectedBalFileName = "typesAfterRemovingParameterDefaultValues.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1176,7 +1178,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1221,15 +1223,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed union members")
     public void testCombiningUpdatedSchemaWithRemovedUnionMembers() throws Exception {
-        String beforeBalFileName = "typesBeforeRemovingUnionMembersDefault";
-        String expectedBalFileName = "typesWithRemovedUnionMembersDefault";
-        String newSchemaFileName = "SchemaWithRemovedUnionMembersApi";
+        String newSchemaFileName = "SchemaWithRemovedUnionMembersApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingUnionMembers.bal";
+        String expectedBalFileName = "typesAfterRemovingUnionMembers.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1238,7 +1240,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1262,15 +1264,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed interface fields")
     public void testCombiningUpdatedSchemaWithRemovedInterfaceFields() throws Exception {
-        String beforeBalFileName = "typesBeforeRemovingInterfaceFieldsDefault";
-        String expectedBalFileName = "typesWithRemovedInterfaceFieldsDefault";
-        String newSchemaFileName = "SchemaWithRemovedInterfaceFieldsApi";
+        String newSchemaFileName = "SchemaWithRemovedInterfaceFieldsApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingInterfaceFields.bal";
+        String expectedBalFileName = "typesAfterRemovingInterfaceFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1279,7 +1281,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1303,15 +1305,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with record type fields type changed")
     public void testCombiningUpdatedSchemaWithRecordTypeFieldsTypeChanged() throws Exception {
-        String beforeBalFileName = "typesBeforeChangingRecordTypeFieldsTypeDefault";
-        String expectedBalFileName = "typesWithChangedRecordTypeFieldsTypeDefault";
-        String newSchemaFileName = "SchemaWithChangedRecordTypeFieldsTypeApi";
+        String newSchemaFileName = "SchemaWithChangedRecordTypeFieldsTypeApi.graphql";
+        String beforeBalFileName = "typesBeforeChangingRecordTypeFieldsType.bal";
+        String expectedBalFileName = "typesAfterChangingRecordTypeFieldsType.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1321,7 +1323,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setUseRecordsForObjects(true);
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1352,15 +1354,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
     @Test(description = "Test combining updated schema with changed main qualifier in service object and service " +
             "class functions")
     public void testCombiningUpdatedSchemaWithChangedQualifiers() throws Exception {
-        String beforeBalFileName = "typesBeforeChangingQualifiersDefault";
-        String expectedBalFileName = "typesWithChangedQualifiersDefault";
-        String newSchemaFileName = "SchemaWithChangedQualifiersApi";
+        String newSchemaFileName = "SchemaWithChangedQualifiersApi.graphql";
+        String beforeBalFileName = "typesBeforeChangingQualifiers.bal";
+        String expectedBalFileName = "typesAfterChangingQualifiers.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1369,7 +1371,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1405,15 +1407,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with interchanged query and subscription methods")
     public void testCombiningUpdatedSchemaWithInterchangedQueryAndSubscriptionMethods() throws Exception {
-        String beforeBalFileName = "typesBeforeInterchangingQueryAndSubscriptionMethodsDefault";
-        String expectedBalFileName = "typesWithInterchangedQueryAndSubscriptionMethodsDefault";
-        String newSchemaFileName = "SchemaWithInterchangedQueryAndSubscriptionMethodsApi";
+        String newSchemaFileName = "SchemaWithInterchangedQueryAndSubscriptionMethodsApi.graphql";
+        String beforeBalFileName = "typesBeforeInterchangingQueryAndSubscriptionMethods.bal";
+        String expectedBalFileName = "typesAfterInterchangingQueryAndSubscriptionMethods.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1422,7 +1424,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1464,15 +1466,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with removed default values in input and object types")
     public void testCombiningUpdatedSchemaWithRemovedDefaultValuesInInputAndObjectTypes() throws Exception {
-        String beforeBalFileName = "typesBeforeRemovingDefaultValuesInInputAndObjectTypesRecordsAllowed";
-        String expectedBalFileName = "typesWithRemovedDefaultValuesInInputAndObjectTypesRecordsAllowed";
-        String newSchemaFileName = "SchemaWithRemovedDefaultValuesInInputAndObjectTypesApi";
+        String newSchemaFileName = "SchemaWithRemovedDefaultValuesInInputAndObjectTypesApi.graphql";
+        String beforeBalFileName = "typesBeforeRemovingDefaultValuesInInputAndObjectTypesRecordsAllowed.bal";
+        String expectedBalFileName = "typesAfterRemovingDefaultValuesInInputAndObjectTypesRecordsAllowed.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", "onlyLogicImplementation", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1482,7 +1484,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
         serviceTypesGenerator.setUseRecordsForObjects(true);
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1508,15 +1510,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with changed default values")
     public void testCombiningUpdatedSchemaWithChangedDefaultValues() throws Exception {
-        String beforeBalFileName = "typesBeforeChangingDefaultValues";
-        String expectedBalFileName = "typesAfterChangingDefaultValues";
-        String newSchemaFileName = "SchemaWithChangedDefaultValuesApi";
+        String newSchemaFileName = "SchemaWithChangedDefaultValuesApi.graphql";
+        String beforeBalFileName = "typesBeforeChangingDefaultValues.bal";
+        String expectedBalFileName = "typesAfterChangingDefaultValues.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1525,7 +1527,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1541,15 +1543,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with metadata in module members")
     public void testCombiningUpdatedSchemaWithMetadataInModuleMembers() throws Exception {
-        String beforeBalFileName = "typesBeforeAddingMetadataInModuleMembers";
-        String expectedBalFileName = "typesAfterAddingMetadataInModuleMembers";
-        String newSchemaFileName = "SchemaWithMetadataInModuleMembersApi";
+        String newSchemaFileName = "SchemaWithMetadataInModuleMembersApi.graphql";
+        String beforeBalFileName = "typesBeforeAddingMetadataInModuleMembers.bal";
+        String expectedBalFileName = "typesAfterAddingMetadataInModuleMembers.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1558,7 +1560,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1574,16 +1576,16 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema into service object in types with non resolver functions")
     public void testCombiningUpdatedSchemaIntoServiceObjectInTypesWithNonResolverFunctions() throws Exception {
+        String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName =
-                "typesServiceObjectWithNonResolverFunctionsBeforeAddingQueryFields";
-        String expectedBalFileName = "typesServiceObjectWithNonResolverFunctionsAfterAddingQueryFields";
-        String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi";
+                "typesServiceObjectWithNonResolverFunctionsBeforeAddingQueryFields.bal";
+        String expectedBalFileName = "typesServiceObjectWithNonResolverFunctionsAfterAddingQueryFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1592,7 +1594,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1609,15 +1611,15 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
     @Test(description = "Test combining updated schema into service class in types with non resolver functions")
     public void testCombiningUpdatedSchemaIntoServiceClassInTypesWithNonResolverFunctions() throws Exception {
         String beforeBalFileName =
-                "typesServiceClassWithNonResolverFunctionsBeforeAddingQueryFields";
-        String expectedBalFileName = "typesServiceClassWithNonResolverFunctionsAfterAddingQueryFields";
-        String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi";
+                "typesServiceClassWithNonResolverFunctionsBeforeAddingQueryFields.bal";
+        String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
+        String expectedBalFileName = "typesServiceClassWithNonResolverFunctionsAfterAddingQueryFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1626,7 +1628,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1642,16 +1644,16 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema into service class in types with attributes")
     public void testCombiningUpdatedSchemaIntoServiceClassInTypesWithAttributes() throws Exception {
+        String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName =
-                "typesServiceClassWithAttributesBeforeAddingQueryFields";
-        String expectedBalFileName = "typesServiceClassWithAttributesAfterAddingQueryFields";
-        String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi";
+                "typesServiceClassWithAttributesBeforeAddingQueryFields.bal";
+        String expectedBalFileName = "typesServiceClassWithAttributesAfterAddingQueryFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1660,7 +1662,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1676,16 +1678,16 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema into types with isolated functions")
     public void testCombiningUpdatedSchemaIntoTypesWithIsolatedFunctions() throws Exception {
+        String newSchemaFileName = "SchemaWithAddedQueryFieldsIntoTypesWithIsolatedFunctionsApi.graphql";
         String beforeBalFileName =
-                "typesWithIsolatedFunctionsBeforeAddingQueryFields";
-        String expectedBalFileName = "typesWithIsolatedFunctionsAfterAddingQueryFields";
-        String newSchemaFileName = "SchemaWithAddedQueryFieldsIntoTypesWithIsolatedFunctionsApi";
+                "typesWithIsolatedFunctionsBeforeAddingQueryFields.bal";
+        String expectedBalFileName = "typesWithIsolatedFunctionsAfterAddingQueryFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1694,7 +1696,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1710,16 +1712,16 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema into types with documentations")
     public void testCombiningUpdatedSchemaIntoTypesWithDocumentations() throws Exception {
+        String newSchemaFileName = "SchemaWithAddedObjectTypeFieldsIntoTypesWithDocumentationsApi.graphql";
         String beforeBalFileName =
-                "typesWithDocumentationsBeforeAddingObjectTypeFields";
-        String expectedBalFileName = "typesWithDocumentationsAfterAddingObjectTypeFields";
-        String newSchemaFileName = "SchemaWithAddedObjectTypeFieldsIntoTypesWithDocumentationsApi";
+                "typesWithDocumentationsBeforeAddingObjectTypeFields.bal";
+        String expectedBalFileName = "typesWithDocumentationsAfterAddingObjectTypeFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1728,7 +1730,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1744,16 +1746,16 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema into types with readonly object and class")
     public void testCombiningUpdatedSchemaIntoTypesWithReadonlyObjectAndClass() throws Exception {
+        String newSchemaFileName = "SchemaWithAddedQueryFieldsIntoTypesWithReadonlyObjectAndClassApi.graphql";
         String beforeBalFileName =
-                "typesWithReadonlyObjectAndClassBeforeAddingQueryFields";
-        String expectedBalFileName = "typesWithReadonlyObjectAndClassAfterAddingObjectTypeFields";
-        String newSchemaFileName = "SchemaWithAddedQueryFieldsIntoTypesWithReadonlyObjectAndClassApi";
+                "typesWithReadonlyObjectAndClassBeforeAddingQueryFields.bal";
+        String expectedBalFileName = "typesWithReadonlyObjectAndClassAfterAddingObjectTypeFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1762,7 +1764,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
         ServiceTypesFileCombiner serviceTypesFileCombiner =
@@ -1778,16 +1780,16 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema into input types with readonly")
     public void testCombiningUpdatedSchemaIntoInputTypesWithReadonly() throws Exception {
+        String newSchemaFileName = "SchemaWithAddedInputFieldsIntoTypesWithReadonlyInputTypesApi.graphql";
         String beforeBalFileName =
-                "typesWithReadonlyInputTypesBeforeAddingInputFields";
-        String expectedBalFileName = "typesWithReadonlyInputTypesAfterAddingInputFields";
-        String newSchemaFileName = "SchemaWithAddedInputFieldsIntoTypesWithReadonlyInputTypesApi";
+                "typesWithReadonlyInputTypesBeforeAddingInputFields.bal";
+        String expectedBalFileName = "typesWithReadonlyInputTypesAfterAddingInputFields.bal";
         Path updatedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "updatedServices", beforeBalFileName + ".bal"));
+                Paths.get("serviceGen", "updatedServices", beforeBalFileName));
         Path newSchemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName + ".graphql"));
+                Paths.get("serviceGen", "graphqlSchemas", "updated", newSchemaFileName));
         Path mergedBalFilePath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName + ".bal"));
+                Paths.get("serviceGen", "expectedServices", "updated", expectedBalFileName));
 
         GraphqlServiceProject newGraphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, newSchemaPath.toString(), "./");
@@ -1796,7 +1798,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         String updatedBalFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(updatedBalFilePath));
         ModulePartNode updateBalFileNode = NodeParser.parseModulePart(updatedBalFileContent);
         ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
-        serviceTypesGenerator.setFileName(newSchemaFileName);
+        serviceTypesGenerator.setFileName(newSchemaFileName.split("\\.")[0]);
         serviceTypesGenerator.setUseRecordsForObjects(true);
         ModulePartNode nextSchemaNode = serviceTypesGenerator.generateContentNode(newGraphqlProject.getGraphQLSchema());
 
@@ -1813,8 +1815,8 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
 
     @Test(description = "Test combining updated schema with new interface fields")
     public void testNodeParser() throws Exception {
-        String balFileName = "typesDocsWithEnumDefault";
-        Path balFilePath = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", balFileName + ".bal"));
+        String balFileName = "typesDocsWithEnumDefault.bal";
+        Path balFilePath = this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", balFileName));
         String balFileContent = String.join(Constants.NEW_LINE, Files.readAllLines(balFilePath));
         balFileContent = "type Foo object {\n" +
                 "    function foo();\n" +
