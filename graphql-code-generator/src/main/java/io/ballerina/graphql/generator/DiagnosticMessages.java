@@ -36,7 +36,7 @@ public enum DiagnosticMessages {
             DiagnosticSeverity.ERROR),
     GRAPHQL_GEN_105("GRAPHQL_GEN_105", "Ballerina config types code generation related error occurred.",
             DiagnosticSeverity.ERROR),
-    GRAPHQL_GEN_106("GRAPHQL_GEN_106", "Ballerina code generation related error occurred. %s",
+    GRAPHQL_GEN_106("GRAPHQL_GEN_106", "Ballerina code generation failed. %s",
             DiagnosticSeverity.ERROR),
     GRAPHQL_GEN_107("GRAPHQL_GEN_107", "Ballerina service file combiner related error occurred. %s",
             DiagnosticSeverity.ERROR),
