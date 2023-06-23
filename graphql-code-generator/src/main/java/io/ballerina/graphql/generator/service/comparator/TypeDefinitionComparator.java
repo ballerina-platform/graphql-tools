@@ -96,32 +96,33 @@ public class TypeDefinitionComparator {
 
     public void handleMergeTypeDescriptor(GraphQLType graphqlType) {
         ObjectTypeDescriptorNode nextObjectType = generateObjectType(nextTypeDefinition.typeDescriptor());
-        if (prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
-            IntersectionTypeDescriptorNode prevIntersectionType =
-                    (IntersectionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-            if (nextObjectType != null) {
+        RecordTypeDescriptorNode nextRecordType = generateRecordType(nextTypeDefinition.typeDescriptor());
+        if (nextObjectType != null) {
+            if (prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
+                IntersectionTypeDescriptorNode prevIntersectionType =
+                        (IntersectionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
                 mergedTypeDescriptor = handleMergeObjectType(prevIntersectionType, nextObjectType);
-            }
-        } else if (prevTypeDefinition.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
-            DistinctTypeDescriptorNode prevDistinctType =
-                    (DistinctTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-            if (nextObjectType != null) {
+            } else if (prevTypeDefinition.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
+                DistinctTypeDescriptorNode prevDistinctType =
+                        (DistinctTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
                 mergedTypeDescriptor = handleMergeObjectType(prevDistinctType, nextObjectType);
-            }
-        } else if (prevTypeDefinition.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
-            ObjectTypeDescriptorNode prevObjectType =
-                    (ObjectTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-            if (nextObjectType != null) {
+            } else if (prevTypeDefinition.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
+                ObjectTypeDescriptorNode prevObjectType =
+                        (ObjectTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
                 mergedTypeDescriptor = handleMergeObjectType(prevObjectType, nextObjectType);
             }
-        } else if (prevTypeDefinition.typeDescriptor() instanceof RecordTypeDescriptorNode &&
-                nextTypeDefinition.typeDescriptor() instanceof RecordTypeDescriptorNode) {
-            RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-            RecordTypeDescriptorNode nextRecordType = (RecordTypeDescriptorNode) nextTypeDefinition.typeDescriptor();
-            RecordTypeComparator recordTypeEquality =
-                    new RecordTypeComparator(prevRecordType, nextRecordType);
-            handleRecordTypeBreakingChanges(recordTypeEquality, graphqlType instanceof GraphQLInputObjectType);
-            mergedTypeDescriptor = recordTypeEquality.generateCombinedRecordType();
+        } else if (nextRecordType != null) {
+            if (prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
+                IntersectionTypeDescriptorNode prevIntersectionType =
+                        (IntersectionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
+                mergedTypeDescriptor = handleMergeRecordType(prevIntersectionType, nextRecordType,
+                        graphqlType instanceof GraphQLInputObjectType);
+            } else if (prevTypeDefinition.typeDescriptor() instanceof RecordTypeDescriptorNode) {
+                RecordTypeDescriptorNode prevRecordType =
+                        (RecordTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
+                mergedTypeDescriptor = handleMergeRecordType(prevRecordType, nextRecordType,
+                        graphqlType instanceof GraphQLInputObjectType);
+            }
         } else if (prevTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode &&
                 nextTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode) {
             UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
@@ -129,6 +130,34 @@ public class TypeDefinitionComparator {
             UnionTypeComparator unionTypeEquality = new UnionTypeComparator(prevUnionType, nextUnionType);
             handleUnionTypeBreakingChanges(unionTypeEquality);
             mergedTypeDescriptor = unionTypeEquality.generateCombinedUnionType();
+        }
+    }
+
+    private Node handleMergeRecordType(Node prevType, RecordTypeDescriptorNode nextRecordType,
+                                       boolean isGraphqlInputType) {
+        if (prevType instanceof RecordTypeDescriptorNode) {
+            RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevType;
+            RecordTypeComparator recordTypeEquality =
+                    new RecordTypeComparator(prevRecordType, nextRecordType);
+            handleRecordTypeBreakingChanges(recordTypeEquality, isGraphqlInputType);
+            return recordTypeEquality.generateCombinedRecordType();
+        } else if (prevType instanceof IntersectionTypeDescriptorNode) {
+            IntersectionTypeDescriptorNode prevIntersectionType = (IntersectionTypeDescriptorNode) prevType;
+            return prevIntersectionType.modify(prevIntersectionType.leftTypeDesc(),
+                    prevIntersectionType.bitwiseAndToken(),
+                    handleMergeRecordType(prevIntersectionType.rightTypeDesc(), nextRecordType, isGraphqlInputType));
+        }
+        return null;
+    }
+
+    private RecordTypeDescriptorNode generateRecordType(Node typeDescriptor) {
+        if (typeDescriptor instanceof IntersectionTypeDescriptorNode) {
+            IntersectionTypeDescriptorNode intersectionTypeDescriptor = (IntersectionTypeDescriptorNode) typeDescriptor;
+            return generateRecordType(intersectionTypeDescriptor.rightTypeDesc());
+        } else if (typeDescriptor instanceof RecordTypeDescriptorNode) {
+            return (RecordTypeDescriptorNode) typeDescriptor;
+        } else {
+            return null;
         }
     }
 
