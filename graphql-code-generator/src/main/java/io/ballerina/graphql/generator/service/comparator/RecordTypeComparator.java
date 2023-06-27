@@ -24,82 +24,82 @@ public class RecordTypeComparator {
     public RecordTypeComparator(RecordTypeDescriptorNode prevRecordType, RecordTypeDescriptorNode nextRecordType) {
         this.prevRecordType = prevRecordType;
         this.nextRecordType = nextRecordType;
-        updatedRecordFields = new ArrayList<>();
-        addedFields = new ArrayList<>();
-        removedFields = new ArrayList<>();
-        finalMembers = new ArrayList<>();
+        this.updatedRecordFields = new ArrayList<>();
+        this.addedFields = new ArrayList<>();
+        this.removedFields = new ArrayList<>();
+        this.finalMembers = new ArrayList<>();
         separateMembers();
     }
 
     public void separateMembers() {
         LinkedHashMap<Node, Boolean> nextRecordFieldsAvailability = new LinkedHashMap<>();
-        for (Node nextField : nextRecordType.fields()) {
+        for (Node nextField : this.nextRecordType.fields()) {
             nextRecordFieldsAvailability.put(nextField, false);
         }
-        for (Node prevField : prevRecordType.fields()) {
+        for (Node prevField : this.prevRecordType.fields()) {
             boolean foundPrevMatch = false;
-            for (Node nextField : nextRecordType.fields()) {
+            for (Node nextField : this.nextRecordType.fields()) {
                 RecordFieldComparator recordFieldEquality =
                         new RecordFieldComparator(prevField, nextField);
                 if (recordFieldEquality.isEqual()) {
                     foundPrevMatch = true;
                     nextRecordFieldsAvailability.put(nextField, true);
-                    finalMembers.add(recordFieldEquality.generateCombinedRecordField());
+                    this.finalMembers.add(recordFieldEquality.generateCombinedRecordField());
                     break;
                 } else if (recordFieldEquality.isMatch()) {
                     foundPrevMatch = true;
                     nextRecordFieldsAvailability.put(nextField, true);
-                    updatedRecordFields.add(recordFieldEquality);
-                    finalMembers.add(recordFieldEquality.generateCombinedRecordField());
+                    this.updatedRecordFields.add(recordFieldEquality);
+                    this.finalMembers.add(recordFieldEquality.generateCombinedRecordField());
                     break;
                 }
             }
             if (!foundPrevMatch) {
-                removedFields.add(prevField);
+                this.removedFields.add(prevField);
             }
         }
         for (Map.Entry<Node, Boolean> availabilityMapEntry : nextRecordFieldsAvailability.entrySet()) {
             Boolean nextRecordFieldAvailable = availabilityMapEntry.getValue();
             if (!nextRecordFieldAvailable) {
                 Node newRecordField = availabilityMapEntry.getKey();
-                addedFields.add(newRecordField);
-                finalMembers.add(newRecordField);
+                this.addedFields.add(newRecordField);
+                this.finalMembers.add(newRecordField);
             }
         }
     }
 
     public List<Node> getRemovedFields() {
-        return removedFields;
+        return this.removedFields;
     }
 
     private boolean isRecordKeywordEquals() {
-        return prevRecordType.recordKeyword().text().equals(nextRecordType.recordKeyword().text());
+        return this.prevRecordType.recordKeyword().text().equals(this.nextRecordType.recordKeyword().text());
     }
 
     private boolean isStartDelimiterEquals() {
-        return prevRecordType.bodyStartDelimiter().text().equals(nextRecordType.bodyStartDelimiter().text());
+        return this.prevRecordType.bodyStartDelimiter().text().equals(this.nextRecordType.bodyStartDelimiter().text());
     }
 
     private boolean isEndDelimiterEquals() {
-        return prevRecordType.bodyEndDelimiter().text().equals(nextRecordType.bodyEndDelimiter().text());
+        return this.prevRecordType.bodyEndDelimiter().text().equals(this.nextRecordType.bodyEndDelimiter().text());
     }
 
     public List<RecordFieldComparator> getUpdatedRecordFields() {
-        return updatedRecordFields;
+        return this.updatedRecordFields;
     }
 
     public boolean isEqual() {
-        return isRecordKeywordEquals() && isStartDelimiterEquals() && isEndDelimiterEquals() && addedFields.isEmpty() &&
-                removedFields.isEmpty() && updatedRecordFields.isEmpty();
+        return isRecordKeywordEquals() && isStartDelimiterEquals() && isEndDelimiterEquals() &&
+                this.addedFields.isEmpty() && this.removedFields.isEmpty() && this.updatedRecordFields.isEmpty();
     }
 
     public RecordTypeDescriptorNode generateCombinedRecordType() {
-        return prevRecordType.modify(nextRecordType.recordKeyword(), prevRecordType.bodyStartDelimiter(),
-                createNodeList(finalMembers), prevRecordType.recordRestDescriptor().orElse(null),
-                prevRecordType.bodyEndDelimiter());
+        return this.prevRecordType.modify(this.nextRecordType.recordKeyword(), this.prevRecordType.bodyStartDelimiter(),
+                createNodeList(this.finalMembers), this.prevRecordType.recordRestDescriptor().orElse(null),
+                this.prevRecordType.bodyEndDelimiter());
     }
 
     public List<Node> getAddedFields() {
-        return addedFields;
+        return this.addedFields;
     }
 }

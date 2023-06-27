@@ -52,14 +52,14 @@ public class ServiceTypesFileCombiner {
         this.nextContentNode = nextContentNode;
         this.nextGraphqlSchema = nextGraphqlSchema;
 
-        moduleMembers = new ArrayList<>();
-        inputObjectTypesModuleMembers = new ArrayList<>();
-        interfaceTypesModuleMembers = new ArrayList<>();
-        enumTypesModuleMembers = new ArrayList<>();
-        unionTypesModuleMembers = new ArrayList<>();
-        objectTypesModuleMembers = new ArrayList<>();
+        this.moduleMembers = new ArrayList<>();
+        this.inputObjectTypesModuleMembers = new ArrayList<>();
+        this.interfaceTypesModuleMembers = new ArrayList<>();
+        this.enumTypesModuleMembers = new ArrayList<>();
+        this.unionTypesModuleMembers = new ArrayList<>();
+        this.objectTypesModuleMembers = new ArrayList<>();
 
-        breakingChangeWarnings = new ArrayList<>();
+        this.breakingChangeWarnings = new ArrayList<>();
     }
 
     public String generateMergedSrc() throws FormatterException {
@@ -69,18 +69,18 @@ public class ServiceTypesFileCombiner {
 
     public SyntaxTree generateMergedSyntaxTree() {
         List<ModuleMemberDeclarationNode> newMembers =
-                generateNewMembers(prevContentNode.members(), nextContentNode.members());
+                generateNewMembers(this.prevContentNode.members(), this.nextContentNode.members());
 
-        moduleMembers.addAll(inputObjectTypesModuleMembers);
-        moduleMembers.addAll(interfaceTypesModuleMembers);
-        moduleMembers.addAll(enumTypesModuleMembers);
-        moduleMembers.addAll(unionTypesModuleMembers);
-        moduleMembers.addAll(objectTypesModuleMembers);
-        moduleMembers.addAll(newMembers);
+        this.moduleMembers.addAll(this.inputObjectTypesModuleMembers);
+        this.moduleMembers.addAll(this.interfaceTypesModuleMembers);
+        this.moduleMembers.addAll(this.enumTypesModuleMembers);
+        this.moduleMembers.addAll(this.unionTypesModuleMembers);
+        this.moduleMembers.addAll(this.objectTypesModuleMembers);
+        this.moduleMembers.addAll(newMembers);
 
-        NodeList<ModuleMemberDeclarationNode> allMembers = createNodeList(moduleMembers);
+        NodeList<ModuleMemberDeclarationNode> allMembers = createNodeList(this.moduleMembers);
         ModulePartNode contentNode =
-                createModulePartNode(prevContentNode.imports(), allMembers, createToken(SyntaxKind.EOF_TOKEN));
+                createModulePartNode(this.prevContentNode.imports(), allMembers, createToken(SyntaxKind.EOF_TOKEN));
 
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
@@ -133,8 +133,8 @@ public class ServiceTypesFileCombiner {
         if (!enumDeclarationEquality.isMatch()) {
             return false;
         }
-        breakingChangeWarnings.addAll(enumDeclarationEquality.generateBreakingChangeWarnings());
-        enumTypesModuleMembers.add(enumDeclarationEquality.generateCombinedResult());
+        this.breakingChangeWarnings.addAll(enumDeclarationEquality.generateBreakingChangeWarnings());
+        this.enumTypesModuleMembers.add(enumDeclarationEquality.generateCombinedResult());
         return true;
     }
 
@@ -144,18 +144,18 @@ public class ServiceTypesFileCombiner {
         if (!typeDefinitionEquality.isMatch()) {
             return false;
         }
-        typeDefinitionEquality.handleMergeTypeDescriptor(nextGraphqlSchema.getType(nextTypeDef.typeName().text()));
-        breakingChangeWarnings.addAll(typeDefinitionEquality.getBreakingChangeWarnings());
+        typeDefinitionEquality.handleMergeTypeDescriptor(this.nextGraphqlSchema.getType(nextTypeDef.typeName().text()));
+        this.breakingChangeWarnings.addAll(typeDefinitionEquality.getBreakingChangeWarnings());
         Node mergedTypeDescriptor = typeDefinitionEquality.getMergedTypeDescriptor();
         if (mergedTypeDescriptor instanceof ObjectTypeDescriptorNode) {
-            moduleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
+            this.moduleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
         } else if (mergedTypeDescriptor instanceof DistinctTypeDescriptorNode ||
                 mergedTypeDescriptor instanceof IntersectionTypeDescriptorNode) {
-            interfaceTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
+            this.interfaceTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
         } else if (mergedTypeDescriptor instanceof RecordTypeDescriptorNode) {
-            inputObjectTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
+            this.inputObjectTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
         } else if (mergedTypeDescriptor instanceof UnionTypeDescriptorNode) {
-            unionTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
+            this.unionTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
         }
         return true;
     }
@@ -166,12 +166,12 @@ public class ServiceTypesFileCombiner {
         if (!classDefinitionComparator.isMatch()) {
             return false;
         }
-        breakingChangeWarnings.addAll(classDefinitionComparator.generateBreakingChangeWarnings());
-        objectTypesModuleMembers.add(classDefinitionComparator.generateCombinedResult());
+        this.breakingChangeWarnings.addAll(classDefinitionComparator.generateBreakingChangeWarnings());
+        this.objectTypesModuleMembers.add(classDefinitionComparator.generateCombinedResult());
         return true;
     }
 
     public List<String> getBreakingChangeWarnings() {
-        return breakingChangeWarnings;
+        return this.breakingChangeWarnings;
     }
 }

@@ -23,53 +23,54 @@ public class FunctionDefinitionComparator {
                                         FunctionDefinitionNode nextFunctionDefinition) {
         this.prevFunctionDefinition = prevFunctionDefinition;
         this.nextFunctionDefinition = nextFunctionDefinition;
-        functionSignatureComparator =
+        this.functionSignatureComparator =
                 new FunctionSignatureComparator(prevFunctionDefinition.functionSignature(),
                         nextFunctionDefinition.functionSignature());
     }
 
     public boolean isEqual() {
         return isQualifiersEquals() && isMetadataEquals() && isFunctionNameEquals() &&
-                isRelativeResourcePathEquals(prevFunctionDefinition.relativeResourcePath(),
-                        nextFunctionDefinition.relativeResourcePath()) &&
-                functionSignatureComparator.isEqual();
+                isRelativeResourcePathEquals(this.prevFunctionDefinition.relativeResourcePath(),
+                        this.nextFunctionDefinition.relativeResourcePath()) &&
+                this.functionSignatureComparator.isEqual();
     }
 
     private boolean isFunctionNameEquals() {
-        return prevFunctionDefinition.functionName().text().equals(nextFunctionDefinition.functionName().text());
+        return this.prevFunctionDefinition.functionName().text()
+                .equals(this.nextFunctionDefinition.functionName().text());
     }
 
     public boolean isMatch() {
-        return getFunctionName(prevFunctionDefinition).equals(getFunctionName(nextFunctionDefinition));
+        return getFunctionName(this.prevFunctionDefinition).equals(getFunctionName(this.nextFunctionDefinition));
     }
 
     public FunctionSignatureComparator getFunctionSignatureEqualityResult() {
-        return functionSignatureComparator;
+        return this.functionSignatureComparator;
     }
 
     public String getPrevFunctionName() {
-        return getFunctionName(prevFunctionDefinition);
+        return getFunctionName(this.prevFunctionDefinition);
     }
 
     public String getPrevMainQualifier() {
-        return getMainQualifier(prevFunctionDefinition.qualifierList()).text();
+        return getMainQualifier(this.prevFunctionDefinition.qualifierList()).text();
     }
 
     public String getNextMainQualifier() {
-        return getMainQualifier(nextFunctionDefinition.qualifierList()).text();
+        return getMainQualifier(this.nextFunctionDefinition.qualifierList()).text();
     }
 
     public String getPrevMethodType() {
-        return getFunctionDefinitionResolverType(prevFunctionDefinition);
+        return getFunctionDefinitionResolverType(this.prevFunctionDefinition);
     }
 
     public String getNextMethodType() {
-        return getFunctionDefinitionResolverType(nextFunctionDefinition);
+        return getFunctionDefinitionResolverType(this.nextFunctionDefinition);
     }
 
     public boolean isGetAndSubscribeInterchanged() {
-        String prevMethodType = getFunctionDefinitionResolverType(prevFunctionDefinition);
-        String nextMethodType = getFunctionDefinitionResolverType(nextFunctionDefinition);
+        String prevMethodType = getFunctionDefinitionResolverType(this.prevFunctionDefinition);
+        String nextMethodType = getFunctionDefinitionResolverType(this.nextFunctionDefinition);
         if (prevMethodType != null && nextMethodType != null) {
             return (prevMethodType.equals(CodeGeneratorConstants.GET) &&
                     nextMethodType.equals(CodeGeneratorConstants.SUBSCRIBE)) ||
@@ -80,10 +81,10 @@ public class FunctionDefinitionComparator {
     }
 
     private boolean isQualifiersEquals() {
-        if (prevFunctionDefinition.qualifierList().size() == nextFunctionDefinition.qualifierList().size()) {
-            for (int i = 0; i < prevFunctionDefinition.qualifierList().size(); i++) {
-                String prevQualifierName = prevFunctionDefinition.qualifierList().get(i).text();
-                String nextQualifierName = nextFunctionDefinition.qualifierList().get(i).text();
+        if (this.prevFunctionDefinition.qualifierList().size() == this.nextFunctionDefinition.qualifierList().size()) {
+            for (int i = 0; i < this.prevFunctionDefinition.qualifierList().size(); i++) {
+                String prevQualifierName = this.prevFunctionDefinition.qualifierList().get(i).text();
+                String nextQualifierName = this.nextFunctionDefinition.qualifierList().get(i).text();
                 if (!prevQualifierName.equals(nextQualifierName)) {
                     return false;
                 }
@@ -94,8 +95,8 @@ public class FunctionDefinitionComparator {
     }
 
     public boolean isQualifierSimilar() {
-        Token prevMainQualifier = getMainQualifier(prevFunctionDefinition.qualifierList());
-        Token nextMainQualifier = getMainQualifier(nextFunctionDefinition.qualifierList());
+        Token prevMainQualifier = getMainQualifier(this.prevFunctionDefinition.qualifierList());
+        Token nextMainQualifier = getMainQualifier(this.nextFunctionDefinition.qualifierList());
         if (prevMainQualifier != null && nextMainQualifier != null) {
             return prevMainQualifier.text().equals(nextMainQualifier.text());
         }
@@ -103,8 +104,8 @@ public class FunctionDefinitionComparator {
     }
 
     public boolean isMetadataEquals() {
-        MetadataNode prevMetadata = prevFunctionDefinition.metadata().orElse(null);
-        MetadataNode nextMetadata = nextFunctionDefinition.metadata().orElse(null);
+        MetadataNode prevMetadata = this.prevFunctionDefinition.metadata().orElse(null);
+        MetadataNode nextMetadata = this.nextFunctionDefinition.metadata().orElse(null);
         if (prevMetadata != null && nextMetadata != null) {
             return prevMetadata.toString().equals(nextMetadata.toString());
         }
@@ -112,15 +113,15 @@ public class FunctionDefinitionComparator {
     }
 
     public FunctionDefinitionNode generateCombinedFunctionDefinition(boolean isFirstFunctionDefinition) {
-        return prevFunctionDefinition.modify(prevFunctionDefinition.kind(),
-                nextFunctionDefinition.metadata().orElse(null),
+        return this.prevFunctionDefinition.modify(this.prevFunctionDefinition.kind(),
+                this.nextFunctionDefinition.metadata().orElse(null),
                 getMergedFunctionDefinitionQualifiers(
-                        prevFunctionDefinition.qualifierList(),
-                        nextFunctionDefinition.qualifierList(),
+                        this.prevFunctionDefinition.qualifierList(),
+                        this.nextFunctionDefinition.qualifierList(),
                         isFirstFunctionDefinition
                 ),
-                prevFunctionDefinition.functionKeyword(),
-                nextFunctionDefinition.functionName(), nextFunctionDefinition.relativeResourcePath(),
-                nextFunctionDefinition.functionSignature(), prevFunctionDefinition.functionBody());
+                this.prevFunctionDefinition.functionKeyword(),
+                this.nextFunctionDefinition.functionName(), this.nextFunctionDefinition.relativeResourcePath(),
+                this.nextFunctionDefinition.functionSignature(), this.prevFunctionDefinition.functionBody());
     }
 }

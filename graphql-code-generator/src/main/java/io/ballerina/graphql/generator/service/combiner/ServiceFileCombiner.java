@@ -36,9 +36,9 @@ public class ServiceFileCombiner {
     public ServiceFileCombiner(ModulePartNode prevContentNode, ModulePartNode nextContentNode) {
         this.prevContentNode = prevContentNode;
         this.nextContentNode = nextContentNode;
-        moduleMembers = new ArrayList<>();
-        moduleVariables = new ArrayList<>();
-        moduleServiceDeclarations = new ArrayList<>();
+        this.moduleMembers = new ArrayList<>();
+        this.moduleVariables = new ArrayList<>();
+        this.moduleServiceDeclarations = new ArrayList<>();
     }
 
     public String generateMergedSrc() throws FormatterException {
@@ -47,13 +47,13 @@ public class ServiceFileCombiner {
     }
 
     public SyntaxTree generateMergedSyntaxTree() {
-        generateNewMembers(prevContentNode.members(), nextContentNode.members());
-        moduleMembers.addAll(moduleVariables);
-        moduleMembers.addAll(moduleServiceDeclarations);
+        generateNewMembers(this.prevContentNode.members(), this.nextContentNode.members());
+        this.moduleMembers.addAll(this.moduleVariables);
+        this.moduleMembers.addAll(this.moduleServiceDeclarations);
 
-        NodeList<ModuleMemberDeclarationNode> allMembers = createNodeList(moduleMembers);
+        NodeList<ModuleMemberDeclarationNode> allMembers = createNodeList(this.moduleMembers);
         ModulePartNode contentNode =
-                createModulePartNode(prevContentNode.imports(), allMembers, createToken(SyntaxKind.EOF_TOKEN));
+                createModulePartNode(this.prevContentNode.imports(), allMembers, createToken(SyntaxKind.EOF_TOKEN));
 
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
@@ -85,7 +85,7 @@ public class ServiceFileCombiner {
             if (!available) {
                 ModuleMemberDeclarationNode notAvailableMember = availableEntry.getKey();
                 if (notAvailableMember instanceof ServiceDeclarationNode) {
-                    moduleServiceDeclarations.add(notAvailableMember);
+                    this.moduleServiceDeclarations.add(notAvailableMember);
                 }
             }
         }
@@ -94,9 +94,9 @@ public class ServiceFileCombiner {
 
     private void addMemberToRespectiveMemberList(ModuleMemberDeclarationNode member) {
         if (member instanceof ModuleVariableDeclarationNode) {
-            moduleVariables.add(member);
+            this.moduleVariables.add(member);
         } else if (member instanceof ServiceDeclarationNode) {
-            moduleServiceDeclarations.add(member);
+            this.moduleServiceDeclarations.add(member);
         }
     }
 
@@ -118,7 +118,7 @@ public class ServiceFileCombiner {
         if (!serviceDeclarationEquality.isMatch()) {
             return false;
         }
-        moduleServiceDeclarations.add(serviceDeclarationEquality.generateCombinedResult());
+        this.moduleServiceDeclarations.add(serviceDeclarationEquality.generateCombinedResult());
         return true;
     }
 }

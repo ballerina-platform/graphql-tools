@@ -20,16 +20,16 @@ public class RecordFieldComparator {
     public RecordFieldComparator(Node prevField, Node nextField) {
         this.prevField = prevField;
         this.nextField = nextField;
-        typeEquality = new TypeComparator(getRecordFieldType(prevField), getRecordFieldType(nextField));
+        this.typeEquality = new TypeComparator(getRecordFieldType(prevField), getRecordFieldType(nextField));
     }
 
     public boolean isEqual() {
-        return isMatch() && isDefaultValueEqual() && typeEquality.isEqual();
+        return isMatch() && isDefaultValueEqual() && this.typeEquality.isEqual();
     }
 
     public boolean isMatch() {
-        String prevFieldName = getRecordFieldName(prevField);
-        String nextFieldName = getRecordFieldName(nextField);
+        String prevFieldName = getRecordFieldName(this.prevField);
+        String nextFieldName = getRecordFieldName(this.nextField);
         return prevFieldName != null && nextFieldName != null && prevFieldName.equals(nextFieldName);
     }
 
@@ -53,8 +53,8 @@ public class RecordFieldComparator {
     }
 
     private boolean isDefaultValueEqual() {
-        String prevFieldDefaultValue = getRecordFieldDefaultValue(prevField);
-        String nextFieldDefaultValue = getRecordFieldDefaultValue(nextField);
+        String prevFieldDefaultValue = getRecordFieldDefaultValue(this.prevField);
+        String nextFieldDefaultValue = getRecordFieldDefaultValue(this.nextField);
         if (prevFieldDefaultValue == null && nextFieldDefaultValue == null) {
             return true;
         } else if (prevFieldDefaultValue != null && nextFieldDefaultValue != null) {
@@ -64,38 +64,38 @@ public class RecordFieldComparator {
     }
 
     public boolean isDefaultValueRemoved() {
-        return prevField instanceof RecordFieldWithDefaultValueNode && nextField instanceof RecordFieldNode;
+        return this.prevField instanceof RecordFieldWithDefaultValueNode && this.nextField instanceof RecordFieldNode;
     }
 
     public boolean isFieldTypeChanged() {
-        Node prevFieldType = getRecordFieldType(prevField);
-        Node nextFieldType = getRecordFieldType(nextField);
+        Node prevFieldType = getRecordFieldType(this.prevField);
+        Node nextFieldType = getRecordFieldType(this.nextField);
         String prevFieldTypeName = getTypeName(prevFieldType);
         String nextFieldTypeName = getTypeName(nextFieldType);
         return !prevFieldTypeName.equals(nextFieldTypeName);
     }
 
     public TypeComparator getTypeEquality() {
-        return typeEquality;
+        return this.typeEquality;
     }
 
     public String getPrevRecordFieldName() {
-        return getRecordFieldName(prevField);
+        return getRecordFieldName(this.prevField);
     }
 
     public String getPrevRecordFieldDefaultValue() {
-        return getRecordFieldDefaultValue(prevField);
+        return getRecordFieldDefaultValue(this.prevField);
     }
 
     public Node generateCombinedRecordField() {
-        if (nextField instanceof RecordFieldNode) {
-            RecordFieldNode nextRecordField = (RecordFieldNode) nextField;
-            return nextRecordField.modify(nextRecordField.metadata().orElse(null), getReadonlyKeyword(prevField),
+        if (this.nextField instanceof RecordFieldNode) {
+            RecordFieldNode nextRecordField = (RecordFieldNode) this.nextField;
+            return nextRecordField.modify(nextRecordField.metadata().orElse(null), getReadonlyKeyword(this.prevField),
                     nextRecordField.typeName(), nextRecordField.fieldName(),
                     nextRecordField.questionMarkToken().orElse(null), nextRecordField.semicolonToken());
-        } else if (nextField instanceof RecordFieldWithDefaultValueNode) {
-            RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) nextField;
-            return nextRecordField.modify(nextRecordField.metadata().orElse(null), getReadonlyKeyword(prevField),
+        } else if (this.nextField instanceof RecordFieldWithDefaultValueNode) {
+            RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) this.nextField;
+            return nextRecordField.modify(nextRecordField.metadata().orElse(null), getReadonlyKeyword(this.prevField),
                     nextRecordField.typeName(), nextRecordField.fieldName(),
                     nextRecordField.equalsToken(),
                     nextRecordField.expression(), nextRecordField.semicolonToken());

@@ -16,6 +16,8 @@ import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.
  * Utility class to store result comparing two function signatures.
  */
 public class FunctionSignatureComparator {
+    private final FunctionSignatureNode prevFunctionSignature;
+    private final FunctionSignatureNode nextFunctionSignature;
     private List<String> addedParameters;
     private List<String> addedViolatedParameters;
     private List<String> removedParameters;
@@ -23,30 +25,28 @@ public class FunctionSignatureComparator {
     private List<ParameterComparator> defaultValueRemovedParameters;
     private List<ParameterComparator> defaultValueChangedParameters;
     private ReturnTypeDescriptorComparator returnTypeEqualityResult;
-    private final FunctionSignatureNode prevFunctionSignature;
-    private final FunctionSignatureNode nextFunctionSignature;
 
     public FunctionSignatureComparator(FunctionSignatureNode prevFunctionSignature,
                                        FunctionSignatureNode nextFunctionSignature) {
         this.prevFunctionSignature = prevFunctionSignature;
         this.nextFunctionSignature = nextFunctionSignature;
-        addedParameters = new ArrayList<>();
-        addedViolatedParameters = new ArrayList<>();
-        removedParameters = new ArrayList<>();
-        typeChangedParameters = new ArrayList<>();
-        defaultValueRemovedParameters = new ArrayList<>();
-        defaultValueChangedParameters = new ArrayList<>();
+        this.addedParameters = new ArrayList<>();
+        this.addedViolatedParameters = new ArrayList<>();
+        this.removedParameters = new ArrayList<>();
+        this.typeChangedParameters = new ArrayList<>();
+        this.defaultValueRemovedParameters = new ArrayList<>();
+        this.defaultValueChangedParameters = new ArrayList<>();
         separateMembers();
     }
 
     public void separateMembers() {
         LinkedHashMap<ParameterNode, Boolean> nextParameterAvailable = new LinkedHashMap<>();
-        for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
+        for (ParameterNode nextParameter : this.nextFunctionSignature.parameters()) {
             nextParameterAvailable.put(nextParameter, false);
         }
-        for (ParameterNode prevParameter : prevFunctionSignature.parameters()) {
+        for (ParameterNode prevParameter : this.prevFunctionSignature.parameters()) {
             boolean foundMatch = false;
-            for (ParameterNode nextParameter : nextFunctionSignature.parameters()) {
+            for (ParameterNode nextParameter : this.nextFunctionSignature.parameters()) {
                 ParameterComparator parameterEquals = isParameterEquals(prevParameter, nextParameter);
                 if (parameterEquals.isEqual()) {
                     foundMatch = true;
@@ -56,17 +56,17 @@ public class FunctionSignatureComparator {
                     foundMatch = true;
                     nextParameterAvailable.put(nextParameter, true);
                     if (!parameterEquals.getTypeEquality().isEqual()) {
-                        typeChangedParameters.add(parameterEquals);
+                        this.typeChangedParameters.add(parameterEquals);
                     }
                     if (parameterEquals.isDefaultValueRemoved()) {
-                        defaultValueRemovedParameters.add(parameterEquals);
+                        this.defaultValueRemovedParameters.add(parameterEquals);
                     } else if (parameterEquals.isDefaultValueChanged()) {
-                        defaultValueChangedParameters.add(parameterEquals);
+                        this.defaultValueChangedParameters.add(parameterEquals);
                     }
                 }
             }
             if (!foundMatch) {
-                removedParameters.add(getParameterName(prevParameter));
+                this.removedParameters.add(getParameterName(prevParameter));
             }
         }
         for (Map.Entry<ParameterNode, Boolean> entry : nextParameterAvailable.entrySet()) {
@@ -75,41 +75,43 @@ public class FunctionSignatureComparator {
                 ParameterNode newParameter = entry.getKey();
                 String newParameterName = getParameterName(newParameter);
                 if (newParameter instanceof RequiredParameterNode) {
-                    addedViolatedParameters.add(newParameterName);
+                    this.addedViolatedParameters.add(newParameterName);
                 }
-                addedParameters.add(newParameterName);
+                this.addedParameters.add(newParameterName);
             }
         }
-        returnTypeEqualityResult =
-                new ReturnTypeDescriptorComparator(prevFunctionSignature.returnTypeDesc().orElse(null),
-                        nextFunctionSignature.returnTypeDesc().orElse(null));
+        this.returnTypeEqualityResult =
+                new ReturnTypeDescriptorComparator(this.prevFunctionSignature.returnTypeDesc().orElse(null),
+                        this.nextFunctionSignature.returnTypeDesc().orElse(null));
     }
 
     public boolean isEqual() {
-        return addedParameters.isEmpty() && removedParameters.isEmpty()
-                && typeChangedParameters.isEmpty() && returnTypeEqualityResult.isEqual()
-                && defaultValueRemovedParameters.isEmpty() && defaultValueChangedParameters.isEmpty() &&
-                prevFunctionSignature.openParenToken().text().equals(nextFunctionSignature.openParenToken().text()) &&
-                prevFunctionSignature.closeParenToken().text().equals(nextFunctionSignature.closeParenToken().text());
+        return this.addedParameters.isEmpty() && this.removedParameters.isEmpty()
+                && this.typeChangedParameters.isEmpty() && this.returnTypeEqualityResult.isEqual()
+                && this.defaultValueRemovedParameters.isEmpty() && this.defaultValueChangedParameters.isEmpty() &&
+                this.prevFunctionSignature.openParenToken().text()
+                        .equals(this.nextFunctionSignature.openParenToken().text()) &&
+                this.prevFunctionSignature.closeParenToken().text()
+                        .equals(this.nextFunctionSignature.closeParenToken().text());
     }
 
     public List<String> getAddedViolatedParameters() {
-        return addedViolatedParameters;
+        return this.addedViolatedParameters;
     }
 
     public List<String> getRemovedParameters() {
-        return removedParameters;
+        return this.removedParameters;
     }
 
     public List<ParameterComparator> getTypeChangedParameters() {
-        return typeChangedParameters;
+        return this.typeChangedParameters;
     }
 
     public ReturnTypeDescriptorComparator getReturnTypeEqualityResult() {
-        return returnTypeEqualityResult;
+        return this.returnTypeEqualityResult;
     }
 
     public List<ParameterComparator> getDefaultValueRemovedParameters() {
-        return defaultValueRemovedParameters;
+        return this.defaultValueRemovedParameters;
     }
 }

@@ -20,10 +20,10 @@ public class ParameterComparator {
     public ParameterComparator(ParameterNode prevParameter, ParameterNode nextParameter) {
         this.prevParameter = prevParameter;
         this.nextParameter = nextParameter;
-        prevParameterName = getParameterName(prevParameter);
-        nextParameterName = getParameterName(nextParameter);
-        prevParameterDefaultValue = getParameterDefaultValue(prevParameter);
-        nextParameterDefaultValue = getParameterDefaultValue(nextParameter);
+        this.prevParameterName = getParameterName(prevParameter);
+        this.nextParameterName = getParameterName(nextParameter);
+        this.prevParameterDefaultValue = getParameterDefaultValue(prevParameter);
+        this.nextParameterDefaultValue = getParameterDefaultValue(nextParameter);
     }
 
     public void setTypeEquality(TypeComparator typeEquality) {
@@ -31,39 +31,39 @@ public class ParameterComparator {
     }
 
     public boolean isEqual() {
-        return isMatch() && typeEquality.isEqual() && isDefaultValueEquals();
+        return isMatch() && this.typeEquality.isEqual() && isDefaultValueEquals();
     }
 
     public boolean isMatch() {
-        return prevParameterName.equals(nextParameterName);
+        return this.prevParameterName.equals(this.nextParameterName);
     }
 
     public boolean isDefaultValueEquals() {
-        if (prevParameterDefaultValue != null && nextParameterDefaultValue != null) {
-            return prevParameterDefaultValue.equals(nextParameterDefaultValue);
+        if (this.prevParameterDefaultValue != null && this.nextParameterDefaultValue != null) {
+            return this.prevParameterDefaultValue.equals(this.nextParameterDefaultValue);
         }
-        return prevParameterDefaultValue == null && nextParameterDefaultValue == null;
+        return this.prevParameterDefaultValue == null && this.nextParameterDefaultValue == null;
     }
 
     public boolean isDefaultValueRemoved() {
-        return prevParameterDefaultValue != null && nextParameterDefaultValue == null;
+        return this.prevParameterDefaultValue != null && this.nextParameterDefaultValue == null;
     }
 
     public TypeComparator getTypeEquality() {
-        return typeEquality;
+        return this.typeEquality;
     }
 
     public String getPrevParameterName() {
-        return prevParameterName;
+        return this.prevParameterName;
     }
 
     public String getPrevParameterDefaultValue() {
-        return prevParameterDefaultValue;
+        return this.prevParameterDefaultValue;
     }
 
     public boolean isDefaultValueChanged() {
-        if (prevParameterDefaultValue != null && nextParameterDefaultValue != null) {
-            if (!prevParameterDefaultValue.equals(nextParameterDefaultValue)) {
+        if (this.prevParameterDefaultValue != null && this.nextParameterDefaultValue != null) {
+            if (!this.prevParameterDefaultValue.equals(this.nextParameterDefaultValue)) {
                 return true;
             } else {
                 return false;

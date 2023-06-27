@@ -32,11 +32,11 @@ public class EnumDeclarationComparator {
     public EnumDeclarationComparator(EnumDeclarationNode prevEnum, EnumDeclarationNode nextEnum) {
         this.prevEnum = prevEnum;
         this.nextEnum = nextEnum;
-        removedMembers = new ArrayList<>();
-        finalMembers = new ArrayList<>();
-        mergedMetadata = nextEnum.metadata().orElse(null);
-        mergedQualifier = prevEnum.qualifier().orElse(null);
-        mergedEnumKeyword = prevEnum.enumKeywordToken();
+        this.removedMembers = new ArrayList<>();
+        this.finalMembers = new ArrayList<>();
+        this.mergedMetadata = nextEnum.metadata().orElse(null);
+        this.mergedQualifier = prevEnum.qualifier().orElse(null);
+        this.mergedEnumKeyword = prevEnum.enumKeywordToken();
         if (isMatch()) {
             separateMembers();
             handleFrontNewLine();
@@ -44,59 +44,62 @@ public class EnumDeclarationComparator {
     }
 
     public boolean isMatch() {
-        return prevEnum.identifier().text().equals(nextEnum.identifier().text());
+        return this.prevEnum.identifier().text().equals(this.nextEnum.identifier().text());
     }
 
     public void separateMembers() {
         LinkedHashMap<Node, Boolean> nextMemberAvailability = new LinkedHashMap<>();
-        for (Node nextMember : nextEnum.enumMemberList()) {
+        for (Node nextMember : this.nextEnum.enumMemberList()) {
             nextMemberAvailability.put(nextMember, false);
         }
-        for (Node prevMember : prevEnum.enumMemberList()) {
+        for (Node prevMember : this.prevEnum.enumMemberList()) {
             boolean foundMatch = false;
-            for (Node nextMember : nextEnum.enumMemberList()) {
+            for (Node nextMember : this.nextEnum.enumMemberList()) {
                 EnumMemberComparator enumMemberEquality =
                         new EnumMemberComparator(prevMember, nextMember);
                 if (enumMemberEquality.isMatch()) {
                     foundMatch = true;
                     nextMemberAvailability.put(nextMember, true);
-                    finalMembers.add(enumMemberEquality.generateCombinedResult());
+                    this.finalMembers.add(enumMemberEquality.generateCombinedResult());
                     break;
                 }
             }
             if (!foundMatch) {
-                removedMembers.add(getEnumMemberName(prevMember));
+                this.removedMembers.add(getEnumMemberName(prevMember));
             }
         }
         for (Map.Entry<Node, Boolean> availabilityEntry : nextMemberAvailability.entrySet()) {
             Boolean nextEnumMemberAvailable = availabilityEntry.getValue();
             if (!nextEnumMemberAvailable) {
                 Node newEnumMember = availabilityEntry.getKey();
-                finalMembers.add(newEnumMember);
+                this.finalMembers.add(newEnumMember);
             }
         }
     }
 
     public EnumDeclarationNode generateCombinedResult() {
-        return nextEnum.modify(mergedMetadata, mergedQualifier, mergedEnumKeyword, nextEnum.identifier(),
-                prevEnum.openBraceToken(), getCommaAddedSeparatedNodeList(finalMembers), prevEnum.closeBraceToken(),
-                nextEnum.semicolonToken().orElse(null));
+        return this.nextEnum.modify(this.mergedMetadata, this.mergedQualifier, this.mergedEnumKeyword,
+                this.nextEnum.identifier(), this.prevEnum.openBraceToken(),
+                getCommaAddedSeparatedNodeList(this.finalMembers), this.prevEnum.closeBraceToken(),
+                this.nextEnum.semicolonToken().orElse(null));
     }
 
     private void handleFrontNewLine() {
-        if (mergedMetadata != null) {
-            if (mergedQualifier != null) {
-                mergedQualifier = mergedQualifier.modify(createEmptyMinutiaeList(), createEmptyMinutiaeList());
+        if (this.mergedMetadata != null) {
+            if (this.mergedQualifier != null) {
+                this.mergedQualifier = this.mergedQualifier.modify(createEmptyMinutiaeList(),
+                        createEmptyMinutiaeList());
             }
-            mergedEnumKeyword = mergedEnumKeyword.modify(createEmptyMinutiaeList(), createEmptyMinutiaeList());
+            this.mergedEnumKeyword = this.mergedEnumKeyword.modify(createEmptyMinutiaeList(),
+                    createEmptyMinutiaeList());
         }
     }
 
     public List<String> generateBreakingChangeWarnings() {
         List<String> breakingChangeWarnings = new ArrayList<>();
-        for (String removedMember : removedMembers) {
+        for (String removedMember : this.removedMembers) {
             breakingChangeWarnings.add(
-                    String.format(REMOVE_ENUM_MEMBER_MESSAGE, prevEnum.identifier().text(), removedMember));
+                    String.format(REMOVE_ENUM_MEMBER_MESSAGE, this.prevEnum.identifier().text(), removedMember));
         }
         return breakingChangeWarnings;
     }

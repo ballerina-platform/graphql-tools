@@ -18,12 +18,12 @@ public class EnumMemberComparator {
     }
 
     public boolean isMatch() {
-        return getEnumMemberName(prevMember).equals(getEnumMemberName(nextMember));
+        return getEnumMemberName(this.prevMember).equals(getEnumMemberName(this.nextMember));
     }
 
     public Node generateCombinedResult() {
-        if (nextMember instanceof EnumMemberNode) {
-            EnumMemberNode nextEnumMember = (EnumMemberNode) nextMember;
+        if (this.nextMember instanceof EnumMemberNode) {
+            EnumMemberNode nextEnumMember = (EnumMemberNode) this.nextMember;
             return nextEnumMember.modify(nextEnumMember.metadata().orElse(null), nextEnumMember.identifier(),
                     nextEnumMember.equalToken().orElse(null), nextEnumMember.constExprNode().orElse(null));
         }

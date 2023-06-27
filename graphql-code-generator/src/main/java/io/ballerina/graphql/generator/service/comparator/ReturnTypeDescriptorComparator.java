@@ -15,30 +15,30 @@ public class ReturnTypeDescriptorComparator {
         this.prevReturnTypeDescriptor = prevReturnTypeDescriptor;
         this.nextReturnTypeDescriptor = nextReturnTypeDescriptor;
         if (prevReturnTypeDescriptor != null && nextReturnTypeDescriptor != null) {
-            returnTypeEquality =
+            this.returnTypeEquality =
                     new TypeComparator(prevReturnTypeDescriptor.type(), nextReturnTypeDescriptor.type());
         }
     }
 
     public boolean isEqual() {
-        if (prevReturnTypeDescriptor != null && nextReturnTypeDescriptor != null) {
-            return returnTypeEquality.isEqual();
-        } else if (prevReturnTypeDescriptor == null && nextReturnTypeDescriptor == null) {
+        if (this.prevReturnTypeDescriptor != null && this.nextReturnTypeDescriptor != null) {
+            return this.returnTypeEquality.isEqual();
+        } else if (this.prevReturnTypeDescriptor == null && this.nextReturnTypeDescriptor == null) {
             return true;
         }
         return false;
     }
 
     public String getPrevType() {
-        if (returnTypeEquality != null) {
-            return returnTypeEquality.getPrevType();
+        if (this.returnTypeEquality != null) {
+            return this.returnTypeEquality.getPrevType();
         }
         return null;
     }
 
     public String getNextType() {
-        if (returnTypeEquality != null) {
-            return returnTypeEquality.getNextType();
+        if (this.returnTypeEquality != null) {
+            return this.returnTypeEquality.getNextType();
         }
         return null;
     }

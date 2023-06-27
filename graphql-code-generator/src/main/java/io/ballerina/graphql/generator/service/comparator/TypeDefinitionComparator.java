@@ -77,59 +77,59 @@ public class TypeDefinitionComparator {
     ) {
         this.prevTypeDefinition = prevTypeDefinition;
         this.nextTypeDefinition = nextTypeDefinition;
-        mergedMetadata = nextTypeDefinition.metadata().orElse(null);
-        mergedVisibilityQualifier = prevTypeDefinition.visibilityQualifier().orElse(null);
-        mergedTypeKeyword = prevTypeDefinition.typeKeyword();
-        breakingChangeWarnings = new ArrayList<>();
+        this.mergedMetadata = nextTypeDefinition.metadata().orElse(null);
+        this.mergedVisibilityQualifier = prevTypeDefinition.visibilityQualifier().orElse(null);
+        this.mergedTypeKeyword = prevTypeDefinition.typeKeyword();
+        this.breakingChangeWarnings = new ArrayList<>();
         if (isMatch()) {
             handleFrontNewLine();
         }
     }
 
     public boolean isMatch() {
-        return prevTypeDefinition.typeName().text().equals(nextTypeDefinition.typeName().text());
+        return this.prevTypeDefinition.typeName().text().equals(this.nextTypeDefinition.typeName().text());
     }
 
     public Node getMergedTypeDescriptor() {
-        return mergedTypeDescriptor;
+        return this.mergedTypeDescriptor;
     }
 
     public void handleMergeTypeDescriptor(GraphQLType graphqlType) {
-        ObjectTypeDescriptorNode nextObjectType = generateObjectType(nextTypeDefinition.typeDescriptor());
-        RecordTypeDescriptorNode nextRecordType = generateRecordType(nextTypeDefinition.typeDescriptor());
+        ObjectTypeDescriptorNode nextObjectType = generateObjectType(this.nextTypeDefinition.typeDescriptor());
+        RecordTypeDescriptorNode nextRecordType = generateRecordType(this.nextTypeDefinition.typeDescriptor());
         if (nextObjectType != null) {
-            if (prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
+            if (this.prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
                 IntersectionTypeDescriptorNode prevIntersectionType =
-                        (IntersectionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-                mergedTypeDescriptor = handleMergeObjectType(prevIntersectionType, nextObjectType);
-            } else if (prevTypeDefinition.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
+                        (IntersectionTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
+                this.mergedTypeDescriptor = handleMergeObjectType(prevIntersectionType, nextObjectType);
+            } else if (this.prevTypeDefinition.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
                 DistinctTypeDescriptorNode prevDistinctType =
-                        (DistinctTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-                mergedTypeDescriptor = handleMergeObjectType(prevDistinctType, nextObjectType);
-            } else if (prevTypeDefinition.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
+                        (DistinctTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
+                this.mergedTypeDescriptor = handleMergeObjectType(prevDistinctType, nextObjectType);
+            } else if (this.prevTypeDefinition.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
                 ObjectTypeDescriptorNode prevObjectType =
-                        (ObjectTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-                mergedTypeDescriptor = handleMergeObjectType(prevObjectType, nextObjectType);
+                        (ObjectTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
+                this.mergedTypeDescriptor = handleMergeObjectType(prevObjectType, nextObjectType);
             }
         } else if (nextRecordType != null) {
-            if (prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
+            if (this.prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
                 IntersectionTypeDescriptorNode prevIntersectionType =
-                        (IntersectionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-                mergedTypeDescriptor = handleMergeRecordType(prevIntersectionType, nextRecordType,
+                        (IntersectionTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
+                this.mergedTypeDescriptor = handleMergeRecordType(prevIntersectionType, nextRecordType,
                         graphqlType instanceof GraphQLInputObjectType);
-            } else if (prevTypeDefinition.typeDescriptor() instanceof RecordTypeDescriptorNode) {
+            } else if (this.prevTypeDefinition.typeDescriptor() instanceof RecordTypeDescriptorNode) {
                 RecordTypeDescriptorNode prevRecordType =
-                        (RecordTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-                mergedTypeDescriptor = handleMergeRecordType(prevRecordType, nextRecordType,
+                        (RecordTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
+                this.mergedTypeDescriptor = handleMergeRecordType(prevRecordType, nextRecordType,
                         graphqlType instanceof GraphQLInputObjectType);
             }
-        } else if (prevTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode &&
-                nextTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode) {
-            UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) prevTypeDefinition.typeDescriptor();
-            UnionTypeDescriptorNode nextUnionType = (UnionTypeDescriptorNode) nextTypeDefinition.typeDescriptor();
+        } else if (this.prevTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode &&
+                this.nextTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode) {
+            UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
+            UnionTypeDescriptorNode nextUnionType = (UnionTypeDescriptorNode) this.nextTypeDefinition.typeDescriptor();
             UnionTypeComparator unionTypeEquality = new UnionTypeComparator(prevUnionType, nextUnionType);
             handleUnionTypeBreakingChanges(unionTypeEquality);
-            mergedTypeDescriptor = unionTypeEquality.generateCombinedUnionType();
+            this.mergedTypeDescriptor = unionTypeEquality.generateCombinedUnionType();
         }
     }
 
@@ -188,8 +188,8 @@ public class TypeDefinitionComparator {
 
     private void handleUnionTypeBreakingChanges(UnionTypeComparator unionTypeEquality) {
         for (String removedUnionMember : unionTypeEquality.getRemovedUnionMembers()) {
-            breakingChangeWarnings.add(
-                    String.format(WARNING_MESSAGE_REMOVE_UNION_MEMBER, prevTypeDefinition.typeName().text(),
+            this.breakingChangeWarnings.add(
+                    String.format(WARNING_MESSAGE_REMOVE_UNION_MEMBER, this.prevTypeDefinition.typeName().text(),
                             removedUnionMember));
         }
     }
@@ -198,39 +198,42 @@ public class TypeDefinitionComparator {
                                                  boolean isGraphqlInputType) {
         for (Node removedField : recordTypeEquality.getRemovedFields()) {
             if (isGraphqlInputType) {
-                breakingChangeWarnings.add(
-                        String.format(WARNING_MESSAGE_REMOVE_INPUT_RECORD_FIELD, prevTypeDefinition.typeName().text(),
+                this.breakingChangeWarnings.add(
+                        String.format(WARNING_MESSAGE_REMOVE_INPUT_RECORD_FIELD,
+                                this.prevTypeDefinition.typeName().text(),
                                 getRecordFieldName(removedField)));
             } else {
-                breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_OBJECT_RECORD_FIELD,
-                        prevTypeDefinition.typeName().text(), getRecordFieldName(removedField)));
+                this.breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_OBJECT_RECORD_FIELD,
+                        this.prevTypeDefinition.typeName().text(), getRecordFieldName(removedField)));
             }
         }
         for (Node addedField : recordTypeEquality.getAddedFields()) {
             if (addedField instanceof RecordFieldNode && isGraphqlInputType) {
-                breakingChangeWarnings.add(
+                this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_ADD_INPUT_TYPE_FIELD_WITH_NO_DEFAULT_VALUE,
-                                prevTypeDefinition.typeName().text(), getRecordFieldName(addedField)));
+                                this.prevTypeDefinition.typeName().text(), getRecordFieldName(addedField)));
             }
         }
         for (RecordFieldComparator updatedRecordFieldEquality : recordTypeEquality.getUpdatedRecordFields()) {
             if (updatedRecordFieldEquality.isDefaultValueRemoved() && isGraphqlInputType) {
-                breakingChangeWarnings.add(String.format(
+                this.breakingChangeWarnings.add(String.format(
                         WARNING_MESSAGE_DEFAULT_VALUE_REMOVED_IN_RECORD_FIELD,
-                        prevTypeDefinition.typeName().text(), updatedRecordFieldEquality.getPrevRecordFieldName(),
+                        this.prevTypeDefinition.typeName().text(), updatedRecordFieldEquality.getPrevRecordFieldName(),
                         updatedRecordFieldEquality.getPrevRecordFieldDefaultValue()));
             }
             if (updatedRecordFieldEquality.isFieldTypeChanged()) {
                 if (isGraphqlInputType) {
-                    breakingChangeWarnings.add(String.format(
+                    this.breakingChangeWarnings.add(String.format(
                             WARNING_MESSAGE_CHANGE_INPUT_RECORD_FIELD_TYPE,
-                            prevTypeDefinition.typeName().text(), updatedRecordFieldEquality.getPrevRecordFieldName(),
+                            this.prevTypeDefinition.typeName().text(),
+                            updatedRecordFieldEquality.getPrevRecordFieldName(),
                             updatedRecordFieldEquality.getTypeEquality().getPrevType(),
                             updatedRecordFieldEquality.getTypeEquality().getNextType()));
                 } else {
-                    breakingChangeWarnings.add(String.format(
+                    this.breakingChangeWarnings.add(String.format(
                             WARNING_MESSAGE_CHANGE_OBJECT_RECORD_FIELD_TYPE,
-                            prevTypeDefinition.typeName().text(), updatedRecordFieldEquality.getPrevRecordFieldName(),
+                            this.prevTypeDefinition.typeName().text(),
+                            updatedRecordFieldEquality.getPrevRecordFieldName(),
                             updatedRecordFieldEquality.getTypeEquality().getPrevType(),
                             updatedRecordFieldEquality.getTypeEquality().getNextType()));
                 }
@@ -241,8 +244,10 @@ public class TypeDefinitionComparator {
     private void handleDistinctObjectTypeBreakingChanges(ServiceObjectComparator objectTypeEquality) {
         for (MethodDeclarationNode removedMethodDeclaration :
                 objectTypeEquality.getRemovedResolverMethodDeclarations()) {
-            breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_INTERFACE_SERVICE_OBJECT_METHOD_DECLARATION,
-                    prevTypeDefinition.typeName().text(), getMethodDeclarationName(removedMethodDeclaration)));
+            this.breakingChangeWarnings.add(
+                    String.format(WARNING_MESSAGE_REMOVE_INTERFACE_SERVICE_OBJECT_METHOD_DECLARATION,
+                            this.prevTypeDefinition.typeName().text(),
+                            getMethodDeclarationName(removedMethodDeclaration)));
         }
         List<MethodDeclarationComparator> updatedMethodDeclarations =
                 objectTypeEquality.getUpdatedMethodDeclarations();
@@ -250,50 +255,53 @@ public class TypeDefinitionComparator {
             FunctionSignatureComparator updatedMethodSignatureEquality =
                     updatedMethodDeclarationEquality.getFunctionSignatureEqualityResult();
             for (String removedParameterName : updatedMethodSignatureEquality.getRemovedParameters()) {
-                breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
-                        prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
+                this.breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
+                        this.prevTypeDefinition.typeName().text(),
+                        updatedMethodDeclarationEquality.getPrevFunctionName(),
                         removedParameterName));
             }
             for (ParameterComparator parameterEquality :
                     updatedMethodSignatureEquality.getTypeChangedParameters()) {
-                breakingChangeWarnings.add(String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT,
-                        prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
+                this.breakingChangeWarnings.add(String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT,
+                        this.prevTypeDefinition.typeName().text(),
+                        updatedMethodDeclarationEquality.getPrevFunctionName(),
                         parameterEquality.getPrevParameterName(), parameterEquality.getTypeEquality().getPrevType(),
                         parameterEquality.getTypeEquality().getNextType()));
             }
             if (updatedMethodDeclarationEquality.isGetAndSubscribeInterchanged()) {
-                breakingChangeWarnings.add(
+                this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_GET_SUBSCRIBE_INTERCHANGED_IN_SERVICE_OBJECT_METHOD,
-                                prevTypeDefinition.typeName().text(),
+                                this.prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(),
                                 updatedMethodDeclarationEquality.getPrevMethodType(),
                                 updatedMethodDeclarationEquality.getNextMethodType()));
             }
             if (!updatedMethodDeclarationEquality.isQualifierSimilar()) {
-                breakingChangeWarnings.add(String.format(WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_INTERFACE,
-                        prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
+                this.breakingChangeWarnings.add(String.format(WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_INTERFACE,
+                        this.prevTypeDefinition.typeName().text(),
+                        updatedMethodDeclarationEquality.getPrevFunctionName(),
                         updatedMethodDeclarationEquality.getPrevMainQualifier(),
                         updatedMethodDeclarationEquality.getNextMainQualifier()));
             }
             if (!updatedMethodSignatureEquality.getReturnTypeEqualityResult().isEqual()) {
-                breakingChangeWarnings.add(
+                this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_METHOD_DECLARATION_CHANGE_RETURN_TYPE_IN_SERVICE_OBJECT,
-                                prevTypeDefinition.typeName().text(),
+                                this.prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(),
                                 updatedMethodSignatureEquality.getReturnTypeEqualityResult().getPrevType(),
                                 updatedMethodSignatureEquality.getReturnTypeEqualityResult().getNextType()));
             }
             for (String addedViolatedParameterName : updatedMethodSignatureEquality.getAddedViolatedParameters()) {
-                breakingChangeWarnings.add(
+                this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_OBJECT_METHOD,
-                                prevTypeDefinition.typeName().text(),
+                                this.prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(), addedViolatedParameterName));
             }
             for (ParameterComparator defaultValueRemovedParameterEquality :
                     updatedMethodSignatureEquality.getDefaultValueRemovedParameters()) {
-                breakingChangeWarnings.add(
+                this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_OBJECT_METHOD,
-                                prevTypeDefinition.typeName().text(),
+                                this.prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(),
                                 defaultValueRemovedParameterEquality.getPrevParameterName(),
                                 defaultValueRemovedParameterEquality.getPrevParameterDefaultValue()));
@@ -304,8 +312,8 @@ public class TypeDefinitionComparator {
     private void handleObjectTypeBreakingChanges(ServiceObjectComparator objectTypeEquality) {
         for (MethodDeclarationNode removedMethodDeclaration :
                 objectTypeEquality.getRemovedResolverMethodDeclarations()) {
-            breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION,
-                    prevTypeDefinition.typeName().text(), getMethodDeclarationName(removedMethodDeclaration)));
+            this.breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_SERVICE_OBJECT_METHOD_DECLARATION,
+                    this.prevTypeDefinition.typeName().text(), getMethodDeclarationName(removedMethodDeclaration)));
         }
         List<MethodDeclarationComparator> updatedMethodDeclarations =
                 objectTypeEquality.getUpdatedMethodDeclarations();
@@ -313,50 +321,53 @@ public class TypeDefinitionComparator {
             FunctionSignatureComparator updatedMethodSignatureEquality =
                     updatedMethodDeclarationEquality.getFunctionSignatureEqualityResult();
             for (String removedParameterName : updatedMethodSignatureEquality.getRemovedParameters()) {
-                breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
-                        prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
+                this.breakingChangeWarnings.add(String.format(WARNING_MESSAGE_REMOVE_PARAMETER_IN_SERVICE_OBJECT,
+                        this.prevTypeDefinition.typeName().text(),
+                        updatedMethodDeclarationEquality.getPrevFunctionName(),
                         removedParameterName));
             }
             for (ParameterComparator parameterEquality :
                     updatedMethodSignatureEquality.getTypeChangedParameters()) {
-                breakingChangeWarnings.add(String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT,
-                        prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
+                this.breakingChangeWarnings.add(String.format(WARNING_MESSAGE_PARAMETER_TYPE_CHANGED_IN_SERVICE_OBJECT,
+                        this.prevTypeDefinition.typeName().text(),
+                        updatedMethodDeclarationEquality.getPrevFunctionName(),
                         parameterEquality.getPrevParameterName(), parameterEquality.getTypeEquality().getPrevType(),
                         parameterEquality.getTypeEquality().getNextType()));
             }
             if (updatedMethodDeclarationEquality.isGetAndSubscribeInterchanged()) {
-                breakingChangeWarnings.add(
+                this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_GET_SUBSCRIBE_INTERCHANGED_IN_SERVICE_OBJECT_METHOD,
-                                prevTypeDefinition.typeName().text(),
+                                this.prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(),
                                 updatedMethodDeclarationEquality.getPrevMethodType(),
                                 updatedMethodDeclarationEquality.getNextMethodType()));
             }
             if (!updatedMethodDeclarationEquality.isQualifierSimilar()) {
-                breakingChangeWarnings.add(String.format(WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_OBJECT,
-                        prevTypeDefinition.typeName().text(), updatedMethodDeclarationEquality.getPrevFunctionName(),
+                this.breakingChangeWarnings.add(String.format(WARNING_MESSAGE_QUALIFIER_LIST_CHANGED_IN_SERVICE_OBJECT,
+                        this.prevTypeDefinition.typeName().text(),
+                        updatedMethodDeclarationEquality.getPrevFunctionName(),
                         updatedMethodDeclarationEquality.getPrevMainQualifier(),
                         updatedMethodDeclarationEquality.getNextMainQualifier()));
             }
             if (!updatedMethodSignatureEquality.getReturnTypeEqualityResult().isEqual()) {
-                breakingChangeWarnings.add(
+                this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_METHOD_DECLARATION_CHANGE_RETURN_TYPE_IN_SERVICE_OBJECT,
-                                prevTypeDefinition.typeName().text(),
+                                this.prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(),
                                 updatedMethodSignatureEquality.getReturnTypeEqualityResult().getPrevType(),
                                 updatedMethodSignatureEquality.getReturnTypeEqualityResult().getNextType()));
             }
             for (String addedViolatedParameterName : updatedMethodSignatureEquality.getAddedViolatedParameters()) {
-                breakingChangeWarnings.add(
+                this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_PARAMETER_ADDED_NO_DEFAULT_VALUE_IN_SERVICE_OBJECT_METHOD,
-                                prevTypeDefinition.typeName().text(),
+                                this.prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(), addedViolatedParameterName));
             }
             for (ParameterComparator defaultValueRemovedParameterEquality :
                     updatedMethodSignatureEquality.getDefaultValueRemovedParameters()) {
-                breakingChangeWarnings.add(
+                this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_DEFAULT_PARAMETER_VALUE_REMOVED_IN_SERVICE_OBJECT_METHOD,
-                                prevTypeDefinition.typeName().text(),
+                                this.prevTypeDefinition.typeName().text(),
                                 updatedMethodDeclarationEquality.getPrevFunctionName(),
                                 defaultValueRemovedParameterEquality.getPrevParameterName(),
                                 defaultValueRemovedParameterEquality.getPrevParameterDefaultValue()));
@@ -365,23 +376,25 @@ public class TypeDefinitionComparator {
     }
 
     public TypeDefinitionNode generateCombinedTypeDefinition() {
-        return prevTypeDefinition.modify(mergedMetadata, mergedVisibilityQualifier, mergedTypeKeyword,
-                nextTypeDefinition.typeName(), mergedTypeDescriptor,
-                nextTypeDefinition.semicolonToken()
+        return this.prevTypeDefinition.modify(this.mergedMetadata, this.mergedVisibilityQualifier,
+                this.mergedTypeKeyword,
+                this.nextTypeDefinition.typeName(), this.mergedTypeDescriptor,
+                this.nextTypeDefinition.semicolonToken()
         );
     }
 
     private void handleFrontNewLine() {
-        if (mergedMetadata != null) {
-            if (mergedVisibilityQualifier != null) {
-                mergedVisibilityQualifier = mergedVisibilityQualifier.modify(createEmptyMinutiaeList(),
+        if (this.mergedMetadata != null) {
+            if (this.mergedVisibilityQualifier != null) {
+                this.mergedVisibilityQualifier = this.mergedVisibilityQualifier.modify(createEmptyMinutiaeList(),
                         createEmptyMinutiaeList());
             }
-            mergedTypeKeyword = mergedTypeKeyword.modify(createEmptyMinutiaeList(), createEmptyMinutiaeList());
+            this.mergedTypeKeyword = this.mergedTypeKeyword.modify(createEmptyMinutiaeList(),
+                    createEmptyMinutiaeList());
         }
     }
 
     public List<String> getBreakingChangeWarnings() {
-        return breakingChangeWarnings;
+        return this.breakingChangeWarnings;
     }
 }

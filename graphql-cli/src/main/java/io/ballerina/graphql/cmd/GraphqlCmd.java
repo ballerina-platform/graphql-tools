@@ -145,7 +145,7 @@ public class GraphqlCmd implements BLauncherCmd {
         this.outStream = outStream;
         this.executionPath = executionDir;
         this.exitWhenFinish = exitWhenFinish;
-        warnings = new ArrayList<>();
+        this.warnings = new ArrayList<>();
     }
 
     /**
@@ -267,7 +267,7 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private void printWarnings() {
-        for (String warning : warnings) {
+        for (String warning : this.warnings) {
             outStream.println(warning);
         }
     }
@@ -311,7 +311,7 @@ public class GraphqlCmd implements BLauncherCmd {
             this.serviceCodeGenerator.enableToUseRecords();
         }
         this.serviceCodeGenerator.generate(graphqlProject);
-        warnings.addAll(this.serviceCodeGenerator.getWarnings());
+        this.warnings.addAll(this.serviceCodeGenerator.getWarnings());
     }
 
     /**

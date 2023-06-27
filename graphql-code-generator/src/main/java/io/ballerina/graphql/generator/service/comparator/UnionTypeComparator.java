@@ -23,28 +23,28 @@ public class UnionTypeComparator {
     public UnionTypeComparator(UnionTypeDescriptorNode prevUnionType, UnionTypeDescriptorNode nextUnionType) {
         this.prevUnionType = prevUnionType;
         this.nextUnionType = nextUnionType;
-        prevUnionMembers = new ArrayList<>();
-        nextUnionMembers = new ArrayList<>();
-        removedUnionMembers = new ArrayList<>();
-        addedUnionMembers = new ArrayList<>();
-        populateUnionMemberNames(prevUnionType, prevUnionMembers);
-        populateUnionMemberNames(nextUnionType, nextUnionMembers);
+        this.prevUnionMembers = new ArrayList<>();
+        this.nextUnionMembers = new ArrayList<>();
+        this.removedUnionMembers = new ArrayList<>();
+        this.addedUnionMembers = new ArrayList<>();
+        populateUnionMemberNames(prevUnionType, this.prevUnionMembers);
+        populateUnionMemberNames(nextUnionType, this.nextUnionMembers);
         separateMembers();
     }
 
     public UnionTypeComparator() {
-        addedUnionMembers = new ArrayList<>();
-        removedUnionMembers = new ArrayList<>();
+        this.addedUnionMembers = new ArrayList<>();
+        this.removedUnionMembers = new ArrayList<>();
     }
 
     public void separateMembers() {
         HashMap<String, Boolean> nextUnionMemberAvailability = new HashMap<>();
-        for (String nextUnionTypeMember : nextUnionMembers) {
+        for (String nextUnionTypeMember : this.nextUnionMembers) {
             nextUnionMemberAvailability.put(nextUnionTypeMember, false);
         }
-        for (String prevUnionTypeMember : prevUnionMembers) {
+        for (String prevUnionTypeMember : this.prevUnionMembers) {
             boolean foundMatch = false;
-            for (String nextUnionTypeMember : nextUnionMembers) {
+            for (String nextUnionTypeMember : this.nextUnionMembers) {
                 if (prevUnionTypeMember.equals(nextUnionTypeMember)) {
                     foundMatch = true;
                     nextUnionMemberAvailability.put(nextUnionTypeMember, true);
@@ -52,28 +52,28 @@ public class UnionTypeComparator {
                 }
             }
             if (!foundMatch) {
-                removedUnionMembers.add(prevUnionTypeMember);
+                this.removedUnionMembers.add(prevUnionTypeMember);
             }
         }
         for (Map.Entry<String, Boolean> availableEntry : nextUnionMemberAvailability.entrySet()) {
             Boolean nextUnionMemberAvailable = availableEntry.getValue();
             if (!nextUnionMemberAvailable) {
                 String notAvailableNextUnionMember = availableEntry.getKey();
-                addedUnionMembers.add(notAvailableNextUnionMember);
+                this.addedUnionMembers.add(notAvailableNextUnionMember);
             }
         }
     }
 
     public UnionTypeDescriptorNode generateCombinedUnionType() {
-        return nextUnionType;
+        return this.nextUnionType;
     }
 
     public boolean isEqual() {
-        return addedUnionMembers.isEmpty() && removedUnionMembers.isEmpty();
+        return this.addedUnionMembers.isEmpty() && this.removedUnionMembers.isEmpty();
     }
 
     public List<String> getRemovedUnionMembers() {
-        return removedUnionMembers;
+        return this.removedUnionMembers;
     }
 
     private void populateUnionMemberNames(UnionTypeDescriptorNode unionType, List<String> unionTypeMembers) {

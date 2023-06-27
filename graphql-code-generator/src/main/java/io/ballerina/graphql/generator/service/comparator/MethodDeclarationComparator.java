@@ -23,26 +23,28 @@ public class MethodDeclarationComparator {
                                        MethodDeclarationNode nextMethodDeclaration) {
         this.prevMethodDeclaration = prevMethodDeclaration;
         this.nextMethodDeclaration = nextMethodDeclaration;
-        functionSignatureComparator = new FunctionSignatureComparator(prevMethodDeclaration.methodSignature()
-                , nextMethodDeclaration.methodSignature());
+        this.functionSignatureComparator = new FunctionSignatureComparator(prevMethodDeclaration.methodSignature(),
+                nextMethodDeclaration.methodSignature());
     }
 
     public boolean isMatch() {
-        return getMethodDeclarationName(prevMethodDeclaration).equals(getMethodDeclarationName(nextMethodDeclaration));
+        return getMethodDeclarationName(this.prevMethodDeclaration)
+                .equals(getMethodDeclarationName(this.nextMethodDeclaration));
     }
 
     public boolean isEqual() {
-        return isQualifiersEquals() && isMetadataEqual(prevMethodDeclaration.metadata().orElse(null),
-                nextMethodDeclaration.metadata().orElse(null)) && isMethodNameEquals() &&
-                isRelativeResourcePathEquals(prevMethodDeclaration.relativeResourcePath(),
-                        nextMethodDeclaration.relativeResourcePath()) && functionSignatureComparator.isEqual();
+        return isQualifiersEquals() && isMetadataEqual(this.prevMethodDeclaration.metadata().orElse(null),
+                this.nextMethodDeclaration.metadata().orElse(null)) && isMethodNameEquals() &&
+                isRelativeResourcePathEquals(this.prevMethodDeclaration.relativeResourcePath(),
+                        this.nextMethodDeclaration.relativeResourcePath()) &&
+                this.functionSignatureComparator.isEqual();
     }
 
     private boolean isQualifiersEquals() {
-        if (prevMethodDeclaration.qualifierList().size() == nextMethodDeclaration.qualifierList().size()) {
-            for (int i = 0; i < prevMethodDeclaration.qualifierList().size(); i++) {
-                String prevQualifierName = prevMethodDeclaration.qualifierList().get(i).text();
-                String nextQualifierName = nextMethodDeclaration.qualifierList().get(i).text();
+        if (this.prevMethodDeclaration.qualifierList().size() == this.nextMethodDeclaration.qualifierList().size()) {
+            for (int i = 0; i < this.prevMethodDeclaration.qualifierList().size(); i++) {
+                String prevQualifierName = this.prevMethodDeclaration.qualifierList().get(i).text();
+                String nextQualifierName = this.nextMethodDeclaration.qualifierList().get(i).text();
                 if (!prevQualifierName.equals(nextQualifierName)) {
                     return false;
                 }
@@ -53,36 +55,36 @@ public class MethodDeclarationComparator {
     }
 
     private boolean isMethodNameEquals() {
-        return prevMethodDeclaration.methodName().text().equals(nextMethodDeclaration.methodName().text());
+        return this.prevMethodDeclaration.methodName().text().equals(this.nextMethodDeclaration.methodName().text());
     }
 
     public FunctionSignatureComparator getFunctionSignatureEqualityResult() {
-        return functionSignatureComparator;
+        return this.functionSignatureComparator;
     }
 
     public String getPrevFunctionName() {
-        return getMethodDeclarationName(prevMethodDeclaration);
+        return getMethodDeclarationName(this.prevMethodDeclaration);
     }
 
     public String getPrevMainQualifier() {
-        return getMainQualifier(prevMethodDeclaration.qualifierList()).text();
+        return getMainQualifier(this.prevMethodDeclaration.qualifierList()).text();
     }
 
     public String getNextMainQualifier() {
-        return getMainQualifier(nextMethodDeclaration.qualifierList()).text();
+        return getMainQualifier(this.nextMethodDeclaration.qualifierList()).text();
     }
 
     public String getPrevMethodType() {
-        return getMethodDeclarationResolverType(prevMethodDeclaration);
+        return getMethodDeclarationResolverType(this.prevMethodDeclaration);
     }
 
     public String getNextMethodType() {
-        return getMethodDeclarationResolverType(nextMethodDeclaration);
+        return getMethodDeclarationResolverType(this.nextMethodDeclaration);
     }
 
     public boolean isGetAndSubscribeInterchanged() {
-        String prevMethodType = getMethodDeclarationResolverType(prevMethodDeclaration);
-        String nextMethodType = getMethodDeclarationResolverType(nextMethodDeclaration);
+        String prevMethodType = getMethodDeclarationResolverType(this.prevMethodDeclaration);
+        String nextMethodType = getMethodDeclarationResolverType(this.nextMethodDeclaration);
         if (prevMethodType != null && nextMethodType != null) {
             return (prevMethodType.equals(CodeGeneratorConstants.GET) &&
                     nextMethodType.equals(CodeGeneratorConstants.SUBSCRIBE)) ||
@@ -93,8 +95,8 @@ public class MethodDeclarationComparator {
     }
 
     public boolean isQualifierSimilar() {
-        Token prevMainQualifier = getMainQualifier(prevMethodDeclaration.qualifierList());
-        Token nextMainQualifier = getMainQualifier(nextMethodDeclaration.qualifierList());
+        Token prevMainQualifier = getMainQualifier(this.prevMethodDeclaration.qualifierList());
+        Token nextMainQualifier = getMainQualifier(this.nextMethodDeclaration.qualifierList());
         if (prevMainQualifier != null && nextMainQualifier != null) {
             return prevMainQualifier.text().equals(nextMainQualifier.text());
         }
@@ -102,11 +104,12 @@ public class MethodDeclarationComparator {
     }
 
     public MethodDeclarationNode generateCombinedMethodDeclaration() {
-        return prevMethodDeclaration.modify(prevMethodDeclaration.kind(), nextMethodDeclaration.metadata().orElse(null),
+        return this.prevMethodDeclaration.modify(this.prevMethodDeclaration.kind(),
+                this.nextMethodDeclaration.metadata().orElse(null),
                 getMergedMethodDeclarationQualifiers(
-                        prevMethodDeclaration.qualifierList(), nextMethodDeclaration.qualifierList()),
-                nextMethodDeclaration.functionKeyword(),
-                nextMethodDeclaration.methodName(), nextMethodDeclaration.relativeResourcePath(),
-                nextMethodDeclaration.methodSignature(), nextMethodDeclaration.semicolon());
+                        this.prevMethodDeclaration.qualifierList(), this.nextMethodDeclaration.qualifierList()),
+                this.nextMethodDeclaration.functionKeyword(),
+                this.nextMethodDeclaration.methodName(), this.nextMethodDeclaration.relativeResourcePath(),
+                this.nextMethodDeclaration.methodSignature(), this.nextMethodDeclaration.semicolon());
     }
 }

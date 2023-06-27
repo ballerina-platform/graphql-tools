@@ -17,17 +17,17 @@ public class TypeComparator {
     }
 
     public boolean isEqual() {
-        if ((prevType != null) && (nextType != null)) {
-            return prevType.equals(nextType);
+        if ((this.prevType != null) && (this.nextType != null)) {
+            return this.prevType.equals(this.nextType);
         }
         return false;
     }
 
     public String getPrevType() {
-        return prevType;
+        return this.prevType;
     }
 
     public String getNextType() {
-        return nextType;
+        return this.nextType;
     }
 }
