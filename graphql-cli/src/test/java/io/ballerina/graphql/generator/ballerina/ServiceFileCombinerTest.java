@@ -28,7 +28,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  * Test the successful combination of available service file and generated service file from GraphQL schema.
  */
 public class ServiceFileCombinerTest extends GraphqlTest {
-    @Test(description = "Test combining updated schema with added query fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFields()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
@@ -63,7 +63,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with added mutation fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedMutationFields()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewMutationFieldsApi.graphql";
@@ -98,7 +98,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with added subscription fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedSubscriptionFields()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewSubscriptionFieldsApi.graphql";
@@ -133,7 +133,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with changed return type in functions")
+    @Test
     public void testCombiningUpdatedSchemaWithChangedReturnTypeInFunctions()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithChangedReturnTypeInFunctionsApi.graphql";
@@ -168,7 +168,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with changed parameters in functions")
+    @Test
     public void testCombiningUpdatedSchemaWithChangedParametersInFunctions()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithChangedParametersInFunctionsApi.graphql";
@@ -203,7 +203,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with changed qualifiers in functions")
+    @Test
     public void testCombiningUpdatedSchemaWithChangedQualifiersInFunctions()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithChangedQualifiersInFunctionsApi.graphql";
@@ -238,7 +238,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with interchanged query and subscription fields")
+    @Test
     public void testCombiningUpdatedSchemaWithInterchangedQueryAndSubscriptionFields()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithInterchangedQueryAndSubscriptionFieldsApi.graphql";
@@ -273,7 +273,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with added metadata in resolver functions")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedMetadataInResolverFunctions()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedMetadataInResolverFunctionsApi.graphql";
@@ -308,7 +308,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema into service with basic functions")
+    @Test
     public void testCombiningUpdatedSchemaIntoServiceWithNonResolverFunctions()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
@@ -343,7 +343,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with added query fields into service with multiple imports")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFieldsIntoServiceWithMultipleImports()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
@@ -378,7 +378,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with added query fields into service with additional table")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFieldsIntoServiceWithAdditionalTable()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
@@ -413,7 +413,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with added query fields into service with comments")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFieldsIntoServiceWithComments()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
@@ -448,7 +448,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(result, expectedServiceContent);
     }
 
-    @Test(description = "Test combining updated schema with added query fields into service run on different port")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFieldsIntoServiceRunOnDifferentPort()
             throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";

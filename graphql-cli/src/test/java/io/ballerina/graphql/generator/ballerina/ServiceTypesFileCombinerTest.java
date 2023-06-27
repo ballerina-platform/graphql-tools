@@ -26,7 +26,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  * Test the successful combination of available service file and generated service file from schema
  */
 public class ServiceTypesFileCombinerTest extends GraphqlTest {
-    @Test(description = "Test combining updated schema with added new object type")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewObjectType() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewObjectTypeApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewObjectType.bal";
@@ -59,7 +59,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new enum")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewEnum() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewEnumApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewEnum.bal";
@@ -92,7 +92,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new interface")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewInterface() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewInterfaceApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewInterface.bal";
@@ -125,7 +125,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new input type")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewInputType() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewInputTypeApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewInputType.bal";
@@ -158,7 +158,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new union")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewUnion() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewUnionApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewUnion.bal";
@@ -191,7 +191,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new object type using records if possible")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeUsingRecordsIfPossible() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewObjectTypeUsingRecordsIfPossibleApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewObjectTypeUsingRecordsIfPossible.bal";
@@ -225,7 +225,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new query fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewQueryFields() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewQueryFields.bal";
@@ -258,7 +258,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new mutation fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewMutationFields() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewMutationFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewMutationFields.bal";
@@ -291,7 +291,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new subscription fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewSubscriptionFields() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewSubscriptionFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewSubscriptionFields.bal";
@@ -324,7 +324,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new enum fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewEnumFields() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewEnumFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewEnumFields.bal";
@@ -357,7 +357,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with new added input type fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewInputTypeFields() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewInputTypeFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewInputTypeFields.bal";
@@ -398,7 +398,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with added new union members")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewUnionMembers() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewUnionMembersApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewUnionMembers.bal";
@@ -431,7 +431,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new object type fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFields() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewObjectTypeFields.bal";
@@ -464,7 +464,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new object type fields when represented in records")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFieldsWhenRepresentedInRecords() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsRecordsAllowed.bal";
@@ -498,7 +498,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with removed object type fields when represented in records")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedObjectTypeFieldsWhenRepresentedInRecords() throws Exception {
         String newSchemaFileName = "SchemaWithRemovedObjectTypeFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingObjectTypeFieldsRecordsAllowed.bal";
@@ -538,7 +538,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with changed object field type when represented in records")
+    @Test
     public void testCombiningUpdatedSchemaWithChangedObjectFieldTypeWhenRepresentedInRecords() throws Exception {
         String newSchemaFileName = "SchemaWithChangedObjectFieldTypeApi.graphql";
         String beforeBalFileName = "typesBeforeChangingObjectFieldTypeRecordsAllowed.bal";
@@ -579,7 +579,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with added new object type fields in multiple objects")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewObjectTypeFieldsInMultipleObjects() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewObjectTypeFieldsInMultipleObjectsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewObjectTypeFieldsInMultipleObjects.bal";
@@ -612,7 +612,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with added new interface type fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedNewInterfaceTypeFields() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewInterfaceTypeFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingNewInterfaceTypeFields.bal";
@@ -645,7 +645,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with removed input type fields")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedInputTypeFields() throws Exception {
         String newSchemaFileName = "SchemaWithRemovedInputTypeFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingInputTypeFields.bal";
@@ -688,7 +688,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with removed enum fields")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedEnumFields() throws Exception {
         String newSchemaFileName = "SchemaWithRemovedEnumFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingEnumFields.bal";
@@ -726,7 +726,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with removed object fields represented in service class")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedObjectFieldsRepresentedInServiceClass() throws Exception {
         String newSchemaFileName = "SchemaWithSingleObjectRemoveFieldApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingFieldObject.bal";
@@ -763,7 +763,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertEquals(breakingChangeWarnings.get(0), warningMessages.get(0));
     }
 
-    @Test(description = "Test combining updated schema with changed type in object field represented in service class")
+    @Test
     public void testCombiningUpdatedSchemaWithChangedTypeInObjectFieldRepresentedInServiceClass() throws Exception {
         String newSchemaFileName = "SchemaWithSingleObjectChangedTypeInObjectFieldApi.graphql";
         String beforeBalFileName = "typesBeforeChangingTypeInSingleObjectField.bal";
@@ -803,8 +803,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with changed type in multiple object fields represented in " +
-            "service class")
+    @Test
     public void testCombiningUpdatedSchemaWithChangedTypeInMultipleObjectFieldsRepresentedInServiceClass()
             throws Exception {
         String newSchemaFileName = "SchemaWithMultipleChangedTypesInObjectFieldsApi.graphql";
@@ -847,8 +846,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with removed parameters in object fields " +
-            "represented in service class")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedParametersInObjectFieldsRepresentedInServiceClass()
             throws Exception {
         String newSchemaFileName = "SchemaWithRemovedParametersInObjectFieldsApi.graphql";
@@ -890,8 +888,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with added parameters in object fields " +
-            "represented in service class")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedParametersInObjectFieldsRepresentedInServiceClass()
             throws Exception {
         String newSchemaFileName = "SchemaWithAddedParametersInObjectFieldsApi.graphql";
@@ -937,7 +934,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with removed fields in query, mutation and subscription")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedFieldsInQueryMutationAndSubscription() throws Exception {
         String newSchemaFileName = "SchemaWithRemovedFieldsInQueryMutationAndSubscriptionApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingFieldsInQueryMutationAndSubscription.bal";
@@ -984,8 +981,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with removed parameters in query, mutation and subscription " +
-            "fields")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedParametersInQueryMutationAndSubscriptionFields() throws Exception {
         String newSchemaFileName = "SchemaWithRemovedParametersInQueryMutationAndSubscriptionFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingParametersInQueryMutationAndSubscriptionFields.bal";
@@ -1032,7 +1028,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with types changed in query, mutation and subscription fields")
+    @Test
     public void testCombiningUpdatedSchemaWithTypesChangedInQueryMutationAndSubscriptionFields() throws Exception {
         String newSchemaFileName = "SchemaWithTypesChangedInQueryMutationAndSubscriptionFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeChangingTypesInQueryMutationAndSubscriptionFields.bal";
@@ -1110,8 +1106,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with added parameters in query, mutation and subscription " +
-            "fields")
+    @Test
     public void testCombiningUpdatedSchemaWithAddedParametersInQueryMutationAndSubscriptionFields() throws Exception {
         String newSchemaFileName = "SchemaWithAddedParametersInQueryMutationAndSubscriptionFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeAddingParametersInQueryMutationAndSubscriptionFields.bal";
@@ -1159,7 +1154,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with removed parameter default values")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedParameterDefaultValues() throws Exception {
         String newSchemaFileName = "SchemaWithRemovedParameterDefaultValuesApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingParameterDefaultValues.bal";
@@ -1221,7 +1216,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with removed union members")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedUnionMembers() throws Exception {
         String newSchemaFileName = "SchemaWithRemovedUnionMembersApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingUnionMembers.bal";
@@ -1262,7 +1257,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with removed interface fields")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedInterfaceFields() throws Exception {
         String newSchemaFileName = "SchemaWithRemovedInterfaceFieldsApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingInterfaceFields.bal";
@@ -1303,7 +1298,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with record type fields type changed")
+    @Test
     public void testCombiningUpdatedSchemaWithRecordTypeFieldsTypeChanged() throws Exception {
         String newSchemaFileName = "SchemaWithChangedRecordTypeFieldsTypeApi.graphql";
         String beforeBalFileName = "typesBeforeChangingRecordTypeFieldsType.bal";
@@ -1405,7 +1400,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with interchanged query and subscription methods")
+    @Test
     public void testCombiningUpdatedSchemaWithInterchangedQueryAndSubscriptionMethods() throws Exception {
         String newSchemaFileName = "SchemaWithInterchangedQueryAndSubscriptionMethodsApi.graphql";
         String beforeBalFileName = "typesBeforeInterchangingQueryAndSubscriptionMethods.bal";
@@ -1464,7 +1459,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with removed default values in input and object types")
+    @Test
     public void testCombiningUpdatedSchemaWithRemovedDefaultValuesInInputAndObjectTypes() throws Exception {
         String newSchemaFileName = "SchemaWithRemovedDefaultValuesInInputAndObjectTypesApi.graphql";
         String beforeBalFileName = "typesBeforeRemovingDefaultValuesInInputAndObjectTypesRecordsAllowed.bal";
@@ -1508,7 +1503,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test combining updated schema with changed default values")
+    @Test
     public void testCombiningUpdatedSchemaWithChangedDefaultValues() throws Exception {
         String newSchemaFileName = "SchemaWithChangedDefaultValuesApi.graphql";
         String beforeBalFileName = "typesBeforeChangingDefaultValues.bal";
@@ -1541,7 +1536,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema with metadata in module members")
+    @Test
     public void testCombiningUpdatedSchemaWithMetadataInModuleMembers() throws Exception {
         String newSchemaFileName = "SchemaWithMetadataInModuleMembersApi.graphql";
         String beforeBalFileName = "typesBeforeAddingMetadataInModuleMembers.bal";
@@ -1574,7 +1569,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema into service object in types with non resolver functions")
+    @Test
     public void testCombiningUpdatedSchemaIntoServiceObjectInTypesWithNonResolverFunctions() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName =
@@ -1608,7 +1603,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema into service class in types with non resolver functions")
+    @Test
     public void testCombiningUpdatedSchemaIntoServiceClassInTypesWithNonResolverFunctions() throws Exception {
         String beforeBalFileName =
                 "typesServiceClassWithNonResolverFunctionsBeforeAddingQueryFields.bal";
@@ -1642,7 +1637,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema into service class in types with attributes")
+    @Test
     public void testCombiningUpdatedSchemaIntoServiceClassInTypesWithAttributes() throws Exception {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName =
@@ -1676,7 +1671,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema into types with isolated functions")
+    @Test
     public void testCombiningUpdatedSchemaIntoTypesWithIsolatedFunctions() throws Exception {
         String newSchemaFileName = "SchemaWithAddedQueryFieldsIntoTypesWithIsolatedFunctionsApi.graphql";
         String beforeBalFileName =
@@ -1710,7 +1705,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema into types with documentations")
+    @Test
     public void testCombiningUpdatedSchemaIntoTypesWithDocumentations() throws Exception {
         String newSchemaFileName = "SchemaWithAddedObjectTypeFieldsIntoTypesWithDocumentationsApi.graphql";
         String beforeBalFileName =
@@ -1744,7 +1739,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema into types with readonly object and class")
+    @Test
     public void testCombiningUpdatedSchemaIntoTypesWithReadonlyObjectAndClass() throws Exception {
         String newSchemaFileName = "SchemaWithAddedQueryFieldsIntoTypesWithReadonlyObjectAndClassApi.graphql";
         String beforeBalFileName =
@@ -1778,7 +1773,7 @@ public class ServiceTypesFileCombinerTest extends GraphqlTest {
         Assert.assertTrue(breakingChangeWarnings.size() == 0);
     }
 
-    @Test(description = "Test combining updated schema into input types with readonly")
+    @Test
     public void testCombiningUpdatedSchemaIntoInputTypesWithReadonly() throws Exception {
         String newSchemaFileName = "SchemaWithAddedInputFieldsIntoTypesWithReadonlyInputTypesApi.graphql";
         String beforeBalFileName =

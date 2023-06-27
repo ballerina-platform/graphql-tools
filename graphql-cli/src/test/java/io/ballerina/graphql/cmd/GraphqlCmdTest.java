@@ -93,8 +93,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test graphql command execution for service generation when output files are " +
-            "already populated")
+    @Test
     public void testExecutionForServiceGenerationOutputFilesAreAlreadyPopulated() {
         Path newGraphqlSchemaPath = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewQueryFieldsApi.graphql"));
@@ -132,8 +131,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test printing breaking change warning messages when generating service upon already " +
-            "populated service")
+    @Test
     public void testPrintingWarningMessagesWhenExecutionForServiceGenerationOutputFilesAreAlreadyPopulated() {
         Path newGraphqlSchemaPath = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewInputTypeFieldsApi.graphql"));
@@ -183,7 +181,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test generating service when service file is available but empty")
+    @Test
     public void testExecutionForServiceGenerationWhenAvailableServiceFileEmpty() {
         Path newGraphqlSchemaPath = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewInputTypeFieldsApi.graphql"));
@@ -213,7 +211,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test generating service when service types file is available but empty")
+    @Test
     public void testExecutionForServiceGenerationWhenAvailableServiceTypesFileEmpty() {
         Path newGraphqlSchemaPath = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "updated", "SchemaWithAddedNewInputTypeFieldsApi.graphql"));
