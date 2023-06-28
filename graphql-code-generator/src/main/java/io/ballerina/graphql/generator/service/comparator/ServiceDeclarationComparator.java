@@ -14,6 +14,7 @@ import java.util.Map;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getFunctionName;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getTypeName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isFunctionDefinitionNode;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isResolverFunction;
 
 /**
@@ -59,8 +60,7 @@ public class ServiceDeclarationComparator {
         for (Node prevServiceMember : this.prevServiceDeclaration.members()) {
             boolean foundMatch = false;
             for (Node nextServiceMember : this.nextServiceDeclaration.members()) {
-                if (prevServiceMember instanceof FunctionDefinitionNode &&
-                        nextServiceMember instanceof FunctionDefinitionNode) {
+                if (isFunctionDefinitionNode(prevServiceMember) && isFunctionDefinitionNode(nextServiceMember)) {
                     FunctionDefinitionNode prevFunctionDef = (FunctionDefinitionNode) prevServiceMember;
                     FunctionDefinitionNode nextFunctionDef = (FunctionDefinitionNode) nextServiceMember;
                     FunctionDefinitionComparator funcDefEquality =
@@ -80,7 +80,7 @@ public class ServiceDeclarationComparator {
                 }
             }
             if (!foundMatch) {
-                if (prevServiceMember instanceof FunctionDefinitionNode) {
+                if (isFunctionDefinitionNode(prevServiceMember)) {
                     FunctionDefinitionNode prevFunctionDef = (FunctionDefinitionNode) prevServiceMember;
                     if (isResolverFunction(prevFunctionDef)) {
                         this.removedFunctionDefinitions.add(getFunctionName(prevFunctionDef));
@@ -95,7 +95,7 @@ public class ServiceDeclarationComparator {
             Boolean nextServiceMemberAvailable = nextServiceMemberAvailableEntry.getValue();
             if (!nextServiceMemberAvailable) {
                 Node nextServiceMember = nextServiceMemberAvailableEntry.getKey();
-                if (nextServiceMember instanceof FunctionDefinitionNode) {
+                if (isFunctionDefinitionNode(nextServiceMember)) {
                     FunctionDefinitionNode nextFunctionDef = (FunctionDefinitionNode) nextServiceMember;
                     this.finalMembers.add(nextFunctionDef);
                 }

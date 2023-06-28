@@ -2,7 +2,6 @@ package io.ballerina.graphql.generator.service.combiner;
 
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -84,7 +83,7 @@ public class ServiceFileCombiner {
             Boolean available = availableEntry.getValue();
             if (!available) {
                 ModuleMemberDeclarationNode notAvailableMember = availableEntry.getKey();
-                if (notAvailableMember instanceof ServiceDeclarationNode) {
+                if (notAvailableMember.kind() == SyntaxKind.SERVICE_DECLARATION) {
                     this.moduleServiceDeclarations.add(notAvailableMember);
                 }
             }
@@ -93,15 +92,16 @@ public class ServiceFileCombiner {
     }
 
     private void addMemberToRespectiveMemberList(ModuleMemberDeclarationNode member) {
-        if (member instanceof ModuleVariableDeclarationNode) {
+        if (member.kind() == SyntaxKind.MODULE_VAR_DECL) {
             this.moduleVariables.add(member);
-        } else if (member instanceof ServiceDeclarationNode) {
+        } else if (member.kind() == SyntaxKind.SERVICE_DECLARATION) {
             this.moduleServiceDeclarations.add(member);
         }
     }
 
     private boolean isMemberEquals(ModuleMemberDeclarationNode prevMember, ModuleMemberDeclarationNode nextMember) {
-        if (prevMember instanceof ServiceDeclarationNode && nextMember instanceof ServiceDeclarationNode) {
+        if (prevMember.kind() == SyntaxKind.SERVICE_DECLARATION
+                && nextMember.kind() == SyntaxKind.SERVICE_DECLARATION) {
             ServiceDeclarationNode prevServiceDeclaration = (ServiceDeclarationNode) prevMember;
             ServiceDeclarationNode nextServiceDeclaration = (ServiceDeclarationNode) nextMember;
             if (isServiceDeclarationMatch(prevServiceDeclaration, nextServiceDeclaration)) {

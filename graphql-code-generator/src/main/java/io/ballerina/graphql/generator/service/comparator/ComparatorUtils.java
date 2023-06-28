@@ -45,7 +45,7 @@ import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
  */
 public class ComparatorUtils {
     public static String getEnumMemberName(Node enumMember) {
-        if (enumMember instanceof EnumMemberNode) {
+        if (enumMember.kind() == SyntaxKind.ENUM_MEMBER) {
             EnumMemberNode enumMemberNode = (EnumMemberNode) enumMember;
             return enumMemberNode.identifier().text();
         }
@@ -65,10 +65,10 @@ public class ComparatorUtils {
     }
 
     public static String getRecordFieldName(Node field) {
-        if (field instanceof RecordFieldNode) {
+        if (field.kind() == SyntaxKind.RECORD_FIELD) {
             RecordFieldNode recordField = (RecordFieldNode) field;
             return recordField.fieldName().text();
-        } else if (field instanceof RecordFieldWithDefaultValueNode) {
+        } else if (field.kind() == SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
             RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
             return recordFieldWithDefaultValue.fieldName().text();
         }
@@ -76,10 +76,10 @@ public class ComparatorUtils {
     }
 
     public static Node getRecordFieldType(Node field) {
-        if (field instanceof RecordFieldNode) {
+        if (field.kind() == SyntaxKind.RECORD_FIELD) {
             RecordFieldNode recordField = (RecordFieldNode) field;
             return recordField.typeName();
-        } else if (field instanceof RecordFieldWithDefaultValueNode) {
+        } else if (field.kind() == SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
             RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
             return recordFieldWithDefaultValue.typeName();
         }
@@ -94,7 +94,8 @@ public class ComparatorUtils {
         for (int i = 0; i < prevRelativeResourcePath.size(); i++) {
             Node prevRelativeResource = prevRelativeResourcePath.get(i);
             Node nextRelativeResource = nextRelativeResourcePath.get(i);
-            if (prevRelativeResource instanceof IdentifierToken && nextRelativeResource instanceof IdentifierToken) {
+            if (prevRelativeResource.kind() == SyntaxKind.IDENTIFIER_TOKEN &&
+                    nextRelativeResource.kind() == SyntaxKind.IDENTIFIER_TOKEN) {
                 IdentifierToken prevIdentifier = (IdentifierToken) prevRelativeResource;
                 IdentifierToken nextIdentifier = (IdentifierToken) nextRelativeResource;
                 if (!prevIdentifier.text().equals(nextIdentifier.text())) {
@@ -110,7 +111,7 @@ public class ComparatorUtils {
             String mainQualifier = getMainQualifier(methodDeclaration.qualifierList()).text();
             if (mainQualifier.equals(Constants.RESOURCE)) {
                 Node methodDeclarationNameNode = methodDeclaration.relativeResourcePath().get(0);
-                if (methodDeclarationNameNode instanceof IdentifierToken) {
+                if (methodDeclarationNameNode.kind() == SyntaxKind.IDENTIFIER_TOKEN) {
                     IdentifierToken methodDeclarationName = (IdentifierToken) methodDeclarationNameNode;
                     return methodDeclarationName.text();
                 }
@@ -150,7 +151,7 @@ public class ComparatorUtils {
             String mainQualifier = getMainQualifier(functionDefinition.qualifierList()).text();
             if (mainQualifier.equals(Constants.RESOURCE)) {
                 Node functionNameNode = functionDefinition.relativeResourcePath().get(0);
-                if (functionNameNode instanceof IdentifierToken) {
+                if (functionNameNode.kind() == SyntaxKind.IDENTIFIER_TOKEN) {
                     IdentifierToken functionNameToken = (IdentifierToken) functionNameNode;
                     return functionNameToken.text();
                 }
@@ -165,10 +166,10 @@ public class ComparatorUtils {
     }
 
     public static String getParameterName(ParameterNode parameter) {
-        if (parameter instanceof RequiredParameterNode) {
+        if (parameter.kind() == SyntaxKind.REQUIRED_PARAM) {
             RequiredParameterNode requiredParameter = (RequiredParameterNode) parameter;
             return requiredParameter.paramName().orElse(null).text();
-        } else if (parameter instanceof DefaultableParameterNode) {
+        } else if (parameter.kind() == SyntaxKind.DEFAULTABLE_PARAM) {
             DefaultableParameterNode defaultableParameter = (DefaultableParameterNode) parameter;
             return defaultableParameter.paramName().orElse(null).text();
         }
@@ -176,7 +177,7 @@ public class ComparatorUtils {
     }
 
     public static String getParameterDefaultValue(ParameterNode parameter) {
-        if (parameter instanceof DefaultableParameterNode) {
+        if (parameter.kind() == SyntaxKind.DEFAULTABLE_PARAM) {
             DefaultableParameterNode defaultableParameter = (DefaultableParameterNode) parameter;
             Node defaultExpression = defaultableParameter.expression();
             return defaultExpression.toString();
@@ -185,22 +186,23 @@ public class ComparatorUtils {
     }
 
     public static String getTypeName(Node type) {
-        if (type instanceof BuiltinSimpleNameReferenceNode) {
+        if (type.kind() == SyntaxKind.STRING_TYPE_DESC || type.kind() == SyntaxKind.INT_TYPE_DESC ||
+                type.kind() == SyntaxKind.FLOAT_TYPE_DESC || type.kind() == SyntaxKind.BOOLEAN_TYPE_DESC) {
             BuiltinSimpleNameReferenceNode typeName = (BuiltinSimpleNameReferenceNode) type;
             return typeName.name().text();
-        } else if (type instanceof SimpleNameReferenceNode) {
+        } else if (type.kind() == SyntaxKind.SIMPLE_NAME_REFERENCE) {
             SimpleNameReferenceNode typeName = (SimpleNameReferenceNode) type;
             return typeName.name().text();
-        } else if (type instanceof QualifiedNameReferenceNode) {
+        } else if (type.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
             QualifiedNameReferenceNode typeName = (QualifiedNameReferenceNode) type;
             return typeName.identifier().text();
-        } else if (type instanceof OptionalTypeDescriptorNode) {
+        } else if (type.kind() == SyntaxKind.OPTIONAL_TYPE_DESC) {
             OptionalTypeDescriptorNode wrappedType = (OptionalTypeDescriptorNode) type;
             return String.format("%s?", getTypeName(wrappedType.typeDescriptor()));
-        } else if (type instanceof ArrayTypeDescriptorNode) {
+        } else if (type.kind() == SyntaxKind.ARRAY_TYPE_DESC) {
             ArrayTypeDescriptorNode wrappedType = (ArrayTypeDescriptorNode) type;
             return String.format("%s[]", getTypeName(wrappedType.memberTypeDesc()));
-        } else if (type instanceof StreamTypeDescriptorNode) {
+        } else if (type.kind() == SyntaxKind.STREAM_TYPE_DESC) {
             StreamTypeDescriptorNode wrappedType = (StreamTypeDescriptorNode) type;
             StreamTypeParamsNode streamParams = (StreamTypeParamsNode) wrappedType.streamTypeParamsNode().orElseThrow();
             String typesCommaSeparatedNames = getTypeName(streamParams.leftTypeDescNode());
@@ -224,10 +226,10 @@ public class ComparatorUtils {
     }
 
     public static Node getParameterType(ParameterNode parameter) {
-        if (parameter instanceof RequiredParameterNode) {
+        if (parameter.kind() == SyntaxKind.REQUIRED_PARAM) {
             RequiredParameterNode requiredParameter = (RequiredParameterNode) parameter;
             return requiredParameter.typeName();
-        } else if (parameter instanceof DefaultableParameterNode) {
+        } else if (parameter.kind() == SyntaxKind.DEFAULTABLE_PARAM) {
             DefaultableParameterNode defaultableParameter = (DefaultableParameterNode) parameter;
             return defaultableParameter.typeName();
         } else {
@@ -324,16 +326,32 @@ public class ComparatorUtils {
     }
 
     public static ObjectTypeDescriptorNode generateObjectType(Node typeDescriptor) {
-        if (typeDescriptor instanceof IntersectionTypeDescriptorNode) {
+        if (typeDescriptor.kind() == SyntaxKind.INTERSECTION_TYPE_DESC) {
             IntersectionTypeDescriptorNode intersectionTypeDescriptor = (IntersectionTypeDescriptorNode) typeDescriptor;
             return generateObjectType(intersectionTypeDescriptor.rightTypeDesc());
-        } else if (typeDescriptor instanceof ObjectTypeDescriptorNode) {
+        } else if (typeDescriptor.kind() == SyntaxKind.OBJECT_TYPE_DESC) {
             return (ObjectTypeDescriptorNode) typeDescriptor;
-        } else if (typeDescriptor instanceof DistinctTypeDescriptorNode) {
+        } else if (typeDescriptor.kind() == SyntaxKind.DISTINCT_TYPE_DESC) {
             DistinctTypeDescriptorNode distinctTypeDescriptor = (DistinctTypeDescriptorNode) typeDescriptor;
             return generateObjectType(distinctTypeDescriptor.typeDescriptor());
         } else {
             return null;
         }
+    }
+
+    public static boolean isFunctionDefinitionNode(Node node) {
+        if (node.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION ||
+                node.kind() == SyntaxKind.OBJECT_METHOD_DEFINITION) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isMethodDeclarationNode(Node node) {
+        if (node.kind() == SyntaxKind.RESOURCE_ACCESSOR_DECLARATION ||
+                node.kind() == SyntaxKind.METHOD_DECLARATION) {
+            return true;
+        }
+        return false;
     }
 }

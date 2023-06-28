@@ -5,7 +5,7 @@ import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 
@@ -17,6 +17,7 @@ import java.util.Map;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getFunctionName;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isFunctionDefinitionNode;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isResolverFunction;
 
 /**
@@ -78,10 +79,10 @@ public class ClassDefinitionComparator {
     public void separateClassMembers() {
         LinkedHashMap<Node, Boolean> nextClassMemberAvailability = new LinkedHashMap<>();
         for (Node nextClassMember : this.nextClassDefinition.members()) {
-            if (nextClassMember instanceof FunctionDefinitionNode) {
+            if (nextClassMember.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
                 FunctionDefinitionNode nextClassFuncDef = (FunctionDefinitionNode) nextClassMember;
                 nextClassMemberAvailability.put(nextClassFuncDef, false);
-            } else if (nextClassMember instanceof TypeReferenceNode) {
+            } else if (nextClassMember.kind() == SyntaxKind.TYPE_REFERENCE) {
                 TypeReferenceNode nextClassTypeReference = (TypeReferenceNode) nextClassMember;
                 nextClassMemberAvailability.put(nextClassTypeReference, false);
             }
@@ -90,7 +91,8 @@ public class ClassDefinitionComparator {
         for (Node prevClassMember : this.prevClassDefinition.members()) {
             boolean foundMatch = false;
             for (Node nextClassMember : this.nextClassDefinition.members()) {
-                if (prevClassMember instanceof TypeReferenceNode && nextClassMember instanceof TypeReferenceNode) {
+                if (prevClassMember.kind() == SyntaxKind.TYPE_REFERENCE && nextClassMember.kind() ==
+                        SyntaxKind.TYPE_REFERENCE) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevClassMember;
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextClassMember;
                     TypeComparator typeEquality =
@@ -101,8 +103,7 @@ public class ClassDefinitionComparator {
                         this.finalMembers.add(prevTypeRefMember);
                         break;
                     }
-                } else if (prevClassMember instanceof FunctionDefinitionNode &&
-                        nextClassMember instanceof FunctionDefinitionNode) {
+                } else if (isFunctionDefinitionNode(prevClassMember) && isFunctionDefinitionNode(nextClassMember)) {
                     FunctionDefinitionNode prevFunctionDefinition = (FunctionDefinitionNode) prevClassMember;
                     FunctionDefinitionNode nextFunctionDefinition = (FunctionDefinitionNode) nextClassMember;
                     FunctionDefinitionComparator funcDefEquals =
@@ -122,17 +123,17 @@ public class ClassDefinitionComparator {
                 }
             }
             if (!foundMatch) {
-                if (prevClassMember instanceof TypeReferenceNode) {
+                if (prevClassMember.kind() == SyntaxKind.TYPE_REFERENCE) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevClassMember;
                     this.removedTypeReferences.add(prevTypeRefMember);
-                } else if (prevClassMember instanceof FunctionDefinitionNode) {
+                } else if (isFunctionDefinitionNode(prevClassMember)) {
                     FunctionDefinitionNode prevFunctionDefinition = (FunctionDefinitionNode) prevClassMember;
                     if (isResolverFunction(prevFunctionDefinition)) {
                         this.removedFunctionDefinitions.add(prevFunctionDefinition);
                     } else {
                         this.finalMembers.add(prevFunctionDefinition);
                     }
-                } else if (prevClassMember instanceof ObjectFieldNode) {
+                } else {
                     this.finalMembers.add(prevClassMember);
                 }
             }
@@ -142,11 +143,11 @@ public class ClassDefinitionComparator {
             Boolean nextClassMemberAvailable = nextClassMemberAvailableEntry.getValue();
             if (!nextClassMemberAvailable) {
                 Node newClassMember = nextClassMemberAvailableEntry.getKey();
-                if (newClassMember instanceof TypeReferenceNode) {
+                if (newClassMember.kind() == SyntaxKind.TYPE_REFERENCE) {
                     TypeReferenceNode nextTypeRefMember =
                             (TypeReferenceNode) nextClassMemberAvailableEntry.getKey();
                     this.finalMembers.add(nextTypeRefMember);
-                } else if (newClassMember instanceof FunctionDefinitionNode) {
+                } else if (newClassMember.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
                     FunctionDefinitionNode nextFunctionDefinition =
                             (FunctionDefinitionNode) nextClassMemberAvailableEntry.getKey();
                     this.finalMembers.add(nextFunctionDefinition);

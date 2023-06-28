@@ -1,5 +1,6 @@
 package io.ballerina.graphql.generator.service.comparator;
 
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 
 import java.util.ArrayList;
@@ -78,7 +79,7 @@ public class UnionTypeComparator {
 
     private void populateUnionMemberNames(UnionTypeDescriptorNode unionType, List<String> unionTypeMembers) {
         unionTypeMembers.add(getTypeName(unionType.rightTypeDesc()));
-        if (unionType.leftTypeDesc() instanceof UnionTypeDescriptorNode) {
+        if (unionType.leftTypeDesc().kind() == SyntaxKind.UNION_TYPE_DESC) {
             UnionTypeDescriptorNode leftUnionType = (UnionTypeDescriptorNode) unionType.leftTypeDesc();
             populateUnionMemberNames(leftUnionType, unionTypeMembers);
         } else {

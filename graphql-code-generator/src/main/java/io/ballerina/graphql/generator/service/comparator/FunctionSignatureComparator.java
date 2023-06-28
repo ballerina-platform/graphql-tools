@@ -2,7 +2,7 @@ package io.ballerina.graphql.generator.service.comparator;
 
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
-import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -74,7 +74,7 @@ public class FunctionSignatureComparator {
             if (!parameterAvailable) {
                 ParameterNode newParameter = entry.getKey();
                 String newParameterName = getParameterName(newParameter);
-                if (newParameter instanceof RequiredParameterNode) {
+                if (newParameter.kind() == SyntaxKind.REQUIRED_PARAM) {
                     this.addedViolatedParameters.add(newParameterName);
                 }
                 this.addedParameters.add(newParameterName);

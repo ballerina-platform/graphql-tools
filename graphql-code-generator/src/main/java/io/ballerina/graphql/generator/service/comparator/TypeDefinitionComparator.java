@@ -8,8 +8,8 @@ import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
-import io.ballerina.compiler.syntax.tree.RecordFieldNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
@@ -73,8 +73,7 @@ public class TypeDefinitionComparator {
     private Token mergedVisibilityQualifier;
     private Token mergedTypeKeyword;
 
-    public TypeDefinitionComparator(TypeDefinitionNode prevTypeDefinition, TypeDefinitionNode nextTypeDefinition
-    ) {
+    public TypeDefinitionComparator(TypeDefinitionNode prevTypeDefinition, TypeDefinitionNode nextTypeDefinition) {
         this.prevTypeDefinition = prevTypeDefinition;
         this.nextTypeDefinition = nextTypeDefinition;
         this.mergedMetadata = nextTypeDefinition.metadata().orElse(null);
@@ -98,33 +97,33 @@ public class TypeDefinitionComparator {
         ObjectTypeDescriptorNode nextObjectType = generateObjectType(this.nextTypeDefinition.typeDescriptor());
         RecordTypeDescriptorNode nextRecordType = generateRecordType(this.nextTypeDefinition.typeDescriptor());
         if (nextObjectType != null) {
-            if (this.prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
+            if (this.prevTypeDefinition.typeDescriptor().kind() == SyntaxKind.INTERSECTION_TYPE_DESC) {
                 IntersectionTypeDescriptorNode prevIntersectionType =
                         (IntersectionTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
                 this.mergedTypeDescriptor = handleMergeObjectType(prevIntersectionType, nextObjectType);
-            } else if (this.prevTypeDefinition.typeDescriptor() instanceof DistinctTypeDescriptorNode) {
+            } else if (this.prevTypeDefinition.typeDescriptor().kind() == SyntaxKind.DISTINCT_TYPE_DESC) {
                 DistinctTypeDescriptorNode prevDistinctType =
                         (DistinctTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
                 this.mergedTypeDescriptor = handleMergeObjectType(prevDistinctType, nextObjectType);
-            } else if (this.prevTypeDefinition.typeDescriptor() instanceof ObjectTypeDescriptorNode) {
+            } else if (this.prevTypeDefinition.typeDescriptor().kind() == SyntaxKind.OBJECT_TYPE_DESC) {
                 ObjectTypeDescriptorNode prevObjectType =
                         (ObjectTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
                 this.mergedTypeDescriptor = handleMergeObjectType(prevObjectType, nextObjectType);
             }
         } else if (nextRecordType != null) {
-            if (this.prevTypeDefinition.typeDescriptor() instanceof IntersectionTypeDescriptorNode) {
+            if (this.prevTypeDefinition.typeDescriptor().kind() == SyntaxKind.INTERSECTION_TYPE_DESC) {
                 IntersectionTypeDescriptorNode prevIntersectionType =
                         (IntersectionTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
                 this.mergedTypeDescriptor = handleMergeRecordType(prevIntersectionType, nextRecordType,
                         graphqlType instanceof GraphQLInputObjectType);
-            } else if (this.prevTypeDefinition.typeDescriptor() instanceof RecordTypeDescriptorNode) {
+            } else if (this.prevTypeDefinition.typeDescriptor().kind() == SyntaxKind.RECORD_TYPE_DESC) {
                 RecordTypeDescriptorNode prevRecordType =
                         (RecordTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
                 this.mergedTypeDescriptor = handleMergeRecordType(prevRecordType, nextRecordType,
                         graphqlType instanceof GraphQLInputObjectType);
             }
-        } else if (this.prevTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode &&
-                this.nextTypeDefinition.typeDescriptor() instanceof UnionTypeDescriptorNode) {
+        } else if (this.prevTypeDefinition.typeDescriptor().kind() == SyntaxKind.UNION_TYPE_DESC &&
+                this.nextTypeDefinition.typeDescriptor().kind() == SyntaxKind.UNION_TYPE_DESC) {
             UnionTypeDescriptorNode prevUnionType = (UnionTypeDescriptorNode) this.prevTypeDefinition.typeDescriptor();
             UnionTypeDescriptorNode nextUnionType = (UnionTypeDescriptorNode) this.nextTypeDefinition.typeDescriptor();
             UnionTypeComparator unionTypeEquality = new UnionTypeComparator(prevUnionType, nextUnionType);
@@ -135,13 +134,13 @@ public class TypeDefinitionComparator {
 
     private Node handleMergeRecordType(Node prevType, RecordTypeDescriptorNode nextRecordType,
                                        boolean isGraphqlInputType) {
-        if (prevType instanceof RecordTypeDescriptorNode) {
+        if (prevType.kind() == SyntaxKind.RECORD_TYPE_DESC) {
             RecordTypeDescriptorNode prevRecordType = (RecordTypeDescriptorNode) prevType;
             RecordTypeComparator recordTypeEquality =
                     new RecordTypeComparator(prevRecordType, nextRecordType);
             handleRecordTypeBreakingChanges(recordTypeEquality, isGraphqlInputType);
             return recordTypeEquality.generateCombinedRecordType();
-        } else if (prevType instanceof IntersectionTypeDescriptorNode) {
+        } else if (prevType.kind() == SyntaxKind.INTERSECTION_TYPE_DESC) {
             IntersectionTypeDescriptorNode prevIntersectionType = (IntersectionTypeDescriptorNode) prevType;
             return prevIntersectionType.modify(prevIntersectionType.leftTypeDesc(),
                     prevIntersectionType.bitwiseAndToken(),
@@ -151,10 +150,10 @@ public class TypeDefinitionComparator {
     }
 
     private RecordTypeDescriptorNode generateRecordType(Node typeDescriptor) {
-        if (typeDescriptor instanceof IntersectionTypeDescriptorNode) {
+        if (typeDescriptor.kind() == SyntaxKind.INTERSECTION_TYPE_DESC) {
             IntersectionTypeDescriptorNode intersectionTypeDescriptor = (IntersectionTypeDescriptorNode) typeDescriptor;
             return generateRecordType(intersectionTypeDescriptor.rightTypeDesc());
-        } else if (typeDescriptor instanceof RecordTypeDescriptorNode) {
+        } else if (typeDescriptor.kind() == SyntaxKind.RECORD_TYPE_DESC) {
             return (RecordTypeDescriptorNode) typeDescriptor;
         } else {
             return null;
@@ -162,13 +161,13 @@ public class TypeDefinitionComparator {
     }
 
     private Node handleMergeObjectType(Node prevType, ObjectTypeDescriptorNode nextObjectType) {
-        if (prevType instanceof ObjectTypeDescriptorNode) {
+        if (prevType.kind() == SyntaxKind.OBJECT_TYPE_DESC) {
             ObjectTypeDescriptorNode prevObjectType = (ObjectTypeDescriptorNode) prevType;
             ServiceObjectComparator objectTypeEquality =
                     new ServiceObjectComparator(prevObjectType, nextObjectType);
             handleObjectTypeBreakingChanges(objectTypeEquality);
             return objectTypeEquality.generateCombinedObjectTypeDescriptor();
-        } else if (prevType instanceof DistinctTypeDescriptorNode) {
+        } else if (prevType.kind() == SyntaxKind.DISTINCT_TYPE_DESC) {
             DistinctTypeDescriptorNode prevDistinctObjectType = (DistinctTypeDescriptorNode) prevType;
             ObjectTypeDescriptorNode prevServiceObject =
                     (ObjectTypeDescriptorNode) prevDistinctObjectType.typeDescriptor();
@@ -177,7 +176,7 @@ public class TypeDefinitionComparator {
             handleDistinctObjectTypeBreakingChanges(objectTypeEquality);
             return prevDistinctObjectType.modify(prevDistinctObjectType.distinctKeyword(),
                     objectTypeEquality.generateCombinedObjectTypeDescriptor());
-        } else if (prevType instanceof IntersectionTypeDescriptorNode) {
+        } else if (prevType.kind() == SyntaxKind.INTERSECTION_TYPE_DESC) {
             IntersectionTypeDescriptorNode prevIntersectionType = (IntersectionTypeDescriptorNode) prevType;
             return prevIntersectionType.modify(prevIntersectionType.leftTypeDesc(),
                     prevIntersectionType.bitwiseAndToken(),
@@ -208,7 +207,7 @@ public class TypeDefinitionComparator {
             }
         }
         for (Node addedField : recordTypeEquality.getAddedFields()) {
-            if (addedField instanceof RecordFieldNode && isGraphqlInputType) {
+            if (addedField.kind() == SyntaxKind.RECORD_FIELD && isGraphqlInputType) {
                 this.breakingChangeWarnings.add(
                         String.format(WARNING_MESSAGE_ADD_INPUT_TYPE_FIELD_WITH_NO_DEFAULT_VALUE,
                                 this.prevTypeDefinition.typeName().text(), getRecordFieldName(addedField)));

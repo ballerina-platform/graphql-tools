@@ -4,6 +4,7 @@ package io.ballerina.graphql.generator.service.comparator;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.RecordFieldNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getRecordFieldType;
@@ -34,10 +35,10 @@ public class RecordFieldComparator {
     }
 
     private String getRecordFieldName(Node field) {
-        if (field instanceof RecordFieldNode) {
+        if (field.kind() == SyntaxKind.RECORD_FIELD) {
             RecordFieldNode recordField = (RecordFieldNode) field;
             return recordField.fieldName().text();
-        } else if (field instanceof RecordFieldWithDefaultValueNode) {
+        } else if (field.kind() == SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
             RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
             return recordFieldWithDefaultValue.fieldName().text();
         }
@@ -45,7 +46,7 @@ public class RecordFieldComparator {
     }
 
     private String getRecordFieldDefaultValue(Node field) {
-        if (field instanceof RecordFieldWithDefaultValueNode) {
+        if (field.kind() == SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
             RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
             return recordFieldWithDefaultValue.expression().toString();
         }
@@ -64,7 +65,8 @@ public class RecordFieldComparator {
     }
 
     public boolean isDefaultValueRemoved() {
-        return this.prevField instanceof RecordFieldWithDefaultValueNode && this.nextField instanceof RecordFieldNode;
+        return this.prevField.kind() == SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE &&
+                this.nextField.kind() == SyntaxKind.RECORD_FIELD;
     }
 
     public boolean isFieldTypeChanged() {
@@ -88,12 +90,12 @@ public class RecordFieldComparator {
     }
 
     public Node generateCombinedRecordField() {
-        if (this.nextField instanceof RecordFieldNode) {
+        if (this.nextField.kind() == SyntaxKind.RECORD_FIELD) {
             RecordFieldNode nextRecordField = (RecordFieldNode) this.nextField;
             return nextRecordField.modify(nextRecordField.metadata().orElse(null), getReadonlyKeyword(this.prevField),
                     nextRecordField.typeName(), nextRecordField.fieldName(),
                     nextRecordField.questionMarkToken().orElse(null), nextRecordField.semicolonToken());
-        } else if (this.nextField instanceof RecordFieldWithDefaultValueNode) {
+        } else if (this.nextField.kind() == SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
             RecordFieldWithDefaultValueNode nextRecordField = (RecordFieldWithDefaultValueNode) this.nextField;
             return nextRecordField.modify(nextRecordField.metadata().orElse(null), getReadonlyKeyword(this.prevField),
                     nextRecordField.typeName(), nextRecordField.fieldName(),
@@ -104,10 +106,10 @@ public class RecordFieldComparator {
     }
 
     private Token getReadonlyKeyword(Node field) {
-        if (field instanceof RecordFieldNode) {
+        if (field.kind() == SyntaxKind.RECORD_FIELD) {
             RecordFieldNode recordField = (RecordFieldNode) field;
             return recordField.readonlyKeyword().orElse(null);
-        } else if (field instanceof RecordFieldWithDefaultValueNode) {
+        } else if (field.kind() == SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
             RecordFieldWithDefaultValueNode recordFieldWithDefaultValue = (RecordFieldWithDefaultValueNode) field;
             return recordFieldWithDefaultValue.readonlyKeyword().orElse(null);
         }

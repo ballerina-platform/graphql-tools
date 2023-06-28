@@ -2,19 +2,14 @@ package io.ballerina.graphql.generator.service.combiner;
 
 import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
-import io.ballerina.compiler.syntax.tree.DistinctTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
-import io.ballerina.compiler.syntax.tree.IntersectionTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
-import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.service.comparator.ClassDefinitionComparator;
 import io.ballerina.graphql.generator.service.comparator.EnumDeclarationComparator;
@@ -105,19 +100,20 @@ public class ServiceTypesFileCombiner {
     }
 
     private boolean isMemberEquals(ModuleMemberDeclarationNode prevMember, ModuleMemberDeclarationNode nextMember) {
-        if (prevMember instanceof ClassDefinitionNode && nextMember instanceof ClassDefinitionNode) {
+        if (prevMember.kind() == SyntaxKind.CLASS_DEFINITION && nextMember.kind() == SyntaxKind.CLASS_DEFINITION) {
             ClassDefinitionNode prevClassDef = (ClassDefinitionNode) prevMember;
             ClassDefinitionNode nextClassDef = (ClassDefinitionNode) nextMember;
             if (isClassDefEquals(prevClassDef, nextClassDef)) {
                 return true;
             }
-        } else if (prevMember instanceof TypeDefinitionNode && nextMember instanceof TypeDefinitionNode) {
+        } else if (prevMember.kind() == SyntaxKind.TYPE_DEFINITION && nextMember.kind() == SyntaxKind.TYPE_DEFINITION) {
             TypeDefinitionNode prevTypeDef = (TypeDefinitionNode) prevMember;
             TypeDefinitionNode nextTypeDef = (TypeDefinitionNode) nextMember;
             if (isTypeDefEquals(prevTypeDef, nextTypeDef)) {
                 return true;
             }
-        } else if (prevMember instanceof EnumDeclarationNode && nextMember instanceof EnumDeclarationNode) {
+        } else if (prevMember.kind() == SyntaxKind.ENUM_DECLARATION &&
+                nextMember.kind() == SyntaxKind.ENUM_DECLARATION) {
             EnumDeclarationNode prevEnumDec = (EnumDeclarationNode) prevMember;
             EnumDeclarationNode nextEnumDec = (EnumDeclarationNode) nextMember;
             if (isEnumDecEquals(prevEnumDec, nextEnumDec)) {
@@ -147,14 +143,14 @@ public class ServiceTypesFileCombiner {
         typeDefinitionEquality.handleMergeTypeDescriptor(this.nextGraphqlSchema.getType(nextTypeDef.typeName().text()));
         this.breakingChangeWarnings.addAll(typeDefinitionEquality.getBreakingChangeWarnings());
         Node mergedTypeDescriptor = typeDefinitionEquality.getMergedTypeDescriptor();
-        if (mergedTypeDescriptor instanceof ObjectTypeDescriptorNode) {
+        if (mergedTypeDescriptor.kind() == SyntaxKind.OBJECT_TYPE_DESC) {
             this.moduleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
-        } else if (mergedTypeDescriptor instanceof DistinctTypeDescriptorNode ||
-                mergedTypeDescriptor instanceof IntersectionTypeDescriptorNode) {
+        } else if (mergedTypeDescriptor.kind() == SyntaxKind.DISTINCT_TYPE_DESC ||
+                mergedTypeDescriptor.kind() == SyntaxKind.INTERSECTION_TYPE_DESC) {
             this.interfaceTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
-        } else if (mergedTypeDescriptor instanceof RecordTypeDescriptorNode) {
+        } else if (mergedTypeDescriptor.kind() == SyntaxKind.RECORD_TYPE_DESC) {
             this.inputObjectTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
-        } else if (mergedTypeDescriptor instanceof UnionTypeDescriptorNode) {
+        } else if (mergedTypeDescriptor.kind() == SyntaxKind.UNION_TYPE_DESC) {
             this.unionTypesModuleMembers.add(typeDefinitionEquality.generateCombinedTypeDefinition());
         }
         return true;

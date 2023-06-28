@@ -3,6 +3,7 @@ package io.ballerina.graphql.generator.service.comparator;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 import io.ballerina.graphql.generator.service.Constants;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.getMainQualifier;
+import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isMethodDeclarationNode;
 import static io.ballerina.graphql.generator.service.comparator.ComparatorUtils.isResolverMethod;
 
 
@@ -51,7 +53,7 @@ public class ServiceObjectComparator {
         for (Node prevMember : this.prevObjectType.members()) {
             boolean foundMatch = false;
             for (Node nextMember : this.nextObjectType.members()) {
-                if (prevMember instanceof TypeReferenceNode && nextMember instanceof TypeReferenceNode) {
+                if (prevMember.kind() == SyntaxKind.TYPE_REFERENCE && nextMember.kind() == SyntaxKind.TYPE_REFERENCE) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) nextMember;
                     TypeComparator typeEquality =
@@ -62,7 +64,7 @@ public class ServiceObjectComparator {
                         this.finalMembers.add(prevTypeRefMember);
                         break;
                     }
-                } else if (prevMember instanceof MethodDeclarationNode && nextMember instanceof MethodDeclarationNode) {
+                } else if (isMethodDeclarationNode(prevMember) && isMethodDeclarationNode(nextMember)) {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
                     MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) nextMember;
                     MethodDeclarationComparator methodDeclarationEquals =
@@ -82,10 +84,10 @@ public class ServiceObjectComparator {
                 }
             }
             if (!foundMatch) {
-                if (prevMember instanceof TypeReferenceNode) {
+                if (prevMember.kind() == SyntaxKind.TYPE_REFERENCE) {
                     TypeReferenceNode prevTypeRefMember = (TypeReferenceNode) prevMember;
                     this.finalMembers.add(prevTypeRefMember);
-                } else if (prevMember instanceof MethodDeclarationNode) {
+                } else if (isMethodDeclarationNode(prevMember)) {
                     MethodDeclarationNode prevMethodDeclaration = (MethodDeclarationNode) prevMember;
                     if (isResolverMethod(prevMethodDeclaration)) {
                         this.removedMethodDeclarations.add(prevMethodDeclaration);
@@ -99,10 +101,10 @@ public class ServiceObjectComparator {
             Boolean nextMemberAvailable = nextMemberAvailableEntry.getValue();
             if (!nextMemberAvailable) {
                 Node newServiceObjectMember = nextMemberAvailableEntry.getKey();
-                if (newServiceObjectMember instanceof TypeReferenceNode) {
+                if (newServiceObjectMember.kind() == SyntaxKind.TYPE_REFERENCE) {
                     TypeReferenceNode nextTypeRefMember = (TypeReferenceNode) newServiceObjectMember;
                     this.finalMembers.add(nextTypeRefMember);
-                } else if (newServiceObjectMember instanceof MethodDeclarationNode) {
+                } else if (isMethodDeclarationNode(newServiceObjectMember)) {
                     MethodDeclarationNode nextMethodDeclaration = (MethodDeclarationNode) newServiceObjectMember;
                     this.finalMembers.add(nextMethodDeclaration);
                 }
