@@ -239,7 +239,8 @@ public class ServiceGenerator {
 
     public String generateSrc() throws ServiceGenerationException {
         try {
-            return Formatter.format(generateSyntaxTree()).toString();
+            String generatedSyntaxTree = Formatter.format(this.generateSyntaxTree()).toString();
+            return Formatter.format(generatedSyntaxTree);
         } catch (FormatterException | IOException e) {
             throw new ServiceGenerationException(e.getMessage());
         }
