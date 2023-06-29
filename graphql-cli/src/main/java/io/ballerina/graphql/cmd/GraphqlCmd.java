@@ -58,7 +58,6 @@ import java.util.Map;
 import static io.ballerina.graphql.cmd.Constants.BAL_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_GRAPHQL_FILE_WITH_NO_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
@@ -209,7 +208,7 @@ public class GraphqlCmd implements BLauncherCmd {
             throw new CmdException(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, filePath));
         }
 
-        if (useRecordsForObjectsFlag && !MODE_SERVICE.equals(mode)) {
+        if (useRecordsForObjectsFlag && !(filePath.endsWith(GRAPHQL_EXTENSION))) {
             throw new CmdException(String.format(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE, mode));
         }
     }
@@ -231,8 +230,6 @@ public class GraphqlCmd implements BLauncherCmd {
             } else {
                 throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
             }
-        } else if (filePath.endsWith(Constants.GRAPHQL_EXTENSION)) {
-            throw new CmdException(String.format(MESSAGE_FOR_GRAPHQL_FILE_WITH_NO_MODE, filePath));
         }
         return true;
     }
@@ -243,7 +240,7 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws CmdException                  when a graphql command related error occurs
      * @throws ParseException                when a parsing related error occurs
      * @throws IOException                   If an I/O error occurs
-     * @throws ClientCodeGenerationException           when a graphql client generation related error occurs
+     * @throws ClientCodeGenerationException when a graphql client generation related error occurs
      * @throws ValidationException           when validation related error occurs
      * @throws SchemaFileGenerationException when a SDL schema generation related error occurs
      */
@@ -258,7 +255,8 @@ public class GraphqlCmd implements BLauncherCmd {
             generateClient(filePath);
         } else if ((MODE_SCHEMA.equals(mode) || mode == null) && (filePath.endsWith(BAL_EXTENSION))) {
             generateSchema(filePath);
-        } else if ((MODE_SERVICE.equals(mode)) && (filePath.endsWith(GRAPHQL_EXTENSION))) {
+        } else if ((MODE_SERVICE.equals(mode) || mode == null) && (filePath.endsWith(
+                io.ballerina.graphql.schema.Constants.GRAPHQL_EXTENSION))) {
             setServiceCodeGenerator(new ServiceCodeGenerator());
             generateService(filePath);
         }
