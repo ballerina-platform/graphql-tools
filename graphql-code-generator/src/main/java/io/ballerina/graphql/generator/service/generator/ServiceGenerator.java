@@ -189,11 +189,11 @@ public class ServiceGenerator {
 
     public static MetadataNode addNewLineInFrontOfMetadata(MetadataNode metadata) {
         Node documentationString = metadata.documentationString().orElse(null);
-        if (documentationString instanceof MarkdownDocumentationNode) {
+        if (documentationString.kind() == SyntaxKind.MARKDOWN_DOCUMENTATION) {
             MarkdownDocumentationNode markdownDocumentation = (MarkdownDocumentationNode) documentationString;
             NodeList<Node> documentationLines = markdownDocumentation.documentationLines();
             Node firstDocumentationLine = documentationLines.get(0);
-            if (firstDocumentationLine instanceof MarkdownDocumentationLineNode) {
+            if (firstDocumentationLine.kind() == SyntaxKind.MARKDOWN_DOCUMENTATION_LINE) {
                 MarkdownDocumentationLineNode firstMarkdownDocumentationLine =
                         (MarkdownDocumentationLineNode) firstDocumentationLine;
                 Token firstLineHash = firstMarkdownDocumentationLine.hashToken();
