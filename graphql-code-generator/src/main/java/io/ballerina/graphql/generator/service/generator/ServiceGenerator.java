@@ -46,6 +46,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
+import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.tools.text.TextDocument;
@@ -242,7 +243,8 @@ public class ServiceGenerator {
             String generatedSyntaxTree = Formatter.format(this.generateSyntaxTree()).toString();
             return Formatter.format(generatedSyntaxTree);
         } catch (FormatterException | IOException e) {
-            throw new ServiceGenerationException(e.getMessage());
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_101, null,
+                    e.getMessage());
         }
     }
 }

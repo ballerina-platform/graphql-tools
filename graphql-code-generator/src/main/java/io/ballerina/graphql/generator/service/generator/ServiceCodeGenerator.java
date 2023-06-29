@@ -22,10 +22,9 @@ import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
-import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
 import java.io.IOException;
@@ -47,18 +46,18 @@ public class ServiceCodeGenerator extends CodeGenerator {
     }
 
     @Override
-    public void generate(GraphqlProject project) throws GenerationException {
+    public void generate(GraphqlProject project) throws ServiceGenerationException {
         String outputPath = project.getOutputPath();
         try {
             List<SrcFilePojo> genSources = generateBalSources(project);
             writeGeneratedSources(genSources, Path.of(outputPath));
-        } catch (ServiceGenerationException | IOException e) {
-            throw new GenerationException(e.getMessage(), project.getName());
+        } catch (IOException e) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    e.getMessage());
         }
     }
 
-    public List<SrcFilePojo> generateBalSources(GraphqlProject project)
-            throws ServiceGenerationException, ServiceTypesGenerationException {
+    public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ServiceGenerationException {
         String projectName = project.getName();
         String fileName = project.getFileName();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
@@ -80,8 +79,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
     }
 
     private void generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema,
-                                      List<SrcFilePojo> sourceFiles)
-            throws ServiceTypesGenerationException {
+                                      List<SrcFilePojo> sourceFiles) throws ServiceGenerationException {
         this.serviceTypesGenerator.setFileName(fileName);
         String typesFileContent = this.serviceTypesGenerator.generateSrc(graphQLSchema);
         setServiceMethodDeclarations(this.serviceTypesGenerator.getServiceMethodDeclarations());

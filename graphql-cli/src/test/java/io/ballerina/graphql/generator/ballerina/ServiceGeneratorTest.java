@@ -24,7 +24,6 @@ import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
-import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceGenerator;
 import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;
 import org.testng.Assert;
@@ -66,7 +65,7 @@ public class ServiceGeneratorTest extends GraphqlTest {
             String writtenServiceTypesContent =
                     readContentWithFormat(this.tmpDir.resolve("service.bal"));
             Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
-        } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | ValidationException e) {
+        } catch (ServiceGenerationException | IOException | ValidationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -96,7 +95,7 @@ public class ServiceGeneratorTest extends GraphqlTest {
             String writtenServiceTypesContent =
                     readContentWithFormat(this.tmpDir.resolve("service.bal"));
             Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
-        } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | ValidationException e) {
+        } catch (ServiceGenerationException | IOException | ValidationException e) {
             Assert.fail(e.getMessage());
         }
     }

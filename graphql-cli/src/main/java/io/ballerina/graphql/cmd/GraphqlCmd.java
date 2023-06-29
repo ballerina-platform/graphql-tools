@@ -30,6 +30,7 @@ import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.generator.ClientCodeGenerator;
 import io.ballerina.graphql.generator.client.pojo.Extension;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
+import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
 import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
@@ -163,7 +164,7 @@ public class GraphqlCmd implements BLauncherCmd {
             validateInputFlags();
             executeOperation();
         } catch (CmdException | ParseException | ValidationException | GenerationException | IOException |
-                 SchemaFileGenerationException e) {
+                 SchemaFileGenerationException | ServiceGenerationException e) {
             outStream.println(e.getMessage());
             exitError(this.exitWhenFinish);
         }
@@ -248,7 +249,7 @@ public class GraphqlCmd implements BLauncherCmd {
      */
     private void executeOperation()
             throws CmdException, ParseException, IOException, ValidationException, GenerationException,
-            SchemaFileGenerationException {
+            SchemaFileGenerationException, ServiceGenerationException {
         String filePath = argList.get(0);
 
         if ((MODE_CLIENT.equals(mode) || mode == null) &&
@@ -285,15 +286,16 @@ public class GraphqlCmd implements BLauncherCmd {
         }
     }
 
-    private void generateService(String filePath) throws IOException, ValidationException, GenerationException {
+    private void generateService(String filePath)
+            throws IOException, ValidationException, GenerationException, ServiceGenerationException {
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
-            throw new ServiceGenerationException(String.format(Constants.MESSAGE_MISSING_SCHEMA_FILE, filePath),
-                    ROOT_PROJECT_NAME);
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    String.format(Constants.MESSAGE_MISSING_SCHEMA_FILE, filePath));
         }
         if (!graphqlFile.canRead()) {
-            throw new ServiceGenerationException(String.format(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE, filePath),
-                    ROOT_PROJECT_NAME);
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    String.format(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE, filePath));
         }
         GraphqlServiceProject graphqlProject =
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());

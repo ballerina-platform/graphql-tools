@@ -23,7 +23,7 @@ import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
-import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
+import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -61,7 +61,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -86,7 +86,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -111,7 +111,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -136,7 +136,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -161,7 +161,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -186,7 +186,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -215,7 +215,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -241,7 +241,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -267,7 +267,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -292,7 +292,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -317,7 +317,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent.trim(), writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -342,7 +342,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -367,7 +367,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -395,7 +395,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -420,7 +420,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -455,7 +455,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -480,7 +480,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -509,7 +509,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -537,7 +537,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -562,7 +562,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -588,7 +588,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -613,7 +613,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -638,7 +638,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -663,7 +663,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -688,7 +688,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -722,7 +722,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -748,7 +748,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -773,7 +773,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -801,7 +801,7 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
             String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
             String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
             Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
-        } catch (ValidationException | IOException | ServiceTypesGenerationException e) {
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
             Assert.fail(e.getMessage());
         }
     }

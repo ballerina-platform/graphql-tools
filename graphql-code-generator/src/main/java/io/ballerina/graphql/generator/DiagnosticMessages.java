@@ -24,10 +24,6 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
  * This {@code DiagnosticMessages} enum class represents the error messages related to service generation.
  */
 public enum DiagnosticMessages {
-    GRAPHQL_GEN_100("GRAPHQL_GEN_100", "Ballerina service code generation related error occurred. %s",
-            DiagnosticSeverity.ERROR),
-    GRAPHQL_GEN_101("GRAPHQL_GEN_101", "Ballerina service types code generation related error occurred. %s",
-            DiagnosticSeverity.ERROR),
     GRAPHQL_GEN_102("GRAPHQL_GEN_102", "Ballerina client code generation related error occurred.",
             DiagnosticSeverity.ERROR),
     GRAPHQL_GEN_103("GRAPHQL_GEN_103", "Ballerina utils code generation related error occurred.",
