@@ -24,9 +24,9 @@ import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.ClientCodeGenerationException;
 import io.ballerina.graphql.generator.client.generator.ClientCodeGenerator;
 import io.ballerina.graphql.generator.client.pojo.Extension;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
@@ -163,7 +163,7 @@ public class GraphqlCmd implements BLauncherCmd {
         try {
             validateInputFlags();
             executeOperation();
-        } catch (CmdException | ParseException | ValidationException | GenerationException | IOException |
+        } catch (CmdException | ParseException | ValidationException | ClientCodeGenerationException | IOException |
                  SchemaFileGenerationException | ServiceGenerationException e) {
             outStream.println(e.getMessage());
             exitError(this.exitWhenFinish);
@@ -243,12 +243,12 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws CmdException                  when a graphql command related error occurs
      * @throws ParseException                when a parsing related error occurs
      * @throws IOException                   If an I/O error occurs
-     * @throws GenerationException           when a graphql client generation related error occurs
+     * @throws ClientCodeGenerationException           when a graphql client generation related error occurs
      * @throws ValidationException           when validation related error occurs
      * @throws SchemaFileGenerationException when a SDL schema generation related error occurs
      */
     private void executeOperation()
-            throws CmdException, ParseException, IOException, ValidationException, GenerationException,
+            throws CmdException, ParseException, IOException, ValidationException, ClientCodeGenerationException,
             SchemaFileGenerationException, ServiceGenerationException {
         String filePath = argList.get(0);
 
@@ -270,10 +270,10 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws ParseException      when a parsing related error occurs
      * @throws IOException         If an I/O error occurs
      * @throws ValidationException when validation related error occurs
-     * @throws GenerationException when a code generation error occurs
+     * @throws ClientCodeGenerationException when a code generation error occurs
      */
     private void generateClient(String filePath)
-            throws ParseException, IOException, ValidationException, GenerationException {
+            throws ParseException, IOException, ValidationException, ClientCodeGenerationException {
         Config config = readConfig(filePath);
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = populateProjects(config);
@@ -287,7 +287,7 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private void generateService(String filePath)
-            throws IOException, ValidationException, GenerationException, ServiceGenerationException {
+            throws IOException, ValidationException, ServiceGenerationException {
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
             throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,

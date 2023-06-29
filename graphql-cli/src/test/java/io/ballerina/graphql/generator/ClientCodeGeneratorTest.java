@@ -24,6 +24,7 @@ import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.ClientCodeGenerationException;
 import io.ballerina.graphql.generator.client.generator.ClientCodeGenerator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -48,7 +49,7 @@ public class ClientCodeGeneratorTest extends GraphqlTest {
                 clientCodeGenerator.generate(project);
             }
             Assert.assertTrue(true);
-        } catch (GenerationException e) {
+        } catch (ClientCodeGenerationException e) {
             Assert.fail("Error while generating the code. " + e.getMessage());
         }
     }

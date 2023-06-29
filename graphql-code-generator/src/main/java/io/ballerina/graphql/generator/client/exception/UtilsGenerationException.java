@@ -18,14 +18,13 @@
 
 package io.ballerina.graphql.generator.client.exception;
 
-import io.ballerina.graphql.generator.DiagnosticMessages;
-import io.ballerina.graphql.generator.GenerationException;
+import io.ballerina.graphql.generator.client.diagnostic.ClientDiagnosticMessages;
 import io.ballerina.tools.diagnostics.Diagnostic;
 
 /**
  * Exception type definition for Ballerina utils code generation related errors.
  */
-public class UtilsGenerationException extends GenerationException {
+public class UtilsGenerationException extends ClientCodeGenerationException {
 
     public UtilsGenerationException(String message, Throwable e) {
         super(message, e);
@@ -36,7 +35,8 @@ public class UtilsGenerationException extends GenerationException {
     }
 
     public String getDiagnosticMessage() {
-        Diagnostic diagnostic = createDiagnostic(DiagnosticMessages.GRAPHQL_GEN_103, null, this.getMessage());
+        Diagnostic diagnostic =
+                createDiagnostic(ClientDiagnosticMessages.GRAPHQL_CLIENT_GEN_101, null, this.getErrMessage());
         return diagnostic.toString();
     }
 }
