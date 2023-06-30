@@ -69,7 +69,10 @@ public class ServiceFileCombiner {
         for (ModuleMemberDeclarationNode prevMember : prevMembers) {
             boolean foundMatch = false;
             for (ModuleMemberDeclarationNode nextMember : nextMembers) {
-                if (isMemberEquals(prevMember, nextMember)) {
+                if (canMemberBeSkipped(prevMember)) {
+                    break;
+                }
+                if (isNonSkippedMemberEquals(prevMember, nextMember)) {
                     foundMatch = true;
                     nextMemberAvailable.put(nextMember, true);
                     break;
@@ -91,6 +94,13 @@ public class ServiceFileCombiner {
         return newMembers;
     }
 
+    private boolean canMemberBeSkipped(ModuleMemberDeclarationNode member) {
+        if (!(member.kind() == SyntaxKind.SERVICE_DECLARATION)) {
+            return true;
+        }
+        return false;
+    }
+
     private void addMemberToRespectiveMemberList(ModuleMemberDeclarationNode member) {
         if (member.kind() == SyntaxKind.MODULE_VAR_DECL) {
             this.moduleVariables.add(member);
@@ -99,16 +109,12 @@ public class ServiceFileCombiner {
         }
     }
 
-    private boolean isMemberEquals(ModuleMemberDeclarationNode prevMember, ModuleMemberDeclarationNode nextMember) {
-        if (prevMember.kind() == SyntaxKind.SERVICE_DECLARATION
-                && nextMember.kind() == SyntaxKind.SERVICE_DECLARATION) {
-            ServiceDeclarationNode prevServiceDeclaration = (ServiceDeclarationNode) prevMember;
-            ServiceDeclarationNode nextServiceDeclaration = (ServiceDeclarationNode) nextMember;
-            if (isServiceDeclarationMatch(prevServiceDeclaration, nextServiceDeclaration)) {
-                return true;
-            }
+    private boolean isNonSkippedMemberEquals(ModuleMemberDeclarationNode prevMember,
+                                             ModuleMemberDeclarationNode nextMember) {
+        if (prevMember.kind() != nextMember.kind() || prevMember.kind() != SyntaxKind.SERVICE_DECLARATION) {
+            return false;
         }
-        return false;
+        return isServiceDeclarationMatch((ServiceDeclarationNode) prevMember, (ServiceDeclarationNode) nextMember);
     }
 
     private boolean isServiceDeclarationMatch(ServiceDeclarationNode prevServiceDeclaration,

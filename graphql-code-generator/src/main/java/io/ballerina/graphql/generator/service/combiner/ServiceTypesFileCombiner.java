@@ -20,7 +20,9 @@ import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createToken;
@@ -85,21 +87,45 @@ public class ServiceTypesFileCombiner {
     private List<ModuleMemberDeclarationNode> generateNewMembers(NodeList<ModuleMemberDeclarationNode> prevMembers,
                                                                  NodeList<ModuleMemberDeclarationNode> nextMembers) {
         List<ModuleMemberDeclarationNode> newMembers = new ArrayList<>();
+        HashMap<ModuleMemberDeclarationNode, Boolean> nextMemberAvailable = new HashMap<>();
         for (ModuleMemberDeclarationNode nextMember : nextMembers) {
-            boolean isFound = false;
-            for (ModuleMemberDeclarationNode prevMember : prevMembers) {
-                if (isMemberEquals(prevMember, nextMember)) {
-                    isFound = true;
+            nextMemberAvailable.put(nextMember, false);
+        }
+        for (ModuleMemberDeclarationNode prevMember : prevMembers) {
+            boolean foundMatch = false;
+            for (ModuleMemberDeclarationNode nextMember : nextMembers) {
+                if (canMemberBeSkipped(prevMember)) {
+                    break;
+                }
+                if (isNonSkippedMemberEquals(prevMember, nextMember)) {
+                    foundMatch = true;
+                    nextMemberAvailable.put(nextMember, true);
+                    break;
                 }
             }
-            if (!isFound) {
-                newMembers.add(nextMember);
+            if (!foundMatch) {
+                moduleMembers.add(prevMember);
+            }
+        }
+        for (Map.Entry<ModuleMemberDeclarationNode, Boolean> availableEntry : nextMemberAvailable.entrySet()) {
+            Boolean available = availableEntry.getValue();
+            if (!available) {
+                newMembers.add(availableEntry.getKey());
             }
         }
         return newMembers;
     }
 
-    private boolean isMemberEquals(ModuleMemberDeclarationNode prevMember, ModuleMemberDeclarationNode nextMember) {
+    private boolean canMemberBeSkipped(ModuleMemberDeclarationNode member) {
+        if (member.kind() != SyntaxKind.CLASS_DEFINITION && member.kind() != SyntaxKind.TYPE_DEFINITION && member
+                .kind() != SyntaxKind.ENUM_DECLARATION) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isNonSkippedMemberEquals(ModuleMemberDeclarationNode prevMember,
+                                             ModuleMemberDeclarationNode nextMember) {
         if (prevMember.kind() == SyntaxKind.CLASS_DEFINITION && nextMember.kind() == SyntaxKind.CLASS_DEFINITION) {
             ClassDefinitionNode prevClassDef = (ClassDefinitionNode) prevMember;
             ClassDefinitionNode nextClassDef = (ClassDefinitionNode) nextMember;
