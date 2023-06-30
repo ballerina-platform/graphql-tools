@@ -70,8 +70,7 @@ public class ServiceGeneratorTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test the successful generation of service code for schema with documentation in resolver " +
-            "functions")
+    @Test
     public void testGenerateServiceForSchemaWithDocumentationInResolverFunctions() {
         String fileName = "SchemaDocsWithMutationAndSubscriptionResolversApi";
         String expectedFile = "serviceForSchemaDocsWithMutationAndSubscriptionResolvers.bal";
