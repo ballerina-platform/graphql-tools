@@ -364,7 +364,6 @@ public class TypesGenerator {
      *
      * @param inlineRecordField     the object instance of the inline record field
      * @param selectionData         instance of Selection Data
-     * @return                      generated inline record field node
      */
     private void createInlineRecordField(Field inlineRecordField, SelectionData selectionData) {
         String inlineRecordFieldName = inlineRecordField.getName(); // continent

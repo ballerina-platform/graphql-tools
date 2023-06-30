@@ -15,8 +15,11 @@
  *
  */
 
-apply plugin: "com.github.johnrengelman.shadow"
-apply plugin: "jacoco"
+plugins {
+    id "com.github.johnrengelman.shadow"
+    id "jacoco"
+    id "checkstyle"
+}
 
 configurations.all {
     resolutionStrategy.preferProjectModules()
@@ -30,6 +33,9 @@ configurations {
 }
 
 dependencies {
+    checkstyle project(':checkstyle')
+    checkstyle "com.puppycrawl.tools:checkstyle:${project.puppycrawlCheckstyleVersion}"
+
     implementation project(':graphql-schema-file-generator')
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
@@ -53,6 +59,20 @@ dependencies {
         transitive = false
     }
 }
+
+def excludePattern = '**/module-info.java'
+tasks.withType(Checkstyle) {
+    exclude excludePattern
+}
+
+checkstyle {
+    toolVersion "${project.puppycrawlCheckstyleVersion}"
+    configFile rootProject.file("config/checkstyle/build/checkstyle.xml")
+    configProperties = ["suppressionFile" : file("${rootDir}/config/checkstyle/build/suppressions.xml")]
+}
+
+checkstyleMain.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
+checkstyleTest.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 
 def bDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")
 task jBallerinaPack {
@@ -144,7 +164,7 @@ test {
 }
 
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = "0.8.10"
     reportsDirectory = file("$rootProject.projectDir/build/reports/jacoco")
 }
 
