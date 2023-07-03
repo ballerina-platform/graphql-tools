@@ -227,6 +227,7 @@ directoryBuild.dependsOn(compileTestJava)
 directoryBuild.dependsOn(jar)
 directoryBuild.dependsOn ":${packageName}-cli:jacocoTestReport"
 directoryBuild.dependsOn(test)
+directoryBuild.dependsOn ":generatePomFileForMavenJavaPublication"
 build.dependsOn directoryBuild
 
 publish.dependsOn build
