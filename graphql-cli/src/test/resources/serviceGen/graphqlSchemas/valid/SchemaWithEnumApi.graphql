@@ -5,9 +5,16 @@ type Query {
 type Student {
     id: Int!
     name: String!
+    gender: Gender!
+    status: Status
 }
 
 enum Gender {
     MALE
     FEMALE
+}
+
+enum Status {
+    ONLINE
+    OFFLINE
 }

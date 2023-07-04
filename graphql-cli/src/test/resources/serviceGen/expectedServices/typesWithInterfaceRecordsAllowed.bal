@@ -11,10 +11,9 @@ public type Info distinct service object {
     resource function get name() returns string;
 };
 
-public distinct service class Book {
-    resource function get name() returns string {
-    }
-}
+public type Book record {|
+    string name;
+|};
 
 public distinct service class Student {
     *Info;

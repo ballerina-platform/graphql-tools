@@ -67,7 +67,6 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENS
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.TYPES_FILE_NAME;
 
 /**
  * Utility class for tests.
@@ -285,8 +284,8 @@ public class TestUtils {
         return true;
     }
 
-    public static void writeContentTo(String content, Path projectDir) throws IOException {
-        SrcFilePojo srcFile = new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, "root", TYPES_FILE_NAME, content);
+    public static void writeContentTo(String content, Path projectDir, String fileName) throws IOException {
+        SrcFilePojo srcFile = new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, "root", fileName, content);
         List<SrcFilePojo> srcFiles = new ArrayList<>();
         srcFiles.add(srcFile);
         writeSources(srcFiles, projectDir);

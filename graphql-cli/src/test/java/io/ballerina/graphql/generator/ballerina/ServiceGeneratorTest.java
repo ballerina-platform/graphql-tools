@@ -24,7 +24,6 @@ import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
-import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceGenerator;
 import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;
 import org.testng.Assert;
@@ -35,6 +34,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static io.ballerina.graphql.common.TestUtils.writeContentTo;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.SERVICE_FILE_NAME;
 
 /**
  * Test class for ServiceGenerator.
@@ -59,13 +59,42 @@ public class ServiceGeneratorTest extends GraphqlTest {
             serviceGenerator.setFileName(fileName);
             serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
             String generatedServiceContent = serviceGenerator.generateSrc();
-            writeContentTo(generatedServiceContent, this.tmpDir);
+            writeContentTo(generatedServiceContent, this.tmpDir, SERVICE_FILE_NAME);
             Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);
             String writtenServiceTypesContent =
-                    readContentWithFormat(this.tmpDir.resolve("types.bal"));
+                    readContentWithFormat(this.tmpDir.resolve("service.bal"));
             Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
-        } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | ValidationException e) {
+        } catch (ServiceGenerationException | IOException | ValidationException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testGenerateServiceForSchemaWithDocumentationInResolverFunctions() {
+        String fileName = "SchemaDocsWithMutationAndSubscriptionResolversApi";
+        String expectedFile = "serviceForSchemaDocsWithMutationAndSubscriptionResolvers.bal";
+        try {
+            GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                            .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setFileName(fileName);
+            serviceTypesGenerator.generateSrc(graphQLSchema);
+
+            ServiceGenerator serviceGenerator = new ServiceGenerator();
+            serviceGenerator.setFileName(fileName);
+            serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
+            String generatedServiceContent = serviceGenerator.generateSrc();
+            writeContentTo(generatedServiceContent, this.tmpDir, SERVICE_FILE_NAME);
+            Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceContent = readContentWithFormat(expectedServiceFile);
+            String writtenServiceTypesContent =
+                    readContentWithFormat(this.tmpDir.resolve("service.bal"));
+            Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
+        } catch (ServiceGenerationException | IOException | ValidationException e) {
             Assert.fail(e.getMessage());
         }
     }

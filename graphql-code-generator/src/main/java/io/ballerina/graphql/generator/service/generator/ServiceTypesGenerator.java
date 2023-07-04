@@ -86,7 +86,8 @@ import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.generator.ballerina.TypesGenerator;
 import io.ballerina.graphql.generator.service.Constants;
-import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
+import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
+import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
@@ -101,6 +102,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createCommentMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEndOfLineMinutiae;
@@ -136,6 +138,7 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createObjectTypeDesc
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createOptionalTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createQualifiedNameReferenceNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordFieldNode;
+import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordFieldWithDefaultValueNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRecordTypeDescriptorNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createRequiredParameterNode;
 import static io.ballerina.compiler.syntax.tree.NodeFactory.createReturnTypeDescriptorNode;
@@ -176,12 +179,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
         this.useRecordsForObjects = useRecordsForObjects;
     }
 
-    public String generateSrc(GraphQLSchema schema) throws ServiceTypesGenerationException {
+    public String generateSrc(GraphQLSchema schema) throws ServiceGenerationException {
         try {
             String generatedSyntaxTree = Formatter.format(this.generateSyntaxTree(schema)).toString();
             return Formatter.format(generatedSyntaxTree);
         } catch (FormatterException e) {
-            throw new ServiceTypesGenerationException(e.getMessage());
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102, null,
+                    e.getMessage());
         }
     }
 
@@ -197,7 +201,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         this.serviceMethodDeclarations = serviceMethodDeclarations;
     }
 
-    public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceTypesGenerationException {
+    public SyntaxTree generateSyntaxTree(GraphQLSchema schema) throws ServiceGenerationException {
         NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
         addServiceType(schema);
         addTypeDefinitions(schema);
@@ -211,7 +215,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         return syntaxTree.modifyWith(modulePartNode);
     }
 
-    private void addTypeDefinitions(GraphQLSchema schema) throws ServiceTypesGenerationException {
+    private void addTypeDefinitions(GraphQLSchema schema) throws ServiceGenerationException {
         this.canRecordFromObject = new LinkedHashMap<>();
         for (Map.Entry<String, GraphQLNamedType> typeEntry : schema.getTypeMap().entrySet()) {
             String key = typeEntry.getKey();
@@ -245,7 +249,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         moduleMembers.addAll(objectTypesModuleMembers);
     }
 
-    private void populateObjectTypesModuleMembers() throws ServiceTypesGenerationException {
+    private void populateObjectTypesModuleMembers() throws ServiceGenerationException {
         for (Map.Entry<GraphQLObjectType, Boolean> canRecordFromObjectItem : canRecordFromObject.entrySet()) {
             GraphQLObjectType nextObjectType = canRecordFromObjectItem.getKey();
             Boolean isPossible = canRecordFromObjectItem.getValue();
@@ -267,20 +271,20 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
     }
 
-    private void addUnionSubObjectTypesToMap(GraphQLUnionType unionType) throws ServiceTypesGenerationException {
+    private void addUnionSubObjectTypesToMap(GraphQLUnionType unionType) throws ServiceGenerationException {
         for (GraphQLNamedOutputType subType : unionType.getTypes()) {
             if (subType instanceof GraphQLObjectType) {
                 GraphQLObjectType subObjectType = (GraphQLObjectType) subType;
                 canRecordFromObject.put(subObjectType, false);
             } else {
-                throw new ServiceTypesGenerationException(
+                throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102, null,
                         String.format(Constants.NOT_ALLOWED_UNION_SUB_TYPE, subType.getName()));
             }
         }
     }
 
     private ModuleMemberDeclarationNode generateInterfaceType(GraphQLInterfaceType interfaceType)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         ObjectTypeDescriptorNode interfaceObjectType =
                 createObjectTypeDescriptorNode(createNodeList(createToken(SyntaxKind.SERVICE_KEYWORD)),
                         createToken(SyntaxKind.OBJECT_KEYWORD), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
@@ -288,7 +292,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 interfaceType.getFields()), createToken(SyntaxKind.CLOSE_BRACE_TOKEN));
         DistinctTypeDescriptorNode distinctInterfaceObjectType =
                 createDistinctTypeDescriptorNode(createToken(SyntaxKind.DISTINCT_KEYWORD), interfaceObjectType);
-        return createTypeDefinitionNode(generateMetadataForDescription(interfaceType.getDescription()),
+        return createTypeDefinitionNode(generateMetadataForDescription(interfaceType.getDescription(), false),
                 createToken(SyntaxKind.PUBLIC_KEYWORD), createToken(SyntaxKind.TYPE_KEYWORD),
                 createIdentifierToken(interfaceType.getName()), distinctInterfaceObjectType,
                 createToken(SyntaxKind.SEMICOLON_TOKEN));
@@ -296,7 +300,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private NodeList<Node> generateInterfaceTypeDescriptorMembers(List<GraphQLNamedOutputType> interfaces,
                                                                   List<GraphQLFieldDefinition> fields)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         List<Node> members = new LinkedList<>();
         List<GraphQLNamedOutputType> filteredInterfaces = getInterfacesToBeWritten(interfaces);
         List<GraphQLFieldDefinition> filteredFields = getFieldsToBeWritten(fields, filteredInterfaces);
@@ -319,7 +323,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             generateMethodSignatureReturnType(field.getType()));
             MethodDeclarationNode methodDeclaration = createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION,
                     generateMetadata(field.getDescription(), field.getArguments(), field.isDeprecated(),
-                            field.getDeprecationReason()), resourceQualifier, createToken(SyntaxKind.FUNCTION_KEYWORD),
+                            field.getDeprecationReason(), false), resourceQualifier,
+                    createToken(SyntaxKind.FUNCTION_KEYWORD),
                     createIdentifierToken(CodeGeneratorConstants.GET), fieldName, methodSignatureNode,
                     createToken(SyntaxKind.SEMICOLON_TOKEN));
             members.add(methodDeclaration);
@@ -402,7 +407,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
             GraphQLEnumValueDefinition enumValue = enumValues.get(valueIdx);
             EnumMemberNode enumMember = createEnumMemberNode(
                     generateMetadata(enumValue.getDescription(), null, enumValue.isDeprecated(),
-                            enumValue.getDeprecationReason()), createIdentifierToken(enumValue.getName()), null, null);
+                            enumValue.getDeprecationReason(), false), createIdentifierToken(enumValue.getName()), null,
+                    null);
             enumMembers.add(enumMember);
             if (valueIdx != enumValues.size() - 1) {
                 enumMembers.add(createToken(SyntaxKind.COMMA_TOKEN, createEmptyMinutiaeList(),
@@ -417,7 +423,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private ModuleMemberDeclarationNode generateRecordType(GraphQLInputObjectType type)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         List<GraphQLInputObjectField> typeFields = type.getFields();
         NodeList<Node> recordTypeFields = generateRecordTypeFieldsForGraphQLInputObjectFields(typeFields);
         RecordTypeDescriptorNode recordType = createRecordTypeDescriptorNode(createToken(SyntaxKind.RECORD_KEYWORD),
@@ -428,8 +434,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 createIdentifierToken(type.getName()), recordType, createToken(SyntaxKind.SEMICOLON_TOKEN));
     }
 
-    private ModuleMemberDeclarationNode generateRecordType(GraphQLObjectType type)
-            throws ServiceTypesGenerationException {
+    private ModuleMemberDeclarationNode generateRecordType(GraphQLObjectType type) throws ServiceGenerationException {
         List<GraphQLFieldDefinition> typeFields = type.getFields();
         NodeList<Node> recordTypeFields = generateRecordTypeFieldsForGraphQLFieldDefinitions(typeFields);
         RecordTypeDescriptorNode recordType = createRecordTypeDescriptorNode(createToken(SyntaxKind.RECORD_KEYWORD),
@@ -442,24 +447,33 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private NodeList<Node> generateRecordTypeFieldsForGraphQLInputObjectFields(
-            List<GraphQLInputObjectField> inputTypeFields) throws ServiceTypesGenerationException {
+            List<GraphQLInputObjectField> inputTypeFields) throws ServiceGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLInputObjectField field : inputTypeFields) {
-            fields.add(createRecordFieldNode(
-                    generateMetadata(field.getDescription(), null, field.isDeprecated(), field.getDeprecationReason()),
-                    null, generateTypeDescriptor(field.getType()), createIdentifierToken(field.getName()), null,
-                    createToken(SyntaxKind.SEMICOLON_TOKEN)));
+            if (field.hasSetDefaultValue()) {
+                Object value = field.getInputFieldDefaultValue().getValue();
+                ExpressionNode generatedDefaultValue = generateArgDefaultValue(value);
+                fields.add(createRecordFieldWithDefaultValueNode(
+                        generateMetadata(field.getDescription(), null, field.isDeprecated(),
+                                field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
+                        createIdentifierToken(field.getName()), createToken(SyntaxKind.EQUAL_TOKEN),
+                        generatedDefaultValue, createToken(SyntaxKind.SEMICOLON_TOKEN)));
+            } else {
+                fields.add(createRecordFieldNode(generateMetadata(field.getDescription(), null, field.isDeprecated(),
+                                field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
+                        createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
+            }
         }
         return createNodeList(fields);
     }
 
     private NodeList<Node> generateRecordTypeFieldsForGraphQLFieldDefinitions(
-            List<GraphQLFieldDefinition> typeInputFields) throws ServiceTypesGenerationException {
+            List<GraphQLFieldDefinition> typeInputFields) throws ServiceGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLFieldDefinition field : typeInputFields) {
             fields.add(createRecordFieldNode(
                     generateMetadata(field.getDescription(), field.getArguments(), field.isDeprecated(),
-                            field.getDeprecationReason()), null, generateTypeDescriptor(field.getType()),
+                            field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
                     createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
         }
         return createNodeList(fields);
@@ -475,8 +489,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         return false;
     }
 
-    private ClassDefinitionNode generateServiceClassType(GraphQLObjectType type)
-            throws ServiceTypesGenerationException {
+    private ClassDefinitionNode generateServiceClassType(GraphQLObjectType type) throws ServiceGenerationException {
         NodeList<Token> qualifierDistinctService = createNodeList(new ArrayList<>(
                 List.of(createToken(SyntaxKind.DISTINCT_KEYWORD), createToken(SyntaxKind.SERVICE_KEYWORD))));
         List<Node> serviceClassTypeMembersList = new ArrayList<>();
@@ -490,15 +503,19 @@ public class ServiceTypesGenerator extends TypesGenerator {
         }
 
         NodeList<Node> serviceClassTypeMembers = createNodeList(serviceClassTypeMembersList);
-        return createClassDefinitionNode(generateMetadataForDescription(type.getDescription()),
+        return createClassDefinitionNode(generateMetadataForDescription(type.getDescription(), false),
                 createToken(SyntaxKind.PUBLIC_KEYWORD), qualifierDistinctService, createToken(SyntaxKind.CLASS_KEYWORD),
                 createIdentifierToken(type.getName()), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
                 serviceClassTypeMembers, createToken(SyntaxKind.CLOSE_BRACE_TOKEN), null);
     }
 
     private MetadataNode generateMetadataForDescription(String description) {
+        return generateMetadataForDescription(description, false);
+    }
+
+    private MetadataNode generateMetadataForDescription(String description, boolean addAdditionalNewLine) {
         if (description != null) {
-            List<Node> documentationLines = generateMarkdownDocumentationLines(description);
+            List<Node> documentationLines = generateMarkdownDocumentationLines(description, addAdditionalNewLine);
             return createMetadataNode(createMarkdownDocumentationNode(createNodeList(documentationLines)),
                     createEmptyNodeList());
         } else {
@@ -507,12 +524,12 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private NodeList<Node> generateServiceClassTypeMembers(List<GraphQLFieldDefinition> fields)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         List<Node> members = new ArrayList<>();
         for (int fieldIdx = 0; fieldIdx < fields.size(); fieldIdx++) {
             GraphQLFieldDefinition field = fields.get(fieldIdx);
             boolean addAdditionalNewLine = true;
-            if (fieldIdx == fields.size() - 1) {
+            if (fieldIdx == 0) {
                 addAdditionalNewLine = false;
             }
             FunctionDefinitionNode functionDefinition = generateServiceClassTypeMember(field, addAdditionalNewLine);
@@ -523,8 +540,15 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private FunctionDefinitionNode generateServiceClassTypeMember(GraphQLFieldDefinition fieldDefinition,
                                                                   boolean addAdditionalNewLine)
-            throws ServiceTypesGenerationException {
-        NodeList<Token> qualifierResource = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD));
+            throws ServiceGenerationException {
+        MinutiaeList resourceLeadingMinutiaeList = createEmptyMinutiaeList();
+        if (addAdditionalNewLine) {
+            resourceLeadingMinutiaeList =
+                    resourceLeadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+        }
+        NodeList<Token> qualifierResource = createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD,
+                resourceLeadingMinutiaeList,
+                createEmptyMinutiaeList()));
         NodeList<Node> fieldName = createNodeList(createIdentifierToken(fieldDefinition.getName()));
         FunctionSignatureNode functionSignature = createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
                 generateMethodSignatureParams(fieldDefinition.getArguments()),
@@ -532,22 +556,19 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 generateMethodSignatureReturnType(fieldDefinition.getType()));
         MinutiaeList functionBodyTraillingMinutiaeList =
                 createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
-        if (addAdditionalNewLine) {
-            functionBodyTraillingMinutiaeList =
-                    functionBodyTraillingMinutiaeList.add(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
-        }
         FunctionBodyBlockNode functionBody =
                 createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
                         createToken(SyntaxKind.CLOSE_BRACE_TOKEN, createEmptyMinutiaeList(),
                                 functionBodyTraillingMinutiaeList), null);
         return createFunctionDefinitionNode(SyntaxKind.RESOURCE_ACCESSOR_DEFINITION,
                 generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                        fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason()), qualifierResource,
+                        fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason(), addAdditionalNewLine),
+                qualifierResource,
                 createToken(SyntaxKind.FUNCTION_KEYWORD), createIdentifierToken(CodeGeneratorConstants.GET), fieldName,
                 functionSignature, functionBody);
     }
 
-    private void addServiceType(GraphQLSchema schema) throws ServiceTypesGenerationException {
+    private void addServiceType(GraphQLSchema schema) throws ServiceGenerationException {
         ObjectTypeDescriptorNode serviceObject =
                 createObjectTypeDescriptorNode(createNodeList(createToken(SyntaxKind.SERVICE_KEYWORD)),
                         createToken(SyntaxKind.OBJECT_KEYWORD), createToken(SyntaxKind.OPEN_BRACE_TOKEN),
@@ -558,7 +579,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         moduleMembers.add(serviceObjectDefinition);
     }
 
-    private NodeList<Node> generateServiceObjectMembers(GraphQLSchema schema) throws ServiceTypesGenerationException {
+    private NodeList<Node> generateServiceObjectMembers(GraphQLSchema schema) throws ServiceGenerationException {
         List<Node> members = new ArrayList<>();
         QualifiedNameReferenceNode graphqlServiceName =
                 createQualifiedNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
@@ -579,7 +600,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private List<MethodDeclarationNode> generateServiceMethodDeclarations(GraphQLObjectType queryType,
                                                                           GraphQLObjectType mutationType,
                                                                           GraphQLObjectType subscriptionType)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         List<MethodDeclarationNode> methodDeclarations = new ArrayList<>();
         handleQueryTypeMethodDeclarations(queryType, methodDeclarations);
         handleMutationTypeMethodDeclarations(mutationType, methodDeclarations);
@@ -589,7 +610,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private void handleSubscriptionTypeMethodDeclarations(GraphQLObjectType subscriptionType,
                                                           List<MethodDeclarationNode> methodDeclarations)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         if (subscriptionType != null) {
             for (GraphQLFieldDefinition fieldDefinition : subscriptionType.getFieldDefinitions()) {
                 FunctionSignatureNode methodSignatureNode =
@@ -599,7 +620,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureReturnType(fieldDefinition.getType(), true));
                 MetadataNode metadata =
                         generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
+                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason(), false);
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, metadata,
                                 createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
@@ -614,7 +635,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private void handleMutationTypeMethodDeclarations(GraphQLObjectType mutationType,
                                                       List<MethodDeclarationNode> methodDeclarations)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         if (mutationType != null) {
             for (GraphQLFieldDefinition fieldDefinition : mutationType.getFieldDefinitions()) {
                 FunctionSignatureNode methodSignatureNode =
@@ -624,7 +645,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                                 generateMethodSignatureReturnType(fieldDefinition.getType(), false));
                 MetadataNode metadata =
                         generateMetadata(fieldDefinition.getDescription(), fieldDefinition.getArguments(),
-                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason());
+                                fieldDefinition.isDeprecated(), fieldDefinition.getDeprecationReason(), false);
                 MethodDeclarationNode methodDeclaration =
                         createMethodDeclarationNode(SyntaxKind.METHOD_DECLARATION, metadata,
                                 createNodeList(createToken(SyntaxKind.REMOTE_KEYWORD)),
@@ -639,7 +660,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
 
     private void handleQueryTypeMethodDeclarations(GraphQLObjectType queryType,
                                                    List<MethodDeclarationNode> methodDeclarations)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         for (GraphQLFieldDefinition field : queryType.getFieldDefinitions()) {
             FunctionSignatureNode methodSignature =
                     createFunctionSignatureNode(createToken(SyntaxKind.OPEN_PAREN_TOKEN),
@@ -647,7 +668,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
                             createToken(SyntaxKind.CLOSE_PAREN_TOKEN),
                             generateMethodSignatureReturnType(field.getType(), false));
             MetadataNode metadata = generateMetadata(field.getDescription(), field.getArguments(), field.isDeprecated(),
-                    field.getDeprecationReason());
+                    field.getDeprecationReason(), false);
             MethodDeclarationNode methodDeclaration =
                     createMethodDeclarationNode(SyntaxKind.RESOURCE_ACCESSOR_DECLARATION, metadata,
                             createNodeList(createToken(SyntaxKind.RESOURCE_KEYWORD)),
@@ -659,38 +680,60 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private MetadataNode generateMetadata(String description, List<GraphQLArgument> arguments, boolean isDeprecated,
-                                          String deprecationReason) {
+                                          String deprecationReason, boolean addNewLineInFront) {
         List<AnnotationNode> annotations = new ArrayList<>();
-        List<Node> markdownDocumentationLines = new ArrayList<>(generateMarkdownDocumentationLines(description));
+        List<Node> markdownDocumentationLines = new ArrayList<>();
+        if (description != null) {
+            markdownDocumentationLines = new ArrayList<>(
+                    generateMarkdownDocumentationLines(description, addNewLineInFront));
+            addNewLineInFront = false;
+        }
+
         if (arguments != null) {
             for (GraphQLArgument argument : arguments) {
-                markdownDocumentationLines.addAll(generateMarkdownParameterDocumentationLines(argument));
+                markdownDocumentationLines.addAll(
+                        generateMarkdownParameterDocumentationLines(argument, addNewLineInFront));
+                addNewLineInFront = false;
             }
         }
         if (isDeprecated) {
             AnnotationNode annotation = createAnnotationNode(createToken(SyntaxKind.AT_TOKEN),
                     createSimpleNameReferenceNode(createIdentifierToken(CodeGeneratorConstants.DEPRECATED)), null);
             annotations.add(annotation);
-            markdownDocumentationLines.addAll(generateMarkdownDocumentationLinesForDeprecated(deprecationReason));
+            markdownDocumentationLines.addAll(
+                    generateMarkdownDocumentationLinesForDeprecated(deprecationReason, addNewLineInFront));
+            addNewLineInFront = false;
         }
-        return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
-                createNodeList(annotations));
+        if (markdownDocumentationLines.isEmpty() && annotations.isEmpty()) {
+            return null;
+        } else {
+            return createMetadataNode(createMarkdownDocumentationNode(createNodeList(markdownDocumentationLines)),
+                    createNodeList(annotations));
+        }
     }
 
-    private List<Node> generateMarkdownDocumentationLinesForDeprecated(String deprecationReason) {
+    private List<Node> generateMarkdownDocumentationLinesForDeprecated(String deprecationReason,
+                                                                       boolean addNewLineInFront) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
+        MinutiaeList leadingMinutiaeList = createEmptyMinutiaeList();
+        if (addNewLineInFront) {
+            leadingMinutiaeList = leadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+            addNewLineInFront = false;
+        }
         markdownDocumentationLines.add(
                 createMarkdownDocumentationLineNode(SyntaxKind.MARKDOWN_DEPRECATION_DOCUMENTATION_LINE,
-                        createToken(SyntaxKind.HASH_TOKEN), createNodeList(
+                        createToken(SyntaxKind.HASH_TOKEN, leadingMinutiaeList, createEmptyMinutiaeList()),
+                        createNodeList(
                                 createLiteralValueToken(SyntaxKind.DEPRECATION_LITERAL,
                                         CodeGeneratorConstants.HASH_DEPRECATED, createEmptyMinutiaeList(),
                                         createMinutiaeList(
                                                 createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE))))));
-        markdownDocumentationLines.addAll(generateMarkdownDocumentationLines(deprecationReason));
+        markdownDocumentationLines.addAll(generateMarkdownDocumentationLines(deprecationReason, false));
         return markdownDocumentationLines;
     }
 
-    private List<Node> generateMarkdownParameterDocumentationLines(GraphQLArgument argument) {
+    private List<Node> generateMarkdownParameterDocumentationLines(GraphQLArgument argument,
+                                                                   boolean addNewLineInFront) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
         if (argument.getDescription() != null) {
             String[] lines = argument.getDescription().split(CodeGeneratorConstants.NEW_LINE);
@@ -698,17 +741,22 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 String line = lines[lineIdx];
                 if (lineIdx == 0) {
                     markdownDocumentationLines.add(
-                            generateMarkdownParameterDocumentationLine(line, argument.getName()));
+                            generateMarkdownParameterDocumentationLine(line, argument.getName(), addNewLineInFront));
+                    addNewLineInFront = false;
                 } else {
-                    markdownDocumentationLines.add(generateMarkdownDocumentationLine(line));
+                    markdownDocumentationLines.add(generateMarkdownDocumentationLine(line, addNewLineInFront));
                 }
             }
         }
         return markdownDocumentationLines;
     }
 
-    private MarkdownParameterDocumentationLineNode generateMarkdownParameterDocumentationLine(String descriptionLine,
-                                                                                              String argumentName) {
+    private MarkdownParameterDocumentationLineNode generateMarkdownParameterDocumentationLine
+            (String descriptionLine, String argumentName, boolean addNewLineInFront) {
+        MinutiaeList leadingMinutiaeList = createEmptyMinutiaeList();
+        if (addNewLineInFront) {
+            leadingMinutiaeList = leadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+        }
         LiteralValueToken parameterName =
                 createLiteralValueToken(SyntaxKind.PARAMETER_NAME, argumentName, createEmptyMinutiaeList(),
                         createMinutiaeList(createWhitespaceMinutiae(CodeGeneratorConstants.WHITESPACE)));
@@ -717,32 +765,41 @@ public class ServiceTypesGenerator extends TypesGenerator {
                         createEmptyMinutiaeList(),
                         createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE))));
         return createMarkdownParameterDocumentationLineNode(SyntaxKind.MARKDOWN_PARAMETER_DOCUMENTATION_LINE,
-                createToken(SyntaxKind.HASH_TOKEN), createToken(SyntaxKind.PLUS_TOKEN), parameterName,
+                createToken(SyntaxKind.HASH_TOKEN, leadingMinutiaeList, createEmptyMinutiaeList()),
+                createToken(SyntaxKind.PLUS_TOKEN),
+                parameterName,
                 createToken(SyntaxKind.MINUS_TOKEN), parameterDescription);
     }
 
-    private List<Node> generateMarkdownDocumentationLines(String description) {
+    private List<Node> generateMarkdownDocumentationLines(String description, boolean addNewLineInFront) {
         List<Node> markdownDocumentationLines = new ArrayList<>();
         if (description != null) {
             String[] lines = description.split(CodeGeneratorConstants.NEW_LINE);
             for (String line : lines) {
-                MarkdownDocumentationLineNode markdownDocumentationLine = generateMarkdownDocumentationLine(line);
+                MarkdownDocumentationLineNode markdownDocumentationLine =
+                        generateMarkdownDocumentationLine(line, addNewLineInFront);
                 markdownDocumentationLines.add(markdownDocumentationLine);
+                addNewLineInFront = false;
             }
         }
         return markdownDocumentationLines;
     }
 
-    private MarkdownDocumentationLineNode generateMarkdownDocumentationLine(String descriptionLine) {
+    private MarkdownDocumentationLineNode generateMarkdownDocumentationLine(String descriptionLine,
+                                                                            boolean addNewLineInFront) {
+        MinutiaeList leadingMinutiaeList = createEmptyMinutiaeList();
+        if (addNewLineInFront) {
+            leadingMinutiaeList = leadingMinutiaeList.add(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+        }
         return createMarkdownDocumentationLineNode(SyntaxKind.MARKDOWN_DOCUMENTATION_LINE,
-                createToken(SyntaxKind.HASH_TOKEN), createNodeList(
+                createToken(SyntaxKind.HASH_TOKEN, leadingMinutiaeList, createEmptyMinutiaeList()), createNodeList(
                         createLiteralValueToken(SyntaxKind.DOCUMENTATION_DESCRIPTION, descriptionLine,
                                 createEmptyMinutiaeList(),
                                 createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE)))));
     }
 
     private ReturnTypeDescriptorNode generateMethodSignatureReturnType(GraphQLOutputType type, boolean isStream)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         TypeDescriptorNode typeDescriptor = generateTypeDescriptor(type);
         if (isStream) {
             StreamTypeDescriptorNode streamTypeDescriptor =
@@ -758,12 +815,12 @@ public class ServiceTypesGenerator extends TypesGenerator {
     }
 
     private ReturnTypeDescriptorNode generateMethodSignatureReturnType(GraphQLOutputType type)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         return generateMethodSignatureReturnType(type, false);
     }
 
     private SeparatedNodeList<ParameterNode> generateMethodSignatureParams(List<GraphQLArgument> arguments)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         List<Node> params = new ArrayList<>();
         List<DefaultableParameterNode> defaultParams = new ArrayList<>();
         List<RequiredParameterNode> requiredParams = new ArrayList<>();
@@ -802,7 +859,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         return createSeparatedNodeList(params);
     }
 
-    private ExpressionNode generateArgDefaultValue(Object value) throws ServiceTypesGenerationException {
+    private ExpressionNode generateArgDefaultValue(Object value) throws ServiceGenerationException {
         if (value instanceof FloatValue) {
             FloatValue floatValue = (FloatValue) value;
             return createBasicLiteralNode(SyntaxKind.NUMERIC_LITERAL,
@@ -858,13 +915,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
             return createListConstructorExpressionNode(createToken(SyntaxKind.OPEN_BRACKET_TOKEN),
                     createSeparatedNodeList(arrayElementExpressions), createToken(SyntaxKind.CLOSE_BRACKET_TOKEN));
         } else {
-            throw new ServiceTypesGenerationException(
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102, null,
                     String.format(Constants.UNSUPPORTED_DEFAULT_ARGUMENT_VALUE, value.getClass().getName()));
         }
     }
 
     private TypeDescriptorNode generateTypeDescriptor(GraphQLType type, boolean nonNull)
-            throws ServiceTypesGenerationException {
+            throws ServiceGenerationException {
         if (type instanceof GraphQLScalarType) {
             GraphQLScalarType scalarType = (GraphQLScalarType) type;
             NameReferenceNode scalarName;
@@ -942,16 +999,16 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 return createOptionalTypeDescriptorNode(arrayTypeNode, createToken(SyntaxKind.QUESTION_MARK_TOKEN));
             }
         } else {
-            throw new ServiceTypesGenerationException(
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102, null,
                     String.format(Constants.UNSUPPORTED_TYPE, type.getClass().getName()));
         }
     }
 
-    private TypeDescriptorNode generateTypeDescriptor(GraphQLType argumentType) throws ServiceTypesGenerationException {
+    private TypeDescriptorNode generateTypeDescriptor(GraphQLType argumentType) throws ServiceGenerationException {
         return generateTypeDescriptor(argumentType, false);
     }
 
-    private SyntaxKind getTypeKeywordFor(String typeName) throws ServiceTypesGenerationException {
+    private SyntaxKind getTypeKeywordFor(String typeName) throws ServiceGenerationException {
         if (CodeGeneratorConstants.GRAPHQL_STRING_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_KEYWORD;
         } else if (CodeGeneratorConstants.GRAPHQL_INT_TYPE.equals(typeName)) {
@@ -963,11 +1020,12 @@ public class ServiceTypesGenerator extends TypesGenerator {
         } else if (CodeGeneratorConstants.GRAPHQL_ID_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_KEYWORD;
         } else {
-            throw new ServiceTypesGenerationException(String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102, null,
+                    String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
         }
     }
 
-    private SyntaxKind getTypeDescFor(String typeName) throws ServiceTypesGenerationException {
+    private SyntaxKind getTypeDescFor(String typeName) throws ServiceGenerationException {
         if (CodeGeneratorConstants.GRAPHQL_STRING_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_TYPE_DESC;
         } else if (CodeGeneratorConstants.GRAPHQL_INT_TYPE.equals(typeName)) {
@@ -979,7 +1037,8 @@ public class ServiceTypesGenerator extends TypesGenerator {
         } else if (CodeGeneratorConstants.GRAPHQL_ID_TYPE.equals(typeName)) {
             return SyntaxKind.STRING_TYPE_DESC;
         } else {
-            throw new ServiceTypesGenerationException(String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102, null,
+                    String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
         }
     }
 }

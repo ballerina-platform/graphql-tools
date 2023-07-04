@@ -18,27 +18,44 @@
 
 package io.ballerina.graphql.generator.service.exception;
 
-import io.ballerina.graphql.generator.DiagnosticMessages;
-import io.ballerina.graphql.generator.GenerationException;
+import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
+import io.ballerina.graphql.generator.utils.NullLocation;
 import io.ballerina.tools.diagnostics.Diagnostic;
+import io.ballerina.tools.diagnostics.DiagnosticInfo;
+import io.ballerina.tools.diagnostics.Location;
+
+import static io.ballerina.tools.diagnostics.DiagnosticFactory.createDiagnostic;
 
 /**
- * Exception type definition for Ballerina service code generation related errors.
+ * Exception type definition for Ballerina GraphQL service generation related errors.
  */
-public class ServiceGenerationException extends GenerationException {
-    public ServiceGenerationException(String errMessage) {
-        super(errMessage);
+public class ServiceGenerationException extends Exception {
+    private final Diagnostic diagnostic;
+
+    public ServiceGenerationException(ServiceDiagnosticMessages diagnosticMessage, Location location,
+                                      String... args) {
+        super(diagnosticMessage.getDescription());
+        this.diagnostic = createDiagnostic(generateDiagnosticInfo(diagnosticMessage, args),
+                getLocation(location));
     }
 
-    public ServiceGenerationException(String errMessage, String projectName) {
-        super(errMessage, projectName);
-    }
-
-    @Override
     public String getMessage() {
-        Diagnostic diagnostic = createDiagnostic(DiagnosticMessages.GRAPHQL_GEN_100, this.getLocation(),
-                this.getErrMessage());
-        return diagnostic.toString();
+        return this.diagnostic.toString();
     }
 
+    private String generateDescription(ServiceDiagnosticMessages diagnosticMessage, String... args) {
+        return String.format(diagnosticMessage.getDescription(), (Object[]) args);
+    }
+
+    private DiagnosticInfo generateDiagnosticInfo(ServiceDiagnosticMessages diagnosticMessage, String... args) {
+        return new DiagnosticInfo(diagnosticMessage.getCode(), generateDescription(diagnosticMessage, args),
+                diagnosticMessage.getSeverity());
+    }
+
+    private Location getLocation(Location location) {
+        if (location == null) {
+            return NullLocation.getInstance();
+        }
+        return location;
+    }
 }

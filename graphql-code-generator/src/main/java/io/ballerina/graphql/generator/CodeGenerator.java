@@ -18,6 +18,8 @@
 
 package io.ballerina.graphql.generator;
 
+import io.ballerina.graphql.generator.client.exception.ClientCodeGenerationException;
+import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
@@ -34,9 +36,10 @@ public abstract class CodeGenerator {
      * Generates the code for a given GraphQL project.
      *
      * @param project the instance of the GraphQL project
-     * @throws GenerationException when a code generation error occurs
+     * @throws ClientCodeGenerationException when a code generation error occurs
      */
-    public abstract void generate(GraphqlProject project) throws GenerationException;
+    public abstract void generate(GraphqlProject project)
+            throws ClientCodeGenerationException, ServiceGenerationException;
 
     /**
      * Writes the generated Ballerina source codes to the files in the specified {@code outputPath}.

@@ -1,23 +1,22 @@
 import ballerina/graphql;
 
-type SchemaWithInterfaceApi service object {
+type SchemaWithUnionApi service object {
     *graphql:Service;
-    resource function get studentInfo(int id) returns Info?;
-    resource function get teacherInfo(int id) returns Info;
-    resource function get book(string name) returns Book;
+    resource function get student(int id) returns Profile?;
+    resource function get teacher(int id) returns Profile?;
 };
 
-public type Info distinct service object {
-    resource function get name() returns string;
-};
+public type Profile Student|Teacher|Clerk;
 
-public distinct service class Book {
+public distinct service class Clerk {
+    resource function get id() returns int {
+    }
+
     resource function get name() returns string {
     }
 }
 
 public distinct service class Student {
-    *Info;
     resource function get id() returns int {
     }
 
@@ -26,7 +25,6 @@ public distinct service class Student {
 }
 
 public distinct service class Teacher {
-    *Info;
     resource function get id() returns int {
     }
 

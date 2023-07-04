@@ -23,6 +23,7 @@ import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.projects.DiagnosticResult;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -54,6 +55,19 @@ public class ServiceGenerationTest extends GraphqlTest {
     @AfterClass
     public void removeBalTomlFile() throws IOException {
         Files.deleteIfExists(this.tmpDir.resolve(balTomlPath.getFileName()));
+    }
+
+    @AfterMethod
+    public void afterTestCase() {
+        File directory = new File(this.tmpDir.toString());
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            for (File file : files) {
+                if (file.isFile() && !file.getName().endsWith("Ballerina.toml")) {
+                    file.delete();
+                }
+            }
+        }
     }
 
     @Test(description = "Test graphql command execution for service generation with invalid schema")
@@ -112,8 +126,10 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(groups = {"invalid_permission"},
-            description = "Test GraphQL command execution with schema file without read permission")
+    @Test(
+            groups = {"invalid_permission"},
+            description = "Test GraphQL command execution with schema file without read permission"
+    )
     public void testExecuteWithSchemaFileWithoutReadPermission() {
         Path graphqlSchema = Paths.get(tmpDir.toString(), "schema.graphql");
         String[] args = {"-i", graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
@@ -150,8 +166,10 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "SchemaCompleteApi.graphql"};
     }
 
-    @Test(description = "Test compilation for all schemas without use-records-for-objects flag", dataProvider =
-            "schemaFileNames")
+    @Test(
+            description = "Test compilation for all schemas without use-records-for-objects flag",
+            dataProvider = "schemaFileNames"
+    )
     public void testCompilationForAllSchemas(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
         String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
@@ -166,8 +184,10 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test compilation for all schemas with use-records-for-objects flag",
-            dataProvider = "schemaFileNames")
+    @Test(
+            description = "Test compilation for all schemas with use-records-for-objects flag",
+            dataProvider = "schemaFileNames"
+    )
     public void testCompilationForAllSchemasWithUseRecordsForObjects(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
         String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service",

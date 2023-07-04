@@ -24,6 +24,9 @@ import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.MarkdownDocumentationLineNode;
+import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MinutiaeList;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
@@ -43,6 +46,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
+import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.tools.text.TextDocument;
@@ -54,9 +58,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createCommentMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
-import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEndOfLineMinutiae;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createIdentifierToken;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
@@ -89,11 +93,14 @@ public class ServiceGenerator {
     private String fileName;
     private List<MethodDeclarationNode> methodDeclarations;
 
-    private SyntaxTree generateSyntaxTree() throws IOException {
+    public ModulePartNode generateContentNode() {
         NodeList<ImportDeclarationNode> imports = CodeGeneratorUtils.generateImports();
         NodeList<ModuleMemberDeclarationNode> serviceBody = generateMembers();
-        ModulePartNode modulePartNode = createModulePartNode(imports, serviceBody, createToken(SyntaxKind.EOF_TOKEN));
+        return createModulePartNode(imports, serviceBody, createToken(SyntaxKind.EOF_TOKEN));
+    }
 
+    private SyntaxTree generateSyntaxTree() throws IOException {
+        ModulePartNode modulePartNode = generateContentNode();
         TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
         return syntaxTree.modifyWith(modulePartNode);
@@ -137,25 +144,66 @@ public class ServiceGenerator {
         for (int methodDeclarationInd = 0; methodDeclarationInd < this.methodDeclarations.size();
              methodDeclarationInd++) {
             MethodDeclarationNode methodDeclaration = this.methodDeclarations.get(methodDeclarationInd);
-            MinutiaeList functionBodyTraillingMinutiaeList =
-                    createMinutiaeList(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
-            if (methodDeclarationInd != this.methodDeclarations.size() - 1) {
-                functionBodyTraillingMinutiaeList =
-                        functionBodyTraillingMinutiaeList.add(createEndOfLineMinutiae(CodeGeneratorConstants.NEW_LINE));
-            }
+            MetadataNode methodDeclarationMetadata = methodDeclaration.metadata().orElse(null);
+            methodDeclarationMetadata =
+                    modifyMetadataForServiceFunctionDefinition(methodDeclarationMetadata, methodDeclarationInd);
+            NodeList<Token> finalQualifiers =
+                    modifyMethodDeclarationQualifiersForServiceFunctionDefinition(methodDeclaration.qualifierList(),
+                            methodDeclarationInd, methodDeclarationMetadata);
             FunctionBodyBlockNode emptyFunctionBody =
                     createFunctionBodyBlockNode(createToken(SyntaxKind.OPEN_BRACE_TOKEN), null, createEmptyNodeList(),
                             createToken(SyntaxKind.CLOSE_BRACE_TOKEN, createEmptyMinutiaeList(),
-                                    functionBodyTraillingMinutiaeList), null);
+                                    createEmptyMinutiaeList()), null);
             FunctionDefinitionNode functionDefinition =
                     createFunctionDefinitionNode(getDefinitionKindFromDeclarationKind(methodDeclaration.kind()),
-                            methodDeclaration.metadata().orElse(null), methodDeclaration.qualifierList(),
+                            methodDeclarationMetadata, finalQualifiers,
                             methodDeclaration.functionKeyword(), methodDeclaration.methodName(),
                             methodDeclaration.relativeResourcePath(), methodDeclaration.methodSignature(),
                             emptyFunctionBody);
             functionDefinitions.add(functionDefinition);
         }
         return createNodeList(functionDefinitions);
+    }
+
+    private NodeList<Token> modifyMethodDeclarationQualifiersForServiceFunctionDefinition
+            (NodeList<Token> qualifierList, int methodDeclarationInd, MetadataNode methodDeclarationMetadata) {
+        if (methodDeclarationInd != 0 && methodDeclarationMetadata == null) {
+            MinutiaeList leadingMinutiaeList =
+                    createMinutiaeList(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
+            Token firstQualifier = qualifierList.get(0);
+            qualifierList = qualifierList.remove(0);
+            Token newLineAddedFirstQualifier =
+                    firstQualifier.modify(leadingMinutiaeList, createEmptyMinutiaeList());
+            qualifierList = qualifierList.add(0, newLineAddedFirstQualifier);
+        }
+        return qualifierList;
+    }
+
+    private MetadataNode modifyMetadataForServiceFunctionDefinition(MetadataNode methodDeclarationMetadata,
+                                                                    int methodDeclarationInd) {
+        if (methodDeclarationInd == 0 || methodDeclarationMetadata == null) {
+            return methodDeclarationMetadata;
+        } else {
+            return addNewLineInFrontOfMetadata(methodDeclarationMetadata);
+        }
+    }
+
+    public static MetadataNode addNewLineInFrontOfMetadata(MetadataNode metadata) {
+        Node documentationString = metadata.documentationString().orElse(null);
+        if (documentationString.kind() == SyntaxKind.MARKDOWN_DOCUMENTATION) {
+            MarkdownDocumentationNode markdownDocumentation = (MarkdownDocumentationNode) documentationString;
+            NodeList<Node> documentationLines = markdownDocumentation.documentationLines();
+            Node firstDocumentationLine = documentationLines.get(0);
+            if (firstDocumentationLine.kind() == SyntaxKind.MARKDOWN_DOCUMENTATION_LINE) {
+                MarkdownDocumentationLineNode firstMarkdownDocumentationLine =
+                        (MarkdownDocumentationLineNode) firstDocumentationLine;
+                Token firstLineHash = firstMarkdownDocumentationLine.hashToken();
+                return metadata.replace(firstLineHash, createToken(SyntaxKind.HASH_TOKEN,
+                        createMinutiaeList(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE)),
+                        createEmptyMinutiaeList()));
+            }
+        }
+        return metadata;
     }
 
     private SyntaxKind getDefinitionKindFromDeclarationKind(SyntaxKind declarationKind) {
@@ -192,9 +240,11 @@ public class ServiceGenerator {
 
     public String generateSrc() throws ServiceGenerationException {
         try {
-            return Formatter.format(generateSyntaxTree()).toString();
+            String generatedSyntaxTree = Formatter.format(this.generateSyntaxTree()).toString();
+            return Formatter.format(generatedSyntaxTree);
         } catch (FormatterException | IOException e) {
-            throw new ServiceGenerationException(e.getMessage());
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_101, null,
+                    e.getMessage());
         }
     }
 }
