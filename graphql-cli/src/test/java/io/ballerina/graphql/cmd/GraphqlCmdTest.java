@@ -36,7 +36,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_GRAPHQL_FILE_WITH_NO_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
@@ -269,6 +268,34 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test
+    public void testExecutionWithoutModeFlagForGraphqlFileInput() {
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString()};
+        try {
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            Path expectedServiceFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "serviceForSchemaWithSingleObject.bal"));
+            Path expectedTypesFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "typesWithSingleObjectDefault.bal"));
+            String expectedServiceContent = readContent(expectedServiceFile);
+            String expectedTypesContent = readContent(expectedTypesFile);
+
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
+            String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
+            String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
+
+            Assert.assertEquals(expectedServiceContent, generatedServiceContent);
+            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.toString());
+        }
+    }
+
     @Test(description = "Test graphql command execution with mode and use-records-for-objects flags")
     public void testExecutionWithModeAndUseRecordsForObjectsFlags() {
         Path graphql = resourceDir.resolve(
@@ -374,31 +401,16 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test graphql command execution with graphql file path without mode flag")
-    public void testExecuteForGraphqlFileWithModeFlag() {
-        Path filePath = resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {"-i", filePath.toString(), "-o", this.tmpDir.toString()};
-        try {
-            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
-            new CommandLine(graphqlCmd).parseArgs(args);
-            String message = String.format(MESSAGE_FOR_GRAPHQL_FILE_WITH_NO_MODE, filePath);
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            Assert.assertTrue(output.contains(message));
-        } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
     @DataProvider(name = "mismatchModeAndFile")
     public Object[][] createMismatchModeAndFileData() {
         return new Object[][]{{"service", "graphql.config.yaml"}, {"client", "service.bal"},
                 {"schema", "schema.graphql"}};
     }
 
-    @Test(description = "Test graphql command execution with mismatch mode and file extension",
-            dataProvider = "mismatchModeAndFile")
+    @Test(
+            description = "Test graphql command execution with mismatch mode and file extension",
+            dataProvider = "mismatchModeAndFile"
+    )
     public void testExecuteWithMismatchModeAndFileExtension(String mode, String fileName) {
         Path filePath = resourceDir.resolve(Paths.get("specs", fileName));
         String[] args = {"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode};
@@ -419,8 +431,10 @@ public class GraphqlCmdTest extends GraphqlTest {
         return new Object[][]{{"client", "graphql.config.yaml"}, {"schema", "service.bal"}};
     }
 
-    @Test(description = "Test graphql command execution with use-records-for-objects and incompatible mode",
-            dataProvider = "useRecordsForObjectsFlagMisUse")
+    @Test(
+            description = "Test graphql command execution with use-records-for-objects and incompatible mode",
+            dataProvider = "useRecordsForObjectsFlagMisUse"
+    )
     public void testExecuteWithUseRecordsForObjectsFlagAndIncompatibleMode(String mode, String fileName) {
         Path filePath = resourceDir.resolve(Paths.get("specs", fileName));
         String[] args = new String[]{"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode,

@@ -21,9 +21,9 @@ package io.ballerina.graphql.generator.client.generator;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.ClientCodeGenerationException;
 import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
 import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationException;
 import io.ballerina.graphql.generator.client.exception.ConfigTypesGenerationException;
@@ -35,7 +35,6 @@ import io.ballerina.graphql.generator.client.generator.ballerina.ConfigTypesGene
 import io.ballerina.graphql.generator.client.generator.ballerina.UtilsGenerator;
 import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.client.pojo.Extension;
-import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
@@ -49,20 +48,19 @@ import java.util.List;
  */
 public class ClientCodeGenerator extends CodeGenerator {
     @Override
-    public void generate(GraphqlProject project) throws GenerationException {
+    public void generate(GraphqlProject project) throws ClientCodeGenerationException {
         String outputPath = project.getOutputPath();
         try {
             List<SrcFilePojo> genSources = generateBalSources(project, GeneratorContext.CLI);
             writeGeneratedSources(genSources, Path.of(outputPath));
-        } catch (ServiceGenerationException | ClientGenerationException | UtilsGenerationException |
-                 ClientTypesGenerationException | IOException e) {
-            throw new GenerationException(e.getMessage(), project.getName());
+        } catch (IOException e) {
+            throw new ClientCodeGenerationException(e.getMessage(), project.getName());
         }
     }
 
     public List<SrcFilePojo> generateBalSources(GraphqlProject project, GeneratorContext generatorContext)
-            throws ServiceGenerationException, ClientGenerationException, UtilsGenerationException,
-            ClientTypesGenerationException, ConfigTypesGenerationException {
+            throws ClientGenerationException, UtilsGenerationException, ClientTypesGenerationException,
+            ConfigTypesGenerationException {
         String projectName = project.getName();
         Extension extensions = ((GraphqlClientProject) project).getExtensions();
         List<String> documents = ((GraphqlClientProject) project).getDocuments();

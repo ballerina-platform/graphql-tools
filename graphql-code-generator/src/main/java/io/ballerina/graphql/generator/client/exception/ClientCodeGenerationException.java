@@ -16,8 +16,9 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator;
+package io.ballerina.graphql.generator.client.exception;
 
+import io.ballerina.graphql.generator.client.diagnostic.ClientDiagnosticMessages;
 import io.ballerina.graphql.generator.utils.NullLocation;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticFactory;
@@ -28,33 +29,33 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
 
 /**
- * Exception type definition for Ballerina code generation related errors.
+ * Exception type definition for Ballerina GraphQL client code generation related errors.
  */
-public class GenerationException extends Exception  {
+public class ClientCodeGenerationException extends Exception {
     private String errMessage;
     private String projectName;
 
-    public GenerationException(String errMessage, Throwable e) {
+    public ClientCodeGenerationException(String errMessage, Throwable e) {
         super(errMessage, e);
         this.errMessage = errMessage;
     }
 
-    public GenerationException(String errMessage) {
+    public ClientCodeGenerationException(String errMessage) {
         super(errMessage);
         this.errMessage = errMessage;
     }
 
-    public GenerationException(String errMessage, String projectName) {
+    public ClientCodeGenerationException(String errMessage, String projectName) {
         super(errMessage);
         this.errMessage = errMessage;
         this.projectName = projectName;
     }
 
-    private static String generateDescription(DiagnosticMessages message, String... args) {
+    private static String generateDescription(ClientDiagnosticMessages message, String... args) {
         return String.format(message.getDescription(), (Object[]) args);
     }
 
-    public Diagnostic createDiagnostic(DiagnosticMessages diagnosticMessage, Location location, String... args) {
+    public Diagnostic createDiagnostic(ClientDiagnosticMessages diagnosticMessage, Location location, String... args) {
         DiagnosticInfo diagnosticInfo =
                 new DiagnosticInfo(diagnosticMessage.getCode(), generateDescription(diagnosticMessage, args),
                         diagnosticMessage.getSeverity());
@@ -82,8 +83,9 @@ public class GenerationException extends Exception  {
 
     public String getMessage() {
         if (this.projectName != null) {
-            Diagnostic diagnostic = createDiagnostic(DiagnosticMessages.GRAPHQL_GEN_106, this.getLocation(),
-                    this.errMessage + "\nPlease check project : " + projectName);
+            Diagnostic diagnostic =
+                    createDiagnostic(ClientDiagnosticMessages.GRAPHQL_CLIENT_GEN_104, this.getLocation(),
+                            this.errMessage + "\nPlease check project : " + projectName);
             return diagnostic.toString();
         } else {
             return this.errMessage;

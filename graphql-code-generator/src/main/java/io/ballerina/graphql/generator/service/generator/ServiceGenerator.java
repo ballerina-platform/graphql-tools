@@ -46,6 +46,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
+import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.tools.text.TextDocument;
@@ -165,9 +166,7 @@ public class ServiceGenerator {
 
     private NodeList<Token> modifyMethodDeclarationQualifiersForServiceFunctionDefinition
             (NodeList<Token> qualifierList, int methodDeclarationInd, MetadataNode methodDeclarationMetadata) {
-        if (methodDeclarationInd == 0 || methodDeclarationMetadata != null) {
-            return qualifierList;
-        } else {
+        if (methodDeclarationInd != 0 && methodDeclarationMetadata == null) {
             MinutiaeList leadingMinutiaeList =
                     createMinutiaeList(createCommentMinutiae(CodeGeneratorConstants.NEW_LINE));
             Token firstQualifier = qualifierList.get(0);
@@ -175,8 +174,8 @@ public class ServiceGenerator {
             Token newLineAddedFirstQualifier =
                     firstQualifier.modify(leadingMinutiaeList, createEmptyMinutiaeList());
             qualifierList = qualifierList.add(0, newLineAddedFirstQualifier);
-            return qualifierList;
         }
+        return qualifierList;
     }
 
     private MetadataNode modifyMetadataForServiceFunctionDefinition(MetadataNode methodDeclarationMetadata,
@@ -190,11 +189,11 @@ public class ServiceGenerator {
 
     public static MetadataNode addNewLineInFrontOfMetadata(MetadataNode metadata) {
         Node documentationString = metadata.documentationString().orElse(null);
-        if (documentationString instanceof MarkdownDocumentationNode) {
+        if (documentationString.kind() == SyntaxKind.MARKDOWN_DOCUMENTATION) {
             MarkdownDocumentationNode markdownDocumentation = (MarkdownDocumentationNode) documentationString;
             NodeList<Node> documentationLines = markdownDocumentation.documentationLines();
             Node firstDocumentationLine = documentationLines.get(0);
-            if (firstDocumentationLine instanceof MarkdownDocumentationLineNode) {
+            if (firstDocumentationLine.kind() == SyntaxKind.MARKDOWN_DOCUMENTATION_LINE) {
                 MarkdownDocumentationLineNode firstMarkdownDocumentationLine =
                         (MarkdownDocumentationLineNode) firstDocumentationLine;
                 Token firstLineHash = firstMarkdownDocumentationLine.hashToken();
@@ -243,7 +242,8 @@ public class ServiceGenerator {
             String generatedSyntaxTree = Formatter.format(contentSyntaxTree).toString();
             return Formatter.format(generatedSyntaxTree);
         } catch (FormatterException e) {
-            throw new ServiceGenerationException(e.getMessage());
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_101, null,
+                    e.getMessage());
         }
     }
 }

@@ -26,7 +26,6 @@ import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
-import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceGenerator;
 import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;
 import org.testng.Assert;
@@ -70,15 +69,14 @@ public class ServiceGeneratorTest extends GraphqlTest {
             Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);
             String writtenServiceTypesContent =
-                    readContentWithFormat(this.tmpDir.resolve(SERVICE_FILE_NAME));
+                    readContentWithFormat(this.tmpDir.resolve("service.bal"));
             Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
-        } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | ValidationException e) {
+        } catch (ServiceGenerationException | IOException | ValidationException e) {
             Assert.fail(e.getMessage());
         }
     }
 
-    @Test(description = "Test the successful generation of service code for schema with documentation in resolver " +
-            "functions")
+    @Test
     public void testGenerateServiceForSchemaWithDocumentationInResolverFunctions() {
         String fileName = "SchemaDocsWithMutationAndSubscriptionResolversApi";
         String expectedFile = "serviceForSchemaDocsWithMutationAndSubscriptionResolvers.bal";
@@ -104,9 +102,9 @@ public class ServiceGeneratorTest extends GraphqlTest {
             Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
             String expectedServiceContent = readContentWithFormat(expectedServiceFile);
             String writtenServiceTypesContent =
-                    readContentWithFormat(this.tmpDir.resolve(SERVICE_FILE_NAME));
+                    readContentWithFormat(this.tmpDir.resolve("service.bal"));
             Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
-        } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | ValidationException e) {
+        } catch (ServiceGenerationException | IOException | ValidationException e) {
             Assert.fail(e.getMessage());
         }
     }

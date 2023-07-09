@@ -16,33 +16,29 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator;
+package io.ballerina.graphql.generator.client.diagnostic;
 
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 /**
  * This {@code DiagnosticMessages} enum class represents the error messages related to service generation.
  */
-public enum DiagnosticMessages {
-    GRAPHQL_GEN_100("GRAPHQL_GEN_100", "Ballerina service code generation related error occurred. %s",
+public enum ClientDiagnosticMessages {
+    GRAPHQL_CLIENT_GEN_100("GRAPHQL_CLIENT_GEN_100", "Ballerina client code generation related error occurred.",
             DiagnosticSeverity.ERROR),
-    GRAPHQL_GEN_101("GRAPHQL_GEN_101", "Ballerina service types code generation related error occurred. %s",
+    GRAPHQL_CLIENT_GEN_101("GRAPHQL_CLIENT_GEN_101", "Ballerina utils code generation related error occurred.",
             DiagnosticSeverity.ERROR),
-    GRAPHQL_GEN_102("GRAPHQL_GEN_102", "Ballerina client code generation related error occurred.",
+    GRAPHQL_CLIENT_GEN_102("GRAPHQL_CLIENT_GEN_102", "Ballerina client types code generation related error occurred.",
             DiagnosticSeverity.ERROR),
-    GRAPHQL_GEN_103("GRAPHQL_GEN_103", "Ballerina utils code generation related error occurred.",
+    GRAPHQL_CLIENT_GEN_103("GRAPHQL_CLIENT_GEN_103", "Ballerina config types code generation related error occurred.",
             DiagnosticSeverity.ERROR),
-    GRAPHQL_GEN_104("GRAPHQL_GEN_104", "Ballerina client types code generation related error occurred.",
-            DiagnosticSeverity.ERROR),
-    GRAPHQL_GEN_105("GRAPHQL_GEN_105", "Ballerina config types code generation related error occurred.",
-            DiagnosticSeverity.ERROR),
-    GRAPHQL_GEN_106("GRAPHQL_GEN_106", "Ballerina code generation failed. %s",
+    GRAPHQL_CLIENT_GEN_104("GRAPHQL_CLIENT_GEN_104", "Ballerina code generation related error occurred. %s",
             DiagnosticSeverity.ERROR);
     private final String code;
     private final String description;
     private final DiagnosticSeverity severity;
 
-    DiagnosticMessages(String code, String description, DiagnosticSeverity severity) {
+    ClientDiagnosticMessages(String code, String description, DiagnosticSeverity severity) {
         this.code = code;
         this.description = description;
         this.severity = severity;

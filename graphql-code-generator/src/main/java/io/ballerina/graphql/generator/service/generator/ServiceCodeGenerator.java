@@ -25,8 +25,8 @@ import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
-import io.ballerina.graphql.generator.GenerationException;
 import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.Constants;
 import io.ballerina.graphql.generator.service.combiner.ServiceFileCombiner;
 import io.ballerina.graphql.generator.service.combiner.ServiceTypesFileCombiner;
@@ -64,20 +64,20 @@ public class ServiceCodeGenerator extends CodeGenerator {
     }
 
     @Override
-    public void generate(GraphqlProject project) throws GenerationException {
+    public void generate(GraphqlProject project) throws ServiceGenerationException {
         String outputPath = project.getOutputPath();
         try {
             List<SrcFilePojo> genSources = generateBalSources(project);
             writeGeneratedSources(genSources, Path.of(outputPath));
-        } catch (ServiceGenerationException | ServiceTypesGenerationException | IOException | FormatterException |
-                 ServiceTypesFileCombinerException | ServiceFileCombinerException e) {
-            throw new GenerationException(e.getMessage(), project.getName());
+        } catch (IOException | FormatterException | ServiceTypesFileCombinerException | ServiceFileCombinerException e)
+        {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    e.getMessage());
         }
     }
 
-    public List<SrcFilePojo> generateBalSources(GraphqlProject project)
-            throws ServiceGenerationException, ServiceTypesGenerationException, IOException, FormatterException,
-            ServiceTypesFileCombinerException, ServiceFileCombinerException {
+    public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ServiceGenerationException, IOException,
+            FormatterException, ServiceTypesFileCombinerException, ServiceFileCombinerException {
         String projectName = project.getName();
         String fileName = project.getFileName();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
@@ -116,10 +116,9 @@ public class ServiceCodeGenerator extends CodeGenerator {
                         mergedServiceFileContent));
     }
 
-    private void generateServiceTypes(String projectName, String fileName, String outputPath,
-                                      GraphQLSchema graphQLSchema,
-                                      List<SrcFilePojo> sourceFiles)
-            throws ServiceTypesGenerationException, IOException, FormatterException, ServiceTypesFileCombinerException {
+    private void generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema,
+                                      List<SrcFilePojo> sourceFiles) throws ServiceGenerationException, IOException,
+            FormatterException, ServiceTypesFileCombinerException {
         this.serviceTypesGenerator.setFileName(fileName);
         ModulePartNode newTypesFileContentNode = serviceTypesGenerator.generateContentNode(graphQLSchema);
         String mergedTypesFileContent = "";
