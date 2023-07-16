@@ -164,7 +164,7 @@ This will generate a Ballerina module (project_name) corresponding to each Graph
 
 ### Setting Up the Prerequisites
 
-1. Download and install Java SE Development Kit (JDK) version 17. You can install either [OpenJDK](https://adoptopenjdk.net/) or [Oracle](https://www.oracle.com/java/technologies/downloads/#java17).
+1. Download and install Java SE Development Kit (JDK) version 17. You can install either [OpenJDK](https://adoptopenjdk.net/) or [Oracle](https://www.oracle.com/java/technologies/downloads/).
 
    > **Note:** Set the JAVA_HOME environment variable to the path name of the directory into which you installed JDK.
 
