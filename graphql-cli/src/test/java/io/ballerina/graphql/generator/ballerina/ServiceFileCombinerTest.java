@@ -9,7 +9,7 @@ import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.combiner.ServiceFileCombiner;
-import io.ballerina.graphql.generator.service.exception.ServiceTypesGenerationException;
+import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceGenerator;
 import io.ballerina.graphql.generator.service.generator.ServiceTypesGenerator;
 import org.ballerinalang.formatter.core.FormatterException;
@@ -30,7 +30,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
 public class ServiceFileCombinerTest extends GraphqlTest {
     @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFields()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName = "serviceBeforeAddingQueryFields.bal";
         String expectedBalFileName = "serviceAfterAddingQueryFields.bal";
@@ -65,7 +65,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithAddedMutationFields()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewMutationFieldsApi.graphql";
         String beforeBalFileName = "serviceBeforeAddingMutationFields.bal";
         String expectedBalFileName = "serviceAfterAddingMutationFields.bal";
@@ -100,7 +100,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithAddedSubscriptionFields()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewSubscriptionFieldsApi.graphql";
         String beforeBalFileName = "serviceBeforeAddingSubscriptionFields.bal";
         String expectedBalFileName = "serviceAfterAddingSubscriptionFields.bal";
@@ -135,7 +135,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithChangedReturnTypeInFunctions()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithChangedReturnTypeInFunctionsApi.graphql";
         String beforeBalFileName = "serviceBeforeChangingReturnTypeInFunctions.bal";
         String expectedBalFileName = "serviceAfterChangingReturnTypeInFunctions.bal";
@@ -170,7 +170,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithChangedParametersInFunctions()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithChangedParametersInFunctionsApi.graphql";
         String beforeBalFileName = "serviceBeforeChangingParametersInFunctions.bal";
         String expectedBalFileName = "serviceAfterChangingParametersInFunctions.bal";
@@ -205,7 +205,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithChangedQualifiersInFunctions()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithChangedQualifiersInFunctionsApi.graphql";
         String beforeBalFileName = "serviceBeforeChangingQualifiersInFunctions.bal";
         String expectedBalFileName = "serviceAfterChangingQualifiersInFunctions.bal";
@@ -240,7 +240,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithInterchangedQueryAndSubscriptionFields()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithInterchangedQueryAndSubscriptionFieldsApi.graphql";
         String beforeBalFileName = "serviceBeforeInterchangingQueryAndSubscriptionFields.bal";
         String expectedBalFileName = "serviceAfterInterchangingQueryAndSubscriptionFields.bal";
@@ -275,7 +275,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithAddedMetadataInResolverFunctions()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedMetadataInResolverFunctionsApi.graphql";
         String beforeBalFileName = "serviceBeforeAddingMetadataInResolverFunctions.bal";
         String expectedBalFileName = "serviceAfterAddingMetadataInResolverFunctions.bal";
@@ -310,7 +310,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaIntoServiceWithNonResolverFunctions()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName = "serviceWithNonResolverFunctionsBeforeAddingQueryFields.bal";
         String expectedBalFileName = "serviceWithNonResolverFunctionsAfterAddingQueryFields.bal";
@@ -345,7 +345,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFieldsIntoServiceWithMultipleImports()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName = "serviceWithMultipleImportsBeforeAddingQueryFields.bal";
         String expectedBalFileName = "serviceWithMultipleImportsAfterAddingQueryFields.bal";
@@ -380,7 +380,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFieldsIntoServiceWithAdditionalTable()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName = "serviceWithAdditionalTableBeforeAddingQueryFields.bal";
         String expectedBalFileName = "serviceWithAdditionalTableAfterAddingQueryFields.bal";
@@ -415,7 +415,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFieldsIntoServiceWithComments()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName = "serviceWithCommentsBeforeAddingQueryFields.bal";
         String expectedBalFileName = "serviceWithCommentsAfterAddingQueryFields.bal";
@@ -450,7 +450,7 @@ public class ServiceFileCombinerTest extends GraphqlTest {
 
     @Test
     public void testCombiningUpdatedSchemaWithAddedQueryFieldsIntoServiceRunOnDifferentPort()
-            throws ValidationException, IOException, ServiceTypesGenerationException, FormatterException {
+            throws ValidationException, IOException, ServiceGenerationException, FormatterException {
         String newSchemaFileName = "SchemaWithAddedNewQueryFieldsApi.graphql";
         String beforeBalFileName = "serviceRunOnDifferentPortBeforeAddingQueryFields.bal";
         String expectedBalFileName = "serviceRunOnDifferentPortAfterAddingQueryFields.bal";

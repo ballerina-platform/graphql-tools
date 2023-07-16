@@ -36,7 +36,8 @@ public abstract class CodeGenerator {
      * Generates the code for a given GraphQL project.
      *
      * @param project the instance of the GraphQL project
-     * @throws GenerationException when a code generation error occurs
+     * @throws ClientCodeGenerationException when a client code generation error occurs
+     * @throws ServiceGenerationException when a service generation error occurs
      */
     public abstract void generate(GraphqlProject project)
             throws ClientCodeGenerationException, ServiceGenerationException;
