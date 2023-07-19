@@ -20,7 +20,6 @@ package io.ballerina.graphql.cmd;
 
 import graphql.introspection.IntrospectionResultToSchema;
 import graphql.language.Document;
-import graphql.parser.Parser;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
@@ -28,10 +27,16 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.errors.SchemaProblem;
 import io.ballerina.graphql.cmd.pojo.Config;
-import io.ballerina.graphql.cmd.pojo.Default;
-import io.ballerina.graphql.cmd.pojo.Endpoints;
-import io.ballerina.graphql.cmd.pojo.Extension;
-import io.ballerina.graphql.exception.IntospectionException;
+import io.ballerina.graphql.exception.SDLValidationException;
+import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.Introspector;
+import io.ballerina.graphql.generator.client.exception.IntospectionException;
+import io.ballerina.graphql.generator.client.pojo.Default;
+import io.ballerina.graphql.generator.client.pojo.Endpoints;
+import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.utils.GenerationType;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
@@ -55,7 +60,7 @@ import java.util.Map;
 import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
 
 /**
- * Utility class for GraphQL client generation command line tool.
+ * Utility class for GraphQL code generation command line tool.
  */
 public class Utils {
 
@@ -119,34 +124,7 @@ public class Utils {
     public static String extractSchemaContent(String schema) throws IOException {
         File schemaFile = new File(schema);
         Path schemaPath = Paths.get(schemaFile.getCanonicalPath());
-        return Files.readString(schemaPath);
-    }
-
-    /**
-     * Returns the `Document` instance for a given GraphQL queries file.
-     *
-     * @param document                              the document value of the Graphql config file
-     * @return                                      the `GraphQLSchema` instance
-     * @throws IOException                          If an I/O error occurs
-     */
-    public static Document getGraphQLQueryDocument(String document) throws IOException {
-        Parser parser = new Parser();
-        String queriesInput = extractDocumentContent(document);
-        Document parsedDocument = parser.parseDocument(queriesInput);
-        return parsedDocument;
-    }
-
-    /**
-     * Extracts the document content.
-     *
-     * @param document                              the document value of the Graphql config file
-     * @return                                      the document content
-     * @throws IOException                          If an I/O error occurs
-     */
-    public static String extractDocumentContent(String document) throws IOException {
-        File documentFile = new File(document);
-        Path documentPath = Paths.get(documentFile.getCanonicalPath());
-        return Files.readString(documentPath);
+        return String.join(Constants.NEW_LINE, Files.readAllLines(schemaPath));
     }
 
     /**
@@ -188,6 +166,32 @@ public class Utils {
         @Override
         public TextRange textRange() {
             return TextRange.from(0, 0);
+        }
+    }
+
+    /**
+     * Validates the GraphQL schema (SDL) of the given project.
+     *
+     * @param project the instance of the Graphql project
+     * @throws ValidationException when a validation error occurs
+     * @throws IOException         If an I/O error occurs
+     */
+    public static void validateGraphqlProject(GraphqlProject project) throws ValidationException, IOException {
+        String schema = project.getSchema();
+
+        Extension extensions = null;
+        if (project.getGenerationType() == GenerationType.CLIENT) {
+            GraphqlClientProject clientProject = (GraphqlClientProject) project;
+            extensions = clientProject.getExtensions();
+        }
+
+        try {
+            GraphQLSchema graphQLSchema = Utils.getGraphQLSchemaDocument(schema, extensions);
+            project.setGraphQLSchema(graphQLSchema);
+        } catch (IntospectionException e) {
+            throw new ValidationException(e.getMessage(), project.getName());
+        } catch (SchemaProblem e) {
+            throw new SDLValidationException("GraphQL SDL validation failed.", e.getErrors(), project.getName());
         }
     }
 }
