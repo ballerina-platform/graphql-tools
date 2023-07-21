@@ -269,7 +269,6 @@ public class FunctionBodyGenerator {
                 createNodeList(nodes), createToken(CLOSE_BRACE_TOKEN));
         TypeDescriptorNode varNode = NodeFactory.createTypeReferenceTypeDescNode(NodeFactory.
                 createSimpleNameReferenceNode(createToken(VAR_KEYWORD)));
-        IdentifierToken errorParamName = createIdentifierToken("e");
         // TODO : Revert this change after issue in graphql:HttpError is fixed
         ExpressionNode errorNode = NodeParser.parseExpression("<graphql:ClientError> error(\"GraphQL Client " +
                 "Error\", e, body = ())");
@@ -278,8 +277,10 @@ public class FunctionBodyGenerator {
         NodeList<StatementNode> failNodeList = createNodeList(returnStatementNode);
         BlockStatementNode failBlockStatementNode = NodeFactory.createBlockStatementNode(createToken(OPEN_BRACE_TOKEN),
                 failNodeList, createToken(CLOSE_BRACE_TOKEN));
+        TypedBindingPatternNode typedBindingPatternNode = NodeFactory.createTypedBindingPatternNode(varNode,
+             NodeFactory.createCaptureBindingPatternNode(createIdentifierToken("e")));
         OnFailClauseNode onFailClauseNode = NodeFactory.createOnFailClauseNode(createToken(ON_KEYWORD),
-                createToken(FAIL_KEYWORD), varNode, errorParamName, failBlockStatementNode);
+                createToken(FAIL_KEYWORD), typedBindingPatternNode, failBlockStatementNode);
         return NodeFactory.createDoStatementNode(createToken(DO_KEYWORD), doBlockStatementNode, onFailClauseNode);
     }
 
