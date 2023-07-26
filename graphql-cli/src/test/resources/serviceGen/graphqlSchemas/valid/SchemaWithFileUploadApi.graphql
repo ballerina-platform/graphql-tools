@@ -1,0 +1,10 @@
+type Query {
+  getUploadedFileNames: [String!]!
+}
+
+type Mutation {
+  fileUpload(file: Upload!): String!
+}
+
+"The `Upload` type represents file upload in a GraphQL schema"
+scalar Upload

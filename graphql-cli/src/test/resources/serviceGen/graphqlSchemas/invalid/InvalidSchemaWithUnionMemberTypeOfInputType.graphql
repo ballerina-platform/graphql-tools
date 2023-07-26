@@ -1,0 +1,18 @@
+type Query {
+    student(id: Int!): Student
+}
+
+type Student {
+    id: Int!
+    name: String!
+}
+
+input Info {
+    name: String!
+}
+
+input ContactInfo {
+    phone: String!
+}
+
+union PersonInfo = Info | ContactInfo
