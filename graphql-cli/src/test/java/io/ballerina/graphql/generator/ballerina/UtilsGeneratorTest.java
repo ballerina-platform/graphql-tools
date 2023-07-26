@@ -1,14 +1,16 @@
 package io.ballerina.graphql.generator.ballerina;
 
-import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
-import io.ballerina.graphql.exception.UtilsGenerationException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.exception.UtilsGenerationException;
+import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
+import io.ballerina.graphql.generator.client.generator.ballerina.UtilsGenerator;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -26,7 +28,7 @@ public class UtilsGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithApiKeysConfig()
             throws ValidationException, CmdException, IOException, ParseException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                     this.resourceDir.resolve(Paths.get("specs",
                             "graphql-config-with-auth-apikeys-config.yaml")).toString(),
                     this.tmpDir);
@@ -57,7 +59,7 @@ public class UtilsGeneratorTest extends GraphqlTest {
     public void testGenerateSrcWithClientConfig()
             throws ValidationException, CmdException, IOException, ParseException {
         try {
-            List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+            List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                     this.resourceDir.resolve(Paths.get("specs",
                             "graphql-config-with-auth-client-config.yaml")).toString(),
                     this.tmpDir);

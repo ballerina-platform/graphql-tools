@@ -1,0 +1,25 @@
+type Query {
+    "Fetch all the books from database"
+    books: [Book]
+    "Fetch a book by its id"
+    book(
+        "The id of the book to fetch"
+        id: Int!
+    ): Book
+}
+
+"Represents a book written by an author"
+type Book {
+    "The id of the book, unique identifier"
+    id: Int!
+    "The title of the book"
+    title: String!
+}
+
+"Availability of the book"
+enum Status {
+    "The book is available"
+    AVAILABLE
+    "The book is not available"
+    NOT_AVAILABLE
+}
