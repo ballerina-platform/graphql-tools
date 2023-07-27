@@ -18,6 +18,8 @@
 
 package io.ballerina.graphql.cmd.pojo;
 
+import io.ballerina.graphql.generator.client.pojo.Extension;
+
 import java.util.List;
 import java.util.Map;
 

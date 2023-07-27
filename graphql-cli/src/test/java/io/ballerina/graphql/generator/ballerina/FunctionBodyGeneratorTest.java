@@ -3,17 +3,19 @@ package io.ballerina.graphql.generator.ballerina;
 import graphql.language.Document;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
-import io.ballerina.graphql.cmd.GraphqlProject;
-import io.ballerina.graphql.cmd.Utils;
-import io.ballerina.graphql.cmd.pojo.Extension;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
-import io.ballerina.graphql.generator.graphql.QueryReader;
-import io.ballerina.graphql.generator.graphql.components.ExtendedOperationDefinition;
-import io.ballerina.graphql.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.GraphqlClientProject;
+import io.ballerina.graphql.generator.client.Utils;
+import io.ballerina.graphql.generator.client.generator.ballerina.AuthConfigGenerator;
+import io.ballerina.graphql.generator.client.generator.ballerina.FunctionBodyGenerator;
+import io.ballerina.graphql.generator.client.generator.graphql.QueryReader;
+import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.pojo.Extension;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
@@ -34,7 +36,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
             dataProvider = "dataProviderForInitFunctionBody")
     public void testGenerateInitFunctionBody(String configFile, String expectedInitFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
                 this.tmpDir);
 
@@ -54,7 +56,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
             dataProvider = "dataProviderForRemoteFunctionBody")
     public void testGenerateRemoteFunctionBody(String configFile, String expectedRemoteFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
                 this.tmpDir);
 
@@ -82,7 +84,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
     public void testGenerateRemoteFunctionBodyWithRequiredParameters(String configFile,
                                                                      String expectedRemoteFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
                 this.tmpDir);
 
@@ -110,7 +112,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
     public void testGenerateRemoteFunctionBodyWithOptionalParameters(String configFile,
                                                                      String expectedRemoteFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
                 this.tmpDir);
 
@@ -138,7 +140,7 @@ public class FunctionBodyGeneratorTest extends GraphqlTest {
     public void testGenerateRemoteFunctionBodyWithRequiredAndOptionalParameters(String configFile,
                                                                                 String expectedRemoteFunctionBody)
             throws ValidationException, CmdException, IOException, ParseException {
-        List<GraphqlProject> projects = TestUtils.getValidatedMockProjects(
+        List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
                 this.resourceDir.resolve(Paths.get("specs", configFile)).toString(),
                 this.tmpDir);
 
