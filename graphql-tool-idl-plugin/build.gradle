@@ -119,7 +119,7 @@ test {
 }
 
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = "0.8.10"
     reportsDirectory = file("$rootProject.projectDir/build/reports/jacoco")
 }
 

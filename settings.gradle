@@ -1,12 +1,13 @@
 plugins {
-    id "com.gradle.enterprise" version "3.2"
+    id "com.gradle.enterprise" version "3.13.2"
 }
 
 rootProject.name = 'graphql-tools'
-include(':config:checkstyle')
+include(':checkstyle')
 include(':graphql-cli')
 include(':graphql-schema-file-generator')
 include(':graphql-code-generator')
+project(':checkstyle').projectDir = file("config${File.separator}checkstyle")
 
 gradleEnterprise {
     buildScan {

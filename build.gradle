@@ -16,7 +16,7 @@
  */
 
 plugins {
-    id 'java'
+    id 'java-library'
     id 'jacoco'
     id "com.github.johnrengelman.shadow" version "${githubJohnrengelmanShadowVersion}"
     id "de.undercouch.download" version "${underCouchDownloadVersion}"
@@ -34,7 +34,7 @@ ext.snakeYamlVersion = project.snakeYamlVersion
 ext.orgJsonVersion = project.orgJsonVersion
 ext.picocliVersion = project.picocliVersion
 ext.stdlibGraphqlVersion = project.stdlibGraphqlVersion
-ext.puppycrawlCheckstyleVersion = "8.18"
+ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
 
 def packageName = "graphql"
 
@@ -83,17 +83,6 @@ allprojects {
         }
     }
 
-    checkstyle {
-        toolVersion '8.16'
-        configFile = file("$rootProject.projectDir/config/checkstyle/checkstyle.xml")
-    }
-
-    def excludePattern = '**/module-info.java'
-    tasks.withType(Checkstyle) {
-        configFile file("${rootProject.projectDir}/config/checkstyle/checkstyle.xml")
-        exclude excludePattern
-    }
-
     ext {
         snapshotVersion= '-SNAPSHOT'
         timestampedVersionRegex = '.*-\\d{8}-\\d{6}-\\w.*\$'
@@ -101,7 +90,7 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     configurations {
         ballerinaStdLibs
     }
@@ -151,6 +140,8 @@ tasks.withType(JavaCompile) {
 
 task codeCoverageReport(type: JacocoReport) {
     dependsOn = subprojects.test
+    dependsOn(":graphql-cli:jacocoTestReport")
+    dependsOn(":directoryBuild")
 
     executionData fileTree(project.rootDir.absolutePath).include("**/build/coverage-reports/*.exec")
 
@@ -158,9 +149,9 @@ task codeCoverageReport(type: JacocoReport) {
         sourceSets it.sourceSets.main
     }
     reports {
-        xml.enabled(true)
-        html.enabled(true)
-        csv.enabled(true)
+        xml.required = true
+        html.required = true
+        csv.required = true
         xml.destination(new File("${buildDir}/reports/jacoco/report.xml"))
         html.destination(new File("${buildDir}/reports/jacoco/report.html"))
         csv.destination(new File("${buildDir}/reports/jacoco/report.csv"))
@@ -211,6 +202,7 @@ task directoryBuild {
 
     outputs.dir artifactCacheParent
     outputs.dir artifactLibParent
+    doNotTrackState("build needs to run every time")
 }
 
 task createArtifactZip(type: Zip) {
@@ -246,6 +238,7 @@ directoryBuild.dependsOn(compileTestJava)
 directoryBuild.dependsOn(jar)
 directoryBuild.dependsOn ":${packageName}-cli:jacocoTestReport"
 directoryBuild.dependsOn(test)
+directoryBuild.dependsOn ":generatePomFileForMavenJavaPublication"
 build.dependsOn directoryBuild
 
 publish.dependsOn build
