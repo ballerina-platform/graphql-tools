@@ -202,6 +202,7 @@ task directoryBuild {
 
     outputs.dir artifactCacheParent
     outputs.dir artifactLibParent
+    doNotTrackState("build needs to run every time")
 }
 
 task createArtifactZip(type: Zip) {
