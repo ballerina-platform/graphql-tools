@@ -140,6 +140,8 @@ tasks.withType(JavaCompile) {
 
 task codeCoverageReport(type: JacocoReport) {
     dependsOn = subprojects.test
+    dependsOn(":graphql-cli:jacocoTestReport")
+    dependsOn(":directoryBuild")
 
     executionData fileTree(project.rootDir.absolutePath).include("**/build/coverage-reports/*.exec")
 
