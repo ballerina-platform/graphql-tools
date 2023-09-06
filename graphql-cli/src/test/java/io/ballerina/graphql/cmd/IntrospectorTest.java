@@ -42,7 +42,7 @@ import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
  */
 public class IntrospectorTest extends GraphqlTest {
 
-    @Test(description = "Test successful introspection", enabled = false)
+    @Test(description = "Test successful introspection")
     public void testGetIntrospectionResult()
             throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
@@ -64,7 +64,7 @@ public class IntrospectorTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test successful introspection with empty headers", enabled = false)
+    @Test(description = "Test successful introspection with empty headers")
     public void testGetIntrospectionResultWithEmptyHeaders()
             throws ValidationException, CmdException, IOException, ParseException {
         List<GraphqlClientProject> projects = TestUtils.getValidatedMockProjects(
