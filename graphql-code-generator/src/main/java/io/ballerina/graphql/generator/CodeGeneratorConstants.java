@@ -181,6 +181,8 @@ public class CodeGeneratorConstants {
 
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_JSON = "application/json";
+    public static final String DATA_FIELD = "data";
+    public static final String ERROR_FIELD = "errors";
 
     // GraphQL Introspection query
     public static final String INTROSPECTION_QUERY =

@@ -34,8 +34,10 @@ import java.util.Map;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.APPLICATION_JSON;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONTENT_TYPE;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.DATA_FIELD;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.ERROR_FIELD;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.INTROSPECTION_QUERY;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY_VAR_NAME;
 
 /**
  * This class is used to introspect a GraphQL API.
@@ -71,7 +73,7 @@ public class Introspector {
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 200) {
                 JSONObject introspectionResult = new JSONObject(response.body());
-                if (introspectionResult.get("data") == null) {
+                if (introspectionResult.has(ERROR_FIELD) || !introspectionResult.has(DATA_FIELD)) {
                     throw new IntospectionException("Failed to retrieve SDL. Please provide a valid GraphQL endpoint " +
                             "with relevant headers or a local SDL file path.");
                 }
@@ -143,7 +145,7 @@ public class Introspector {
      */
     private String getRequestPayload() {
         JSONObject graphqlJsonPayload = new JSONObject();
-        graphqlJsonPayload.put(QUERY, INTROSPECTION_QUERY);
+        graphqlJsonPayload.put(QUERY_VAR_NAME, INTROSPECTION_QUERY);
         return graphqlJsonPayload.toString();
     }
 
