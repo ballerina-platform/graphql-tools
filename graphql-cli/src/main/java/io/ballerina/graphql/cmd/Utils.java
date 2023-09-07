@@ -38,6 +38,7 @@ import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -65,7 +66,7 @@ public class Utils {
      * @return               the `GraphQLSchema` instance
      */
     public static Constructor getProcessedConstructor() {
-        Constructor constructor = new Constructor(Config.class);
+        Constructor constructor = new Constructor(Config.class, new LoaderOptions());
 
         TypeDescription endpointsDesc = new TypeDescription(Endpoints.class);
         endpointsDesc.substituteProperty("default", Default.class,
