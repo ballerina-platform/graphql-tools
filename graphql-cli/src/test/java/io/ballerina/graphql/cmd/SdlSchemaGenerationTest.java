@@ -254,6 +254,22 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test successful GraphQL command execution with graphql subgraph service")
+    public void testSdlGenerationForSubgraph() {
+        String[] args = {"-i", "valid/service_11.bal", "-o", this.tmpDir.toString()};
+        try {
+            executeCommand(args);
+            String fileName = "schema_product.graphql";
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve(fileName)));
+            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", fileName));
+            String expectedSchema = readContentWithFormat(expectedSchemaFile);
+            String generatedSchema = readContentWithFormat(this.tmpDir.resolve(fileName));
+            Assert.assertEquals(expectedSchema, generatedSchema);
+        } catch (IOException | InterruptedException e) {
+            Assert.fail(e.toString());
+        }
+    }
+
     @Test(description = "Test GraphQL command execution with service includes compilation errors")
     public void testExecuteWithBalFileIncludeCompilationErrors() {
         String[] args = {"-i", "invalid/service_1.bal", "-o", this.tmpDir.toString()};
