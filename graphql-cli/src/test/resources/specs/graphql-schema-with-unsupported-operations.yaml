@@ -1,0 +1,3 @@
+schema: src/test/resources/specs/schema-with-scalar.graphql
+documents:
+  - src/test/resources/specs/queries/scalar-queries.graphql

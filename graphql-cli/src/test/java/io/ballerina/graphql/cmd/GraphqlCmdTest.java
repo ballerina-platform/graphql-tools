@@ -432,4 +432,44 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.fail(output);
         }
     }
+
+    @Test(description = "Test error message of unsupported operations in schema")
+    public void testExecuteWithUnsupportedOperations1() {
+        Path graphqlConfigYaml =
+                resourceDir.resolve(Paths.get("specs", "graphql-schema-with-unsupported-operations.yaml"));
+        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        String output = "";
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(
+                    "The provided schema includes operations that are not supported by the client generation."));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test error message of unsupported operations in schema")
+    public void testExecuteWithUnsupportedOperations2() {
+        Path graphqlConfigYaml =
+                resourceDir.resolve(Paths.get("specs", "graphql-schema-with-subscription.yaml"));
+        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+
+        String output = "";
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(
+                    "The provided schema includes operations that are not supported by the client generation."));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
 }

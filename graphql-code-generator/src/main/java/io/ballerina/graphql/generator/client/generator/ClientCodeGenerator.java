@@ -55,6 +55,9 @@ public class ClientCodeGenerator extends CodeGenerator {
             writeGeneratedSources(genSources, Path.of(outputPath));
         } catch (IOException e) {
             throw new ClientCodeGenerationException(e.getMessage(), project.getName());
+        } catch (NullPointerException e) {
+            throw new ClientCodeGenerationException("The provided schema includes operations that are not supported " +
+                    "by the client generation.", project.getName());
         }
     }
 
