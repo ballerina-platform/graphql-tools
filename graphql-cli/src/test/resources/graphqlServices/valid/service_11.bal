@@ -34,8 +34,8 @@ public type Category record {
     string title;
 };
 
-function resolveProduct(subgraph:Representation representation) returns Product|error? {
-    string id = check representation["id"].ensureType();
+isolated function resolveProduct(subgraph:Representation representation) returns Product|error? {
+    final string id = check representation["id"].ensureType();
     return trap products.filter(product => product.id == id).pop();
 }
 
@@ -54,14 +54,14 @@ service /product on new graphql:Listener(4001) {
     }
 }
 
-Category[] categories = [
+final readonly & Category[] categories = [
     {
         id: "1",
         title: "Kitchen appliances"
     }
 ];
 
-Product[] products = [
+final readonly & Product[] products = [
     {
         id: "1",
         title: "Knife",
