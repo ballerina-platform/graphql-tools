@@ -1,0 +1,3 @@
+subscription MySub {
+    names
+}

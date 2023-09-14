@@ -1,0 +1,13 @@
+type Query {
+    profile(id: Int!): Profile!
+}
+
+type Profile {
+    id: Int!
+    name: String!
+    age: Int!
+}
+
+type Mutation {
+    updateName(id: Int!, name: String!): String!
+}
