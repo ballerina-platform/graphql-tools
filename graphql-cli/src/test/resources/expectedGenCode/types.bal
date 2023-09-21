@@ -5,6 +5,7 @@ public type ContinentFilterInput record {
 public type CountryFilterInput record {
     StringQueryOperatorInput? continent?;
     StringQueryOperatorInput? code?;
+    StringQueryOperatorInput? name?;
     StringQueryOperatorInput? currency?;
 };
 
