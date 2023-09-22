@@ -5,6 +5,7 @@ public type ContinentFilterInput record {
 public type CountryFilterInput record {
     StringQueryOperatorInput? continent?;
     StringQueryOperatorInput? code?;
+    StringQueryOperatorInput? name?;
     StringQueryOperatorInput? currency?;
 };
 
@@ -13,12 +14,11 @@ public type LanguageFilterInput record {
 };
 
 public type StringQueryOperatorInput record {
-    string?[]? nin?;
+    string[]? nin?;
     string? regex?;
     string? ne?;
-    string? glob?;
     string? eq?;
-    string?[]? 'in?;
+    string[]? 'in?;
 };
 
 public type CountryResponse record {|
