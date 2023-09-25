@@ -85,6 +85,7 @@ input ContinentFilterInput {
 input CountryFilterInput {
   code: StringQueryOperatorInput
   continent: StringQueryOperatorInput
+  name: StringQueryOperatorInput
   currency: StringQueryOperatorInput
 }
 
