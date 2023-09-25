@@ -86,6 +86,7 @@ input CountryFilterInput {
   code: StringQueryOperatorInput
   continent: StringQueryOperatorInput
   currency: StringQueryOperatorInput
+  name: StringQueryOperatorInput
 }
 
 input LanguageFilterInput {
@@ -94,9 +95,8 @@ input LanguageFilterInput {
 
 input StringQueryOperatorInput {
   eq: String
-  glob: String
-  in: [String]
+  in: [String!]
   ne: String
-  nin: [String]
+  nin: [String!]
   regex: String
 }
