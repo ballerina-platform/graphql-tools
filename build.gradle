@@ -180,7 +180,6 @@ jar {
 }
 
 task directoryBuild {
-    inputs.dir file(project.projectDir)
     doLast {
         copy {
             from targetGraphqlCliJar
@@ -199,10 +198,6 @@ task directoryBuild {
             into file("$artifactLibParent/libs")
         }
     }
-
-    outputs.dir artifactCacheParent
-    outputs.dir artifactLibParent
-    doNotTrackState("build needs to run every time")
 }
 
 task createArtifactZip(type: Zip) {
@@ -232,12 +227,6 @@ publishing {
 directoryBuild.dependsOn ":${packageName}-schema-file-generator:build"
 directoryBuild.dependsOn ":${packageName}-code-generator:build"
 directoryBuild.dependsOn ":${packageName}-cli:build"
-directoryBuild.dependsOn(checkstyleMain)
-directoryBuild.dependsOn(checkstyleTest)
-directoryBuild.dependsOn(compileTestJava)
-directoryBuild.dependsOn(jar)
-directoryBuild.dependsOn ":${packageName}-cli:jacocoTestReport"
-directoryBuild.dependsOn(test)
 directoryBuild.dependsOn ":generatePomFileForMavenJavaPublication"
 build.dependsOn directoryBuild
 
