@@ -23,19 +23,6 @@ plugins {
     id "net.researchgate.release" version "${researchgateReleaseVersion}"
 }
 
-ext.ballerinaLangVersion = project.ballerinaLangVersion
-ext.testngVersion = project.testngVersion
-ext.slf4jVersion = project.slf4jVersion
-ext.commonsLoggingVersion = project.commonsLoggingVersion
-ext.commonsIoVersion = project.commonsIoVersion
-ext.graphqlJavaVersion = project.graphqlJavaVersion
-ext.googleGuavaVersion = project.googleGuavaVersion
-ext.snakeYamlVersion = project.snakeYamlVersion
-ext.orgJsonVersion = project.orgJsonVersion
-ext.picocliVersion = project.picocliVersion
-ext.stdlibGraphqlVersion = project.stdlibGraphqlVersion
-ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
-
 def packageName = "graphql"
 
 dependencies {
@@ -165,8 +152,6 @@ task codeCoverageReport(type: JacocoReport) {
 def artifactCacheParent = file("$project.projectDir/build/cache_parent/")
 def artifactLibParent = file("$project.projectDir/build/lib_parent/")
 def targetGraphqlCliJar = file("$project.rootDir/graphql-cli/build/libs/graphql-cli-${project.version}.jar")
-def targetGraphqlIDLPluginJar = file("$project.rootDir/graphql-tool-idl-plugin/build/libs/" +
-        "graphql-tool-idl-plugin-${project.version}.jar")
 def targetGraphqlBalServiceJar = file("$project.rootDir/graphql-schema-file-generator/build/libs/" +
         "graphql-schema-file-generator-${project.version}.jar")
 def targetGraphqlCodeGenJar = file("$project.rootDir/graphql-code-generator/build/libs/" +
@@ -183,10 +168,6 @@ task directoryBuild {
     doLast {
         copy {
             from targetGraphqlCliJar
-            into file("$artifactLibParent/libs")
-        }
-        copy {
-            from targetGraphqlIDLPluginJar
             into file("$artifactLibParent/libs")
         }
         copy {
