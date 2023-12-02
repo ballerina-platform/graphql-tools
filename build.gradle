@@ -23,19 +23,6 @@ plugins {
     id "net.researchgate.release" version "${researchgateReleaseVersion}"
 }
 
-ext.ballerinaLangVersion = project.ballerinaLangVersion
-ext.testngVersion = project.testngVersion
-ext.slf4jVersion = project.slf4jVersion
-ext.commonsLoggingVersion = project.commonsLoggingVersion
-ext.commonsIoVersion = project.commonsIoVersion
-ext.graphqlJavaVersion = project.graphqlJavaVersion
-ext.googleGuavaVersion = project.googleGuavaVersion
-ext.snakeYamlVersion = project.snakeYamlVersion
-ext.orgJsonVersion = project.orgJsonVersion
-ext.picocliVersion = project.picocliVersion
-ext.stdlibGraphqlVersion = project.stdlibGraphqlVersion
-ext.puppycrawlCheckstyleVersion = "8.18"
-
 def packageName = "graphql"
 
 dependencies {
@@ -64,7 +51,7 @@ allprojects {
         maven {
             url = 'https://maven.wso2.org/nexus/content/repositories/releases/'
         }
-        
+
         maven {
             url = 'https://maven.wso2.org/nexus/content/groups/wso2-public/'
         }
@@ -173,8 +160,6 @@ task codeCoverageReport(type: JacocoReport) {
 def artifactCacheParent = file("$project.projectDir/build/cache_parent/")
 def artifactLibParent = file("$project.projectDir/build/lib_parent/")
 def targetGraphqlCliJar = file("$project.rootDir/graphql-cli/build/libs/graphql-cli-${project.version}.jar")
-def targetGraphqlIDLPluginJar = file("$project.rootDir/graphql-tool-idl-plugin/build/libs/" +
-        "graphql-tool-idl-plugin-${project.version}.jar")
 def targetGraphqlBalServiceJar = file("$project.rootDir/graphql-schema-file-generator/build/libs/" +
         "graphql-schema-file-generator-${project.version}.jar")
 
@@ -186,14 +171,9 @@ jar {
 }
 
 task directoryBuild {
-    inputs.dir file(project.projectDir)
     doLast {
         copy {
             from targetGraphqlCliJar
-            into file("$artifactLibParent/libs")
-        }
-        copy {
-            from targetGraphqlIDLPluginJar
             into file("$artifactLibParent/libs")
         }
         copy {
@@ -232,12 +212,6 @@ publishing {
 
 directoryBuild.dependsOn ":${packageName}-schema-file-generator:build"
 directoryBuild.dependsOn ":${packageName}-cli:build"
-directoryBuild.dependsOn(checkstyleMain)
-directoryBuild.dependsOn(checkstyleTest)
-directoryBuild.dependsOn(compileTestJava)
-directoryBuild.dependsOn(jar)
-directoryBuild.dependsOn ":${packageName}-cli:jacocoTestReport"
-directoryBuild.dependsOn(test)
 build.dependsOn directoryBuild
 
 publish.dependsOn build
