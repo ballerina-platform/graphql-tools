@@ -13,8 +13,8 @@ type Query {
     The episode
     Default value of the `episode` is ""JEDI""
     """
-    episode: Episode! = ""
-    name: String! = ""
+    episode: Episode! = JEDI
+    name: String! = "Luke"
   ): [Review]!
   "Returns characters by id, or null if character is not found"
   characters(

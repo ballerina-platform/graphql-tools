@@ -2,7 +2,7 @@ type Query {
   greet(name: String!): String!
   isLegal(age: Int!): Boolean!
   quote: String!
-  quoteById(id: Int! = ""): String
+  quoteById(id: Int! = 0): String
   weightInPounds(weightInKg: Float!): Float!
   isHoliday(weekday: Weekday): Boolean!
   getDay(isHoliday: Boolean!): [Weekday!]!
