@@ -1,4 +1,4 @@
-# Graphql-tools
+# Ballerina GraphQL CLI tool
 
 Maintain the source code for GraphQL related tools.
 
