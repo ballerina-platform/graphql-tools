@@ -17,7 +17,6 @@ public type Book record {|
 
 public distinct service class Student {
     *Info;
-
     resource function get id() returns int {
     }
 
@@ -27,7 +26,6 @@ public distinct service class Student {
 
 public distinct service class Teacher {
     *Info;
-
     resource function get id() returns int {
     }
 
