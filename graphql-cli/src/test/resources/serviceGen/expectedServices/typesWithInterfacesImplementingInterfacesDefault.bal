@@ -21,6 +21,7 @@ public type Info distinct service object {
 
 public distinct service class Student {
     *Info;
+
     resource function get id() returns int {
     }
 
@@ -30,6 +31,7 @@ public distinct service class Student {
 
 public distinct service class Teacher {
     *AddressInfo;
+
     resource function get id() returns int {
     }
 
