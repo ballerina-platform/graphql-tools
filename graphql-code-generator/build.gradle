@@ -15,7 +15,9 @@
  *
  */
 
-apply plugin: "com.github.johnrengelman.shadow"
+plugins {
+    id "com.github.johnrengelman.shadow"
+}
 
 configurations {
     balTools
@@ -26,7 +28,7 @@ configurations {
 
 dependencies {
     checkstyle project(':checkstyle')
-    checkstyle "com.puppycrawl.tools:checkstyle:${project.puppycrawlCheckstyleVersion}"
+    checkstyle "com.puppycrawl.tools:checkstyle:${project.checkstylePluginVersion}"
 
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
@@ -35,11 +37,11 @@ dependencies {
     implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
     implementation "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
-    implementation "org.json:json:${orgJsonVersion}" // NEW
-    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
-    implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
+    implementation "org.json:json:${orgJsonVersion}"
+    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
+    implementation "commons-logging:commons-logging:${commonsLoggingVersion}"
     testImplementation "org.testng:testng:${testngVersion}"
-    dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
+    dist "com.graphql-java:graphql-java:${graphqlJavaVersion}"
 
     balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
@@ -52,7 +54,7 @@ tasks.withType(Checkstyle) {
 }
 
 checkstyle {
-    toolVersion "${project.puppycrawlCheckstyleVersion}"
+    toolVersion "${project.checkstylePluginVersion}"
     configFile rootProject.file("config/checkstyle/build/checkstyle.xml")
     configProperties = ["suppressionFile" : file("${rootDir}/config/checkstyle/build/suppressions.xml")]
 }

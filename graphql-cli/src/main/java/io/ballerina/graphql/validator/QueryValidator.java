@@ -29,6 +29,7 @@ import io.ballerina.graphql.generator.client.Utils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * This class is used to validate the GraphQL query files.
@@ -78,7 +79,8 @@ public class QueryValidator {
         Document parsedDocument = Utils.getGraphQLQueryDocument(document);
 
         Validator validator = new Validator();
-        List<ValidationError> validationErrors = validator.validateDocument(graphQLSchema, parsedDocument);
+        List<ValidationError> validationErrors = validator.validateDocument(graphQLSchema, parsedDocument,
+                Locale.getDefault());
         if (validationErrors.size() > 0) {
             throw new QueryValidationException("Graph query validation failed.", validationErrors, projectName);
         }

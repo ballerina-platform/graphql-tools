@@ -15,8 +15,10 @@
  *
  */
 
-apply plugin: "com.github.johnrengelman.shadow"
-apply plugin: "jacoco"
+plugins {
+    id "com.github.johnrengelman.shadow"
+    id "jacoco"
+}
 
 configurations {
     balTools
@@ -36,13 +38,12 @@ dependencies {
     testImplementation "org.testng:testng:${testngVersion}"
     testImplementation "org.apache.commons:commons-lang3:${commonsLang3Version}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
-    implementation "commons-logging:commons-logging:${commonsLoggingVersion}" // NEW
-    implementation "org.yaml:snakeyaml:${snakeYamlVersion}" // NEW
-    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
-    implementation "org.json:json:${orgJsonVersion}" // NEW
-    dist "com.graphql-java:graphql-java:${graphqlJavaVersion}" // NEW
-    dist "com.google.guava:guava:${googleGuavaVersion}" // NEW
-    dist "org.json:json:${orgJsonVersion}" // NEW
+    implementation "commons-logging:commons-logging:${commonsLoggingVersion}"
+    implementation "org.yaml:snakeyaml:${snakeYamlVersion}"
+    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
+    implementation "org.json:json:${orgJsonVersion}"
+    implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
+    implementation "org.json:json:${orgJsonVersion}"
 
     balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false

@@ -34,7 +34,7 @@ configurations {
 
 dependencies {
     checkstyle project(':checkstyle')
-    checkstyle "com.puppycrawl.tools:checkstyle:${project.puppycrawlCheckstyleVersion}"
+    checkstyle "com.puppycrawl.tools:checkstyle:${project.checkstylePluginVersion}"
 
     implementation project(':graphql-schema-file-generator')
     implementation project(':graphql-code-generator')
@@ -50,9 +50,7 @@ dependencies {
     implementation "commons-logging:commons-logging:${commonsLoggingVersion}"
     implementation "org.yaml:snakeyaml:${snakeYamlVersion}"
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
-    implementation "org.json:json:${orgJsonVersion}"
     dist "com.graphql-java:graphql-java:${graphqlJavaVersion}"
-    dist "org.json:json:${orgJsonVersion}"
     dist "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
 
     balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
@@ -66,7 +64,7 @@ tasks.withType(Checkstyle) {
 }
 
 checkstyle {
-    toolVersion "${project.puppycrawlCheckstyleVersion}"
+    toolVersion "${project.checkstylePluginVersion}"
     configFile rootProject.file("config/checkstyle/build/checkstyle.xml")
     configProperties = ["suppressionFile" : file("${rootDir}/config/checkstyle/build/suppressions.xml")]
 }
