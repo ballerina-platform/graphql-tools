@@ -50,8 +50,10 @@ dependencies {
     implementation "commons-logging:commons-logging:${commonsLoggingVersion}"
     implementation "org.yaml:snakeyaml:${snakeYamlVersion}"
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
+    implementation "org.json:json:${orgJsonVersion}"
     dist "com.graphql-java:graphql-java:${graphqlJavaVersion}"
     dist "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
+    dist "org.json:json:${orgJsonVersion}"
 
     balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
