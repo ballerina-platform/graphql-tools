@@ -9,7 +9,7 @@ type SchemaWithMutationApi service object {
 };
 
 public distinct service class Author {
-    resource function get id() returns string {
+    resource function get id() returns @graphql:ID string {
     }
 
     resource function get name() returns string {

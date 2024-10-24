@@ -450,17 +450,36 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLInputObjectField> inputTypeFields) throws ServiceGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLInputObjectField field : inputTypeFields) {
+            MetadataNode metadataNode;
+            if (CodeGeneratorConstants.GRAPHQL_ID_TYPE.equals(field.getType())) {
+                metadataNode = createMetadataNode(
+                        null,
+                        createNodeList(
+                                createAnnotationNode(
+                                        createToken(SyntaxKind.AT_TOKEN),
+                                        createQualifiedNameReferenceNode(
+                                                createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
+                                                createToken(SyntaxKind.COLON_TOKEN),
+                                                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_ID_TYPE)
+                                        ),
+                                        null
+                                )
+                        )
+                );
+            } else {
+                metadataNode = generateMetadata(field.getDescription(), null, field.isDeprecated(),
+                        field.getDeprecationReason(), false);
+            }
+
             if (field.hasSetDefaultValue()) {
                 Object value = field.getInputFieldDefaultValue().getValue();
                 ExpressionNode generatedDefaultValue = generateArgDefaultValue(value);
-                fields.add(createRecordFieldWithDefaultValueNode(
-                        generateMetadata(field.getDescription(), null, field.isDeprecated(),
-                                field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
+                fields.add(createRecordFieldWithDefaultValueNode(metadataNode, null,
+                        generateTypeDescriptor(field.getType()),
                         createIdentifierToken(field.getName()), createToken(SyntaxKind.EQUAL_TOKEN),
                         generatedDefaultValue, createToken(SyntaxKind.SEMICOLON_TOKEN)));
             } else {
-                fields.add(createRecordFieldNode(generateMetadata(field.getDescription(), null, field.isDeprecated(),
-                                field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
+                fields.add(createRecordFieldNode(metadataNode, null, generateTypeDescriptor(field.getType()),
                         createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
             }
         }
@@ -471,9 +490,28 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLFieldDefinition> typeInputFields) throws ServiceGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLFieldDefinition field : typeInputFields) {
+            MetadataNode metadataNode;
+            if (CodeGeneratorConstants.GRAPHQL_ID_TYPE.equals(field.getType())) {
+                metadataNode = createMetadataNode(
+                        null,
+                        createNodeList(
+                                createAnnotationNode(
+                                        createToken(SyntaxKind.AT_TOKEN),
+                                        createQualifiedNameReferenceNode(
+                                                createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
+                                                createToken(SyntaxKind.COLON_TOKEN),
+                                                createIdentifierToken(CodeGeneratorConstants.GRAPHQL_ID_TYPE)
+                                        ),
+                                        null
+                                )
+                        )
+                );
+            } else {
+                metadataNode = generateMetadata(field.getDescription(), null, field.isDeprecated(),
+                        field.getDeprecationReason(), false);
+            }
             fields.add(createRecordFieldNode(
-                    generateMetadata(field.getDescription(), field.getArguments(), field.isDeprecated(),
-                            field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
+                    metadataNode, null, generateTypeDescriptor(field.getType()),
                     createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
         }
         return createNodeList(fields);
@@ -801,15 +839,37 @@ public class ServiceTypesGenerator extends TypesGenerator {
     private ReturnTypeDescriptorNode generateMethodSignatureReturnType(GraphQLOutputType type, boolean isStream)
             throws ServiceGenerationException {
         TypeDescriptorNode typeDescriptor = generateTypeDescriptor(type);
+        GraphQLType unWrappedType = type;
+        if (type instanceof GraphQLNonNull) {
+            unWrappedType = ((GraphQLNonNull) type).getWrappedType();
+        }
+
+        NodeList<AnnotationNode> nodeList;
+        if (unWrappedType instanceof GraphQLScalarType
+                && ((GraphQLScalarType) unWrappedType).getName().equals(CodeGeneratorConstants.GRAPHQL_ID_TYPE)) {
+            nodeList = createNodeList(
+                    createAnnotationNode(
+                            createToken(SyntaxKind.AT_TOKEN),
+                            createQualifiedNameReferenceNode(
+                                    createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
+                                    createToken(SyntaxKind.COLON_TOKEN),
+                                    createIdentifierToken(CodeGeneratorConstants.GRAPHQL_ID_TYPE)
+                            ),
+                            null
+                    )
+            );
+        } else {
+            nodeList = createEmptyNodeList();
+        }
         if (isStream) {
             StreamTypeDescriptorNode streamTypeDescriptor =
                     createStreamTypeDescriptorNode(createToken(SyntaxKind.STREAM_KEYWORD),
                             createStreamTypeParamsNode(createToken(SyntaxKind.LT_TOKEN), typeDescriptor, null, null,
                                     createToken(SyntaxKind.GT_TOKEN)));
-            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), createEmptyNodeList(),
+            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), nodeList,
                     streamTypeDescriptor);
         } else {
-            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), createEmptyNodeList(),
+            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), nodeList,
                     typeDescriptor);
         }
     }
