@@ -450,7 +450,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLInputObjectField> inputTypeFields) throws ServiceGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLInputObjectField field : inputTypeFields) {
-            MetadataNode metadataNode = getMetadataNode(field.getType(), field.getDescription(),
+            MetadataNode metadataNode = getMetadataNode(getUnwrappedType(field.getType()), field.getDescription(),
                     field.isDeprecated(), field.getDeprecationReason());
             if (field.hasSetDefaultValue()) {
                 Object value = field.getInputFieldDefaultValue().getValue();
@@ -472,7 +472,7 @@ public class ServiceTypesGenerator extends TypesGenerator {
         List<Node> fields = new ArrayList<>();
         for (GraphQLFieldDefinition field : typeInputFields) {
             fields.add(createRecordFieldNode(
-                    getMetadataNode(field.getType(), field.getDescription(), field.isDeprecated(),
+                    getMetadataNode(getUnwrappedType(field.getType()), field.getDescription(), field.isDeprecated(),
                             field.getDeprecationReason()),
                     null, generateTypeDescriptor(field.getType()),
                     createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
