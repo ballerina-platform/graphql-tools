@@ -789,6 +789,32 @@ public class ServiceTypesGeneratorTest extends GraphqlTest {
         }
     }
 
+    @Test(groups = {"service-type-for-objects"})
+    public void testGenerateSrcForSchemaWithGraphQLIDType() {
+        String fileName = "SchemaWithIDTypeApi";
+        String expectedFile = "typesWithIDTypeRecordsAllowed.bal";
+        try {
+            GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                            .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setFileName(fileName);
+            serviceTypesGenerator.setUseRecordsForObjects(true);
+            String generatedServiceTypesContent = serviceTypesGenerator.generateSrc(graphQLSchema);
+            writeContentTo(generatedServiceTypesContent, this.tmpDir, TYPES_FILE_NAME);
+
+            Path expectedServiceTypesFile =
+                    resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceTypesContent = readContentWithFormat(expectedServiceTypesFile);
+            String writtenServiceTypesContent = readContentWithFormat(this.tmpDir.resolve("types.bal"));
+            Assert.assertEquals(expectedServiceTypesContent, writtenServiceTypesContent);
+        } catch (ValidationException | IOException | ServiceGenerationException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
     @DataProvider(name = "invalidSchemasWithExpectedErrorMessages")
     public Object[][] getInvalidSchemasWithExpectedErrorMessages() {
         return new Object[][]{

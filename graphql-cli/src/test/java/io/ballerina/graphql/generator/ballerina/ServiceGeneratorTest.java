@@ -98,4 +98,33 @@ public class ServiceGeneratorTest extends GraphqlTest {
             Assert.fail(e.getMessage());
         }
     }
+
+    @Test
+    public void testGenerateServiceForSchemaWithIDTypes() {
+        String fileName = "SchemaWithIDTypeApi";
+        String expectedFile = "serviceForSchemaWithIDTypeApi.bal";
+        try {
+            GraphqlServiceProject project = TestUtils.getValidatedMockServiceProject(
+                    this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", fileName + ".graphql"))
+                            .toString(), this.tmpDir);
+            GraphQLSchema graphQLSchema = project.getGraphQLSchema();
+
+            ServiceTypesGenerator serviceTypesGenerator = new ServiceTypesGenerator();
+            serviceTypesGenerator.setFileName(fileName);
+            serviceTypesGenerator.generateSrc(graphQLSchema);
+
+            ServiceGenerator serviceGenerator = new ServiceGenerator();
+            serviceGenerator.setFileName(fileName);
+            serviceGenerator.setMethodDeclarations(serviceTypesGenerator.getServiceMethodDeclarations());
+            String generatedServiceContent = serviceGenerator.generateSrc();
+            writeContentTo(generatedServiceContent, this.tmpDir, SERVICE_FILE_NAME);
+            Path expectedServiceFile = resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile));
+            String expectedServiceContent = readContentWithFormat(expectedServiceFile);
+            String writtenServiceTypesContent =
+                    readContentWithFormat(this.tmpDir.resolve("service.bal"));
+            Assert.assertEquals(expectedServiceContent, writtenServiceTypesContent);
+        } catch (ServiceGenerationException | IOException | ValidationException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
 }

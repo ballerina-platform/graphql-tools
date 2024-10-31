@@ -450,17 +450,17 @@ public class ServiceTypesGenerator extends TypesGenerator {
             List<GraphQLInputObjectField> inputTypeFields) throws ServiceGenerationException {
         List<Node> fields = new ArrayList<>();
         for (GraphQLInputObjectField field : inputTypeFields) {
+            MetadataNode metadataNode = getMetadataNode(getUnwrappedType(field.getType()), field.getDescription(),
+                    field.isDeprecated(), field.getDeprecationReason());
             if (field.hasSetDefaultValue()) {
                 Object value = field.getInputFieldDefaultValue().getValue();
                 ExpressionNode generatedDefaultValue = generateArgDefaultValue(value);
-                fields.add(createRecordFieldWithDefaultValueNode(
-                        generateMetadata(field.getDescription(), null, field.isDeprecated(),
-                                field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
+                fields.add(createRecordFieldWithDefaultValueNode(metadataNode, null,
+                        generateTypeDescriptor(field.getType()),
                         createIdentifierToken(field.getName()), createToken(SyntaxKind.EQUAL_TOKEN),
                         generatedDefaultValue, createToken(SyntaxKind.SEMICOLON_TOKEN)));
             } else {
-                fields.add(createRecordFieldNode(generateMetadata(field.getDescription(), null, field.isDeprecated(),
-                                field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
+                fields.add(createRecordFieldNode(metadataNode, null, generateTypeDescriptor(field.getType()),
                         createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
             }
         }
@@ -472,8 +472,9 @@ public class ServiceTypesGenerator extends TypesGenerator {
         List<Node> fields = new ArrayList<>();
         for (GraphQLFieldDefinition field : typeInputFields) {
             fields.add(createRecordFieldNode(
-                    generateMetadata(field.getDescription(), field.getArguments(), field.isDeprecated(),
-                            field.getDeprecationReason(), false), null, generateTypeDescriptor(field.getType()),
+                    getMetadataNode(getUnwrappedType(field.getType()), field.getDescription(), field.isDeprecated(),
+                            field.getDeprecationReason()),
+                    null, generateTypeDescriptor(field.getType()),
                     createIdentifierToken(field.getName()), null, createToken(SyntaxKind.SEMICOLON_TOKEN)));
         }
         return createNodeList(fields);
@@ -806,10 +807,10 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     createStreamTypeDescriptorNode(createToken(SyntaxKind.STREAM_KEYWORD),
                             createStreamTypeParamsNode(createToken(SyntaxKind.LT_TOKEN), typeDescriptor, null, null,
                                     createToken(SyntaxKind.GT_TOKEN)));
-            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), createEmptyNodeList(),
+            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), getAnnotationNodeList(type),
                     streamTypeDescriptor);
         } else {
-            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), createEmptyNodeList(),
+            return createReturnTypeDescriptorNode(createToken(SyntaxKind.RETURNS_KEYWORD), getAnnotationNodeList(type),
                     typeDescriptor);
         }
     }
@@ -831,13 +832,13 @@ public class ServiceTypesGenerator extends TypesGenerator {
                 Object value = argument.getArgumentDefaultValue().getValue();
                 ExpressionNode generatedDefaultValue = generateArgDefaultValue(value);
                 DefaultableParameterNode defaultableParameterNode =
-                        createDefaultableParameterNode(createEmptyNodeList(), argumentType,
+                        createDefaultableParameterNode(getAnnotationNodeList(argument.getType()), argumentType,
                                 createIdentifierToken(argument.getName()), createToken(SyntaxKind.EQUAL_TOKEN),
                                 generatedDefaultValue);
                 defaultParams.add(defaultableParameterNode);
             } else {
                 RequiredParameterNode requiredParameterNode =
-                        createRequiredParameterNode(createEmptyNodeList(), argumentType,
+                        createRequiredParameterNode(getAnnotationNodeList(argument.getType()), argumentType,
                                 createIdentifierToken(argument.getName()));
                 requiredParams.add(requiredParameterNode);
             }
@@ -1041,4 +1042,60 @@ public class ServiceTypesGenerator extends TypesGenerator {
                     String.format(Constants.ONLY_SCALAR_TYPE_ALLOWED, typeName));
         }
     }
+
+
+    private MetadataNode getMetadataNode(GraphQLType fieldType, String description,
+                                         boolean deprecated, String deprecationReason) {
+        if (fieldType instanceof GraphQLScalarType &&
+                ((GraphQLScalarType) fieldType).getName().equals(CodeGeneratorConstants.GRAPHQL_ID_TYPE)) {
+            return createMetadataNode(
+                    createMarkdownDocumentationNode(createNodeList(
+                            generateMarkdownDocumentationLines(description, false))),
+                    createNodeList(
+                            createAnnotationNode(
+                                    createToken(SyntaxKind.AT_TOKEN),
+                                    createQualifiedNameReferenceNode(
+                                            createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
+                                            createToken(SyntaxKind.COLON_TOKEN),
+                                            createIdentifierToken(CodeGeneratorConstants.GRAPHQL_ID_TYPE)
+                                    ),
+                                    null
+                            )
+                    )
+            );
+        }
+        return generateMetadata(description, null, deprecated,
+                deprecationReason, false);
+    }
+
+    private GraphQLType getUnwrappedType(GraphQLType graphQLType) {
+        if (graphQLType instanceof GraphQLNonNull) {
+            return getUnwrappedType(((GraphQLNonNull) graphQLType).getWrappedType());
+        } else if (graphQLType instanceof GraphQLList) {
+            return getUnwrappedType(((GraphQLList) graphQLType).getWrappedType());
+        } else {
+            return graphQLType;
+        }
+    }
+
+    private NodeList<AnnotationNode> getAnnotationNodeList(GraphQLType graphQLType) {
+        GraphQLType unWrappedType = getUnwrappedType(graphQLType);
+        if (unWrappedType instanceof GraphQLScalarType
+                && ((GraphQLScalarType) unWrappedType).getName().equals(CodeGeneratorConstants.GRAPHQL_ID_TYPE)) {
+            return createNodeList(
+                    createAnnotationNode(
+                            createToken(SyntaxKind.AT_TOKEN),
+                            createQualifiedNameReferenceNode(
+                                    createIdentifierToken(CodeGeneratorConstants.GRAPHQL),
+                                    createToken(SyntaxKind.COLON_TOKEN),
+                                    createIdentifierToken(CodeGeneratorConstants.GRAPHQL_ID_TYPE)
+                            ),
+                            null
+                    )
+            );
+        } else {
+            return createEmptyNodeList();
+        }
+    }
+
 }
