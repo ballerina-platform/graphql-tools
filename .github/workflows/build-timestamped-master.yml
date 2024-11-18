@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - java21
   workflow_dispatch:
 
 jobs:
