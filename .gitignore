@@ -42,3 +42,5 @@ Config.toml
 
 # Ignore Gradle build output directory
 build
+target
+bin

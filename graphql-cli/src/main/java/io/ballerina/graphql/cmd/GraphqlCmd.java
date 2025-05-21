@@ -43,12 +43,15 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
 import picocli.CommandLine;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -182,9 +185,10 @@ public class GraphqlCmd implements BLauncherCmd {
     private void validateInputFlags() throws CmdException {
         // Check if CLI help flag argument is present
         if (helpFlag) {
-            String commandUsageInfo = BLauncherCmd.getCommandUsageInfo(getName());
-            outStream.println(commandUsageInfo);
+            printLongDesc(new StringBuilder());
+            outStream.flush();
             exitError(this.exitWhenFinish);
+            return;
         }
 
         // Check if CLI input path flag argument is present
@@ -409,6 +413,19 @@ public class GraphqlCmd implements BLauncherCmd {
 
     @Override
     public void printLongDesc(StringBuilder stringBuilder) {
+        Class<GraphqlCmd> cmdClass = GraphqlCmd.class;
+        ClassLoader classLoader = cmdClass.getClassLoader();
+        InputStream inputStream = classLoader.getResourceAsStream("ballerina-graphql.help");
+        try (InputStreamReader inputStreamREader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+            BufferedReader br = new BufferedReader(inputStreamREader)) {
+            String content = br.readLine();
+            outStream.append(content);
+            while ((content = br.readLine()) != null) {
+                outStream.append('\n').append(content);
+            }
+            outStream.append('\n');
+        } catch (IOException ignore) {
+        }
     }
 
     @Override

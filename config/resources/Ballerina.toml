@@ -1,0 +1,8 @@
+[package]
+org = "ballerina"
+name = "tool_graphql"
+version = "@toml.version@"
+authors = ["Ballerina"]
+keywords = ["graphql", "graphql tool", "gql"]
+license = ["Apache-2.0"]
+distribution = "2201.12.3"
