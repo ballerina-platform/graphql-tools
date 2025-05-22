@@ -16,15 +16,9 @@
  */
 
 plugins {
+    id "java"
     id "com.github.johnrengelman.shadow"
     id "checkstyle"
-}
-
-configurations {
-    balTools
-    dist {
-        transitive true
-    }
 }
 
 dependencies {
@@ -37,7 +31,7 @@ dependencies {
     implementation "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
 
-    balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+    jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
     }
 }
@@ -59,7 +53,7 @@ checkstyleTest.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 def bDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")
 task jBallerinaPack {
     doLast {
-        configurations.balTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        configurations.jbalTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
                 from project.zipTree(artifact.getFile())
                 into new File(project.buildDir, "extracted-distribution/")

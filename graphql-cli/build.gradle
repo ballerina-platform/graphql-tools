@@ -16,6 +16,7 @@
  */
 
 plugins {
+    id "java"
     id "com.github.johnrengelman.shadow"
     id "jacoco"
     id "checkstyle"
@@ -23,13 +24,6 @@ plugins {
 
 configurations.all {
     resolutionStrategy.preferProjectModules()
-}
-
-configurations {
-    balTools
-    dist {
-        transitive true
-    }
 }
 
 dependencies {
@@ -51,13 +45,17 @@ dependencies {
     implementation "org.yaml:snakeyaml:${snakeYamlVersion}"
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
     implementation "org.json:json:${orgJsonVersion}"
-    dist "com.graphql-java:graphql-java:${graphqlJavaVersion}"
     dist "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
-    dist "org.json:json:${orgJsonVersion}"
 
-    balTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+    jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
         transitive = false
     }
+}
+
+tasks.register('copyAllDependencies', Copy) {
+    //referring to the 'compileClasspath' configuration
+    from configurations.compileClasspath
+    into "$rootDir/graphql-tool/build/libs"
 }
 
 def excludePattern = '**/module-info.java'
@@ -77,7 +75,7 @@ checkstyleTest.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 def bDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")
 task jBallerinaPack {
     doLast {
-        configurations.balTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+        configurations.jbalTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
                 from project.zipTree(artifact.getFile())
                 into new File(project.buildDir, "extracted-distribution/")
@@ -129,6 +127,11 @@ jar {
     dependsOn configurations.dist
     from { configurations.dist.collect { it.isDirectory() ? it : zipTree(it) } } {
         exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    }
+
+    manifest {
+        attributes('Implementation-Title': project.name,
+                'Implementation-Version': project.version)
     }
 }
 
@@ -199,6 +202,7 @@ copyStdlibs.dependsOn unpackStdLibs
 shadowJar.dependsOn copyStdlibs
 copyJar.dependsOn shadowJar
 copyJar.dependsOn jar
+copyJar.dependsOn copyAllDependencies
 test.dependsOn copyJar
 jacocoTestReport.dependsOn test
 

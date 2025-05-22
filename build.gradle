@@ -16,7 +16,6 @@
  */
 
 plugins {
-    id 'java-library'
     id 'jacoco'
     id "com.github.johnrengelman.shadow"
     id "de.undercouch.download"
@@ -24,12 +23,6 @@ plugins {
 }
 
 def packageName = "graphql"
-
-dependencies {
-    implementation project(':graphql-schema-file-generator')
-    implementation project(':graphql-code-generator')
-    implementation project(':graphql-cli')
-}
 
 allprojects {
     group = project.group
@@ -77,12 +70,21 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'java-library'
+
     configurations {
         ballerinaStdLibs
+        jbalTools
+        dist {
+            transitive true
+        }
     }
 
     dependencies {
+        /* JBallerina Tools */
+        jbalTools("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
+            transitive = false
+        }
+
         /* Standard libraries */
         ballerinaStdLibs "io.ballerina.stdlib:constraint-ballerina:${stdlibConstraintVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:io-ballerina:${stdlibIoVersion}"
@@ -112,6 +114,7 @@ def moduleVersion = project.version.replace("-SNAPSHOT", "")
 
 release {
     // Disable check snapshots temporarily
+    buildTasks = ['build']
     failOnPublishNeeded = false
     versionPropertyFile = 'gradle.properties'
     tagTemplate = 'v${version}'
@@ -127,15 +130,11 @@ tasks.withType(JavaCompile) {
 }
 
 task codeCoverageReport(type: JacocoReport) {
-    dependsOn = subprojects.test
     dependsOn(":graphql-cli:jacocoTestReport")
     dependsOn(":directoryBuild")
 
     executionData fileTree(project.rootDir.absolutePath).include("**/build/coverage-reports/*.exec")
 
-    subprojects.each {
-        sourceSets it.sourceSets.main
-    }
     reports {
         xml.required = true
         html.required = true
@@ -157,13 +156,6 @@ def targetGraphqlBalServiceJar = file("$project.rootDir/graphql-schema-file-gene
         "graphql-schema-file-generator-${project.version}.jar")
 def targetGraphqlCodeGenJar = file("$project.rootDir/graphql-code-generator/build/libs/" +
         "graphql-code-generator-${project.version}.jar")
-
-jar {
-    manifest {
-        attributes('Implementation-Title': project.name,
-                'Implementation-Version': project.version)
-    }
-}
 
 task directoryBuild {
     doLast {
@@ -213,7 +205,11 @@ publishing {
 directoryBuild.dependsOn ":${packageName}-schema-file-generator:build"
 directoryBuild.dependsOn ":${packageName}-code-generator:build"
 directoryBuild.dependsOn ":${packageName}-cli:build"
+directoryBuild.dependsOn ":${packageName}-tool:build"
 directoryBuild.dependsOn ":generatePomFileForMavenJavaPublication"
-build.dependsOn directoryBuild
+
+task build {
+    dependsOn directoryBuild
+}
 
 publish.dependsOn build
