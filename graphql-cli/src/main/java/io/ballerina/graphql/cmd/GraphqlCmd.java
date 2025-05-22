@@ -424,7 +424,8 @@ public class GraphqlCmd implements BLauncherCmd {
                 outStream.append('\n').append(content);
             }
             outStream.append('\n');
-        } catch (IOException ignore) {
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
         }
     }
 
