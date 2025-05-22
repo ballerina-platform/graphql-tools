@@ -24,7 +24,7 @@ bal graphql [-i | --input] <graphql-service-file-path> [-o | --output] <output-l
 
 | Argument      | Description   |
 | ------------- | ------------- |
-| -i, --input   | The `input` parameter specifies the path of the Ballerina GraphQL service file (e.g., service.bal). This parameter is mandatory. This parameter is mandatory. |
+| -i, --input   | The `input` parameter specifies the path of the Ballerina GraphQL service file (e.g., service.bal). This parameter is mandatory. |
 | -o, --output  | The `output` parameter specifies the path of the output location of the generated GraphQL schema files. This parameter is optional. If this parameter is not specified, the schema files will be generated at the same location from which the GraphQL command is executed. |
 | -s, --service  | The `service` parameter specifies the base path of the Ballerina GraphQL service which the schema is needed to be generated. This parameter is optional. If this parameter is not specified, the schema files will be generated for all the Ballerina GraphQL services declared in the input file. |
 
@@ -33,7 +33,7 @@ bal graphql [-i | --input] <graphql-service-file-path> [-o | --output] <output-l
 The `graphql` command for Ballerina Graphql service generation and the usages are as follows.
 
 ```
-bal graphql [-i | --input] <graphql-schema-file-path> [-o | --ouput] <output-location> [-m | --mode] <operation-mode> [-r | --use-records-for-objects]
+bal graphql [-i | --input] <graphql-schema-file-path> [-o | --output] <output-location> [-m | --mode] <operation-mode> [-r | --use-records-for-objects]
 ```
 
 
