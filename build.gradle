@@ -130,18 +130,31 @@ tasks.withType(JavaCompile) {
 }
 
 task codeCoverageReport(type: JacocoReport) {
-    dependsOn(":graphql-cli:jacocoTestReport")
-    dependsOn(":directoryBuild")
+    dependsOn(":${packageName}-tool:build")
 
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/coverage-reports/*.exec")
+    executionData.setFrom(fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec"))
+
+    def sourceDirs = files(
+        "${project.rootDir}/${packageName}-cli/src/main/java",
+        "${project.rootDir}/${packageName}-code-generator/src/main/java",
+        "${project.rootDir}/${packageName}-schema-file-generator/src/main/java"
+    )
+
+    def classDirs = files(
+        fileTree(dir: "${rootDir}/graphql-code-generator/build/classes/java/main/io/ballerina/graphql/generator"),
+        fileTree(dir: "${rootDir}/graphql-schema-file-generator/build/classes/java/main/io/ballerina/graphql/schema")
+    )
+
+    sourceDirectories.setFrom(sourceDirs)
+    classDirectories.setFrom(classDirs)
 
     reports {
         xml.required = true
         html.required = true
         csv.required = true
-        xml.destination(new File("${buildDir}/reports/jacoco/report.xml"))
-        html.destination(new File("${buildDir}/reports/jacoco/report.html"))
-        csv.destination(new File("${buildDir}/reports/jacoco/report.csv"))
+        xml.destination = file("${buildDir}/reports/jacoco/report.xml")
+        html.destination = file("${buildDir}/reports/jacoco/report.html")
+        csv.destination = file("${buildDir}/reports/jacoco/report.csv")
     }
 
     onlyIf = {
