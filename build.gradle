@@ -130,18 +130,31 @@ tasks.withType(JavaCompile) {
 }
 
 task codeCoverageReport(type: JacocoReport) {
-    dependsOn(":graphql-cli:jacocoTestReport")
-    dependsOn(":directoryBuild")
+    dependsOn(":${packageName}-tool:build")
 
-    executionData fileTree(project.rootDir.absolutePath).include("**/build/coverage-reports/*.exec")
+    executionData.setFrom(fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec"))
+
+    def sourceDirs = files(
+        "${project.rootDir}/${packageName}-cli/src/main/java",
+        "${project.rootDir}/${packageName}-code-generator/src/main/java",
+        "${project.rootDir}/${packageName}-schema-file-generator/src/main/java"
+    )
+
+    def classDirs = files(
+        fileTree(dir: "${rootDir}/graphql-code-generator/build/classes/java/main/io/ballerina/graphql/generator"),
+        fileTree(dir: "${rootDir}/graphql-schema-file-generator/build/classes/java/main/io/ballerina/graphql/schema")
+    )
+
+    sourceDirectories.setFrom(sourceDirs)
+    classDirectories.setFrom(classDirs)
 
     reports {
         xml.required = true
         html.required = true
         csv.required = true
-        xml.destination(new File("${buildDir}/reports/jacoco/report.xml"))
-        html.destination(new File("${buildDir}/reports/jacoco/report.html"))
-        csv.destination(new File("${buildDir}/reports/jacoco/report.csv"))
+        xml.destination = file("${buildDir}/reports/jacoco/report.xml")
+        html.destination = file("${buildDir}/reports/jacoco/report.html")
+        csv.destination = file("${buildDir}/reports/jacoco/report.csv")
     }
 
     onlyIf = {
@@ -149,67 +162,8 @@ task codeCoverageReport(type: JacocoReport) {
     }
 }
 
-def artifactCacheParent = file("$project.projectDir/build/cache_parent/")
-def artifactLibParent = file("$project.projectDir/build/lib_parent/")
-def targetGraphqlCliJar = file("$project.rootDir/graphql-cli/build/libs/graphql-cli-${project.version}.jar")
-def targetGraphqlBalServiceJar = file("$project.rootDir/graphql-schema-file-generator/build/libs/" +
-        "graphql-schema-file-generator-${project.version}.jar")
-def targetGraphqlCodeGenJar = file("$project.rootDir/graphql-code-generator/build/libs/" +
-        "graphql-code-generator-${project.version}.jar")
-
-task directoryBuild {
-    doLast {
-        copy {
-            from targetGraphqlCliJar
-            into file("$artifactLibParent/libs")
-        }
-        copy {
-            from targetGraphqlBalServiceJar
-            into file("$artifactLibParent/libs")
-        }
-        copy {
-            from targetGraphqlCodeGenJar
-            into file("$artifactLibParent/libs")
-        }
-    }
-
-    outputs.dir artifactCacheParent
-    outputs.dir artifactLibParent
-    doNotTrackState("build needs to run every time")
-}
-
-task createArtifactZip(type: Zip) {
-    destinationDirectory = file("${buildDir}/distributions")
-    from directoryBuild
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact source: createArtifactZip, extension: 'zip'
-        }
-    }
-
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/ballerina-platform/graphql-tools")
-            credentials {
-                username = System.getenv("packageUser")
-                password = System.getenv("packagePAT")
-            }
-        }
-    }
-}
-
-directoryBuild.dependsOn ":${packageName}-schema-file-generator:build"
-directoryBuild.dependsOn ":${packageName}-code-generator:build"
-directoryBuild.dependsOn ":${packageName}-cli:build"
-directoryBuild.dependsOn ":${packageName}-tool:build"
-directoryBuild.dependsOn ":generatePomFileForMavenJavaPublication"
-
 task build {
-    dependsOn directoryBuild
+    dependsOn ":${packageName}-tool:build"
 }
 
 publish.dependsOn build
