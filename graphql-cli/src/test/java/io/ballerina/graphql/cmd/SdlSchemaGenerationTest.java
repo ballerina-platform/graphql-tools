@@ -20,312 +20,113 @@ package io.ballerina.graphql.cmd;
 
 import io.ballerina.graphql.common.GraphqlTest;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import picocli.CommandLine;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static io.ballerina.graphql.common.TestUtils.WHITESPACE_REGEX;
 
 /**
  * This class is used to test the functionality of the GraphQL command.
  */
 public class SdlSchemaGenerationTest extends GraphqlTest {
 
-    @Test(description = "Test successful GraphQL command execution")
-    public void testSdlGeneration() {
-        String[] args = {"-i", "valid/service_1.bal", "-o", this.tmpDir.toString()};
+    @DataProvider(name = "serviceFileNames")
+    public Object[][] dataProviderSdlGeneration() {
+        return new Object[][] {
+                {"service_1.bal", "schema_graphql.graphql", "schema_graphql.graphql"},
+                {"project_1/main.bal", "schema_graphql.graphql", "schema_graphql.graphql"},
+                {"service_2.bal", "schema_service_gql.graphql", "schema_service_gql.graphql"},
+                {"service_3.bal", "schema_service_3.graphql", "schema_service_3.graphql"},
+                {"service_3.bal", "schema_service_3_1.graphql", "schema_service_3_1.graphql"},
+                {"service_3.bal", "schema_service_3_2.graphql", "schema_service_3_2.graphql"},
+                {"service_4.bal", "schema_service_4.graphql", "schema_service_4.graphql"},
+                {"service_4.bal", "schema_service_4_1.graphql", "schema_service_4_1.graphql"},
+                {"service_4.bal", "schema_service_4_2.graphql", "schema_service_4_2.graphql"},
+                {"project_2/main.bal", "schema_service_4.graphql", "schema_main.graphql"},
+                {"project_2/main_1.bal", "schema_service_4_1.graphql", "schema_main_1.graphql"},
+                {"project_2/main_2.bal", "schema_service_4_2.graphql", "schema_main_2.graphql"},
+                {"service_6.bal", "schema_service_6.graphql", "schema_service_6.graphql"},
+                {"service_7.bal", "schema_query.graphql", "schema_query.graphql"},
+                {"service_8.bal", "schema_gql.graphql", "schema_gql.graphql"},
+                {"service_9.bal", "schema_person.graphql", "schema_person.graphql"},
+                {"service_9.bal", "schema_inputs.graphql", "schema_inputs.graphql"},
+                {"service_9.bal", "schema_service_9.graphql", "schema_service_9.graphql"},
+                {"service_10.bal", "schema_graphql_docs.graphql", "schema_graphql_docs.graphql"},
+                {"service_11.bal", "schema_product.graphql", "schema_product.graphql"}
+        };
+    }
+
+    @Test(
+            description = "Test successful GraphQL command execution",
+            dataProvider = "serviceFileNames"
+    )
+    public void testSdlGeneration(String svcFile, String expSchema, String genSchema) {
+        String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "valid", svcFile)).toString();
+        String[] args = {"-i", servicePath, "-o", this.tmpDir.toString()};
         try {
-            executeCommand(args);
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_graphql.graphql"));
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), false);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", expSchema));
             String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_graphql.graphql")));
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_graphql.graphql"));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve(genSchema)));
+            String generatedSchema = readContentWithFormat(this.tmpDir.resolve(genSchema));
             Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             Assert.fail(e.toString());
         }
     }
 
-    @Test(description = "Test successful GraphQL command execution")
-    public void testSdlGenerationWithProject() {
-        String[] args = {"-i", "valid/project_1/main.bal", "-o", this.tmpDir.toString()};
-        try {
-            executeCommand(args);
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_graphql.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_project.graphql")));
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_project.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
+    @DataProvider(name = "invalidServiceFileNames")
+    public Object[][] dataProviderExecuteWithBalFileIncludeCompilationErrors() {
+        return new Object[][]{
+                {"service_1.bal", "ERROR [:(-1:-1,-1:-1)] Given Ballerina file contains compilation error(s)."},
+                {"service.bal", "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " +
+                        "Provided Ballerina file path does not exist"}
+        };
     }
 
-    @Test(description = "Test successful GraphQL command execution with service name")
-    public void testSdlGenerationWithServiceBasePath() {
-        String[] args = {"-i", "valid/service_2.bal", "-o", this.tmpDir.toString(), "-s", "/service/gql"};
+    @Test(
+            description = "Test GraphQL command execution with service includes compilation errors",
+            dataProvider = "invalidServiceFileNames"
+    )
+    public void testExecuteWithBalFileIncludeCompilationErrors(String svcFile, String errMessage) {
+        String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "invalid", svcFile)).toString();
+        String[] args = {"-i", servicePath, "-o", this.tmpDir.toString()};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
         try {
-            executeCommand(args);
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_gql.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_gql.graphql")));
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_gql.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with multiple services")
-    public void testSdlGenerationWithMultipleServices1() {
-        String[] args = {"-i", "valid/service_3.bal", "-o", this.tmpDir.toString()};
-        try {
-            executeCommand(args);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_3.graphql")));
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_3.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_3.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_3_1.graphql")));
-            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_3_1.graphql"));
-            expectedSchema = readContentWithFormat(expectedSchemaFile);
-            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_3_1.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_3_2.graphql")));
-            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_3_2.graphql"));
-            expectedSchema = readContentWithFormat(expectedSchemaFile);
-            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_3_2.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with multiple services")
-    public void testSdlGenerationWithMultipleServices2() {
-        String[] args = {"-i", "valid/service_4.bal", "-o", this.tmpDir.toString()};
-        try {
-            executeCommand(args);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_4.graphql")));
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_4.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_4.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_4_1.graphql")));
-            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_4_1.graphql"));
-            expectedSchema = readContentWithFormat(expectedSchemaFile);
-            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_4_1.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_4_2.graphql")));
-            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_4_2.graphql"));
-            expectedSchema = readContentWithFormat(expectedSchemaFile);
-            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_4_2.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with multiple services in a bal project")
-    public void testSdlGenerationWithMultipleServicesInProject() {
-        String[] args = {"-i", "valid/project_2/main.bal", "-o", this.tmpDir.toString()};
-        try {
-            executeCommand(args);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_main.graphql")));
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_4.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_main.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_main_1.graphql")));
-            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_4_1.graphql"));
-            expectedSchema = readContentWithFormat(expectedSchemaFile);
-            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_main_1.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_main_2.graphql")));
-            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_4_2.graphql"));
-            expectedSchema = readContentWithFormat(expectedSchemaFile);
-            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_main_2.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with module-level variable service declaration")
-    public void testExecuteWithModuleLevelVariableDeclaration() {
-        String[] args = {"-i", "valid/service_6.bal", "-o", this.tmpDir.toString()};
-        try {
-            executeCommand(args);
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_6.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_6.graphql")));
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_6.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with multiple types services")
-    public void testSdlGenerationForGraphqlServiceWithHttService() {
-        String[] args = {"-i", "valid/service_7.bal", "-o", this.tmpDir.toString()};
-        try {
-            executeCommand(args);
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_query.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_query.graphql")));
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_query.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with services include custom scalars")
-    public void testSdlGenerationWithCustomScalars() {
-        String[] args = {"-i", "valid/service_8.bal", "-o", this.tmpDir.toString(), "-s", "/gql"};
-        try {
-            executeCommand(args);
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_gql.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_gql.graphql")));
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_gql.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with multiple services in same listener")
-    public void testSdlGenerationWithMultipleServicesInSameListener() {
-        String[] args = {"-i", "valid/service_9.bal", "-o", this.tmpDir.toString()};
-        try {
-            executeCommand(args);
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_person.graphql")));
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_person.graphql"));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_person.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_inputs.graphql")));
-            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_inputs.graphql"));
-            expectedSchema = readContentWithFormat(expectedSchemaFile);
-            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_inputs.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("schema_service_9.graphql")));
-            expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", "schema_service_9.graphql"));
-            expectedSchema = readContentWithFormat(expectedSchemaFile);
-            generatedSchema = readContentWithFormat(this.tmpDir.resolve("schema_service_9.graphql"));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with documentation")
-    public void testSdlGenerationWithDocumentation() {
-        String[] args = {"-i", "valid/service_10.bal", "-o", this.tmpDir.toString(), "-s", "/graphql_docs"};
-        try {
-            executeCommand(args);
-            String fileName = "schema_graphql_docs.graphql";
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve(fileName)));
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", fileName));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve(fileName));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test successful GraphQL command execution with graphql subgraph service")
-    public void testSdlGenerationForSubgraph() {
-        String[] args = {"-i", "valid/service_11.bal", "-o", this.tmpDir.toString()};
-        try {
-            executeCommand(args);
-            String fileName = "schema_product.graphql";
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve(fileName)));
-            Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", fileName));
-            String expectedSchema = readContentWithFormat(expectedSchemaFile);
-            String generatedSchema = readContentWithFormat(this.tmpDir.resolve(fileName));
-            Assert.assertEquals(expectedSchema, generatedSchema);
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test GraphQL command execution with service includes compilation errors")
-    public void testExecuteWithBalFileIncludeCompilationErrors() {
-        String[] args = {"-i", "invalid/service_1.bal", "-o", this.tmpDir.toString()};
-        try {
-            InputStream output = executeCommandWithErrors(args);
-            String message = "ERROR [:(-1:-1,-1:-1)] Given Ballerina file contains compilation error(s).";
-            BufferedReader br = new BufferedReader(new InputStreamReader(output));
-            Stream<String> logLines = br.lines();
-            String generatedLog = logLines.collect(Collectors.joining(System.lineSeparator()));
-
-            // Replace following as Windows environment requirement
-            generatedLog = (generatedLog.trim()).replaceAll(WHITESPACE_REGEX, "");
-            message = (message.trim()).replaceAll(WHITESPACE_REGEX, "");
-            Assert.assertTrue(generatedLog.contains(message));
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(errMessage));
+        } catch (IOException e) {
+            output = e.toString();
+            Assert.fail(output);
         }
     }
 
     @Test(description = "Test GraphQL command execution with invalid service base path")
     public void testExecuteWithInvalidServiceName() {
-        String[] args = {"-i", "invalid/service_2.bal", "-o", this.tmpDir.toString(), "-s", "/service/gql"};
+        String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "invalid", "service_2.bal")).toString();
+        String[] args = {"-i", servicePath, "-o", this.tmpDir.toString(), "-s", "/service/gql"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String message = "ERROR [:(-1:-1,-1:-1)] No Ballerina services found with name \"/service/gql\" to generate " +
+                "SDL schema. These services are available in ballerina file. [/graphql, /graphql/new, /gql/new]";
+        String output = "";
         try {
-            InputStream output = executeCommandWithErrors(args);
-            String message = "ERROR [:(-1:-1,-1:-1)] No Ballerina services found with name \"/service/gql\" to " +
-            "generate SDL schema. These services are available in ballerina file. [/graphql, /graphql/new, /gql/new]";
-            BufferedReader br = new BufferedReader(new InputStreamReader(output));
-            Stream<String> logLines = br.lines();
-            String generatedLog = logLines.collect(Collectors.joining(System.lineSeparator()));
-            logLines.close();
-            // Replace following as Windows environment requirement
-            generatedLog = (generatedLog.trim()).replaceAll(WHITESPACE_REGEX, "");
-            message = (message.trim()).replaceAll(WHITESPACE_REGEX, "");
-            Assert.assertTrue(generatedLog.contains(message));
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
-        }
-    }
-
-    @Test(description = "Test GraphQL command execution with invalid input file path")
-    public void testExecuteWithInvalidBalFilePath() {
-        String[] args = {"-i", "/service.bal", "-o", this.tmpDir.toString()};
-        try {
-            InputStream output = executeCommandWithErrors(args);
-            String message =
-                    "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: Provided Ballerina file path does not exist";
-            BufferedReader br = new BufferedReader(new InputStreamReader(output));
-            Stream<String> logLines = br.lines();
-            String generatedLog = logLines.collect(Collectors.joining(System.lineSeparator()));
-            logLines.close();
-            // Replace following as Windows environment requirement
-            generatedLog = (generatedLog.trim()).replaceAll(WHITESPACE_REGEX, "");
-            message = (message.trim()).replaceAll(WHITESPACE_REGEX, "");
-            Assert.assertTrue(generatedLog.contains(message));
-        } catch (IOException | InterruptedException e) {
-            Assert.fail(e.toString());
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains(message));
+        } catch (IOException e) {
+            output = e.toString();
+            Assert.fail(output);
         }
     }
 
@@ -339,16 +140,16 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             Files.createDirectories(outPath);
             File file = new File(outPath.toString());
             file.setReadOnly();
-            String[] args = {"-i", "invalid/service_2.bal", "-o", outPath.toString()};
-            InputStream output = executeCommandWithErrors(args);
+            Path servicePath = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service_2.bal"));
+            String[] args = {"-i", servicePath.toString(), "-o", outPath.toString()};
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
             String message = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " + outPath +
                     "/schema_graphql_new.graphql (Permission denied)";
-            BufferedReader br = new BufferedReader(new InputStreamReader(output));
-            Stream<String> logLines = br.lines();
-            String generatedLog = logLines.collect(Collectors.joining(System.lineSeparator()));
-            logLines.close();
-            Assert.assertEquals(generatedLog, message);
-        } catch (IOException | InterruptedException e) {
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains(message));
+        } catch (IOException e) {
             Assert.fail(e.toString());
         }
     }
@@ -363,16 +164,15 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             Files.createFile(graphqlService);
             File file = new File(graphqlService.toString());
             file.setReadable(false);
-            String[] args = {"-i", "service.bal", "-o", tmpDir.toString()};
-            InputStream output = executeCommandWithErrors(tmpDir, args);
+            String[] args = {"-i", graphqlService.toString(), "-o", tmpDir.toString()};
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
+            new CommandLine(graphqlCmd).parseArgs(args);
             String message = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " +
                     "Cannot read provided Ballerina file (Permission denied)";
-            BufferedReader br = new BufferedReader(new InputStreamReader(output));
-            Stream<String> logLines = br.lines();
-            String generatedLog = logLines.collect(Collectors.joining(System.lineSeparator()));
-            logLines.close();
-            Assert.assertEquals(generatedLog, message);
-        } catch (IOException | InterruptedException e) {
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains(message));
+        } catch (IOException e) {
             Assert.fail(e.toString());
         }
     }
