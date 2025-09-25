@@ -1,2 +1,5 @@
 # Ensure all Java files use LF.
 *.java eol=lf
+
+# Ensure help files use LF to maintain consistency across platforms
+*.help eol=lf
