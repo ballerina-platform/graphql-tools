@@ -163,6 +163,12 @@ public class GraphqlCmd implements BLauncherCmd {
     @Override
     public void execute() {
         try {
+            if (!helpFlag && !inputPathFlag && (argList == null || argList.isEmpty())) {
+                printLongDesc(new StringBuilder());
+                outStream.flush();
+                exitError(this.exitWhenFinish);
+                return;
+            }
             validateInputFlags();
             executeOperation();
         } catch (CmdException | ParseException | ValidationException | ClientCodeGenerationException | IOException |
@@ -170,7 +176,6 @@ public class GraphqlCmd implements BLauncherCmd {
             outStream.println(e.getMessage());
             exitError(this.exitWhenFinish);
         }
-
         // Successfully exit if no error occurs
         if (this.exitWhenFinish) {
             Runtime.getRuntime().exit(0);
@@ -197,13 +202,9 @@ public class GraphqlCmd implements BLauncherCmd {
             if (argList == null) {
                 throw new CmdException(MESSAGE_FOR_MISSING_INPUT_ARGUMENT);
             }
-        } else {
-            String commandUsageInfo = BLauncherCmd.getCommandUsageInfo(getName());
-            outStream.println(commandUsageInfo);
-            exitError(this.exitWhenFinish);
         }
 
-        String filePath = argList.get(0);
+        String filePath = argList.getFirst();
         if (!validInputFileExtension(filePath)) {
             throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, filePath));
         }

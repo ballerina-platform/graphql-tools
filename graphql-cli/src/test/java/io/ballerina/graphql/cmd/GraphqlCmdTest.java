@@ -30,6 +30,7 @@ import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -467,6 +468,26 @@ public class GraphqlCmdTest extends GraphqlTest {
             output = readOutput(true);
             Assert.assertTrue(output.contains(
                     "The provided schema includes operations that are not supported by the client generation."));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
+    @Test(description = "Test graphql command with no args")
+    public void testExecuteWithNoArgs() {
+        String[] args = {};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            // Read the ballerina-graphql.help file
+            String expectedOutput = new String(Files.readAllBytes(
+                    Paths.get("src", "main", "resources", "ballerina-graphql.help")));
+
+            Assert.assertTrue(expectedOutput.equals(output));
         } catch (BLauncherException | IOException e) {
             output = e.toString();
             Assert.fail(output);
