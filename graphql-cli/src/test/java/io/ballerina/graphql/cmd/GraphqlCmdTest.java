@@ -472,4 +472,24 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.fail(output);
         }
     }
+
+    @Test(description = "Test graphql command with no args")
+    public void testExecuteWithNoArgs() {
+        String[] args = {};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            // Read the ballerina-graphql.help file
+            String expectedOutput = new String(Files.readAllBytes(
+                    Paths.get("src", "main", "resources", "ballerina-graphql.help")));
+
+            Assert.assertTrue(expectedOutput.equals(output));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
 }

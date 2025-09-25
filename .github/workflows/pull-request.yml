@@ -41,5 +41,5 @@ jobs:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
           WORKING_DIR: ./graphql-cli
-          JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
+          JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF-8
         run: ./gradlew.bat build -Pdisable=invalid_permission --stacktrace --scan --console=plain --no-daemon
