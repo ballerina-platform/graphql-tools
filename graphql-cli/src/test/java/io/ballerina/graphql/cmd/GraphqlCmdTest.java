@@ -193,6 +193,22 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test
+    public void testExecuteWithInvalidArgument() {
+        String[] args = {"invalid"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        String output = "";
+        try {
+            graphqlCmd.execute();
+            output = readOutput(true);
+            Assert.assertTrue(output.contains("Input file must be provided with -i or --input flag."));
+        } catch (BLauncherException | IOException e) {
+            output = e.toString();
+            Assert.fail(output);
+        }
+    }
+
     @Test(description = "Test graphql command execution with invalid mode argument")
     public void testExecuteWithInvalidModeArgument() {
         Path filePath = resourceDir.resolve(

@@ -1,6 +1,6 @@
 [package]
 org = "ballerina"
-name = "tool_graphql"
+name = "tool.graphql"
 version = "@toml.version@"
 authors = ["Ballerina"]
 keywords = ["graphql", "graphql tool", "gql"]

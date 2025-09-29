@@ -163,10 +163,9 @@ public class GraphqlCmd implements BLauncherCmd {
     @Override
     public void execute() {
         try {
-            if (!helpFlag && !inputPathFlag && (argList == null || argList.isEmpty())) {
+            if (!inputPathFlag && (helpFlag || argList == null || argList.isEmpty())) {
                 printLongDesc(new StringBuilder());
                 outStream.flush();
-                exitError(this.exitWhenFinish);
                 return;
             }
             validateInputFlags();
@@ -188,20 +187,12 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws CmdException when a graphql command related error occurs
      */
     private void validateInputFlags() throws CmdException {
-        // Check if CLI help flag argument is present
-        if (helpFlag) {
-            printLongDesc(new StringBuilder());
-            outStream.flush();
-            exitError(this.exitWhenFinish);
-            return;
+        if (!inputPathFlag) {
+            throw new CmdException("Input file must be provided with -i or --input flag.");
         }
-
-        // Check if CLI input path flag argument is present
-        if (inputPathFlag) {
-            // Check if GraphQL configuration file is provided
-            if (argList == null) {
-                throw new CmdException(MESSAGE_FOR_MISSING_INPUT_ARGUMENT);
-            }
+        // Check if GraphQL configuration file is provided
+        if (argList == null || argList.isEmpty()) {
+            throw new CmdException(MESSAGE_FOR_MISSING_INPUT_ARGUMENT);
         }
 
         String filePath = argList.getFirst();
@@ -270,9 +261,9 @@ public class GraphqlCmd implements BLauncherCmd {
     /**
      * Generate the client according to the given configurations.
      *
-     * @throws ParseException      when a parsing related error occurs
-     * @throws IOException         If an I/O error occurs
-     * @throws ValidationException when validation related error occurs
+     * @throws ParseException                when a parsing related error occurs
+     * @throws IOException                   If an I/O error occurs
+     * @throws ValidationException           when validation related error occurs
      * @throws ClientCodeGenerationException when a code generation error occurs
      */
     private void generateClient(String filePath)
@@ -418,7 +409,7 @@ public class GraphqlCmd implements BLauncherCmd {
         ClassLoader classLoader = cmdClass.getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream("ballerina-graphql.help");
         try (InputStreamReader inputStreamREader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-            BufferedReader br = new BufferedReader(inputStreamREader)) {
+             BufferedReader br = new BufferedReader(inputStreamREader)) {
             String content = br.readLine();
             outStream.append(content);
             while ((content = br.readLine()) != null) {
