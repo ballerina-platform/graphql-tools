@@ -65,29 +65,22 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yaml"));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
-
         new CommandLine(graphqlCmd).parseArgs(args);
-
         try {
             graphqlCmd.execute();
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("client.bal")));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
+            String generatedClientContent = readContent(this.tmpDir.resolve("client.bal"));
+            String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
             Path expectedClientFile = resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
             Path expectedTypesFile = resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
-
-            if (Files.exists(this.tmpDir.resolve("client.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
-                String generatedClientContent = readContent(this.tmpDir.resolve("client.bal"));
-                String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
-
-                Assert.assertEquals(expectedClientContent, generatedClientContent);
-                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
-            } else {
-                Assert.fail("Code generation failed. : " + readOutput(true));
-            }
+            Assert.assertEquals(expectedClientContent, generatedClientContent);
+            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
         } catch (BLauncherException | IOException e) {
-            String output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -100,22 +93,20 @@ public class GraphqlCmdTest extends GraphqlTest {
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
-            Path expectedServiceFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "serviceForSchemaWithSingleObject.bal"));
-            Path expectedTypesFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "typesWithSingleObjectDefault.bal"));
-            String expectedServiceContent = readContent(expectedServiceFile);
-            String expectedTypesContent = readContent(expectedTypesFile);
-
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
             String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
             String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
+            Path expectedPackageRoot = resourceDir.resolve(Paths.get("serviceGen", "expectedServices"));
+            Path expectedServiceFile = expectedPackageRoot.resolve(Paths.get("serviceForSchemaWithSingleObject.bal"));
+            Path expectedTypesFile = expectedPackageRoot.resolve(Paths.get("typesWithSingleObjectDefault.bal"));
+            String expectedServiceContent = readContent(expectedServiceFile);
+            String expectedTypesContent = readContent(expectedTypesFile);
             Assert.assertEquals(expectedServiceContent, generatedServiceContent);
             Assert.assertEquals(expectedTypesContent, generatedTypesContent);
         } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -128,22 +119,20 @@ public class GraphqlCmdTest extends GraphqlTest {
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
-            Path expectedServiceFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "serviceForSchemaWithSingleObject.bal"));
-            Path expectedTypesFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "typesWithSingleObjectDefault.bal"));
-            String expectedServiceContent = readContent(expectedServiceFile);
-            String expectedTypesContent = readContent(expectedTypesFile);
-
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
             String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
             String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
+            Path expectedPackageRoot = resourceDir.resolve(Paths.get("serviceGen", "expectedServices"));
+            Path expectedServiceFile = expectedPackageRoot.resolve(Paths.get("serviceForSchemaWithSingleObject.bal"));
+            Path expectedTypesFile = expectedPackageRoot.resolve(Paths.get("typesWithSingleObjectDefault.bal"));
+            String expectedServiceContent = readContent(expectedServiceFile);
+            String expectedTypesContent = readContent(expectedTypesFile);
             Assert.assertEquals(expectedServiceContent, generatedServiceContent);
             Assert.assertEquals(expectedTypesContent, generatedTypesContent);
         } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -157,23 +146,23 @@ public class GraphqlCmdTest extends GraphqlTest {
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
-            Path expectedServiceFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "serviceForSchemaWithObjectTakingInputArgument.bal"));
-            Path expectedTypesFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices",
-                            "typesWithObjectTakingInputArgumentRecordsAllowed.bal"));
-            String expectedServiceContent = readContent(expectedServiceFile);
-            String expectedTypesContent = readContent(expectedTypesFile);
 
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
             String generatedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
             String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
 
+            Path expectedPackageRoot = resourceDir.resolve(Paths.get("serviceGen", "expectedServices"));
+            Path expectedServiceFile = expectedPackageRoot.resolve(
+                    Paths.get("serviceForSchemaWithObjectTakingInputArgument.bal"));
+            Path expectedTypesFile = expectedPackageRoot.resolve(
+                    Paths.get("typesWithObjectTakingInputArgumentRecordsAllowed.bal"));
+            String expectedServiceContent = readContent(expectedServiceFile);
+            String expectedTypesContent = readContent(expectedTypesFile);
             Assert.assertEquals(expectedServiceContent, generatedServiceContent);
             Assert.assertEquals(expectedTypesContent, generatedTypesContent);
         } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -182,14 +171,12 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-        String output = "";
         try {
             graphqlCmd.execute();
-            output = readOutput(true);
+            String output = readOutput(true);
             Assert.assertTrue(output.contains(MESSAGE_FOR_MISSING_INPUT_ARGUMENT));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -198,14 +185,12 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"invalid"};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-        String output = "";
         try {
             graphqlCmd.execute();
-            output = readOutput(true);
+            String output = readOutput(true);
             Assert.assertTrue(output.contains("Input file must be provided with -i or --input flag."));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -223,7 +208,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
         } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -233,15 +218,13 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-        String output = "";
         String message = String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, graphqlConfigYaml);
         try {
             graphqlCmd.execute();
-            output = readOutput(true);
+            String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -263,7 +246,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
         } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -288,7 +271,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
         } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -313,7 +296,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
         } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -329,7 +312,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
         } catch (BLauncherException | IOException e) {
-            Assert.fail(e.toString());
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -339,14 +322,12 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-        String output = "";
         try {
             graphqlCmd.execute();
-            output = readOutput(true);
+            String output = readOutput(true);
             Assert.assertTrue(output.contains(MESSAGE_FOR_EMPTY_CONFIGURATION_FILE));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -356,14 +337,12 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-        String output = "";
         try {
             graphqlCmd.execute();
-            output = readOutput(true);
+            String output = readOutput(true);
             Assert.assertTrue(output.contains(MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -373,30 +352,25 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-
         try {
             graphqlCmd.execute();
+
+            Path countryModulePath = this.tmpDir.resolve("modules").resolve("country");
+            Assert.assertTrue(Files.exists(countryModulePath));
+            Assert.assertTrue(Files.isDirectory(countryModulePath));
+            Assert.assertTrue(Files.exists(countryModulePath.resolve("client.bal")));
+            String generatedClientContent = readContent(countryModulePath.resolve("client.bal"));
+            Assert.assertTrue(Files.exists(countryModulePath.resolve("types.bal")));
+            String generatedTypesContent = readContent(countryModulePath.resolve("types.bal"));
 
             Path expectedClientFile = resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
             Path expectedTypesFile = resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
-
-            if (Files.exists(this.tmpDir.resolve(Paths.get("modules", "country", "client.bal"))) &&
-                    Files.exists(this.tmpDir.resolve(Paths.get("modules", "country", "types.bal")))) {
-                String generatedClientContent =
-                        readContent(this.tmpDir.resolve(Paths.get("modules", "country", "client.bal")));
-                String generatedTypesContent =
-                        readContent(this.tmpDir.resolve(Paths.get("modules", "country", "types.bal")));
-
-                Assert.assertEquals(expectedClientContent, generatedClientContent);
-                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
-            } else {
-                Assert.fail("Code generation failed. : " + readOutput(true));
-            }
+            Assert.assertEquals(expectedClientContent, generatedClientContent);
+            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
         } catch (BLauncherException | IOException e) {
-            String output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -406,27 +380,22 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-
         try {
             graphqlCmd.execute();
-
             Path expectedClientFile = resourceDir.resolve(Paths.get("expectedGenCode", "client.bal"));
             Path expectedTypesFile = resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
-
             if (Files.exists(this.tmpDir.resolve("client.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
                 String generatedClientContent = readContent(this.tmpDir.resolve("client.bal"));
                 String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
-
                 Assert.assertEquals(expectedClientContent, generatedClientContent);
                 Assert.assertEquals(expectedTypesContent, generatedTypesContent);
             } else {
                 Assert.fail("Code generation failed. : " + readOutput(true));
             }
         } catch (BLauncherException | IOException e) {
-            String output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -437,15 +406,12 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-
-        String output = "";
         try {
             graphqlCmd.execute();
-            output = readOutput(true);
+            String output = readOutput(true);
             Assert.assertTrue(output.contains("Failed to retrieve SDL."));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -456,16 +422,13 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-
-        String output = "";
         try {
             graphqlCmd.execute();
-            output = readOutput(true);
+            String output = readOutput(true);
             Assert.assertTrue(output.contains(
                     "The provided schema includes operations that are not supported by the client generation."));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -476,16 +439,13 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-
-        String output = "";
         try {
             graphqlCmd.execute();
-            output = readOutput(true);
+            String output = readOutput(true);
             Assert.assertTrue(output.contains(
                     "The provided schema includes operations that are not supported by the client generation."));
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -494,18 +454,15 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {};
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, false);
         new CommandLine(graphqlCmd).parseArgs(args);
-        String output = "";
         try {
             graphqlCmd.execute();
-            output = readOutput(true);
+            String output = readOutput(true);
             // Read the ballerina-graphql.help file
             String expectedOutput = new String(Files.readAllBytes(
                     Paths.get("src", "main", "resources", "ballerina-graphql.help")));
-
-            Assert.assertTrue(expectedOutput.equals(output));
+            Assert.assertEquals(output, expectedOutput);
         } catch (BLauncherException | IOException e) {
-            output = e.toString();
-            Assert.fail(output);
+            Assert.fail(e.getMessage());
         }
     }
 }

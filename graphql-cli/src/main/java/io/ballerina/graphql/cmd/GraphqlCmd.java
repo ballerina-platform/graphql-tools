@@ -83,6 +83,8 @@ import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
         description = "Generates Ballerina clients for GraphQL queries with GraphQL SDL, Ballerina services for " +
                 "GraphQL schema and SDL schema for the given Ballerina GraphQL service.")
 public class GraphqlCmd implements BLauncherCmd {
+    private static final int EXIT_CODE_1 = 1;
+    private static final int EXIT_CODE_2 = 2;
     private static final String CMD_NAME = "graphql";
     private PrintStream outStream;
     private boolean exitWhenFinish;
@@ -156,16 +158,23 @@ public class GraphqlCmd implements BLauncherCmd {
      */
     private static void exitError(boolean exit) {
         if (exit) {
-            Runtime.getRuntime().exit(1);
+            Runtime.getRuntime().exit(EXIT_CODE_1);
+        }
+    }
+
+    private static void exitWithCode(int code, boolean exit) {
+        if (exit) {
+            Runtime.getRuntime().exit(code);
         }
     }
 
     @Override
     public void execute() {
         try {
-            if (!inputPathFlag && (helpFlag || argList == null || argList.isEmpty())) {
+            if (argList == null || argList.isEmpty()) {
                 printLongDesc(new StringBuilder());
                 outStream.flush();
+                exitWithCode(EXIT_CODE_2, this.exitWhenFinish);
                 return;
             }
             validateInputFlags();
@@ -187,6 +196,11 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws CmdException when a graphql command related error occurs
      */
     private void validateInputFlags() throws CmdException {
+        if (helpFlag) {
+            printLongDesc(new StringBuilder());
+            outStream.flush();
+            return;
+        }
         if (!inputPathFlag) {
             throw new CmdException("Input file must be provided with -i or --input flag.");
         }
