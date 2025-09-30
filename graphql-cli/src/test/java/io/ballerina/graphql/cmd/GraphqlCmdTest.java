@@ -38,7 +38,6 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
 
 /**
@@ -177,14 +176,12 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"-i"};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
-        new CommandLine(graphqlCmd).parseArgs(args);
         try {
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            Assert.assertTrue(output.contains(MESSAGE_FOR_MISSING_INPUT_ARGUMENT));
-            Assert.assertEquals(exitCaptor.getExitCode(), 1, "Missing input argument should exit with code 1");
-        } catch (BLauncherException | IOException e) {
-            Assert.fail(e.getMessage());
+            new CommandLine(graphqlCmd).parseArgs(args);
+            Assert.fail("Expected picocli to throw exception for missing option value");
+        } catch (CommandLine.MissingParameterException e) {
+            // Expected: picocli validates that -i requires a value
+            Assert.assertTrue(e.getMessage().contains("Missing required parameter for option '--input'"));
         }
     }
 
@@ -193,13 +190,12 @@ public class GraphqlCmdTest extends GraphqlTest {
         String[] args = {"invalid"};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
-        new CommandLine(graphqlCmd).parseArgs(args);
         try {
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            Assert.assertTrue(output.contains("Input file must be provided with -i or --input flag."));
-        } catch (BLauncherException | IOException e) {
-            Assert.fail(e.getMessage());
+            new CommandLine(graphqlCmd).parseArgs(args);
+            Assert.fail("Expected picocli to throw exception for unexpected positional parameter");
+        } catch (CommandLine.UnmatchedArgumentException e) {
+            // Expected: picocli rejects positional arguments since we removed @Parameters
+            Assert.assertTrue(e.getMessage().contains("Unmatched argument"));
         }
     }
 

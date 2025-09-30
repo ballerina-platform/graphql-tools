@@ -65,7 +65,6 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATI
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION;
-import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_INPUT_ARGUMENT;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_CLIENT;
@@ -98,7 +97,7 @@ public class GraphqlCmd implements BLauncherCmd {
 
     @CommandLine.Option(names = {"-i", "--input"},
             description = "File path to the GraphQL configuration file, GraphQL schema file or Ballerina service file.")
-    private boolean inputPathFlag;
+    private String inputPath;
 
     @CommandLine.Option(names = {"-o", "--output"},
             description = "Directory to store the generated Ballerina clients, Ballerina services or SDL schema file." +
@@ -117,9 +116,6 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = {"-r", "--use-records-for-objects"},
             description = "Inform the generator to generate records types where ever possible")
     private boolean useRecordsForObjectsFlag;
-
-    @CommandLine.Parameters
-    private List<String> argList;
 
     private ClientCodeGenerator clientCodeGenerator;
     private ServiceCodeGenerator serviceCodeGenerator;
@@ -178,7 +174,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 exit(EXIT_CODE_0);
                 return;
             }
-            if (!inputPathFlag && (argList == null || argList.isEmpty())) {
+            if (inputPath == null || inputPath.isEmpty()) {
                 printLongDesc(new StringBuilder());
                 outStream.flush();
                 exit(EXIT_CODE_2);
@@ -201,24 +197,15 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws CmdException when a graphql command related error occurs
      */
     private void validateInputFlags() throws CmdException {
-        if (!inputPathFlag) {
-            throw new CmdException("Input file must be provided with -i or --input flag.");
-        }
-        // Check if GraphQL configuration file is provided
-        if (argList == null || argList.isEmpty()) {
-            throw new CmdException(MESSAGE_FOR_MISSING_INPUT_ARGUMENT);
-        }
-
-        String filePath = argList.getFirst();
-        if (!validInputFileExtension(filePath)) {
-            throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, filePath));
+        if (!validInputFileExtension(inputPath)) {
+            throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
         }
 
         if (!isModeCompatible()) {
-            throw new CmdException(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, filePath));
+            throw new CmdException(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, inputPath));
         }
 
-        if (useRecordsForObjectsFlag && !(filePath.endsWith(GRAPHQL_EXTENSION))) {
+        if (useRecordsForObjectsFlag && !(inputPath.endsWith(GRAPHQL_EXTENSION))) {
             throw new CmdException(String.format(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE, mode));
         }
     }
@@ -229,14 +216,13 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private boolean isModeCompatible() throws CmdException {
-        String filePath = argList.get(0);
         if (mode != null) {
             if (MODE_CLIENT.equals(mode)) {
-                return filePath.endsWith(Constants.YAML_EXTENSION) || filePath.endsWith(Constants.YML_EXTENSION);
+                return inputPath.endsWith(Constants.YAML_EXTENSION) || inputPath.endsWith(Constants.YML_EXTENSION);
             } else if (MODE_SCHEMA.equals(mode)) {
-                return filePath.endsWith(Constants.BAL_EXTENSION);
+                return inputPath.endsWith(Constants.BAL_EXTENSION);
             } else if (MODE_SERVICE.equals(mode)) {
-                return filePath.endsWith(Constants.GRAPHQL_EXTENSION);
+                return inputPath.endsWith(Constants.GRAPHQL_EXTENSION);
             } else {
                 throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
             }
@@ -257,18 +243,16 @@ public class GraphqlCmd implements BLauncherCmd {
     private void executeOperation()
             throws CmdException, ParseException, IOException, ValidationException, ClientCodeGenerationException,
             SchemaFileGenerationException, ServiceGenerationException {
-        String filePath = argList.get(0);
-
         if ((MODE_CLIENT.equals(mode) || mode == null) &&
-                (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION))) {
+                (inputPath.endsWith(YAML_EXTENSION) || inputPath.endsWith(YML_EXTENSION))) {
             setClientCodeGenerator(new ClientCodeGenerator());
-            generateClient(filePath);
-        } else if ((MODE_SCHEMA.equals(mode) || mode == null) && (filePath.endsWith(BAL_EXTENSION))) {
-            generateSchema(filePath);
-        } else if ((MODE_SERVICE.equals(mode) || mode == null) && (filePath.endsWith(
+            generateClient(inputPath);
+        } else if ((MODE_SCHEMA.equals(mode) || mode == null) && (inputPath.endsWith(BAL_EXTENSION))) {
+            generateSchema(inputPath);
+        } else if ((MODE_SERVICE.equals(mode) || mode == null) && (inputPath.endsWith(
                 io.ballerina.graphql.schema.Constants.GRAPHQL_EXTENSION))) {
             setServiceCodeGenerator(new ServiceCodeGenerator());
-            generateService(filePath);
+            generateService(inputPath);
         }
     }
 
