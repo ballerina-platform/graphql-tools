@@ -78,8 +78,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             Path expectedTypesFile = resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
-            Assert.assertEquals(expectedClientContent, generatedClientContent);
-            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+            Assert.assertEquals(generatedClientContent, expectedClientContent);
+            Assert.assertEquals(generatedTypesContent, expectedTypesContent);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
@@ -104,8 +104,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             Path expectedTypesFile = expectedPackageRoot.resolve(Paths.get("typesWithSingleObjectDefault.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
-            Assert.assertEquals(expectedServiceContent, generatedServiceContent);
-            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+            Assert.assertEquals(generatedServiceContent, expectedServiceContent);
+            Assert.assertEquals(generatedTypesContent, expectedTypesContent);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
@@ -130,8 +130,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             Path expectedTypesFile = expectedPackageRoot.resolve(Paths.get("typesWithSingleObjectDefault.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
-            Assert.assertEquals(expectedServiceContent, generatedServiceContent);
-            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+            Assert.assertEquals(generatedServiceContent, expectedServiceContent);
+            Assert.assertEquals(generatedTypesContent, expectedTypesContent);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
@@ -160,8 +160,8 @@ public class GraphqlCmdTest extends GraphqlTest {
                     Paths.get("typesWithObjectTakingInputArgumentRecordsAllowed.bal"));
             String expectedServiceContent = readContent(expectedServiceFile);
             String expectedTypesContent = readContent(expectedTypesFile);
-            Assert.assertEquals(expectedServiceContent, generatedServiceContent);
-            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+            Assert.assertEquals(generatedServiceContent, expectedServiceContent);
+            Assert.assertEquals(generatedTypesContent, expectedTypesContent);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
@@ -368,8 +368,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             Path expectedTypesFile = resourceDir.resolve(Paths.get("expectedGenCode", "types.bal"));
             String expectedClientContent = readContent(expectedClientFile);
             String expectedTypesContent = readContent(expectedTypesFile);
-            Assert.assertEquals(expectedClientContent, generatedClientContent);
-            Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+            Assert.assertEquals(generatedClientContent, expectedClientContent);
+            Assert.assertEquals(generatedTypesContent, expectedTypesContent);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
@@ -390,8 +390,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             if (Files.exists(this.tmpDir.resolve("client.bal")) && Files.exists(this.tmpDir.resolve("types.bal"))) {
                 String generatedClientContent = readContent(this.tmpDir.resolve("client.bal"));
                 String generatedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
-                Assert.assertEquals(expectedClientContent, generatedClientContent);
-                Assert.assertEquals(expectedTypesContent, generatedTypesContent);
+                Assert.assertEquals(generatedClientContent, expectedClientContent);
+                Assert.assertEquals(generatedTypesContent, expectedTypesContent);
             } else {
                 Assert.fail("Code generation failed. : " + readOutput(true));
             }
