@@ -52,6 +52,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         File directory = new File(this.tmpDir.toString());
         if (directory.isDirectory()) {
             File[] files = directory.listFiles();
+            Assert.assertNotNull(files);
             for (File file : files) {
                 if (file.isFile()) {
                     file.delete();
