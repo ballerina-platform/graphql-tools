@@ -87,10 +87,11 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final int EXIT_CODE_1 = 1;
     private static final int EXIT_CODE_2 = 2;
     private static final String CMD_NAME = "graphql";
+    private static final ExitHandler DEFAULT_EXIT_HANDLER = code -> Runtime.getRuntime().exit(code);
 
     private final PrintStream outStream;
     private final Path executionPath;
-    private final boolean exitWhenFinish;
+    private final ExitHandler exitHandler;
 
     @CommandLine.Option(names = {"-h", "--help"}, hidden = true)
     private boolean helpFlag;
@@ -124,6 +125,15 @@ public class GraphqlCmd implements BLauncherCmd {
     private ServiceCodeGenerator serviceCodeGenerator;
 
     /**
+     * Functional interface for handling exit behavior.
+     * Public to allow test access from other packages.
+     */
+    @FunctionalInterface
+    public interface ExitHandler {
+        void exit(int code);
+    }
+
+    /**
      * Constructor that initialize with the default values.
      */
     public GraphqlCmd() {
@@ -132,31 +142,31 @@ public class GraphqlCmd implements BLauncherCmd {
 
     /**
      * Constructor override, which takes output stream and execution dir as inputs.
+     * Uses default exit handler that calls Runtime.getRuntime().exit().
      *
      * @param outStream    output stream from ballerina
      * @param executionDir defines the directory location of  execution of ballerina command
      */
     public GraphqlCmd(PrintStream outStream, Path executionDir) {
-        this(outStream, executionDir, true);
+        this(outStream, executionDir, DEFAULT_EXIT_HANDLER);
     }
 
     /**
-     * Constructor override, which takes output stream and execution dir and exits when finish as inputs.
+     * Constructor for testing with custom exit handler.
+     * This is public to allow tests in other packages to use it.
      *
-     * @param outStream      output stream from ballerina
-     * @param executionDir   defines the directory location of  execution of ballerina command
-     * @param exitWhenFinish exit when finish the execution
+     * @param outStream    output stream from ballerina
+     * @param executionDir defines the directory location of  execution of ballerina command
+     * @param exitHandler  custom exit handler (for testing)
      */
-    public GraphqlCmd(PrintStream outStream, Path executionDir, boolean exitWhenFinish) {
+    public GraphqlCmd(PrintStream outStream, Path executionDir, ExitHandler exitHandler) {
         this.outStream = outStream;
         this.executionPath = executionDir;
-        this.exitWhenFinish = exitWhenFinish;
+        this.exitHandler = exitHandler;
     }
 
     private void exit(int code) {
-        if (this.exitWhenFinish) {
-            Runtime.getRuntime().exit(code);
-        }
+        exitHandler.exit(code);
     }
 
     @Override
@@ -180,6 +190,7 @@ public class GraphqlCmd implements BLauncherCmd {
                  SchemaFileGenerationException | ServiceGenerationException e) {
             outStream.println(e.getMessage());
             exit(EXIT_CODE_1);
+            return;
         }
         exit(EXIT_CODE_0);
     }

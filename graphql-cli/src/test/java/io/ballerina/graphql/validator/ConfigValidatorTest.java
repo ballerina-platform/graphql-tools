@@ -19,6 +19,7 @@
 package io.ballerina.graphql.validator;
 
 import io.ballerina.cli.launcher.BLauncherException;
+import io.ballerina.graphql.cmd.ExitCodeCaptor;
 import io.ballerina.graphql.cmd.GraphqlCmd;
 import io.ballerina.graphql.common.GraphqlTest;
 import org.apache.commons.logging.Log;
@@ -44,7 +45,8 @@ public class ConfigValidatorTest extends GraphqlTest {
         Path graphqlConfigYaml =
                 resourceDir.resolve(Paths.get("specs", "graphql-config-with-invalid-sdl-url.yaml"));
         String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(this.printStream, this.tmpDir, false);
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(this.printStream, this.tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
         String output = "";
         try {
