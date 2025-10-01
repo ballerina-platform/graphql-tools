@@ -77,7 +77,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             String output;
             graphqlCmd.execute();
@@ -95,7 +95,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         String[] args = {"-i", invalidPath.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             String message = String.format(MESSAGE_MISSING_SCHEMA_FILE, invalidPath);
             String output;
@@ -115,7 +115,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         String[] args = {"-i", graphqlSchema.toString(), "-o", outputPath.toString(), "-m", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             String message = String.format("%s/types.bal (Permission denied)", outputPath);
             Files.createDirectories(outputPath);
@@ -138,7 +138,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         String[] args = {"-i", graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             String message = String.format(MESSAGE_CAN_NOT_READ_SCHEMA_FILE, graphqlSchema);
             Files.createFile(graphqlSchema);
@@ -179,7 +179,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
@@ -199,7 +199,7 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "--use-records-for-objects"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
