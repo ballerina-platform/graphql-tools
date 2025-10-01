@@ -49,4 +49,9 @@ public class CmdException extends Exception {
                 this.message, DiagnosticSeverity.ERROR, null);
         return graphqlDiagnostic.toString();
     }
+
+    @Override
+    public String toString() {
+        return "CmdException: " + getMessage();
+    }
 }

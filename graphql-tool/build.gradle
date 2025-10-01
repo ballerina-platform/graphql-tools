@@ -25,7 +25,7 @@ plugins {
 
 description = 'Ballerina - GraphQL Tool'
 
-def packageName = "tool_graphql"
+def packageName = "tool.graphql"
 def packageOrg = "ballerina"
 def tomlVersion = stripBallerinaExtensionVersion("${project.version}")
 def ballerinaTomlFilePlaceHolder = new File("${project.rootDir}/config/resources/Ballerina.toml")
@@ -53,12 +53,23 @@ ballerina {
     langVersion = ballerinaLangVersion
 }
 
+configurations {
+    externalJars
+}
+
+dependencies {
+    externalJars (group: 'com.graphql-java', name: 'graphql-java', version: "${graphqlJavaVersion}") {
+        transitive = false
+    }
+}
+
 task updateTomlFiles {
     doLast {
         def newBallerinaToml = ballerinaTomlFilePlaceHolder.text.replace("@toml.version@", tomlVersion)
         ballerinaTomlFile.text = newBallerinaToml
 
         def newBalToolTomlFile = balToolTomlFilePlaceHolder.text.replace("@project.version@", project.version)
+        newBalToolTomlFile = newBalToolTomlFile.replace("@graphql.java.version@", graphqlJavaVersion)
         balToolTomlFile.text = newBalToolTomlFile
     }
 }

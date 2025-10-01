@@ -69,7 +69,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "valid", svcFile)).toString();
         String[] args = {"-i", servicePath, "-o", this.tmpDir.toString()};
         try {
-            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), false);
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             Path expectedSchemaFile = resourceDir.resolve(Paths.get("expectedSchemas", expSchema));
@@ -98,7 +99,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     public void testExecuteWithBalFileIncludeCompilationErrors(String svcFile, String errMessage) {
         String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "invalid", svcFile)).toString();
         String[] args = {"-i", servicePath, "-o", this.tmpDir.toString()};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), false);
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
         String output = "";
         try {
@@ -115,7 +117,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     public void testExecuteWithInvalidServiceName() {
         String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "invalid", "service_2.bal")).toString();
         String[] args = {"-i", servicePath, "-o", this.tmpDir.toString(), "-s", "/service/gql"};
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), false);
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
         String message = "ERROR [:(-1:-1,-1:-1)] No Ballerina services found with name \"/service/gql\" to generate " +
                 "SDL schema. These services are available in ballerina file. [/graphql, /graphql/new, /gql/new]";
@@ -142,7 +145,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             file.setReadOnly();
             Path servicePath = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service_2.bal"));
             String[] args = {"-i", servicePath.toString(), "-o", outPath.toString()};
-            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             String message = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " + outPath +
                     "/schema_graphql_new.graphql (Permission denied)";
@@ -165,7 +169,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             File file = new File(graphqlService.toString());
             file.setReadable(false);
             String[] args = {"-i", graphqlService.toString(), "-o", tmpDir.toString()};
-            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, false);
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             String message = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " +
                     "Cannot read provided Ballerina file (Permission denied)";

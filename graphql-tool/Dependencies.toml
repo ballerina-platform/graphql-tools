@@ -5,13 +5,13 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.13.0-20250625-092300-cfa03556"
+distribution-version = "2201.13.0-20250924-081800-3dae8c03"
 
 [[package]]
 org = "ballerina"
-name = "tool_graphql"
+name = "tool.graphql"
 version = "0.14.0"
 modules = [
-	{org = "ballerina", packageName = "tool_graphql", moduleName = "tool_graphql"}
+	{org = "ballerina", packageName = "tool.graphql", moduleName = "tool.graphql"}
 ]
 

@@ -9,3 +9,6 @@ path = "../graphql-code-generator/build/libs/graphql-code-generator-0.14.0-SNAPS
 
 [[dependency]]
 path = "../graphql-schema-file-generator/build/libs/graphql-schema-file-generator-0.14.0-SNAPSHOT.jar"
+
+[[dependency]]
+path = "./lib/graphql-java-21.5.jar"
