@@ -30,8 +30,7 @@ public enum DiagnosticMessages {
     SDL_SCHEMA_102("SDL_SCHEMA_102", "SDL Schema generation failed due to an error occurred " +
             "in Ballerina GraphQL Package: %s", DiagnosticSeverity.ERROR),
     SDL_SCHEMA_103("SDL_SCHEMA_103", "SDL schema generation failed: %s", DiagnosticSeverity.ERROR),
-    SDL_SCHEMA_104("SDL_SCHEMA_104", "Schema generation cancelled by user - file already exists and overwrite declined", 
-            DiagnosticSeverity.INFO);
+    SDL_SCHEMA_104("SDL_SCHEMA_104", "Schema generation cancelled by user.", DiagnosticSeverity.ERROR);
 
     private final String code;
     private final String description;
