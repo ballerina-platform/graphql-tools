@@ -62,6 +62,7 @@ import static io.ballerina.graphql.schema.utils.Utils.getServiceBasePath;
 import static io.ballerina.graphql.schema.utils.Utils.isGraphqlService;
 import static io.ballerina.graphql.schema.utils.Utils.resolveSchemaFileName;
 import static io.ballerina.graphql.schema.utils.Utils.writeFile;
+import io.ballerina.graphql.schema.utils.Utils;
 import static io.ballerina.stdlib.graphql.commons.utils.Utils.isGraphQLServiceObjectDeclaration;
 
 /**
@@ -76,6 +77,13 @@ public class SdlSchemaGenerator {
      */
     public static void generate(Path filePath, Path outPath, String serviceBasePath, PrintStream outStream)
             throws SchemaFileGenerationException {
+        
+        // Early conflict detection - check file conflicts BEFORE expensive operations
+        List<String> preliminaryFileNames = getPreliminaryFileNames(filePath, outPath, serviceBasePath);
+        if (!preliminaryFileNames.isEmpty()) {
+            Utils.checkFileOverwriteConsent(outPath, preliminaryFileNames, outStream);
+        }
+        
         Project project = ProjectLoader.loadProject(filePath);
         PackageCompilation compilation = getPackageCompilation(project);
         Package packageName = project.currentPackage();
@@ -236,5 +244,73 @@ public class SdlSchemaGenerator {
             }
         }
         throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_100, null);
+    }
+
+    /**
+     * Get preliminary file names that would be generated without doing expensive schema generation.
+     * This allows us to check for file conflicts early.
+     */
+    private static List<String> getPreliminaryFileNames(Path filePath, Path outPath, String serviceBasePath) 
+            throws SchemaFileGenerationException {
+        Project project = ProjectLoader.loadProject(filePath);
+        PackageCompilation compilation = getPackageCompilation(project);
+        Package packageName = project.currentPackage();
+        DocumentId docId;
+        Document doc;
+        if (project.kind().equals(ProjectKind.BUILD_PROJECT)) {
+            docId = project.documentId(filePath);
+            ModuleId moduleId = docId.moduleId();
+            doc = project.currentPackage().module(moduleId).document(docId);
+        } else {
+            Module currentModule = packageName.getDefaultModule();
+            docId = currentModule.documentIds().iterator().next();
+            doc = currentModule.document(docId);
+        }
+
+        SyntaxTree syntaxTree = doc.syntaxTree();
+        SemanticModel semanticModel = compilation.getSemanticModel(docId.moduleId());
+        Map<String, String> servicesToGenerate = extractServiceNamesOnly(syntaxTree, semanticModel, serviceBasePath);
+        
+        List<String> fileNames = new ArrayList<>();
+        for (String serviceName : servicesToGenerate.keySet()) {
+            String fileName = resolveSchemaFileName(outPath, serviceName);
+            fileNames.add(fileName);
+        }
+        return fileNames;
+    }
+
+    /**
+     * Extract only service names without generating full schemas.
+     * This is a lightweight version of generateSdlSchema for early conflict detection.
+     */
+    private static Map<String, String> extractServiceNamesOnly(SyntaxTree syntaxTree, SemanticModel semanticModel,
+                                                               String serviceBasePath) throws SchemaFileGenerationException {
+        Map<String, String> servicesToGenerate = new HashMap<>();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        for (Node node : modulePartNode.members()) {
+            if (node.kind() == SyntaxKind.SERVICE_DECLARATION) {
+                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
+                String serviceName = getSdlFileName(serviceNode, serviceBasePath);
+                if (!serviceName.equals(EMPTY_STRING) && isGraphqlService(serviceNode, semanticModel)) {
+                    servicesToGenerate.put(serviceName, ""); // Empty schema content for preliminary check
+                }
+            } else if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
+                ModuleVariableDeclarationNode moduleVariableDeclarationNode = (ModuleVariableDeclarationNode) node;
+                if (moduleVariableDeclarationNode.initializer().isPresent()) {
+                    ExpressionNode expressionNode = moduleVariableDeclarationNode.initializer().get();
+                    if (expressionNode.kind() == SyntaxKind.OBJECT_CONSTRUCTOR) {
+                        ObjectConstructorExpressionNode objectConstructorExpressionNode =
+                                (ObjectConstructorExpressionNode) expressionNode;
+                        if (isGraphQLServiceObjectDeclaration(objectConstructorExpressionNode, semanticModel)) {
+                            String serviceName = getSdlFileName(objectConstructorExpressionNode, serviceBasePath);
+                            if (!serviceName.equals(EMPTY_STRING)) {
+                                servicesToGenerate.put(serviceName, ""); // Empty schema content for preliminary check
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return servicesToGenerate;
     }
 }

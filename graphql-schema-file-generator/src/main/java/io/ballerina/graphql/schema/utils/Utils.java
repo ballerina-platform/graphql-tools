@@ -321,4 +321,49 @@ public final class Utils {
             outputDir.mkdirs();
         }
     }
+
+    /**
+     * Check if any of the files to be generated already exist and get user consent for overwriting.
+     * This method provides immediate feedback and allows early exit to prevent wasted computation.
+     *
+     * @param outPath    the output directory path
+     * @param fileNames  list of file names that will be generated
+     * @param outStream  print stream for user interaction
+     * @throws SchemaFileGenerationException if user chooses not to overwrite existing files
+     */
+    public static void checkFileOverwriteConsent(Path outPath, java.util.List<String> fileNames, 
+                                                 java.io.PrintStream outStream) throws SchemaFileGenerationException {
+        java.util.List<String> existingFiles = new java.util.ArrayList<>();
+        
+        for (String fileName : fileNames) {
+            Path filePath = outPath.resolve(fileName);
+            if (Files.exists(filePath)) {
+                existingFiles.add(fileName);
+            }
+        }
+        
+        if (!existingFiles.isEmpty()) {
+            outStream.println("The following schema file(s) already exist:");
+            for (String existingFile : existingFiles) {
+                outStream.println("-- " + existingFile);
+            }
+            outStream.print("Do you want to overwrite them? [y/N]: ");
+            
+            try {
+                String input = System.console() != null ? 
+                    System.console().readLine() : 
+                    new java.util.Scanner(System.in).nextLine();
+                
+                if (input == null || !input.trim().toLowerCase().equals("y")) {
+                    throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_104, null);
+                }
+            } catch (Exception e) {
+                if (e instanceof SchemaFileGenerationException) {
+                    throw e;
+                }
+                throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_104, null, 
+                    "Failed to read user input: " + e.getMessage());
+            }
+        }
+    }
 }
