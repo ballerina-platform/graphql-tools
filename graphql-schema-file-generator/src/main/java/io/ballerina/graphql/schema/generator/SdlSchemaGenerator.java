@@ -44,12 +44,15 @@ import io.ballerina.stdlib.graphql.commons.utils.SdlSchemaStringGenerator;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.ballerina.graphql.schema.Constants.EMPTY_STRING;
 import static io.ballerina.graphql.schema.Constants.PERIOD;
@@ -93,10 +96,17 @@ public class SdlSchemaGenerator {
 
         SyntaxTree syntaxTree = doc.syntaxTree();
         SemanticModel semanticModel = compilation.getSemanticModel(docId.moduleId());
+        
+        // Early file conflict check - BEFORE doing any expensive schema generation
+        List<String> potentialFileNames = getPotentialFileNames(syntaxTree, semanticModel, serviceBasePath);
+        if (!checkFileConflictsAndGetUserConsent(potentialFileNames, outPath, outStream)) {
+            return; // Exit early if user chooses not to overwrite
+        }
+        
         List<SdlSchema> schemaDefinitions = generateSdlSchema(syntaxTree, semanticModel, serviceBasePath);
         List<String> fileNames = new ArrayList<>();
         for (SdlSchema definition : schemaDefinitions) {
-            String fileName = resolveSchemaFileName(outPath, definition.getName());
+            String fileName = definition.getName(); // No need to resolve conflicts, already handled
             createOutputDirectory(outPath);
             writeFile(outPath.resolve(fileName), definition.getSchema());
             fileNames.add(fileName);
@@ -216,6 +226,59 @@ public class SdlSchemaGenerator {
         } else {
             return serviceName + PERIOD + duplicateCount;
         }
+    }
+
+    /**
+     * Get potential file names that would be generated, for early conflict checking.
+     */
+    private static List<String> getPotentialFileNames(SyntaxTree syntaxTree, SemanticModel semanticModel, 
+                                                      String serviceBasePath) throws SchemaFileGenerationException {
+        Map<String, String> servicesToGenerate = new HashMap<>();
+        List<String> availableServices = new ArrayList<>();
+        List<String> potentialFileNames = new ArrayList<>();
+
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        extractSchemaStringsFromServices(serviceBasePath, modulePartNode, semanticModel, availableServices,
+                servicesToGenerate);
+        
+        // If there are no services found for a given service name.
+        if (serviceBasePath != null && servicesToGenerate.isEmpty()) {
+            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_101, null, serviceBasePath,
+                    availableServices.toString());
+        }
+        
+        // Generate potential file names
+        for (Map.Entry<String, String> schema : servicesToGenerate.entrySet()) {
+            String sdlFileName = getSdlFileName(syntaxTree.filePath(), schema.getKey());
+            potentialFileNames.add(sdlFileName);
+        }
+        return potentialFileNames;
+    }
+
+    /**
+     * Check for file conflicts and get user consent BEFORE doing any processing.
+     * @return true if should proceed, false if should exit early
+     */
+    private static boolean checkFileConflictsAndGetUserConsent(List<String> potentialFileNames, Path outPath, 
+                                                               PrintStream outStream) {
+        for (String fileName : potentialFileNames) {
+            Path potentialFilePath = outPath.resolve(fileName);
+            if (Files.exists(potentialFilePath)) {
+                if (System.console() != null) {
+                    String userInput = System.console().readLine("There is already a file named '" + fileName +
+                            "' in the target location. Do you want to overwrite the file? [y/N] ");
+                    if (!Objects.equals(userInput.toLowerCase(Locale.ENGLISH), "y")) {
+                        outStream.println("Schema generation cancelled by user.");
+                        return false; // Exit early - respect user's choice
+                    }
+                } else {
+                    // Non-interactive mode - default to not overwrite
+                    outStream.println("File '" + fileName + "' already exists. Use interactive mode to overwrite.");
+                    return false;
+                }
+            }
+        }
+        return true; // No conflicts or user agreed to overwrite
     }
 
     /**

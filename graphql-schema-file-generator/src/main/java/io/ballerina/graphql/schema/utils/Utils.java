@@ -242,58 +242,17 @@ public final class Utils {
     }
 
     /**
-     * This method use for checking the duplicate files.
+     * This method returns the schema file name as-is.
+     * File conflict checking is now handled earlier in the process.
      *
-     * @param outPath     output path for file generated
+     * @param outPath     output path for file generated (unused, kept for compatibility)
      * @param schemaName  given file name
-     * @return file name with duplicate number tag
+     * @return the original schema name
      */
     public static String resolveSchemaFileName(Path outPath, String schemaName) {
-        if (outPath != null && Files.exists(outPath)) {
-            final File[] listFiles = new File(String.valueOf(outPath)).listFiles();
-            if (listFiles != null) {
-                schemaName = checkAvailabilityOfGivenName(schemaName, listFiles);
-            }
-        }
+        // File conflicts are now resolved early in SdlSchemaGenerator
+        // This method now simply returns the name as-is
         return schemaName;
-    }
-
-    /**
-     * This method for check the availability of the given file name in the output directory.
-     *
-     * @param schemaName     schema file name
-     * @param listFiles      generated files
-     *@return file name with duplicate number tag
-     */
-    private static String checkAvailabilityOfGivenName(String schemaName, File[] listFiles) {
-        for (File file : listFiles) {
-            if (System.console() != null && file.getName().equals(schemaName)) {
-                String userInput = System.console().readLine("There is already a file named '" + file.getName() +
-                        "' in the target location. Do you want to overwrite the file? [y/N] ");
-                if (!Objects.equals(userInput.toLowerCase(Locale.ENGLISH), "y")) {
-                    schemaName = setGeneratedFileName(listFiles, schemaName);
-                }
-            }
-        }
-        return schemaName;
-    }
-
-    /**
-     * This method for setting the file name for generated file.
-     *
-     * @param listFiles      generated files
-     * @param fileName       File name
-     */
-    private static String setGeneratedFileName(File[] listFiles, String fileName) {
-        int duplicateCount = 0;
-        for (File listFile : listFiles) {
-            String listFileName = listFile.getName();
-            if (listFileName.contains(".") && ((listFileName.split("\\.")).length >= 2)
-                    && (listFileName.split("\\.")[0].equals(fileName.split("\\.")[0]))) {
-                duplicateCount++;
-            }
-        }
-        return fileName.split("\\.")[0] + PERIOD + duplicateCount + PERIOD + fileName.split("\\.")[1];
     }
 
     /**
