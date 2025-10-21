@@ -79,6 +79,12 @@ public class SdlSchemaGenerator {
      */
     public static void generate(Path filePath, Path outPath, String serviceBasePath, PrintStream outStream)
             throws SchemaFileGenerationException {
+        
+        // IMMEDIATE file conflict check - before ANY expensive processing
+        if (!checkFileConflictsForDefaultSchema(outPath, outStream)) {
+            return; // Exit immediately if user chooses not to overwrite
+        }
+        
         Project project = ProjectLoader.loadProject(filePath);
         PackageCompilation compilation = getPackageCompilation(project);
         Package packageName = project.currentPackage();
@@ -97,16 +103,10 @@ public class SdlSchemaGenerator {
         SyntaxTree syntaxTree = doc.syntaxTree();
         SemanticModel semanticModel = compilation.getSemanticModel(docId.moduleId());
         
-        // Early file conflict check - BEFORE doing any expensive schema generation
-        List<String> potentialFileNames = getPotentialFileNames(syntaxTree, semanticModel, serviceBasePath);
-        if (!checkFileConflictsAndGetUserConsent(potentialFileNames, outPath, outStream)) {
-            return; // Exit early if user chooses not to overwrite
-        }
-        
         List<SdlSchema> schemaDefinitions = generateSdlSchema(syntaxTree, semanticModel, serviceBasePath);
         List<String> fileNames = new ArrayList<>();
         for (SdlSchema definition : schemaDefinitions) {
-            String fileName = definition.getName(); // No need to resolve conflicts, already handled
+            String fileName = resolveSchemaFileName(outPath, definition.getName());
             createOutputDirectory(outPath);
             writeFile(outPath.resolve(fileName), definition.getSchema());
             fileNames.add(fileName);
@@ -256,6 +256,32 @@ public class SdlSchemaGenerator {
     }
 
     /**
+     * Check for the default schema file conflict IMMEDIATELY - before any expensive processing.
+     * This provides instant feedback to users without wasting computation time.
+     * @return true if should proceed, false if should exit early
+     */
+    private static boolean checkFileConflictsForDefaultSchema(Path outPath, PrintStream outStream) {
+        // Check for the most common case - schema_graphql.graphql
+        Path defaultSchemaFile = outPath.resolve("schema_graphql.graphql");
+        if (Files.exists(defaultSchemaFile)) {
+            if (System.console() != null) {
+                // Improved formatting: Split into two lines for better readability
+                System.out.println("There is already a file named 'schema_graphql.graphql' in the target location.");
+                String userInput = System.console().readLine("Do you want to overwrite the file [Y/N] ? ");
+                if (!Objects.equals(userInput.toLowerCase(Locale.ENGLISH), "y")) {
+                    outStream.println("Schema generation cancelled by user.");
+                    return false; // Exit immediately - respect user's choice
+                }
+            } else {
+                // Non-interactive mode - default to not overwrite
+                outStream.println("File 'schema_graphql.graphql' already exists. Use interactive mode to overwrite.");
+                return false;
+            }
+        }
+        return true; // No conflict or user agreed to overwrite
+    }
+
+    /**
      * Check for file conflicts and get user consent BEFORE doing any processing.
      * @return true if should proceed, false if should exit early
      */
@@ -265,8 +291,9 @@ public class SdlSchemaGenerator {
             Path potentialFilePath = outPath.resolve(fileName);
             if (Files.exists(potentialFilePath)) {
                 if (System.console() != null) {
-                    String userInput = System.console().readLine("There is already a file named '" + fileName +
-                            "' in the target location. Do you want to overwrite the file? [y/N] ");
+                    // Improved formatting: Split into two lines for better readability
+                    System.out.println("There is already a file named '" + fileName + "' in the target location.");
+                    String userInput = System.console().readLine("Do you want to overwrite the file [Y/N] ? ");
                     if (!Objects.equals(userInput.toLowerCase(Locale.ENGLISH), "y")) {
                         outStream.println("Schema generation cancelled by user.");
                         return false; // Exit early - respect user's choice
