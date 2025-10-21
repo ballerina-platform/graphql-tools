@@ -52,13 +52,15 @@ if (Test-Path $targetJar) {
         if ($Force) {
             Remove-Item $backupJar -Force
             Write-Host "   Replaced existing backup" -ForegroundColor Gray
-        } else {
+        }
+        else {
             Write-Host "⚠️  Backup already exists: $backupJar" -ForegroundColor Yellow
             $response = Read-Host "   Replace existing backup? [y/N]"
             if ($response -match '^[Yy]') {
                 Remove-Item $backupJar -Force
                 Write-Host "   Existing backup replaced" -ForegroundColor Gray
-            } else {
+            }
+            else {
                 Write-Host "   Keeping existing backup" -ForegroundColor Gray
             }
         }
@@ -68,7 +70,8 @@ if (Test-Path $targetJar) {
         Copy-Item $targetJar $backupJar -Force
         Write-Host "✅ Backup created: $backupJar" -ForegroundColor Green
     }
-} else {
+}
+else {
     Write-Host "⚠️  Original JAR not found at expected location" -ForegroundColor Yellow
 }
 
@@ -103,7 +106,8 @@ try {
     Write-Host ""
     Write-Host "🧪 Test it with: bal graphql -i service.bal -o ." -ForegroundColor Cyan
     
-} catch {
+}
+catch {
     Write-Host "❌ Deployment failed: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host ""
     Write-Host "🔍 Troubleshooting:" -ForegroundColor Yellow
