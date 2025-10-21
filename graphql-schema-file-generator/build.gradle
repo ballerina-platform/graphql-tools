@@ -21,11 +21,6 @@ plugins {
     id "checkstyle"
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 dependencies {
     checkstyle project(':checkstyle')
     checkstyle "com.puppycrawl.tools:checkstyle:${project.checkstylePluginVersion}"

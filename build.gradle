@@ -129,39 +129,38 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-// Temporarily commented out problematic JaCoCo configuration
-// task codeCoverageReport(type: JacocoReport) {
-//     dependsOn(":${packageName}-tool:build")
-// 
-//     executionData.setFrom(fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec"))
-// 
-//     def sourceDirs = files(
-//         "${project.rootDir}/${packageName}-cli/src/main/java",
-//         "${project.rootDir}/${packageName}-code-generator/src/main/java",
-//         "${project.rootDir}/${packageName}-schema-file-generator/src/main/java"
-//     )
-// 
-//     def classDirs = files(
-//         fileTree(dir: "${rootDir}/graphql-code-generator/build/classes/java/main/io/ballerina/graphql/generator"),
-//         fileTree(dir: "${rootDir}/graphql-schema-file-generator/build/classes/java/main/io/ballerina/graphql/schema")
-//     )
-// 
-//     sourceDirectories.setFrom(sourceDirs)
-//     classDirectories.setFrom(classDirs)
-// 
-//     reports {
-//         xml.required = true
-//         html.required = true
-//         csv.required = true
-//         xml.destination = file("${buildDir}/reports/jacoco/report.xml")
-//         html.destination = file("${buildDir}/reports/jacoco/report.html")
-//         csv.destination = file("${buildDir}/reports/jacoco/report.csv")
-//     }
-// 
-//     onlyIf = {
-//         true
-//     }
-// }
+task codeCoverageReport(type: JacocoReport) {
+    dependsOn(":${packageName}-tool:build")
+
+    executionData.setFrom(fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec"))
+
+    def sourceDirs = files(
+        "${project.rootDir}/${packageName}-cli/src/main/java",
+        "${project.rootDir}/${packageName}-code-generator/src/main/java",
+        "${project.rootDir}/${packageName}-schema-file-generator/src/main/java"
+    )
+
+    def classDirs = files(
+        fileTree(dir: "${rootDir}/graphql-code-generator/build/classes/java/main/io/ballerina/graphql/generator"),
+        fileTree(dir: "${rootDir}/graphql-schema-file-generator/build/classes/java/main/io/ballerina/graphql/schema")
+    )
+
+    sourceDirectories.setFrom(sourceDirs)
+    classDirectories.setFrom(classDirs)
+
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = true
+        xml.destination = file("${buildDir}/reports/jacoco/report.xml")
+        html.destination = file("${buildDir}/reports/jacoco/report.html")
+        csv.destination = file("${buildDir}/reports/jacoco/report.csv")
+    }
+
+    onlyIf = {
+        true
+    }
+}
 
 task build {
     dependsOn ":${packageName}-tool:build"

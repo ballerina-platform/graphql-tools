@@ -1,4 +1,0 @@
-# Test file to simulate existing schema
-type Query {
-  hello: String
-}
