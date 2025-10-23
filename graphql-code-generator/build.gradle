@@ -122,6 +122,29 @@ compileJava {
     }
 }
 
+publishing {
+
+    publications {
+        mavenJava(MavenPublication) {
+            groupId "io.ballerina.graphql-tool"
+            artifactId "code-generator"
+            version = project.version
+            artifact jar
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/ballerina-platform/graphql-tools")
+            credentials {
+                username = System.getenv("packageUser")
+                password = System.getenv("packagePAT")
+            }
+        }
+    }
+}
+
 unpackStdLibs.dependsOn jBallerinaPack
 copyStdlibs.dependsOn unpackStdLibs
 shadowJar.dependsOn copyStdlibs
@@ -129,3 +152,4 @@ copyJar.dependsOn shadowJar
 copyJar.dependsOn jar
 
 build.dependsOn(copyJar)
+publish.dependsOn(build)
