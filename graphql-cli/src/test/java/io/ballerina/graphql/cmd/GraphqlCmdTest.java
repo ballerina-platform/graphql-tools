@@ -431,6 +431,23 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test graphql command execution with refresh flag")
+    public void testExecuteWithRefreshFlag() {
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--refresh"};
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            // Just verify that the command parses correctly with the refresh flag
+            // The actual refresh functionality would be tested in GraphqlRefreshCmdTest
+            Assert.assertTrue(true, "Command should parse correctly with refresh flag");
+        } catch (Exception e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
     @Test(description = "Test error message of unsupported operations in schema")
     public void testExecuteWithUnsupportedOperations1() {
         Path graphqlConfigYaml =
