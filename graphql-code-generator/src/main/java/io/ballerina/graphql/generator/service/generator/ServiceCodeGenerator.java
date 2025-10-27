@@ -63,7 +63,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
 
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
-        generateServiceTypes(projectName, fileName, graphQLSchema, sourceFiles);
+        sourceFiles.add(generateServiceTypes(projectName, fileName, graphQLSchema));
         generateServices(projectName, fileName, sourceFiles);
         return sourceFiles;
     }
@@ -78,14 +78,24 @@ public class ServiceCodeGenerator extends CodeGenerator {
                         serviceSrc));
     }
 
-    private void generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema,
-                                      List<SrcFilePojo> sourceFiles) throws ServiceGenerationException {
+    /**
+     * Generates the service type file.
+     *
+     * @param projectName    Name of the project
+     * @param fileName       Name of the file
+     * @param graphQLSchema  GraphQL schema object
+     * @return SrcFilePojo Containing the generated service types
+     * @throws ServiceGenerationException when a code generation error occurs
+     *
+     * @since 0.14.0
+     */
+    public SrcFilePojo generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema)
+            throws ServiceGenerationException {
         this.serviceTypesGenerator.setFileName(fileName);
         String typesFileContent = this.serviceTypesGenerator.generateSrc(graphQLSchema);
         setServiceMethodDeclarations(this.serviceTypesGenerator.getServiceMethodDeclarations());
-        sourceFiles.add(
-                new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
-                        typesFileContent));
+        return new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
+                typesFileContent);
     }
 
     public void enableToUseRecords() {
