@@ -116,7 +116,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
         }
 
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
-        generateServiceTypes(projectName, fileName, graphQLSchema, sourceFiles);
+        sourceFiles.add(generateServiceTypes(projectName, fileName, graphQLSchema));
         generateServices(projectName, fileName, sourceFiles);
         return sourceFiles;
     }
@@ -171,9 +171,8 @@ public class ServiceCodeGenerator extends CodeGenerator {
         this.serviceTypesGenerator.setFileName(fileName);
         String typesFileContent = this.serviceTypesGenerator.generateSrc(graphQLSchema);
         setServiceMethodDeclarations(this.serviceTypesGenerator.getServiceMethodDeclarations());
-        sourceFiles.add(
-                new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
-                        typesFileContent));
+        return new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
+                typesFileContent);
     }
 
     public void enableToUseRecords() {
