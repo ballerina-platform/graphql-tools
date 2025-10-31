@@ -181,7 +181,6 @@ public class GraphqlCmd implements BLauncherCmd {
             
             if (inputPath == null || inputPath.trim().isEmpty()) {
                 printLongDesc(new StringBuilder());
-                outStream.println("Error: Input path is required. Use -i or --input to specify the input file.");
                 outStream.flush();
                 exit(EXIT_CODE_2);
                 return;
