@@ -431,18 +431,18 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test graphql command execution with refresh flag")
-    public void testExecuteWithRefreshFlag() {
+    @Test(description = "Test graphql command execution with update flag")
+    public void testExecuteWithUpdateFlag() {
         Path graphql = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--refresh"};
+        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--update"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
-            // Just verify that the command parses correctly with the refresh flag
-            // The actual refresh functionality would be tested in GraphqlRefreshCmdTest
-            Assert.assertTrue(true, "Command should parse correctly with refresh flag");
+            // Just verify that the command parses correctly with the update flag
+            // The actual update functionality would be tested in GraphqlRefreshCmdTest
+            Assert.assertTrue(true, "Command should parse correctly with update flag");
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         }

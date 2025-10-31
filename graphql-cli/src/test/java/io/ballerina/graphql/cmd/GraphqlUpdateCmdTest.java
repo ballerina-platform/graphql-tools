@@ -87,7 +87,7 @@ public class GraphqlUpdateCmdTest extends GraphqlTest {
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
             
-            // Read the updated content
+            // Read the refreshed content
             String refreshedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
             String refreshedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
             
@@ -138,7 +138,7 @@ public class GraphqlUpdateCmdTest extends GraphqlTest {
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
             
-            // Read the updated content
+            // Read the refreshed content
             String refreshedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
             String refreshedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
             

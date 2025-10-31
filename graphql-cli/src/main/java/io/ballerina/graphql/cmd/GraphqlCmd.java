@@ -117,9 +117,9 @@ public class GraphqlCmd implements BLauncherCmd {
             description = "Inform the generator to generate records types where ever possible")
     private boolean useRecordsForObjectsFlag;
 
-    @CommandLine.Option(names = {"--refresh"},
-            description = "Refresh the existing Ballerina service code with new schema changes while preserving user modifications")
-    private boolean refreshFlag;
+    @CommandLine.Option(names = {"-u", "--update"},
+            description = "Update the existing Ballerina service code with new schema changes while preserving user modifications")
+    private boolean updateFlag;
 
     private ClientCodeGenerator clientCodeGenerator;
     private ServiceCodeGenerator serviceCodeGenerator;
@@ -160,9 +160,9 @@ public class GraphqlCmd implements BLauncherCmd {
      * @param exitHandler  custom exit handler (for testing)
      */
     public GraphqlCmd(PrintStream outStream, Path executionDir, ExitHandler exitHandler) {
-        this.outStream = outStream != null ? outStream : System.err;
-        this.executionPath = executionDir != null ? executionDir : Paths.get(System.getProperty("user.dir"));
-        this.exitHandler = exitHandler != null ? exitHandler : DEFAULT_EXIT_HANDLER;
+        this.outStream = outStream;
+        this.executionPath = executionDir;
+        this.exitHandler = exitHandler;
     }
 
     private void exit(int code) {
@@ -190,15 +190,11 @@ public class GraphqlCmd implements BLauncherCmd {
             executeOperation();
         } catch (CmdException | ParseException | ValidationException | ClientCodeGenerationException | IOException |
                  SchemaFileGenerationException | ServiceGenerationException e) {
-            if (outStream != null && e.getMessage() != null) {
-                outStream.println("Error: " + e.getMessage());
-            }
+            outStream.println(e.getMessage());
             exit(EXIT_CODE_1);
             return;
         } catch (Exception e) {
-            if (outStream != null) {
-                outStream.println("Unexpected error occurred: " + e.getMessage());
-            }
+            outStream.println("Unexpected error occurred: " + e.getMessage());
             exit(EXIT_CODE_1);
             return;
         }
@@ -212,10 +208,6 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws CmdException when a graphql command related error occurs
      */
     private void validateInputFlags() throws CmdException {
-        if (inputPath == null || inputPath.trim().isEmpty()) {
-            throw new CmdException("Input path cannot be null or empty");
-        }
-        
         if (!validInputFileExtension(inputPath)) {
             throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
         }
@@ -228,30 +220,24 @@ public class GraphqlCmd implements BLauncherCmd {
             throw new CmdException(String.format(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE, mode));
         }
         
-        if (refreshFlag && !(inputPath.endsWith(GRAPHQL_EXTENSION)) && 
+        if (updateFlag && !(inputPath.endsWith(GRAPHQL_EXTENSION)) && 
             !(mode == null || MODE_SERVICE.equals(mode))) {
-            throw new CmdException("Refresh flag can only be used with GraphQL schema files and service mode");
+            throw new CmdException("Update flag can only be used with GraphQL schema files and service mode");
         }
     }
 
     private boolean validInputFileExtension(String filePath) {
-        if (filePath == null || filePath.trim().isEmpty()) {
-            return false;
-        }
-        
-        String trimmedPath = filePath.trim();
-        return trimmedPath.endsWith(YAML_EXTENSION) || trimmedPath.endsWith(YML_EXTENSION) ||
-                trimmedPath.endsWith(BAL_EXTENSION) || trimmedPath.endsWith(GRAPHQL_EXTENSION);
+        return filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION) ||
+                filePath.endsWith(BAL_EXTENSION) || filePath.endsWith(GRAPHQL_EXTENSION);
     }
 
     private boolean isModeCompatible() throws CmdException {
-        if (mode != null && !mode.trim().isEmpty()) {
-            String trimmedMode = mode.trim();
-            if (MODE_CLIENT.equals(trimmedMode)) {
+        if (mode != null) {
+            if (MODE_CLIENT.equals(mode)) {
                 return inputPath.endsWith(YAML_EXTENSION) || inputPath.endsWith(YML_EXTENSION);
-            } else if (MODE_SCHEMA.equals(trimmedMode)) {
+            } else if (MODE_SCHEMA.equals(mode)) {
                 return inputPath.endsWith(BAL_EXTENSION);
-            } else if (MODE_SERVICE.equals(trimmedMode)) {
+            } else if (MODE_SERVICE.equals(mode)) {
                 return inputPath.endsWith(GRAPHQL_EXTENSION);
             } else {
                 throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
@@ -274,10 +260,6 @@ public class GraphqlCmd implements BLauncherCmd {
             throws CmdException, ParseException, IOException, ValidationException, ClientCodeGenerationException,
             SchemaFileGenerationException, ServiceGenerationException {
         
-        if (inputPath == null || inputPath.trim().isEmpty()) {
-            throw new CmdException("Input path cannot be null or empty");
-        }
-        
         String trimmedInputPath = inputPath.trim();
         
         if ((MODE_CLIENT.equals(mode) || mode == null || mode.trim().isEmpty()) &&
@@ -290,7 +272,7 @@ public class GraphqlCmd implements BLauncherCmd {
         } else if ((MODE_SERVICE.equals(mode) || mode == null || mode.trim().isEmpty()) && 
                 (trimmedInputPath.endsWith(GRAPHQL_EXTENSION))) {
             setServiceCodeGenerator(new ServiceCodeGenerator());
-            if (refreshFlag) {
+            if (updateFlag) {
                 refreshService(trimmedInputPath);
             } else {
                 generateService(trimmedInputPath);
