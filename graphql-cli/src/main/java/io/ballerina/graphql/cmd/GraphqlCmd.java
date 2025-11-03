@@ -222,7 +222,7 @@ public class GraphqlCmd implements BLauncherCmd {
         
         if (updateFlag && !(inputPath.endsWith(GRAPHQL_EXTENSION)) && 
             !(mode == null || MODE_SERVICE.equals(mode))) {
-            throw new CmdException("Update flag can only be used with GraphQL schema files and service mode");
+            throw new CmdException("Update flag can only be used with service mode");
         }
     }
 
