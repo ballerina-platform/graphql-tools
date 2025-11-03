@@ -298,9 +298,7 @@ public class GraphqlCmd implements BLauncherCmd {
             QueryValidator.getInstance().validate(project);
         }
         for (GraphqlProject project : projects) {
-            if (this.clientCodeGenerator != null) {
-                this.clientCodeGenerator.generate(project);
-            }
+            this.clientCodeGenerator.generate(project);
         }
     }
 
