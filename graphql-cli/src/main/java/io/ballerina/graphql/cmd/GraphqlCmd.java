@@ -260,14 +260,14 @@ public class GraphqlCmd implements BLauncherCmd {
             throws CmdException, ParseException, IOException, ValidationException, ClientCodeGenerationException,
             SchemaFileGenerationException, ServiceGenerationException {
         
-        if ((MODE_CLIENT.equals(mode) || mode == null || mode.trim().isEmpty()) &&
+        if ((MODE_CLIENT.equals(mode) || mode == null) &&
                 (inputPath.endsWith(YAML_EXTENSION) || inputPath.endsWith(YML_EXTENSION))) {
             setClientCodeGenerator(new ClientCodeGenerator());
             generateClient(inputPath);
-        } else if ((MODE_SCHEMA.equals(mode) || mode == null || mode.trim().isEmpty()) && 
+        } else if ((MODE_SCHEMA.equals(mode) || mode == null) && 
                 (inputPath.endsWith(BAL_EXTENSION))) {
             generateSchema(inputPath);
-        } else if ((MODE_SERVICE.equals(mode) || mode == null || mode.trim().isEmpty()) && 
+        } else if ((MODE_SERVICE.equals(mode) || mode == null) && 
                 (inputPath.endsWith(GRAPHQL_EXTENSION))) {
             setServiceCodeGenerator(new ServiceCodeGenerator());
             if (updateFlag) {
