@@ -80,28 +80,28 @@ public abstract class CodeGenerator {
                 continue;
             }
             
-            if (file.getType().isOverwritable()) {
-                Path filePath = CodeGeneratorUtils.getAbsoluteFilePath(file, outputPath);
-                if (filePath == null) {
-                    continue;
-                }
-                
-                String fileContent = file.getContent();
-                if (fileContent == null) {
-                    fileContent = "";
-                }
-                
-                if (refresh && Files.exists(filePath)) {
-                    try {
-                        // For refresh, merge with existing file
-                        fileContent = BallerinaFileMerger.mergeFiles(filePath, fileContent);
-                    } catch (Exception e) {
-                        // If merge fails, log the error and continue with generated content
-                    }
-                }
-                
-                CodeGeneratorUtils.writeFile(filePath, fileContent);
+            if (!file.getType().isOverwritable()) {
+                // Should throw an exception here?
             }
+            Path filePath = CodeGeneratorUtils.getAbsoluteFilePath(file, outputPath);
+            if (filePath == null) {
+                continue;
+            }
+
+            String fileContent = file.getContent();
+            if (fileContent == null) {
+                fileContent = "";
+            }
+    
+            if (refresh && Files.exists(filePath)) {
+                try {
+                    // For refresh, merge with existing file
+                    fileContent = BallerinaFileMerger.mergeFiles(filePath, fileContent);
+                } catch (Exception e) {
+                    // If merge fails, log the error and continue with generated content
+                }
+            CodeGeneratorUtils.writeFile(filePath, fileContent);
+    }
         }
     }
 }
