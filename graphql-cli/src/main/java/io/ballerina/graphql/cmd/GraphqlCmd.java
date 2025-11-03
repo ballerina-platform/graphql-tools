@@ -321,9 +321,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 this.serviceCodeGenerator.enableToUseRecords();
             }
         }
-        if (this.serviceCodeGenerator != null) {
-            this.serviceCodeGenerator.generate(graphqlProject);
-        }
+        this.serviceCodeGenerator.generate(graphqlProject);
     }
 
     private void refreshService(String filePath)
@@ -345,9 +343,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 this.serviceCodeGenerator.enableToUseRecords();
             }
         }
-        if (this.serviceCodeGenerator != null) {
-            this.serviceCodeGenerator.refresh(graphqlProject);
-        }
+        this.serviceCodeGenerator.refresh(graphqlProject);
     }
 
     /**
