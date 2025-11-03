@@ -178,14 +178,12 @@ public class GraphqlCmd implements BLauncherCmd {
                 exit(EXIT_CODE_0);
                 return;
             }
-            
             if (inputPath == null || inputPath.isEmpty()) {
                 printLongDesc(new StringBuilder());
                 outStream.flush();
                 exit(EXIT_CODE_2);
                 return;
             }
-            
             validateInputFlags();
             executeOperation();
         } catch (CmdException | ParseException | ValidationException | ClientCodeGenerationException | IOException |
@@ -198,7 +196,6 @@ public class GraphqlCmd implements BLauncherCmd {
             exit(EXIT_CODE_1);
             return;
         }
-        
         exit(EXIT_CODE_0);
     }
 
@@ -211,16 +208,13 @@ public class GraphqlCmd implements BLauncherCmd {
         if (!validInputFileExtension(inputPath)) {
             throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
         }
-
         if (!isModeCompatible()) {
             throw new CmdException(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, inputPath));
         }
-
         if (useRecordsForObjectsFlag && !(inputPath.endsWith(GRAPHQL_EXTENSION))) {
             throw new CmdException(String.format(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE, mode));
         }
-        
-        if (updateFlag && !(inputPath.endsWith(GRAPHQL_EXTENSION)) && 
+        if (updateFlag && !(inputPath.endsWith(GRAPHQL_EXTENSION)) &&
             !(mode == null || MODE_SERVICE.equals(mode))) {
             throw new CmdException("Update flag can only be used with service mode");
         }
@@ -259,15 +253,14 @@ public class GraphqlCmd implements BLauncherCmd {
     private void executeOperation()
             throws CmdException, ParseException, IOException, ValidationException, ClientCodeGenerationException,
             SchemaFileGenerationException, ServiceGenerationException {
-        
         if ((MODE_CLIENT.equals(mode) || mode == null) &&
                 (inputPath.endsWith(YAML_EXTENSION) || inputPath.endsWith(YML_EXTENSION))) {
             setClientCodeGenerator(new ClientCodeGenerator());
             generateClient(inputPath);
-        } else if ((MODE_SCHEMA.equals(mode) || mode == null) && 
+        } else if ((MODE_SCHEMA.equals(mode) || mode == null) &&
                 (inputPath.endsWith(BAL_EXTENSION))) {
             generateSchema(inputPath);
-        } else if ((MODE_SERVICE.equals(mode) || mode == null) && 
+        } else if ((MODE_SERVICE.equals(mode) || mode == null) &&
                 (inputPath.endsWith(GRAPHQL_EXTENSION))) {
             setServiceCodeGenerator(new ServiceCodeGenerator());
             if (updateFlag) {
@@ -317,9 +310,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());
         Utils.validateGraphqlProject(graphqlProject);
         if (useRecordsForObjectsFlag) {
-            if (this.serviceCodeGenerator != null) {
-                this.serviceCodeGenerator.enableToUseRecords();
-            }
+            this.serviceCodeGenerator.enableToUseRecords();
         }
         this.serviceCodeGenerator.generate(graphqlProject);
     }
@@ -339,9 +330,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 new GraphqlServiceProject(ROOT_PROJECT_NAME, filePath, getTargetOutputPath().toString());
         Utils.validateGraphqlProject(graphqlProject);
         if (useRecordsForObjectsFlag) {
-            if (this.serviceCodeGenerator != null) {
-                this.serviceCodeGenerator.enableToUseRecords();
-            }
+            this.serviceCodeGenerator.enableToUseRecords();
         }
         this.serviceCodeGenerator.refresh(graphqlProject);
     }
@@ -364,7 +353,7 @@ public class GraphqlCmd implements BLauncherCmd {
         try {
             balFilePath = Paths.get(balFile.getCanonicalPath());
         } catch (IOException e) {
-            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, 
+            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null,
                     "Failed to get canonical path: " + e.toString());
         }
         SdlSchemaGenerator.generate(balFilePath, getTargetOutputPath(), serviceBasePath, outStream);
@@ -403,7 +392,6 @@ public class GraphqlCmd implements BLauncherCmd {
         if (config == null) {
             return graphqlClientProjects;
         }
-        
         String schema = config.getSchema();
         List<String> documents = config.getDocuments();
         Extension extensions = config.getExtensions();
@@ -413,13 +401,12 @@ public class GraphqlCmd implements BLauncherCmd {
             graphqlClientProjects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, extensions,
                     getTargetOutputPath().toString()));
         }
-
         if (projects != null) {
             for (String projectName : projects.keySet()) {
                 if (projectName != null && projects.get(projectName) != null) {
-                    graphqlClientProjects.add(new GraphqlClientProject(projectName, 
+                    graphqlClientProjects.add(new GraphqlClientProject(projectName,
                             projects.get(projectName).getSchema(),
-                            projects.get(projectName).getDocuments(), 
+                            projects.get(projectName).getDocuments(),
                             projects.get(projectName).getExtensions(),
                             getTargetOutputPath().toString()));
                 }
@@ -464,16 +451,13 @@ public class GraphqlCmd implements BLauncherCmd {
         if (stringBuilder == null) {
             stringBuilder = new StringBuilder();
         }
-        
         Class<GraphqlCmd> cmdClass = GraphqlCmd.class;
         ClassLoader classLoader = cmdClass.getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream("ballerina-graphql.help");
-        
         if (inputStream == null) {
             stringBuilder.append("Help content not available");
             return;
         }
-        
         try (InputStreamReader inputStreamREader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
              BufferedReader br = new BufferedReader(inputStreamREader)) {
             String content = br.readLine();

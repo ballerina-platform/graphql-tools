@@ -66,33 +66,27 @@ public abstract class CodeGenerator {
         if (sources == null) {
             throw new IllegalArgumentException("Sources list cannot be null");
         }
-        
         if (outputPath == null) {
             throw new IllegalArgumentException("Output path cannot be null");
         }
-        
         if (sources.isEmpty()) {
             return;
         }
-        
         for (SrcFilePojo file : sources) {
             if (file == null) {
                 continue;
             }
-            
             if (!file.getType().isOverwritable()) {
-                // Should throw an exception here?
+                continue;
             }
             Path filePath = CodeGeneratorUtils.getAbsoluteFilePath(file, outputPath);
             if (filePath == null) {
                 continue;
             }
-
             String fileContent = file.getContent();
             if (fileContent == null) {
                 fileContent = "";
             }
-    
             if (refresh && Files.exists(filePath)) {
                 try {
                     // For refresh, merge with existing file
@@ -100,8 +94,8 @@ public abstract class CodeGenerator {
                 } catch (Exception e) {
                     // If merge fails, log the error and continue with generated content
                 }
+            }
             CodeGeneratorUtils.writeFile(filePath, fileContent);
-    }
         }
     }
 }
