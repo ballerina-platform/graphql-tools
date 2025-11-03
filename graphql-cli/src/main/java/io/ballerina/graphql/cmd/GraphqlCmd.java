@@ -179,7 +179,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 return;
             }
             
-            if (inputPath == null || inputPath.trim().isEmpty()) {
+            if (inputPath == null || inputPath.isEmpty()) {
                 printLongDesc(new StringBuilder());
                 outStream.flush();
                 exit(EXIT_CODE_2);
@@ -260,22 +260,20 @@ public class GraphqlCmd implements BLauncherCmd {
             throws CmdException, ParseException, IOException, ValidationException, ClientCodeGenerationException,
             SchemaFileGenerationException, ServiceGenerationException {
         
-        String trimmedInputPath = inputPath.trim();
-        
         if ((MODE_CLIENT.equals(mode) || mode == null || mode.trim().isEmpty()) &&
-                (trimmedInputPath.endsWith(YAML_EXTENSION) || trimmedInputPath.endsWith(YML_EXTENSION))) {
+                (inputPath.endsWith(YAML_EXTENSION) || inputPath.endsWith(YML_EXTENSION))) {
             setClientCodeGenerator(new ClientCodeGenerator());
-            generateClient(trimmedInputPath);
+            generateClient(inputPath);
         } else if ((MODE_SCHEMA.equals(mode) || mode == null || mode.trim().isEmpty()) && 
-                (trimmedInputPath.endsWith(BAL_EXTENSION))) {
-            generateSchema(trimmedInputPath);
+                (inputPath.endsWith(BAL_EXTENSION))) {
+            generateSchema(inputPath);
         } else if ((MODE_SERVICE.equals(mode) || mode == null || mode.trim().isEmpty()) && 
-                (trimmedInputPath.endsWith(GRAPHQL_EXTENSION))) {
+                (inputPath.endsWith(GRAPHQL_EXTENSION))) {
             setServiceCodeGenerator(new ServiceCodeGenerator());
             if (updateFlag) {
-                refreshService(trimmedInputPath);
+                refreshService(inputPath);
             } else {
-                generateService(trimmedInputPath);
+                generateService(inputPath);
             }
         } else {
             throw new CmdException("Unsupported input file type or mode combination");
@@ -292,10 +290,6 @@ public class GraphqlCmd implements BLauncherCmd {
      */
     private void generateClient(String filePath)
             throws ParseException, IOException, ValidationException, ClientCodeGenerationException {
-        if (filePath == null || filePath.trim().isEmpty()) {
-            throw new ParseException("File path cannot be null or empty");
-        }
-        
         Config config = readConfig(filePath);
         ConfigValidator.getInstance().validate(config);
         List<GraphqlClientProject> projects = populateProjects(config);
@@ -312,11 +306,6 @@ public class GraphqlCmd implements BLauncherCmd {
 
     private void generateService(String filePath)
             throws IOException, ValidationException, ServiceGenerationException {
-        if (filePath == null || filePath.trim().isEmpty()) {
-            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
-                    "File path cannot be null or empty");
-        }
-        
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
             throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
@@ -341,11 +330,6 @@ public class GraphqlCmd implements BLauncherCmd {
 
     private void refreshService(String filePath)
             throws IOException, ValidationException, ServiceGenerationException {
-        if (filePath == null || filePath.trim().isEmpty()) {
-            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
-                    "File path cannot be null or empty");
-        }
-        
         File graphqlFile = new File(filePath);
         if (!graphqlFile.exists()) {
             throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
@@ -374,11 +358,6 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws SchemaFileGenerationException when a SDL schema generation related error occurs
      */
     private void generateSchema(String fileName) throws SchemaFileGenerationException {
-        if (fileName == null || fileName.trim().isEmpty()) {
-            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, 
-                    "File name cannot be null or empty");
-        }
-        
         final File balFile = new File(fileName);
         if (!balFile.exists()) {
             throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_MISSING_BAL_FILE);
@@ -405,10 +384,6 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws ParseException        when a parsing related error occurs
      */
     private Config readConfig(String filePath) throws FileNotFoundException, ParseException {
-        if (filePath == null || filePath.trim().isEmpty()) {
-            throw new ParseException("File path cannot be null or empty");
-        }
-        
         try {
             InputStream inputStream = new FileInputStream(new File(filePath));
             Constructor constructor = Utils.getProcessedConstructor();
