@@ -82,3 +82,4 @@ EXAMPLES
        Generate Ballerina Graphql clients using a GraphQL config file (`graphql.config.yaml`)
        and write the output to the given directory [Experimental].
            $ bal graphql -i graphql.config.yaml -o ./output_path
+           
