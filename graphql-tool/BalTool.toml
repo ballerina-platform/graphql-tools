@@ -2,13 +2,13 @@
 id = "graphql"
 
 [[dependency]]
-path = "../graphql-cli/build/libs/graphql-cli-0.14.0-SNAPSHOT.jar"
+path = "../graphql-cli/build/libs/graphql-cli-0.14.0.jar"
 
 [[dependency]]
-path = "../graphql-code-generator/build/libs/graphql-code-generator-0.14.0-SNAPSHOT.jar"
+path = "../graphql-code-generator/build/libs/graphql-code-generator-0.14.0.jar"
 
 [[dependency]]
-path = "../graphql-schema-file-generator/build/libs/graphql-schema-file-generator-0.14.0-SNAPSHOT.jar"
+path = "../graphql-schema-file-generator/build/libs/graphql-schema-file-generator-0.14.0.jar"
 
 [[dependency]]
 path = "./lib/graphql-java-21.5.jar"
