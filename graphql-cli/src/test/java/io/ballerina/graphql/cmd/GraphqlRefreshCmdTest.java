@@ -34,10 +34,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * This class is used to test the update functionality of the GraphQL command.
+ * This class is used to test the refresh functionality of the GraphQL command.
  */
-public class GraphqlUpdateCmdTest extends GraphqlTest {
-    private static final Log log = LogFactory.getLog(GraphqlUpdateCmdTest.class);
+public class GraphqlRefreshCmdTest extends GraphqlTest {
+    private static final Log log = LogFactory.getLog(GraphqlRefreshCmdTest.class);
 
     @AfterMethod
     public void afterTestCase() {
@@ -59,42 +59,33 @@ public class GraphqlUpdateCmdTest extends GraphqlTest {
         Path graphqlSchema = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         String[] generateArgs = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
-        
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(generateArgs);
             graphqlCmd.execute();
-            
             // Verify initial generation
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
-            
             // Read the generated content
             String initialServiceContent = readContent(this.tmpDir.resolve("service.bal"));
             String initialTypesContent = readContent(this.tmpDir.resolve("types.bal"));
-            
             // Now test the update functionality with the same schema
-            String[] refreshArgs = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString(), 
+            String[] refreshArgs = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString(),
                     "--mode", "service", "--update"};
-            
             ExitCodeCaptor refreshExitCaptor = new ExitCodeCaptor();
             GraphqlCmd refreshGraphqlCmd = new GraphqlCmd(printStream, tmpDir, refreshExitCaptor);
             new CommandLine(refreshGraphqlCmd).parseArgs(refreshArgs);
             refreshGraphqlCmd.execute();
-            
             // Verify files still exist
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
-            
             // Read the updated content
             String refreshedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
             String refreshedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
-            
             // For the same schema, content should be identical
             Assert.assertEquals(refreshedServiceContent, initialServiceContent);
             Assert.assertEquals(refreshedTypesContent, initialTypesContent);
-            
             Assert.assertEquals(refreshExitCaptor.getExitCode(), 0, "Successful execution should exit with code 0");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
@@ -106,42 +97,35 @@ public class GraphqlUpdateCmdTest extends GraphqlTest {
         // First, generate a service from a simple GraphQL schema
         Path simpleGraphqlSchema = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] generateArgs = {"-i", simpleGraphqlSchema.toString(), "-o", this.tmpDir.toString(), 
+        String[] generateArgs = {"-i", simpleGraphqlSchema.toString(), "-o", this.tmpDir.toString(),
                 "--mode", "service"};
-        
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(generateArgs);
             graphqlCmd.execute();
-            
             // Verify initial generation
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
-            
             // Read the generated content
             String initialServiceContent = readContent(this.tmpDir.resolve("service.bal"));
             String initialTypesContent = readContent(this.tmpDir.resolve("types.bal"));
-            
             // Now test the update functionality with a more complex schema
             Path complexGraphqlSchema = resourceDir.resolve(
-                    Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithObjectTakingInputArgumentApi.graphql"));
-            String[] refreshArgs = {"-i", complexGraphqlSchema.toString(), "-o", this.tmpDir.toString(), 
+                    Paths.get("serviceGen", "graphqlSchemas", "valid",
+                            "SchemaWithObjectTakingInputArgumentApi.graphql"));
+            String[] refreshArgs = {"-i", complexGraphqlSchema.toString(), "-o", this.tmpDir.toString(),
                     "--mode", "service", "--update"};
-            
             ExitCodeCaptor refreshExitCaptor = new ExitCodeCaptor();
             GraphqlCmd refreshGraphqlCmd = new GraphqlCmd(printStream, tmpDir, refreshExitCaptor);
             new CommandLine(refreshGraphqlCmd).parseArgs(refreshArgs);
             refreshGraphqlCmd.execute();
-            
             // Verify files still exist
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("types.bal")));
-            
             // Read the updated content
             String refreshedServiceContent = readContent(this.tmpDir.resolve("service.bal"));
             String refreshedTypesContent = readContent(this.tmpDir.resolve("types.bal"));
-            
             // Content should be different now (more complex schema)
             // But we can't easily assert this without detailed parsing
             // At least verify the files exist and have content
@@ -149,7 +133,6 @@ public class GraphqlUpdateCmdTest extends GraphqlTest {
             Assert.assertNotNull(refreshedTypesContent);
             Assert.assertFalse(refreshedServiceContent.isEmpty());
             Assert.assertFalse(refreshedTypesContent.isEmpty());
-            
             Assert.assertEquals(refreshExitCaptor.getExitCode(), 0, "Successful execution should exit with code 0");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());

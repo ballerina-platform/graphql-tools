@@ -62,7 +62,8 @@ public abstract class CodeGenerator {
      * @param refresh    whether to refresh existing files or overwrite them
      * @throws IOException If an I/O error occurs
      */
-    protected void writeGeneratedSources(List<SrcFilePojo> sources, Path outputPath, boolean refresh) throws IOException {
+    protected void writeGeneratedSources(List<SrcFilePojo> sources, Path outputPath,
+            boolean refresh) throws IOException {
         if (sources == null) {
             throw new IllegalArgumentException("Sources list cannot be null");
         }

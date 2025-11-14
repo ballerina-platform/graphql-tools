@@ -19,6 +19,8 @@
 package io.ballerina.graphql.generator.utils;
 
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
@@ -27,9 +29,6 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
-import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
-import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
 
 import java.io.IOException;
@@ -64,11 +63,9 @@ public class BallerinaFileMerger {
         if (existingFilePath == null || generatedContent == null) {
             throw new IllegalArgumentException("File path and generated content cannot be null");
         }
-        
         if (!Files.exists(existingFilePath)) {
             throw new IOException("Existing file does not exist: " + existingFilePath);
         }
-        
         String existingContent = Files.readString(existingFilePath);
         return mergeContent(existingContent, generatedContent);
     }
@@ -84,27 +81,21 @@ public class BallerinaFileMerger {
         if (existingContent == null || generatedContent == null) {
             throw new IllegalArgumentException("Content cannot be null");
         }
-        
         try {
             // Parse both contents
             SyntaxTree existingSyntaxTree = SyntaxTree.from(TextDocuments.from(existingContent));
             SyntaxTree generatedSyntaxTree = SyntaxTree.from(TextDocuments.from(generatedContent));
-            
             ModulePartNode existingModule = existingSyntaxTree.rootNode();
             ModulePartNode generatedModule = generatedSyntaxTree.rootNode();
-            
             // Merge imports - preserve all imports from existing file, add new ones from generated
             NodeList<ImportDeclarationNode> mergedImports = mergeImports(
                     existingModule.imports(), generatedModule.imports());
-            
             // Merge module members - preserve user-added functions, update generated ones
             NodeList<ModuleMemberDeclarationNode> mergedMembers = mergeModuleMembers(
                     existingModule.members(), generatedModule.members());
-            
             // Create merged module
             ModulePartNode mergedModule = NodeFactory.createModulePartNode(
                     mergedImports, mergedMembers, NodeFactory.createToken(SyntaxKind.EOF_TOKEN));
-            
             // Format and return
             return mergedModule.toSourceCode();
         } catch (Exception e) {
@@ -125,10 +116,8 @@ public class BallerinaFileMerger {
         if (existingImports == null || generatedImports == null) {
             throw new IllegalArgumentException("Import lists cannot be null");
         }
-        
         Set<String> importStrings = new HashSet<>();
         List<ImportDeclarationNode> mergedImports = new ArrayList<>();
-        
         for (ImportDeclarationNode importNode : existingImports) {
             if (importNode != null) {
                 String importStr = importNode.toSourceCode();
@@ -137,7 +126,6 @@ public class BallerinaFileMerger {
                 }
             }
         }
-        
         for (ImportDeclarationNode importNode : generatedImports) {
             if (importNode != null) {
                 String importStr = importNode.toSourceCode();
@@ -146,7 +134,6 @@ public class BallerinaFileMerger {
                 }
             }
         }
-        
         return NodeFactory.createNodeList(mergedImports);
     }
 
@@ -158,22 +145,17 @@ public class BallerinaFileMerger {
      * @return the merged module members
      */
     private static NodeList<ModuleMemberDeclarationNode> mergeModuleMembers(
-            NodeList<ModuleMemberDeclarationNode> existingMembers, 
+            NodeList<ModuleMemberDeclarationNode> existingMembers,
             NodeList<ModuleMemberDeclarationNode> generatedMembers) {
-        
         if (existingMembers == null || generatedMembers == null) {
             throw new IllegalArgumentException("Member lists cannot be null");
         }
-        
         List<ModuleMemberDeclarationNode> mergedMembers = new ArrayList<>();
-        
         Map<String, ModuleMemberDeclarationNode> existingMemberMap = createMemberMap(existingMembers);
         Map<String, ModuleMemberDeclarationNode> generatedMemberMap = createMemberMap(generatedMembers);
-        
         for (Map.Entry<String, ModuleMemberDeclarationNode> entry : existingMemberMap.entrySet()) {
             String key = entry.getKey();
             ModuleMemberDeclarationNode existingMember = entry.getValue();
-            
             if (generatedMemberMap.containsKey(key)) {
                 // This is a generated member, use the updated version
                 mergedMembers.add(generatedMemberMap.get(key));
@@ -184,14 +166,12 @@ public class BallerinaFileMerger {
                 mergedMembers.add(existingMember);
             }
         }
-        
         // Add any remaining generated members (newly added types/functions)
         for (ModuleMemberDeclarationNode member : generatedMemberMap.values()) {
             if (member != null) {
                 mergedMembers.add(member);
             }
         }
-        
         return NodeFactory.createNodeList(mergedMembers);
     }
 
@@ -206,9 +186,7 @@ public class BallerinaFileMerger {
         if (members == null) {
             return new HashMap<>();
         }
-        
         Map<String, ModuleMemberDeclarationNode> memberMap = new HashMap<>();
-        
         for (ModuleMemberDeclarationNode member : members) {
             if (member != null) {
                 String key = getMemberKey(member);
@@ -217,7 +195,6 @@ public class BallerinaFileMerger {
                 }
             }
         }
-        
         return memberMap;
     }
 
@@ -231,7 +208,6 @@ public class BallerinaFileMerger {
         if (member == null) {
             return null;
         }
-        
         if (member.kind() == SyntaxKind.FUNCTION_DEFINITION) {
             FunctionDefinitionNode function = (FunctionDefinitionNode) member;
             if (function.functionName() != null) {
@@ -253,7 +229,6 @@ public class BallerinaFileMerger {
             // For variables, we'll use a simple approach
             return "variable:" + var.toString().hashCode();
         }
-        
         // For other types, use a hash of the toString representation
         return member.kind().name() + ":" + member.toString().hashCode();
     }

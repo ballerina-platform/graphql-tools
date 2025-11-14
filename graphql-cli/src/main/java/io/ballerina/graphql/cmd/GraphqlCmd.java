@@ -118,7 +118,8 @@ public class GraphqlCmd implements BLauncherCmd {
     private boolean useRecordsForObjectsFlag;
 
     @CommandLine.Option(names = {"-u", "--update"},
-            description = "Update the existing Ballerina service code with new schema changes while preserving user modifications")
+            description = "Update the existing Ballerina service code with new schema " +
+                    "changes while preserving user modifications")
     private boolean updateFlag;
 
     private ClientCodeGenerator clientCodeGenerator;

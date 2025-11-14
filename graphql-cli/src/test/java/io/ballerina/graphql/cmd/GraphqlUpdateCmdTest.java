@@ -125,7 +125,8 @@ public class GraphqlUpdateCmdTest extends GraphqlTest {
             
             // Now test the update functionality with a more complex schema
             Path complexGraphqlSchema = resourceDir.resolve(
-                    Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithObjectTakingInputArgumentApi.graphql"));
+                    Paths.get("serviceGen", "graphqlSchemas", "valid", 
+                            "SchemaWithObjectTakingInputArgumentApi.graphql"));
             String[] refreshArgs = {"-i", complexGraphqlSchema.toString(), "-o", this.tmpDir.toString(), 
                     "--mode", "service", "--update"};
             

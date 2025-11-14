@@ -16,6 +16,7 @@
  */
 
 plugins {
+    id "java"
     id "com.github.johnrengelman.shadow"
     id "jacoco"
 }
@@ -29,6 +30,8 @@ configurations {
 
 dependencies {
     implementation project(':graphql-cli')
+    implementation project(':graphql-code-generator')
+    implementation project(':graphql-schema-file-generator')
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-cli:${ballerinaLangVersion}"
