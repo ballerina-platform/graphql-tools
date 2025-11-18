@@ -73,10 +73,12 @@ import static io.ballerina.stdlib.graphql.commons.utils.Utils.hasGraphqlListener
  */
 public final class Utils {
 
-    private Utils() {}
+    private Utils() {
+    }
 
     /**
-     * Check whether the given service declaration node is related to a GraphQL service.
+     * Check whether the given service declaration node is related to a GraphQL
+     * service.
      */
     public static boolean isGraphqlService(ServiceDeclarationNode node, SemanticModel semanticModel) {
         if (semanticModel.symbol(node).isEmpty()) {
@@ -119,7 +121,7 @@ public final class Utils {
      */
     public static String getSchemaString(ObjectConstructorExpressionNode node) throws SchemaFileGenerationException {
         if (!node.annotations().isEmpty()) {
-            for (AnnotationNode annotationNode: node.annotations()) {
+            for (AnnotationNode annotationNode : node.annotations()) {
                 if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
                     return getSchemaStringFieldFromValue(annotationNode.annotValue().get());
                 }
@@ -133,7 +135,7 @@ public final class Utils {
      */
     private static MappingConstructorExpressionNode getAnnotationValue(MetadataNode metadataNode)
             throws SchemaFileGenerationException {
-        for (AnnotationNode annotationNode: metadataNode.annotations()) {
+        for (AnnotationNode annotationNode : metadataNode.annotations()) {
             if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
                 return annotationNode.annotValue().get();
             }
@@ -161,7 +163,7 @@ public final class Utils {
     /**
      * Check whether the given annotation is a GraphQL service config.
      *
-     * @param annotationNode     annotation node
+     * @param annotationNode annotation node
      */
     private static boolean isGraphqlServiceConfig(AnnotationNode annotationNode) {
         if (annotationNode.annotReference().kind() != SyntaxKind.QUALIFIED_NAME_REFERENCE) {
@@ -189,7 +191,7 @@ public final class Utils {
             }
             sdlFileName = serviceName.replaceAll(SLASH, "_");
         }
-        sdlFileName =  getNormalizedFileName(sdlFileName);
+        sdlFileName = getNormalizedFileName(sdlFileName);
         return String.join("", SCHEMA_PREFIX, UNDERSCORE, sdlFileName, GRAPHQL_EXTENSION);
     }
 
@@ -209,7 +211,7 @@ public final class Utils {
     /**
      * This method use for format the base path.
      *
-     * @param basePath     service base path
+     * @param basePath service base path
      * @return formatted base path
      */
     public static String formatBasePath(String basePath) {
@@ -222,7 +224,7 @@ public final class Utils {
     /**
      * This method use for decode the encoded schema string.
      *
-     * @param schemaString     encoded schema string
+     * @param schemaString encoded schema string
      * @return GraphQL schema object
      */
     public static Schema getDecodedSchema(String schemaString) throws SchemaFileGenerationException {
@@ -242,65 +244,25 @@ public final class Utils {
     }
 
     /**
-     * This method use for checking the duplicate files.
+     * This method returns the schema file name as-is.
+     * File conflict checking is now handled earlier in the process.
      *
-     * @param outPath     output path for file generated
-     * @param schemaName  given file name
-     * @return file name with duplicate number tag
+     * @param outPath    output path for file generated (unused, kept for
+     *                   compatibility)
+     * @param schemaName given file name
+     * @return the original schema name
      */
     public static String resolveSchemaFileName(Path outPath, String schemaName) {
-        if (outPath != null && Files.exists(outPath)) {
-            final File[] listFiles = new File(String.valueOf(outPath)).listFiles();
-            if (listFiles != null) {
-                schemaName = checkAvailabilityOfGivenName(schemaName, listFiles);
-            }
-        }
+        // File conflicts are now resolved early in SdlSchemaGenerator
+        // This method now simply returns the name as-is
         return schemaName;
-    }
-
-    /**
-     * This method for check the availability of the given file name in the output directory.
-     *
-     * @param schemaName     schema file name
-     * @param listFiles      generated files
-     *@return file name with duplicate number tag
-     */
-    private static String checkAvailabilityOfGivenName(String schemaName, File[] listFiles) {
-        for (File file : listFiles) {
-            if (System.console() != null && file.getName().equals(schemaName)) {
-                String userInput = System.console().readLine("There is already a file named '" + file.getName() +
-                        "' in the target location. Do you want to overwrite the file? [y/N] ");
-                if (!Objects.equals(userInput.toLowerCase(Locale.ENGLISH), "y")) {
-                    schemaName = setGeneratedFileName(listFiles, schemaName);
-                }
-            }
-        }
-        return schemaName;
-    }
-
-    /**
-     * This method for setting the file name for generated file.
-     *
-     * @param listFiles      generated files
-     * @param fileName       File name
-     */
-    private static String setGeneratedFileName(File[] listFiles, String fileName) {
-        int duplicateCount = 0;
-        for (File listFile : listFiles) {
-            String listFileName = listFile.getName();
-            if (listFileName.contains(".") && ((listFileName.split("\\.")).length >= 2)
-                    && (listFileName.split("\\.")[0].equals(fileName.split("\\.")[0]))) {
-                duplicateCount++;
-            }
-        }
-        return fileName.split("\\.")[0] + PERIOD + duplicateCount + PERIOD + fileName.split("\\.")[1];
     }
 
     /**
      * This method use for write the generated SDL schema string.
      *
-     * @param filePath     output file path
-     * @param content      SDL schema string
+     * @param filePath output file path
+     * @param content  SDL schema string
      */
     public static void writeFile(Path filePath, String content) throws SchemaFileGenerationException {
         try (FileWriter writer = new FileWriter(filePath.toString(), StandardCharsets.UTF_8)) {
@@ -313,12 +275,61 @@ public final class Utils {
     /**
      * This method create the given output directory if not exist.
      *
-     * @param outputPath     output file path
+     * @param outputPath output file path
      */
     public static void createOutputDirectory(Path outputPath) {
         File outputDir = new File(outputPath.toString());
         if (!outputDir.exists()) {
             outputDir.mkdirs();
+        }
+    }
+
+    /**
+     * Check if any of the files to be generated already exist and get user consent
+     * for overwriting.
+     * This method provides immediate feedback and allows early exit to prevent
+     * wasted computation.
+     *
+     * @param outPath   the output directory path
+     * @param fileNames list of file names that will be generated
+     * @param outStream print stream for user interaction
+     * @throws SchemaFileGenerationException if user chooses not to overwrite
+     *                                       existing files
+     */
+    public static void checkFileOverwriteConsent(Path outPath, java.util.List<String> fileNames,
+            java.io.PrintStream outStream) throws SchemaFileGenerationException {
+        java.util.List<String> existingFiles = new java.util.ArrayList<>();
+
+        for (String fileName : fileNames) {
+            Path filePath = outPath.resolve(fileName);
+            if (Files.exists(filePath)) {
+                existingFiles.add(fileName);
+            }
+        }
+
+        if (!existingFiles.isEmpty()) {
+            outStream.println("The following schema file(s) already exist:");
+            for (String existingFile : existingFiles) {
+                outStream.println("-- " + existingFile);
+            }
+            outStream.print("Do you want to overwrite them? [Y/n]: ");
+
+            try {
+                String input = System.console() != null ? System.console().readLine()
+                        : new java.util.Scanner(System.in).nextLine();
+
+                // Default to Yes - only cancel if user explicitly says no
+                if (input != null && input.trim().toLowerCase().equals("n")) {
+                    throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_104, null);
+                }
+                // Empty input or "y" or any other input defaults to overwrite
+            } catch (Exception e) {
+                if (e instanceof SchemaFileGenerationException) {
+                    throw e;
+                }
+                // On error reading input, default to overwrite (fail-safe approach)
+                outStream.println("Could not read input, proceeding with overwrite...");
+            }
         }
     }
 }
