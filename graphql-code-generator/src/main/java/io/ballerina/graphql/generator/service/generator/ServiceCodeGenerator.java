@@ -47,29 +47,86 @@ public class ServiceCodeGenerator extends CodeGenerator {
 
     @Override
     public void generate(GraphqlProject project) throws ServiceGenerationException {
+        if (project == null) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Project cannot be null");
+        }
         String outputPath = project.getOutputPath();
+        if (outputPath == null || outputPath.isEmpty()) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Output path cannot be null or empty");
+        }
         try {
             List<SrcFilePojo> genSources = generateBalSources(project);
             writeGeneratedSources(genSources, Path.of(outputPath));
         } catch (IOException e) {
             throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
-                    e.getMessage());
+                    "Failed to write generated sources: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Refreshes existing Ballerina service code with new schema changes while preserving user modifications.
+     *
+     * @param project the GraphQL project
+     * @throws ServiceGenerationException if service generation fails
+     */
+    public void refresh(GraphqlProject project) throws ServiceGenerationException {
+        if (project == null) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Project cannot be null");
+        }
+        String outputPath = project.getOutputPath();
+        if (outputPath == null || outputPath.isEmpty()) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Output path cannot be null or empty");
+        }
+        try {
+            List<SrcFilePojo> genSources = generateBalSources(project);
+            // For refresh, we need to merge with existing files
+            writeGeneratedSources(genSources, Path.of(outputPath), true);
+        } catch (IOException e) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Failed to refresh generated sources: " + e.getMessage());
         }
     }
 
     public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ServiceGenerationException {
+        if (project == null) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Project cannot be null");
+        }
         String projectName = project.getName();
         String fileName = project.getFileName();
         GraphQLSchema graphQLSchema = project.getGraphQLSchema();
-
+        if (projectName == null || projectName.isEmpty()) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Project name cannot be null or empty");
+        }
+        if (graphQLSchema == null) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "GraphQL schema cannot be null");
+        }
         List<SrcFilePojo> sourceFiles = new ArrayList<>();
-        sourceFiles.add(generateServiceTypes(projectName, fileName, graphQLSchema));
+        generateServiceTypes(projectName, fileName, graphQLSchema, sourceFiles);
         generateServices(projectName, fileName, sourceFiles);
         return sourceFiles;
     }
 
     private void generateServices(String projectName, String fileName, List<SrcFilePojo> sourceFiles)
             throws ServiceGenerationException {
+        if (projectName == null || projectName.isEmpty()) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Project name cannot be null or empty");
+        }
+        if (fileName == null || fileName.isEmpty()) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "File name cannot be null or empty");
+        }
+        if (sourceFiles == null) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Source files list cannot be null");
+        }
         this.serviceGenerator.setFileName(fileName);
         this.serviceGenerator.setMethodDeclarations(this.serviceMethodDeclarations);
         String serviceSrc = this.serviceGenerator.generateSrc();
@@ -78,24 +135,29 @@ public class ServiceCodeGenerator extends CodeGenerator {
                         serviceSrc));
     }
 
-    /**
-     * Generates the service type file.
-     *
-     * @param projectName    Name of the project
-     * @param fileName       Name of the file
-     * @param graphQLSchema  GraphQL schema object
-     * @return SrcFilePojo Containing the generated service types
-     * @throws ServiceGenerationException when a code generation error occurs
-     *
-     * @since 0.14.0
-     */
-    public SrcFilePojo generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema)
-            throws ServiceGenerationException {
+    private void generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema,
+                                      List<SrcFilePojo> sourceFiles) throws ServiceGenerationException {
+        if (projectName == null || projectName.isEmpty()) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Project name cannot be null or empty");
+        }
+        if (fileName == null || fileName.isEmpty()) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "File name cannot be null or empty");
+        }
+        if (graphQLSchema == null) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "GraphQL schema cannot be null");
+        }
+        if (sourceFiles == null) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    "Source files list cannot be null");
+        }
         this.serviceTypesGenerator.setFileName(fileName);
         String typesFileContent = this.serviceTypesGenerator.generateSrc(graphQLSchema);
         setServiceMethodDeclarations(this.serviceTypesGenerator.getServiceMethodDeclarations());
-        return new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
-                typesFileContent);
+        sourceFiles.add(new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName,
+                CodeGeneratorConstants.TYPES_FILE_NAME, typesFileContent));
     }
 
     public void enableToUseRecords() {
