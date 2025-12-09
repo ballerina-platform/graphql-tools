@@ -174,13 +174,17 @@ public class GraphqlCmd implements BLauncherCmd {
     public void execute() {
         try {
             if (helpFlag) {
-                printLongDesc(new StringBuilder());
+                StringBuilder stringBuilder = new StringBuilder();
+                printLongDesc(stringBuilder);
+                outStream.print(stringBuilder);
                 outStream.flush();
                 exit(EXIT_CODE_0);
                 return;
             }
             if (inputPath == null || inputPath.isEmpty()) {
-                printLongDesc(new StringBuilder());
+                StringBuilder stringBuilder = new StringBuilder();
+                printLongDesc(stringBuilder);
+                outStream.print(stringBuilder);
                 outStream.flush();
                 exit(EXIT_CODE_2);
                 return;

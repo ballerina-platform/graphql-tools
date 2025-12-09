@@ -496,7 +496,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             // Read the ballerina-graphql.help file
             String expectedOutput = new String(Files.readAllBytes(
                     Paths.get("src", "main", "resources", "ballerina-graphql.help")));
-            Assert.assertEquals(output, expectedOutput);
+            Assert.assertEquals(output.replace(System.lineSeparator(), "\n").trim(),
+                    expectedOutput.replace(System.lineSeparator(), "\n").trim());
             Assert.assertEquals(exitCaptor.getExitCode(), 2, "No arguments should exit with code 2");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
@@ -512,7 +513,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains("graphql"), "Help output should contain 'graphql'");
+            Assert.assertTrue(output.contains("graphql"), "Help output should contain 'graphql'. Output: " + output);
             Assert.assertEquals(exitCaptor.getExitCode(), 0, "Help flag should exit with code 0");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());

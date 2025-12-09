@@ -31,4 +31,12 @@ public class Endpoints {
     public void setDefaultName(Default defaultName) {
         this.defaultName = defaultName;
     }
+
+    public Default getDefault() {
+        return defaultName;
+    }
+
+    public void setDefault(Default defaultName) {
+        this.defaultName = defaultName;
+    }
 }

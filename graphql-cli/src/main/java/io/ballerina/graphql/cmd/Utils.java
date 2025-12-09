@@ -73,11 +73,6 @@ public class Utils {
     public static Constructor getProcessedConstructor() {
         Constructor constructor = new Constructor(Config.class, new LoaderOptions());
 
-        TypeDescription endpointsDesc = new TypeDescription(Endpoints.class);
-        endpointsDesc.substituteProperty("default", Default.class,
-                "getDefaultName", "setDefaultName");
-        constructor.addTypeDescription(endpointsDesc);
-
         return constructor;
     }
 
