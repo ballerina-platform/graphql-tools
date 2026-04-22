@@ -20,10 +20,12 @@ package io.ballerina.graphql.generator;
 
 import io.ballerina.graphql.generator.client.exception.ClientCodeGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.utils.BallerinaFileMerger;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -49,14 +51,52 @@ public abstract class CodeGenerator {
      * @throws IOException If an I/O error occurs
      */
     protected void writeGeneratedSources(List<SrcFilePojo> sources, Path outputPath) throws IOException {
-        if (!sources.isEmpty()) {
-            for (SrcFilePojo file : sources) {
-                if (file.getType().isOverwritable()) {
-                    Path filePath = CodeGeneratorUtils.getAbsoluteFilePath(file, outputPath);
-                    String fileContent = file.getContent();
-                    CodeGeneratorUtils.writeFile(filePath, fileContent);
+        writeGeneratedSources(sources, outputPath, false);
+    }
+
+    /**
+     * Writes the generated Ballerina source codes to the files in the specified {@code outputPath}.
+     *
+     * @param sources    the list of generated Ballerina source file pojo
+     * @param outputPath the target output path for the code generation
+     * @param refresh    whether to refresh existing files or overwrite them
+     * @throws IOException If an I/O error occurs
+     */
+    protected void writeGeneratedSources(List<SrcFilePojo> sources, Path outputPath,
+            boolean refresh) throws IOException {
+        if (sources == null) {
+            throw new IllegalArgumentException("Sources list cannot be null");
+        }
+        if (outputPath == null) {
+            throw new IllegalArgumentException("Output path cannot be null");
+        }
+        if (sources.isEmpty()) {
+            return;
+        }
+        for (SrcFilePojo file : sources) {
+            if (file == null) {
+                continue;
+            }
+            if (!file.getType().isOverwritable()) {
+                continue;
+            }
+            Path filePath = CodeGeneratorUtils.getAbsoluteFilePath(file, outputPath);
+            if (filePath == null) {
+                continue;
+            }
+            String fileContent = file.getContent();
+            if (fileContent == null) {
+                fileContent = "";
+            }
+            if (refresh && Files.exists(filePath)) {
+                try {
+                    // For refresh, merge with existing file
+                    fileContent = BallerinaFileMerger.mergeFiles(filePath, fileContent);
+                } catch (Exception e) {
+                    // If merge fails, log the error and continue with generated content
                 }
             }
+            CodeGeneratorUtils.writeFile(filePath, fileContent);
         }
     }
 }

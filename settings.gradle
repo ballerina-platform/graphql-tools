@@ -46,6 +46,7 @@ include(':graphql-cli')
 include(':graphql-schema-file-generator')
 include(':graphql-code-generator')
 include(':graphql-tool')
+include(':graphql-tool-idl-plugin')
 project(':checkstyle').projectDir = file("config${File.separator}checkstyle")
 
 gradleEnterprise {

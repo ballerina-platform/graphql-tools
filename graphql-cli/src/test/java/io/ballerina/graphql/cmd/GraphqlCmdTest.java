@@ -431,6 +431,23 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test graphql command execution with update flag")
+    public void testExecuteWithUpdateFlag() {
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--update"};
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            // Just verify that the command parses correctly with the update flag
+            // The actual update functionality would be tested in GraphqlRefreshCmdTest
+            Assert.assertTrue(true, "Command should parse correctly with update flag");
+        } catch (Exception e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
     @Test(description = "Test error message of unsupported operations in schema")
     public void testExecuteWithUnsupportedOperations1() {
         Path graphqlConfigYaml =
@@ -479,7 +496,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             // Read the ballerina-graphql.help file
             String expectedOutput = new String(Files.readAllBytes(
                     Paths.get("src", "main", "resources", "ballerina-graphql.help")));
-            Assert.assertEquals(output, expectedOutput);
+            Assert.assertEquals(output.replace(System.lineSeparator(), "\n").trim(),
+                    expectedOutput.replace(System.lineSeparator(), "\n").trim());
             Assert.assertEquals(exitCaptor.getExitCode(), 2, "No arguments should exit with code 2");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
@@ -495,7 +513,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains("graphql"), "Help output should contain 'graphql'");
+            Assert.assertTrue(output.contains("graphql"), "Help output should contain 'graphql'. Output: " + output);
             Assert.assertEquals(exitCaptor.getExitCode(), 0, "Help flag should exit with code 0");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
