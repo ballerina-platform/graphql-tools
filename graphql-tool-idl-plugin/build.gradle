@@ -16,7 +16,7 @@
  */
 
 plugins {
-    id "com.github.johnrengelman.shadow"
+    id "com.gradleup.shadow"
     id "jacoco"
 }
 
@@ -50,13 +50,13 @@ dependencies {
     }
 }
 
-def bDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")
+def bDistribution = layout.buildDirectory.dir("extracted-distribution/jballerina-tools-${ballerinaLangVersion}").get().asFile
 task jBallerinaPack {
     doLast {
         configurations.balTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
                 from project.zipTree(artifact.getFile())
-                into new File(project.buildDir, "extracted-distribution/")
+                into layout.buildDirectory.dir("extracted-distribution/").get().asFile
             }
         }
     }
@@ -68,19 +68,19 @@ task unpackStdLibs() {
         configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
                 from project.zipTree(artifact.getFile())
-                into new File("${project.buildDir}/extracted-distribution/" + artifact.name + "-zip")
+                into layout.buildDirectory.dir("extracted-distribution/" + artifact.name + "-zip").get().asFile
             }
         }
     }
 }
 
 task copyStdlibs(type: Copy) {
-    def ballerinaDist = "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}"
+    def ballerinaDist = layout.buildDirectory.dir("extracted-distribution/jballerina-tools-${ballerinaLangVersion}").get().asFile
     into ballerinaDist
 
     /* Standard Libraries */
     configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
-        def artifactExtractedPath = "${project.buildDir}/extracted-distribution/" + artifact.name + "-zip"
+        def artifactExtractedPath = layout.buildDirectory.dir("extracted-distribution/" + artifact.name + "-zip").get().asFile
         into("repo/bala") {
             from "${artifactExtractedPath}/bala/"
         }
@@ -102,13 +102,13 @@ shadowJar {
 }
 
 task copyJar(type: Copy) {
-    from "$project.buildDir/libs/graphql-tool-idl-plugin-${version}.jar"
+    from layout.buildDirectory.dir("libs").get().asFile.toString() + "/graphql-tool-idl-plugin-${version}.jar"
     from "$project.rootDir/graphql-cli/build/libs/graphql-cli-${version}.jar"
-    into"$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
+    into layout.buildDirectory.dir("extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib").get().asFile
 }
 
 test {
-    systemProperties = [ "target.dir": "$project.buildDir",
+    systemProperties = [ "target.dir": layout.buildDirectory.get().asFile.toString(),
                          "distributions.dir": bDistribution,
                          "ballerina.home": bDistribution,
                          "ballerina.version": "jballerina-tools-${ballerinaLangVersion}"
@@ -120,8 +120,8 @@ test {
 }
 
 jacoco {
-    toolVersion = "0.8.10"
-    reportsDirectory = file("$rootProject.projectDir/build/reports/jacoco")
+    toolVersion = "${jacocoVersion}"
+    reportsDirectory = layout.buildDirectory.dir("reports/jacoco")
 }
 
 jacocoTestReport {

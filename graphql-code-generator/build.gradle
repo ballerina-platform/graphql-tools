@@ -17,7 +17,7 @@
 
 plugins {
     id "java"
-    id "com.github.johnrengelman.shadow"
+    id "com.gradleup.shadow"
     id "checkstyle"
 }
 
@@ -56,13 +56,13 @@ checkstyle {
 checkstyleMain.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 checkstyleTest.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 
-def bDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")
+def bDistribution = layout.buildDirectory.dir("extracted-distribution/jballerina-tools-${ballerinaLangVersion}").get().asFile
 task jBallerinaPack {
     doLast {
         configurations.jbalTools.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
                 from project.zipTree(artifact.getFile())
-                into new File(project.buildDir, "extracted-distribution/")
+                into layout.buildDirectory.dir("extracted-distribution/").get().asFile
             }
         }
     }
@@ -74,20 +74,20 @@ task unpackStdLibs() {
         configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
             copy {
                 from project.zipTree(artifact.getFile())
-                into new File("${project.buildDir}/extracted-distribution/" + artifact.name + "-zip")
+                into layout.buildDirectory.dir("extracted-distribution/" + artifact.name + "-zip").get().asFile
             }
         }
     }
 }
 
 task copyStdlibs(type: Copy) {
-    def ballerinaDist = "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}"
+    def ballerinaDist = layout.buildDirectory.dir("extracted-distribution/jballerina-tools-${ballerinaLangVersion}").get().asFile
     into ballerinaDist
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     /* Standard Libraries */
     configurations.ballerinaStdLibs.resolvedConfiguration.resolvedArtifacts.each { artifact ->
-        def artifactExtractedPath = "${project.buildDir}/extracted-distribution/" + artifact.name + "-zip"
+        def artifactExtractedPath = layout.buildDirectory.dir("extracted-distribution/" + artifact.name + "-zip").get().asFile
         into("repo/bala") {
             from "${artifactExtractedPath}/bala/"
         }
@@ -109,8 +109,8 @@ shadowJar {
 }
 
 task copyJar(type: Copy) {
-    from "$project.buildDir/libs/graphql-code-generator-${version}.jar"
-    into "$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib"
+    from layout.buildDirectory.dir("libs").get().asFile.toString() + "/graphql-code-generator-${version}.jar"
+    into layout.buildDirectory.dir("extracted-distribution/jballerina-tools-${ballerinaLangVersion}/bre/lib").get().asFile
 }
 
 compileJava {

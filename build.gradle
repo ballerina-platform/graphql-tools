@@ -17,7 +17,7 @@
 
 plugins {
     id 'jacoco'
-    id "com.github.johnrengelman.shadow"
+    id "com.gradleup.shadow"
     id "de.undercouch.download"
     id "net.researchgate.release"
 }
@@ -70,6 +70,14 @@ allprojects {
 }
 
 subprojects {
+
+    plugins.withId('java') {
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(25)
+            }
+        }
+    }
 
     configurations {
         ballerinaStdLibs
@@ -152,9 +160,9 @@ task codeCoverageReport(type: JacocoReport) {
         xml.required = true
         html.required = true
         csv.required = true
-        xml.destination = file("${buildDir}/reports/jacoco/report.xml")
-        html.destination = file("${buildDir}/reports/jacoco/report.html")
-        csv.destination = file("${buildDir}/reports/jacoco/report.csv")
+        xml.outputLocation = layout.buildDirectory.file("reports/jacoco/report.xml")
+        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/html")
+        csv.outputLocation = layout.buildDirectory.file("reports/jacoco/report.csv")
     }
 
     onlyIf = {
@@ -162,7 +170,7 @@ task codeCoverageReport(type: JacocoReport) {
     }
 }
 
-task build {
+tasks.named('build') {
     dependsOn ":${packageName}-tool:build"
 }
 
