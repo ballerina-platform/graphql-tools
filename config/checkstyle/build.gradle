@@ -16,7 +16,7 @@
  */
 
 plugins {
-    id 'java'
+    id 'base'
     id "de.undercouch.download"
 }
 
@@ -30,10 +30,6 @@ task downloadCheckstyleRuleFiles(type: Download) {
     dest layout.buildDirectory.get().asFile
 }
 
-jar {
-    enabled = false
-}
-
 clean {
     enabled = false
 }
@@ -45,5 +41,3 @@ artifacts.add('default', layout.buildDirectory.file("checkstyle.xml")) {
 artifacts.add('default', layout.buildDirectory.file("suppressions.xml")) {
     builtBy('downloadCheckstyleRuleFiles')
 }
-
-test.mustRunAfter(downloadCheckstyleRuleFiles)
