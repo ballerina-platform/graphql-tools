@@ -17,9 +17,13 @@
 
 plugins {
     id 'jacoco'
-    id "com.github.johnrengelman.shadow"
+    id "com.gradleup.shadow"
     id "de.undercouch.download"
     id "net.researchgate.release"
+}
+
+jacoco {
+    toolVersion = jacocoVersion
 }
 
 def packageName = "graphql"
@@ -152,9 +156,9 @@ task codeCoverageReport(type: JacocoReport) {
         xml.required = true
         html.required = true
         csv.required = true
-        xml.destination = file("${buildDir}/reports/jacoco/report.xml")
-        html.destination = file("${buildDir}/reports/jacoco/report.html")
-        csv.destination = file("${buildDir}/reports/jacoco/report.csv")
+        xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/report.xml").get().asFile)
+        html.outputLocation.set(layout.buildDirectory.file("reports/jacoco/report.html").get().asFile)
+        csv.outputLocation.set(layout.buildDirectory.file("reports/jacoco/report.csv").get().asFile)
     }
 
     onlyIf = {
@@ -162,8 +166,16 @@ task codeCoverageReport(type: JacocoReport) {
     }
 }
 
-task build {
-    dependsOn ":${packageName}-tool:build"
+if (tasks.names.contains('build')) {
+    tasks.named('build') {
+        dependsOn ":${packageName}-tool:build"
+
+    }
+} else {
+    tasks.register('build') {
+        dependsOn ":${packageName}-tool:build"
+
+    }
 }
 
 publish.dependsOn build
