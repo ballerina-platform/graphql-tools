@@ -48,7 +48,7 @@ public abstract class CodeGenerator {
      * @param outputPath the target output path for the code generation
      * @throws IOException If an I/O error occurs
      */
-    protected void writeGeneratedSources(List<SrcFilePojo> sources, Path outputPath) throws IOException {
+    public void writeGeneratedSources(List<SrcFilePojo> sources, Path outputPath) throws IOException {
         if (!sources.isEmpty()) {
             for (SrcFilePojo file : sources) {
                 if (file.getType().isOverwritable()) {
