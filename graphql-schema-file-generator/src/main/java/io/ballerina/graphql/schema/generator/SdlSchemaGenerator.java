@@ -76,6 +76,14 @@ public class SdlSchemaGenerator {
      */
     public static void generate(Path filePath, Path outPath, String serviceBasePath, PrintStream outStream)
             throws SchemaFileGenerationException {
+        writeSchemaFiles(generateSchemaDefinitions(filePath, serviceBasePath), outPath, outStream);
+    }
+
+    /**
+     * Compile the given Ballerina source and build the SDL schema definitions in memory.
+     */
+    public static List<SdlSchema> generateSchemaDefinitions(Path filePath, String serviceBasePath)
+            throws SchemaFileGenerationException {
         Project project = ProjectLoader.loadProject(filePath);
         PackageCompilation compilation = getPackageCompilation(project);
         Package packageName = project.currentPackage();
@@ -93,7 +101,14 @@ public class SdlSchemaGenerator {
 
         SyntaxTree syntaxTree = doc.syntaxTree();
         SemanticModel semanticModel = compilation.getSemanticModel(docId.moduleId());
-        List<SdlSchema> schemaDefinitions = generateSdlSchema(syntaxTree, semanticModel, serviceBasePath);
+        return generateSdlSchema(syntaxTree, semanticModel, serviceBasePath);
+    }
+
+    /**
+     * Write the given SDL schema definitions to the output path.
+     */
+    public static void writeSchemaFiles(List<SdlSchema> schemaDefinitions, Path outPath, PrintStream outStream)
+            throws SchemaFileGenerationException {
         List<String> fileNames = new ArrayList<>();
         for (SdlSchema definition : schemaDefinitions) {
             String fileName = resolveSchemaFileName(outPath, definition.getName());
