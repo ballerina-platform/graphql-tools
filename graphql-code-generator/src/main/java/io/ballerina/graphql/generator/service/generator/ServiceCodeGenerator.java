@@ -41,8 +41,13 @@ public class ServiceCodeGenerator extends CodeGenerator {
     private List<MethodDeclarationNode> serviceMethodDeclarations;
 
     public ServiceCodeGenerator() {
+        this(false);
+    }
+
+    public ServiceCodeGenerator(boolean useRecordsForObjects) {
         this.serviceGenerator = new ServiceGenerator();
         this.serviceTypesGenerator = new ServiceTypesGenerator();
+        this.serviceTypesGenerator.setUseRecordsForObjects(useRecordsForObjects);
     }
 
     @Override
