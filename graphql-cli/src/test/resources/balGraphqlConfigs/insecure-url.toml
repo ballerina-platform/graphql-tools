@@ -1,0 +1,3 @@
+[schema]
+source = "url"
+url = "http://api.example.com/schema.graphql"

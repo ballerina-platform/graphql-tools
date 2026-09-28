@@ -26,6 +26,8 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.errors.SchemaProblem;
+import io.ballerina.graphql.cmd.config.SchemaConfig;
+import io.ballerina.graphql.cmd.config.SchemaSource;
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.exception.SDLValidationException;
 import io.ballerina.graphql.exception.ValidationException;
@@ -50,8 +52,12 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -140,6 +146,91 @@ public class Utils {
         } catch (MalformedURLException | URISyntaxException e) {
             return false;
         }
+    }
+
+    /**
+     * Resolves the {@code GraphQLSchema} for a balGraphQL.toml schema section whose source is "url" or
+     * "introspection". A "url" source is fetched with a plain HTTP GET and its response body is treated as the
+     * schema SDL text, as if it were a hosted schema file. An "introspection" source is queried with a GraphQL
+     * introspection request, since the endpoint is a live GraphQL API rather than a static file.
+     *
+     * @param schemaConfig                           the schema section of the balGraphQL.toml configuration file
+     * @return                                       the resolved {@code GraphQLSchema} instance
+     * @throws IntospectionException                 If an error occurs while fetching or introspecting the schema
+     * @throws SchemaProblem                         If the fetched content is not a valid GraphQL SDL document
+     */
+    public static GraphQLSchema resolveGraphQLSchema(SchemaConfig schemaConfig)
+            throws IntospectionException, SchemaProblem {
+        if (schemaConfig.getSource() == SchemaSource.URL) {
+            String sdlContent = fetchRemoteSchemaContent(schemaConfig.getUrl(), schemaConfig.getHeaders());
+            return getGraphQLSchemaFromSdlContent(sdlContent);
+        }
+        return getGraphQLSchemaFromIntrospection(schemaConfig.getEndpoint(), schemaConfig.getHeaders());
+    }
+
+    /**
+     * Fetches the content at the given URL with a plain HTTP GET, for a schema hosted as a static file.
+     *
+     * @param url                                    the URL to fetch
+     * @param headers                                the headers to send with the request, or null
+     * @return                                       the response body
+     * @throws IntospectionException                 If the URL could not be fetched
+     */
+    private static String fetchRemoteSchemaContent(String url, Map<String, String> headers)
+            throws IntospectionException {
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder().uri(URI.create(url)).GET();
+            if (headers != null) {
+                for (Map.Entry<String, String> header : headers.entrySet()) {
+                    builder.header(header.getKey(), header.getValue());
+                }
+            }
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                    .send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new IntospectionException(String.format(
+                        "Failed to fetch the GraphQL schema from \"%s\". Received HTTP status %d.",
+                        url, response.statusCode()));
+            }
+            return response.body();
+        } catch (InterruptedException | IOException e) {
+            throw new IntospectionException(String.format("Failed to fetch the GraphQL schema from \"%s\".%s",
+                    url, e.getMessage() != null ? "\n" + e.getMessage() : ""));
+        }
+    }
+
+    /**
+     * Parses raw GraphQL SDL text into an executable {@code GraphQLSchema}.
+     *
+     * @param sdlContent                             the schema SDL text
+     * @return                                       the resulting {@code GraphQLSchema} instance
+     * @throws SchemaProblem                         If the SDL text is not a valid GraphQL schema
+     */
+    private static GraphQLSchema getGraphQLSchemaFromSdlContent(String sdlContent) {
+        SchemaParser schemaParser = new SchemaParser();
+        SchemaGenerator schemaGenerator = new SchemaGenerator();
+        TypeDefinitionRegistry typeRegistry = schemaParser.parse(sdlContent);
+        return schemaGenerator.makeExecutableSchema(typeRegistry, RuntimeWiring.MOCKED_WIRING);
+    }
+
+    /**
+     * Builds an executable {@code GraphQLSchema} by introspecting a live GraphQL endpoint.
+     *
+     * @param endpoint                               the GraphQL endpoint to introspect
+     * @param headers                                the headers to send with the introspection request, or null
+     * @return                                       the resulting {@code GraphQLSchema} instance
+     * @throws IntospectionException                 If an error occurs during introspection of the GraphQL API
+     */
+    private static GraphQLSchema getGraphQLSchemaFromIntrospection(String endpoint, Map<String, String> headers)
+            throws IntospectionException {
+        Map<String, Object> introspectionResult = Introspector.getInstance().getIntrospectionResult(endpoint,
+                headers);
+        IntrospectionResultToSchema introspectionResultToSchema = new IntrospectionResultToSchema();
+        Document introspectSchema = introspectionResultToSchema.createSchemaDefinition(introspectionResult);
+        SchemaParser schemaParser = new SchemaParser();
+        SchemaGenerator schemaGenerator = new SchemaGenerator();
+        TypeDefinitionRegistry typeRegistry = schemaParser.buildRegistry(introspectSchema);
+        return schemaGenerator.makeExecutableSchema(typeRegistry, RuntimeWiring.MOCKED_WIRING);
     }
 
     /**

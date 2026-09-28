@@ -20,35 +20,40 @@ package io.ballerina.graphql.cmd.generator;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.Optional;
 
 /**
  * Holds the resolved inputs for a single GraphQL generation operation.
  */
 public class GenerationContext {
 
-    private final OperationMode operationMode;
     private final String inputPath;
+    private final OperationMode declaredOperationMode;
     private final Path targetOutputPath;
     private final String serviceBasePath;
     private final boolean useRecordsForObjects;
     private final PrintStream outStream;
 
-    public GenerationContext(OperationMode operationMode, String inputPath, Path targetOutputPath,
+    public GenerationContext(String inputPath, OperationMode declaredOperationMode, Path targetOutputPath,
                              String serviceBasePath, boolean useRecordsForObjects, PrintStream outStream) {
-        this.operationMode = operationMode;
         this.inputPath = inputPath;
+        this.declaredOperationMode = declaredOperationMode;
         this.targetOutputPath = targetOutputPath;
         this.serviceBasePath = serviceBasePath;
         this.useRecordsForObjects = useRecordsForObjects;
         this.outStream = outStream;
     }
 
-    public OperationMode getOperationMode() {
-        return operationMode;
-    }
-
     public String getInputPath() {
         return inputPath;
+    }
+
+    /**
+     * Returns the operation mode the user declared with the mode flag, if one was given. The mode to generate is
+     * resolved from the input, and this is used to check that the input matches what the user asked for.
+     */
+    public Optional<OperationMode> getDeclaredOperationMode() {
+        return Optional.ofNullable(declaredOperationMode);
     }
 
     public Path getTargetOutputPath() {

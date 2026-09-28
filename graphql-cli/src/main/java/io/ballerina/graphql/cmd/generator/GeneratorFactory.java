@@ -18,27 +18,69 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
+import io.ballerina.graphql.cmd.config.BalGraphqlConfigReader;
 import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.exception.ParseException;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * Creates the generator that handles a given generation context.
  */
 public class GeneratorFactory {
 
+    private static final String MESSAGE_FOR_UNRESOLVED_OPERATION_MODE =
+            "The operation to perform could not be resolved from the input \"%s\".";
+
     private GeneratorFactory() {}
 
     public static Generator getGenerator(GenerationContext context) throws GenerationException {
-        OperationMode operationMode = context.getOperationMode();
+        String inputPath = context.getInputPath();
+        if (inputPath.endsWith(BalGraphqlConfig.FILE_EXTENSION)) {
+            BalGraphqlConfig config = readConfig(inputPath, context.getOutStream());
+            OperationMode operationMode = resolveOperationMode(context, config);
+            return createGenerator(operationMode, context, config);
+        }
+        OperationMode operationMode = OperationMode.fromInputPath(inputPath).orElseThrow(
+                () -> new GenerationException(String.format(MESSAGE_FOR_UNRESOLVED_OPERATION_MODE, inputPath)));
+        return createGenerator(operationMode, context, null);
+    }
+
+    /**
+     * Resolves the operation mode for a configuration file input. The mode flag, when given, takes precedence over
+     * the configuration contents - for example, "-m service" generates a service from the configured schema even if
+     * the configuration also has documents configured for client generation. When the mode flag is not given, the
+     * mode is inferred from the configuration contents: documents present means client, absent means service.
+     */
+    private static OperationMode resolveOperationMode(GenerationContext context, BalGraphqlConfig config) {
+        Optional<OperationMode> declaredOperationMode = context.getDeclaredOperationMode();
+        return declaredOperationMode.orElseGet(() -> OperationMode.fromConfig(config));
+    }
+
+    private static Generator createGenerator(OperationMode operationMode, GenerationContext context,
+                                             BalGraphqlConfig config) throws GenerationException {
         switch (operationMode) {
             case CLIENT:
-                return new ClientGeneration(context);
+                return new ClientGeneration(context, config);
             case SERVICE:
-                return new ServiceGeneration(context);
+                return new ServiceGeneration(context, config);
             case SCHEMA:
                 return new SchemaGeneration(context);
             default:
                 throw new GenerationException("No generator is available for the \"" + operationMode
                         + "\" operation mode.");
+        }
+    }
+
+    private static BalGraphqlConfig readConfig(String inputPath, PrintStream outStream) throws GenerationException {
+        try {
+            return BalGraphqlConfigReader.read(Paths.get(inputPath), outStream);
+        } catch (IOException | ParseException e) {
+            throw new GenerationException(e);
         }
     }
 }

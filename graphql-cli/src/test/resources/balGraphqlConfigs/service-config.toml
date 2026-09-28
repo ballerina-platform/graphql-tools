@@ -1,0 +1,11 @@
+[schema]
+source = "file"
+path = "./schema.graphql"
+
+[id-types]
+Profile.id = "int"
+Query.profile.id = "int"
+Query.getFloatId = "float"
+
+[dataloaders]
+Query.profile = "profileLoader"

@@ -22,6 +22,7 @@ import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.pojo.Default;
 import io.ballerina.graphql.generator.client.pojo.Endpoints;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -62,22 +63,39 @@ public class Introspector {
      */
     public Map<String, Object> getIntrospectionResult(String schema, Extension extensions)
             throws IntospectionException {
+        return getIntrospectionResult(schema, extractHeaders(extensions));
+    }
+
+    /**
+     * Returns the introspection results map for a given GraphQL endpoint using a plain headers map, for callers
+     * that do not have the GraphQL config file's nested extensions/endpoints/default structure (e.g. the
+     * balGraphQL.toml configuration, whose headers are a flat table).
+     *
+     * @param endpoint                               the GraphQL endpoint to introspect
+     * @param headers                                the headers to send with the introspection request, or null
+     * @return                                        the introspection results map
+     * @throws IntospectionException                 If an error occurs during introspection of the GraphQL API
+     */
+    public Map<String, Object> getIntrospectionResult(String endpoint, Map<String, String> headers)
+            throws IntospectionException {
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest httpRequest;
-            if (extensions != null) {
-                httpRequest = createHttpRequest(schema, extensions);
-            } else {
-                httpRequest = createHttpRequest(schema);
-            }
+            HttpRequest httpRequest = createHttpRequest(endpoint, headers);
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 200) {
-                JSONObject introspectionResult = new JSONObject(response.body());
-                if (introspectionResult.has(ERROR_FIELD) || !introspectionResult.has(DATA_FIELD)) {
+                JSONObject introspectionResult;
+                try {
+                    introspectionResult = new JSONObject(response.body());
+                } catch (JSONException e) {
+                    throw new IntospectionException("Failed to retrieve SDL. The endpoint did not return a JSON " +
+                            "response. Please provide a valid GraphQL endpoint or a local SDL file path.");
+                }
+                Object data = introspectionResult.opt(DATA_FIELD);
+                if (introspectionResult.has(ERROR_FIELD) || !(data instanceof JSONObject)) {
                     throw new IntospectionException("Failed to retrieve SDL. Please provide a valid GraphQL endpoint " +
                             "with relevant headers or a local SDL file path.");
                 }
-                return ((JSONObject) introspectionResult.get("data")).toMap();
+                return ((JSONObject) data).toMap();
             } else {
                 throw new IntospectionException("Failed to retrieve SDL. Please provide a valid GraphQL endpoint " +
                         "with relevant headers or a local SDL file path.");
@@ -90,52 +108,40 @@ public class Introspector {
     }
 
     /**
-     * Creates the HTTP request object with the GraphQL payload & headers attached to it.
+     * Extracts the headers configured for the default endpoint of a GraphQL config file's extensions, if any.
      *
-     * @param endpoint         the Graphql API endpoint
-     * @return                 the HTTP request object
+     * @param extensions       the extensions value of the Graphql config file, or null
+     * @return                 the headers map, or null when none are configured
      */
-    private HttpRequest createHttpRequest(String endpoint, Extension extensions) {
-        Map<String, String> headers = null;
+    private Map<String, String> extractHeaders(Extension extensions) {
+        if (extensions == null) {
+            return null;
+        }
         Endpoints endpoints = extensions.getEndpoints();
-        if (endpoints != null) {
-            Default defaultName = endpoints.getDefaultName();
-            if (defaultName != null) {
-                headers = defaultName.getHeaders();
-            }
+        if (endpoints == null) {
+            return null;
         }
-        String graphqlPayload = getRequestPayload();
-        HttpRequest request;
-        if (headers != null) {
-            request = addHeaders(HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .headers(CONTENT_TYPE, APPLICATION_JSON)
-                    .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8)), headers)
-                    .build();
-        } else {
-            request = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .headers(CONTENT_TYPE, APPLICATION_JSON)
-                    .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8))
-                    .build();
-        }
-        return request;
+        Default defaultName = endpoints.getDefaultName();
+        return defaultName == null ? null : defaultName.getHeaders();
     }
 
     /**
-     * Creates the HTTP request object with the GraphQL payload attached to it.
+     * Creates the HTTP request object with the GraphQL payload & headers attached to it.
      *
      * @param endpoint         the Graphql API endpoint
+     * @param headers          the headers to attach to the request, or null
      * @return                 the HTTP request object
      */
-    private HttpRequest createHttpRequest(String endpoint) {
+    private HttpRequest createHttpRequest(String endpoint, Map<String, String> headers) {
         String graphqlPayload = getRequestPayload();
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
                 .headers(CONTENT_TYPE, APPLICATION_JSON)
-                .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8))
-                .build();
-        return request;
+                .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8));
+        if (headers != null) {
+            addHeaders(builder, headers);
+        }
+        return builder.build();
     }
 
     /**

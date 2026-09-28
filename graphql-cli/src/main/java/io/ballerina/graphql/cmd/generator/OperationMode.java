@@ -18,6 +18,8 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
@@ -76,6 +78,14 @@ public enum OperationMode {
     }
 
     public static boolean isKnownExtension(String inputPath) {
-        return fromInputPath(inputPath).isPresent();
+        return fromInputPath(inputPath).isPresent() || inputPath.endsWith(BalGraphqlConfig.FILE_EXTENSION);
+    }
+
+    /**
+     * Resolves the operation mode from the contents of a balGraphQL.toml configuration file. A configuration file
+     * can drive either client or service generation, so the mode is decided by whether documents are configured.
+     */
+    public static OperationMode fromConfig(BalGraphqlConfig config) {
+        return config.hasDocuments() ? CLIENT : SERVICE;
     }
 }

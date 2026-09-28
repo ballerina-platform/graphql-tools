@@ -19,6 +19,7 @@
 package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.BLauncherCmd;
+import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
 import io.ballerina.graphql.cmd.generator.GenerationContext;
 import io.ballerina.graphql.cmd.generator.GenerationEngine;
 import io.ballerina.graphql.cmd.generator.OperationMode;
@@ -54,6 +55,8 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final int EXIT_CODE_2 = 2;
     private static final String CMD_NAME = "graphql";
     private static final ExitHandler DEFAULT_EXIT_HANDLER = code -> Runtime.getRuntime().exit(code);
+    private static final String MESSAGE_FOR_INVALID_CONFIG_FILE_NAME =
+            "The GraphQL configuration file should be named \"" + BalGraphqlConfig.FILE_NAME + "\". Found \"%s\".";
 
     private final PrintStream outStream;
     private final Path executionPath;
@@ -164,6 +167,10 @@ public class GraphqlCmd implements BLauncherCmd {
             throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
         }
 
+        if (isConfigFileInput(inputPath) && !isBalGraphqlConfigFile(inputPath)) {
+            throw new CmdException(String.format(MESSAGE_FOR_INVALID_CONFIG_FILE_NAME, inputPath));
+        }
+
         if (!isModeCompatible()) {
             throw new CmdException(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, inputPath));
         }
@@ -177,6 +184,15 @@ public class GraphqlCmd implements BLauncherCmd {
         return OperationMode.isKnownExtension(filePath);
     }
 
+    private boolean isConfigFileInput(String filePath) {
+        return filePath.endsWith(BalGraphqlConfig.FILE_EXTENSION);
+    }
+
+    private boolean isBalGraphqlConfigFile(String filePath) {
+        Path fileName = Paths.get(filePath).getFileName();
+        return fileName != null && BalGraphqlConfig.FILE_NAME.equals(fileName.toString());
+    }
+
     private boolean isModeCompatible() throws CmdException {
         if (mode == null) {
             return true;
@@ -184,6 +200,12 @@ public class GraphqlCmd implements BLauncherCmd {
         Optional<OperationMode> modeFromFlag = OperationMode.fromModeFlag(mode);
         if (modeFromFlag.isEmpty()) {
             throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
+        }
+        if (isConfigFileInput(inputPath)) {
+            // A declared mode overrides what a configuration file's contents would otherwise resolve to, so there
+            // is nothing to check here against the input file extension; the mode is resolved once the
+            // configuration is read.
+            return true;
         }
         return modeFromFlag.equals(OperationMode.fromInputPath(inputPath));
     }
@@ -194,11 +216,10 @@ public class GraphqlCmd implements BLauncherCmd {
      * @throws CmdException        when a graphql command related error occurs
      * @throws GenerationException when a graphql generation related error occurs
      */
-    private void executeOperation() throws CmdException, GenerationException {
-        OperationMode operationMode = OperationMode.fromInputPath(inputPath).orElseThrow(
-                () -> new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath)));
-        GenerationContext context = new GenerationContext(operationMode, inputPath, getTargetOutputPath(),
-                serviceBasePath, useRecordsForObjectsFlag, outStream);
+    private void executeOperation() throws GenerationException {
+        GenerationContext context = new GenerationContext(inputPath,
+                OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
+                useRecordsForObjectsFlag, outStream);
         GenerationEngine.run(context);
     }
 

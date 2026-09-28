@@ -18,10 +18,16 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import graphql.schema.idl.errors.SchemaProblem;
 import io.ballerina.graphql.cmd.Constants;
 import io.ballerina.graphql.cmd.Utils;
+import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
+import io.ballerina.graphql.cmd.config.SchemaConfig;
+import io.ballerina.graphql.cmd.config.SchemaSource;
 import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.exception.SDLValidationException;
 import io.ballerina.graphql.exception.ValidationException;
+import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
@@ -31,6 +37,7 @@ import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
@@ -41,36 +48,79 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
 public class ServiceGeneration implements Generator {
 
     private final GenerationContext context;
+    private final BalGraphqlConfig balGraphqlConfig;
     private final ServiceCodeGenerator serviceCodeGenerator;
     private GraphqlServiceProject project;
     private List<SrcFilePojo> sources;
 
-    public ServiceGeneration(GenerationContext context) {
+    public ServiceGeneration(GenerationContext context, BalGraphqlConfig balGraphqlConfig) {
         this.context = context;
+        this.balGraphqlConfig = balGraphqlConfig;
         this.serviceCodeGenerator = new ServiceCodeGenerator(context.isUseRecordsForObjects());
     }
 
     @Override
     public void validate() throws GenerationException {
-        String inputPath = context.getInputPath();
-        File graphqlFile = new File(inputPath);
+        if (this.balGraphqlConfig != null
+                && this.balGraphqlConfig.getSchema().getSource() != SchemaSource.FILE) {
+            validateFromRemoteSchema(this.balGraphqlConfig.getSchema());
+            return;
+        }
+        validateFromFile();
+    }
+
+    private void validateFromFile() throws GenerationException {
+        String schemaPath = resolveSchemaPath();
+        File graphqlFile = new File(schemaPath);
         if (!graphqlFile.exists()) {
             throw new GenerationException(new ServiceGenerationException(
                     ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
-                    String.format(Constants.MESSAGE_MISSING_SCHEMA_FILE, inputPath)));
+                    String.format(Constants.MESSAGE_MISSING_SCHEMA_FILE, schemaPath)));
         }
         if (!graphqlFile.canRead()) {
             throw new GenerationException(new ServiceGenerationException(
                     ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
-                    String.format(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE, inputPath)));
+                    String.format(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE, schemaPath)));
         }
-        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, inputPath,
+        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaPath,
                 context.getTargetOutputPath().toString());
         try {
             Utils.validateGraphqlProject(this.project);
         } catch (IOException | ValidationException e) {
             throw new GenerationException(e);
         }
+    }
+
+    /**
+     * Builds the service project for a "url" or "introspection" schema source: the schema is fetched or
+     * introspected over the network and attached to the project directly, rather than being read from disk.
+     */
+    private void validateFromRemoteSchema(SchemaConfig schemaConfig) throws GenerationException {
+        String schemaLocation = schemaConfig.getSource() == SchemaSource.URL
+                ? schemaConfig.getUrl() : schemaConfig.getEndpoint();
+        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaLocation,
+                context.getTargetOutputPath().toString());
+        try {
+            this.project.setGraphQLSchema(Utils.resolveGraphQLSchema(schemaConfig));
+        } catch (IntospectionException e) {
+            throw new GenerationException(new ValidationException(e.getMessage(), this.project.getName()));
+        } catch (SchemaProblem e) {
+            throw new GenerationException(new SDLValidationException("GraphQL SDL validation failed.",
+                    e.getErrors(), this.project.getName()));
+        }
+    }
+
+    /**
+     * Resolves the GraphQL schema file the service is generated from. When a configuration file drives the
+     * generation, the schema location is read from it and resolved against the configuration file directory.
+     * Otherwise the input itself is the schema file.
+     */
+    private String resolveSchemaPath() {
+        if (this.balGraphqlConfig == null) {
+            return context.getInputPath();
+        }
+        Path configDirectory = Paths.get(context.getInputPath()).toAbsolutePath().getParent();
+        return configDirectory.resolve(this.balGraphqlConfig.getSchema().getPath()).normalize().toString();
     }
 
     @Override

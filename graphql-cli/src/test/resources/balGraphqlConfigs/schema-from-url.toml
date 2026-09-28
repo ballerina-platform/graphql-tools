@@ -1,0 +1,6 @@
+[schema]
+source = "url"
+url = "https://api.example.com/schema.graphql"
+
+[schema.headers]
+Authorization = "Bearer token"

@@ -12,3 +12,6 @@ path = "../graphql-schema-file-generator/build/libs/graphql-schema-file-generato
 
 [[dependency]]
 path = "./lib/graphql-java-@graphql.java.version@.jar"
+
+[[dependency]]
+path = "./lib/json-@org.json.version@.jar"
