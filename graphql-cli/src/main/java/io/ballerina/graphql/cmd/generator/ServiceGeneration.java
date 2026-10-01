@@ -62,8 +62,8 @@ public class ServiceGeneration implements Generator {
     @Override
     public void validate() throws GenerationException {
         if (this.balGraphqlConfig != null
-                && this.balGraphqlConfig.getSchema().getSource() != SchemaSource.FILE) {
-            validateFromRemoteSchema(this.balGraphqlConfig.getSchema());
+                && this.balGraphqlConfig.schema().source() != SchemaSource.FILE) {
+            validateFromRemoteSchema(this.balGraphqlConfig.schema());
             return;
         }
         validateFromFile();
@@ -96,8 +96,8 @@ public class ServiceGeneration implements Generator {
      * introspected over the network and attached to the project directly, rather than being read from disk.
      */
     private void validateFromRemoteSchema(SchemaConfig schemaConfig) throws GenerationException {
-        String schemaLocation = schemaConfig.getSource() == SchemaSource.URL
-                ? schemaConfig.getUrl() : schemaConfig.getEndpoint();
+        String schemaLocation = schemaConfig.source() == SchemaSource.URL
+                ? schemaConfig.url() : schemaConfig.endpoint();
         this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaLocation,
                 context.getTargetOutputPath().toString());
         try {
@@ -120,7 +120,7 @@ public class ServiceGeneration implements Generator {
             return context.getInputPath();
         }
         Path configDirectory = Paths.get(context.getInputPath()).toAbsolutePath().getParent();
-        return configDirectory.resolve(this.balGraphqlConfig.getSchema().getPath()).normalize().toString();
+        return configDirectory.resolve(this.balGraphqlConfig.schema().path()).normalize().toString();
     }
 
     @Override

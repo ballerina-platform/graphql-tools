@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.stream.Collectors;
 
 /**
  * Reads a balGraphQL.toml configuration file.
@@ -37,26 +37,35 @@ import java.util.Map;
 public class BalGraphqlConfigReader {
 
     private static final String HTTPS_PREFIX = "https://";
-    private static final String MESSAGE_FOR_MISSING_SCHEMA_SECTION =
+    private static final String KEY_SEPARATOR = ".";
+    private static final String SCHEMA_KEY = "schema";
+    private static final String SOURCE_KEY = "source";
+    private static final String PATH_KEY = "path";
+    private static final String URL_KEY = "url";
+    private static final String ENDPOINT_KEY = "endpoint";
+    private static final String HEADERS_KEY = "headers";
+    private static final String DOCUMENTS_KEY = "documents";
+    private static final String ID_TYPES_KEY = "id-types";
+    private static final String DATALOADERS_KEY = "dataloaders";
+    private static final String ERROR_MISSING_SCHEMA_SECTION =
             "The balGraphQL.toml file is missing the [schema] section.";
-    private static final String MESSAGE_FOR_INVALID_SCHEMA_SOURCE =
+    private static final String ERROR_INVALID_SCHEMA_SOURCE =
             "\"%s\" is not a supported value for the schema source. It should be one of \"file\", \"url\" "
                     + "or \"introspection\".";
-    private static final String MESSAGE_FOR_MISSING_SCHEMA_FIELD =
-            "The balGraphQL.toml file is configured with \"source = \\\"%s\\\"\" "
-                    + "but the \"%s\" field is missing.";
-    private static final String MESSAGE_FOR_INSECURE_SCHEMA_URL =
+    private static final String ERROR_MISSING_REQUIRED_FIELD =
+            "Required field \"%s\" is not provided in the config file.";
+    private static final String WARNING_INSECURE_SCHEMA_URL =
             "Warning: The \"%s\" field (\"%s\") uses HTTP instead of HTTPS. If this endpoint requires headers such "
                     + "as an authorization token, they will be sent unencrypted over the network. Using HTTPS is "
                     + "strongly recommended whenever the endpoint supports it.";
-    private static final String MESSAGE_FOR_INVALID_CONFIG_FILE =
-            "The balGraphQL.toml file could not be read. %s";
-    private static final String MESSAGE_FOR_UNPARSABLE_CONFIG_FILE =
+    private static final String ERROR_INVALID_CONFIG_FILE =
+            "The balGraphQL.toml file could not be read:%n%s";
+    private static final String ERROR_UNPARSABLE_CONFIG_FILE =
             "The balGraphQL.toml file could not be parsed. Check it for unclosed brackets, unclosed quotes or "
                     + "incomplete entries.";
-    private static final String MESSAGE_FOR_NON_STRING_FIELD =
+    private static final String ERROR_NON_STRING_FIELD =
             "The \"%s\" field should be a string. Found \"%s\".";
-    private static final String MESSAGE_FOR_NON_LIST_FIELD =
+    private static final String ERROR_NON_LIST_FIELD =
             "The \"%s\" field should be a list of strings. Found \"%s\".";
 
     private BalGraphqlConfigReader() {}
@@ -64,94 +73,89 @@ public class BalGraphqlConfigReader {
     public static BalGraphqlConfig read(Path configPath, PrintStream outStream) throws IOException, ParseException {
         Map<String, Object> content = readContent(configPath);
         return new BalGraphqlConfig(readSchemaConfig(content, outStream), readDocuments(content),
-                readStringTable(content, "id-types"), readStringTable(content, "dataloaders"));
+                readStringTable(content, ID_TYPES_KEY), readStringTable(content, DATALOADERS_KEY));
     }
 
-    /**
-     * Parses the configuration file, reporting the syntax errors the TOML parser found. The parser reports a
-     * malformed file through its diagnostics rather than by failing, and can itself fail on a file it cannot
-     * position an error in, so both are surfaced as a parse error against the configuration file.
-     */
     private static Map<String, Object> readContent(Path configPath) throws IOException, ParseException {
         Toml toml;
         try {
             toml = Toml.read(configPath);
         } catch (RuntimeException e) {
-            throw new ParseException(MESSAGE_FOR_UNPARSABLE_CONFIG_FILE);
+            throw new ParseException(ERROR_UNPARSABLE_CONFIG_FILE);
         }
         List<Diagnostic> diagnostics = toml.diagnostics();
         if (!diagnostics.isEmpty()) {
-            throw new ParseException(String.format(MESSAGE_FOR_INVALID_CONFIG_FILE, diagnostics.get(0).toString()));
+            String errors = diagnostics.stream()
+                    .map(Diagnostic::toString)
+                    .collect(Collectors.joining(System.lineSeparator()));
+            throw new ParseException(String.format(ERROR_INVALID_CONFIG_FILE, errors));
         }
         return toml.toMap();
     }
 
     private static SchemaConfig readSchemaConfig(Map<String, Object> content, PrintStream outStream)
             throws ParseException {
-        Object schemaValue = content.get("schema");
+        Object schemaValue = content.get(SCHEMA_KEY);
         if (!(schemaValue instanceof Map)) {
-            throw new ParseException(MESSAGE_FOR_MISSING_SCHEMA_SECTION);
+            throw new ParseException(ERROR_MISSING_SCHEMA_SECTION);
         }
         Map<String, Object> schema = castToMap(schemaValue);
-        SchemaConfig schemaConfig = new SchemaConfig(readSource(schema), readString(schema, "path"),
-                readString(schema, "url"), readString(schema, "endpoint"), readStringTable(schema, "headers"));
+        SchemaConfig schemaConfig = new SchemaConfig(readSource(schema), readString(schema, PATH_KEY),
+                readString(schema, URL_KEY), readString(schema, ENDPOINT_KEY), readStringTable(schema, HEADERS_KEY));
         validateSchemaConfig(schemaConfig, outStream);
         return schemaConfig;
     }
 
     private static SchemaSource readSource(Map<String, Object> schema) throws ParseException {
-        String source = readString(schema, "source");
+        String source = readString(schema, SOURCE_KEY);
+        requireField(source, SOURCE_KEY);
         return SchemaSource.fromValue(source).orElseThrow(
-                () -> new ParseException(String.format(MESSAGE_FOR_INVALID_SCHEMA_SOURCE, source)));
+                () -> new ParseException(String.format(ERROR_INVALID_SCHEMA_SOURCE, source)));
     }
 
     private static void validateSchemaConfig(SchemaConfig schemaConfig, PrintStream outStream)
             throws ParseException {
-        switch (schemaConfig.getSource()) {
+        switch (schemaConfig.source()) {
             case FILE:
-                requireField(schemaConfig.getPath(), SchemaSource.FILE, "path");
+                requireField(schemaConfig.path(), PATH_KEY);
                 break;
             case URL:
-                requireField(schemaConfig.getUrl(), SchemaSource.URL, "url");
-                warnIfInsecure(schemaConfig.getUrl(), "url", outStream);
+                requireField(schemaConfig.url(), URL_KEY);
+                warnIfInsecure(schemaConfig.url(), URL_KEY, outStream);
                 break;
             case INTROSPECTION:
-                requireField(schemaConfig.getEndpoint(), SchemaSource.INTROSPECTION, "endpoint");
-                warnIfInsecure(schemaConfig.getEndpoint(), "endpoint", outStream);
+                requireField(schemaConfig.endpoint(), ENDPOINT_KEY);
+                warnIfInsecure(schemaConfig.endpoint(), ENDPOINT_KEY, outStream);
                 break;
             default:
                 break;
         }
     }
 
-    private static void requireField(String value, SchemaSource source, String field) throws ParseException {
+    private static void requireField(String value, String field) throws ParseException {
         if (value == null || value.isBlank()) {
-            throw new ParseException(String.format(MESSAGE_FOR_MISSING_SCHEMA_FIELD, source.getValue(), field));
+            throw new ParseException(String.format(ERROR_MISSING_REQUIRED_FIELD, field));
         }
     }
 
-    /**
-     * Warns, rather than rejects, when a schema URL does not use HTTPS. Using plain HTTP is the responsibility of
-     * the user configuring the endpoint; the tool surfaces the risk instead of blocking generation.
-     */
     private static void warnIfInsecure(String value, String field, PrintStream outStream) {
         if (!value.startsWith(HTTPS_PREFIX)) {
-            outStream.println(String.format(MESSAGE_FOR_INSECURE_SCHEMA_URL, field, value));
+            outStream.println(String.format(WARNING_INSECURE_SCHEMA_URL, field, value));
         }
     }
 
     private static List<String> readDocuments(Map<String, Object> content) throws ParseException {
-        Object documents = content.get("documents");
+        Object documents = content.get(DOCUMENTS_KEY);
         if (documents == null) {
             return null;
         }
         if (!(documents instanceof List)) {
-            throw new ParseException(String.format(MESSAGE_FOR_NON_LIST_FIELD, "documents", documents));
+            throw new ParseException(String.format(ERROR_NON_LIST_FIELD, DOCUMENTS_KEY, documents));
         }
         List<String> paths = new ArrayList<>();
         for (Object document : (List<?>) documents) {
             if (!(document instanceof String)) {
-                throw new ParseException(String.format(MESSAGE_FOR_NON_STRING_FIELD, "documents", document));
+                throw new ParseException(String.format(ERROR_NON_STRING_FIELD, DOCUMENTS_KEY, document));
             }
             paths.add((String) document);
         }
@@ -174,7 +178,7 @@ public class BalGraphqlConfigReader {
      */
     private static void flattenTable(Map<String, Object> table, String prefix, Map<String, String> values) {
         for (Map.Entry<String, Object> entry : table.entrySet()) {
-            String key = prefix.isEmpty() ? entry.getKey() : prefix + "." + entry.getKey();
+            String key = prefix.isEmpty() ? entry.getKey() : prefix + KEY_SEPARATOR + entry.getKey();
             Object value = entry.getValue();
             if (value instanceof Map) {
                 flattenTable(castToMap(value), key, values);
@@ -190,7 +194,7 @@ public class BalGraphqlConfigReader {
             return null;
         }
         if (!(value instanceof String)) {
-            throw new ParseException(String.format(MESSAGE_FOR_NON_STRING_FIELD, key, value));
+            throw new ParseException(String.format(ERROR_NON_STRING_FIELD, key, value));
         }
         return (String) value;
     }

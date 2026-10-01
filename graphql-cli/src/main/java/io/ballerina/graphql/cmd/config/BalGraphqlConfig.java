@@ -23,40 +23,17 @@ import java.util.Map;
 
 /**
  * Represents the content of a balGraphQL.toml configuration file.
+ *
+ * @param schema      the schema section, describing where the GraphQL schema comes from
+ * @param documents   the GraphQL documents used for client generation, or null if not configured
+ * @param idTypes     the GraphQL ID field to Ballerina type mappings, or null if not configured
+ * @param dataloaders the GraphQL field to DataLoader mappings, or null if not configured
  */
-public class BalGraphqlConfig {
+public record BalGraphqlConfig(SchemaConfig schema, List<String> documents, Map<String, String> idTypes,
+                               Map<String, String> dataloaders) {
 
     public static final String FILE_NAME = "balGraphQL.toml";
     public static final String FILE_EXTENSION = ".toml";
-
-    private final SchemaConfig schema;
-    private final List<String> documents;
-    private final Map<String, String> idTypes;
-    private final Map<String, String> dataloaders;
-
-    public BalGraphqlConfig(SchemaConfig schema, List<String> documents, Map<String, String> idTypes,
-                            Map<String, String> dataloaders) {
-        this.schema = schema;
-        this.documents = documents;
-        this.idTypes = idTypes;
-        this.dataloaders = dataloaders;
-    }
-
-    public SchemaConfig getSchema() {
-        return schema;
-    }
-
-    public List<String> getDocuments() {
-        return documents;
-    }
-
-    public Map<String, String> getIdTypes() {
-        return idTypes;
-    }
-
-    public Map<String, String> getDataloaders() {
-        return dataloaders;
-    }
 
     public boolean hasDocuments() {
         return documents != null && !documents.isEmpty();

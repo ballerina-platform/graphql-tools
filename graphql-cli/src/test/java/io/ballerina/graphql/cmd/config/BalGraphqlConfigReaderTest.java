@@ -47,44 +47,44 @@ public class BalGraphqlConfigReaderTest {
     @Test(description = "Test reading a configuration file with a local schema file")
     public void testReadSchemaFromFile() throws IOException, ParseException {
         BalGraphqlConfig config = read("schema-from-file.toml");
-        Assert.assertEquals(config.getSchema().getSource(), SchemaSource.FILE);
-        Assert.assertEquals(config.getSchema().getPath(), "./schema.graphql");
-        Assert.assertNull(config.getSchema().getUrl());
-        Assert.assertNull(config.getSchema().getEndpoint());
+        Assert.assertEquals(config.schema().source(), SchemaSource.FILE);
+        Assert.assertEquals(config.schema().path(), "./schema.graphql");
+        Assert.assertNull(config.schema().url());
+        Assert.assertNull(config.schema().endpoint());
     }
 
     @Test(description = "Test reading a configuration file with a hosted schema URL and headers")
     public void testReadSchemaFromUrl() throws IOException, ParseException {
         BalGraphqlConfig config = read("schema-from-url.toml");
-        Assert.assertEquals(config.getSchema().getSource(), SchemaSource.URL);
-        Assert.assertEquals(config.getSchema().getUrl(), "https://api.example.com/schema.graphql");
-        Assert.assertEquals(config.getSchema().getHeaders().get("Authorization"), "Bearer token");
+        Assert.assertEquals(config.schema().source(), SchemaSource.URL);
+        Assert.assertEquals(config.schema().url(), "https://api.example.com/schema.graphql");
+        Assert.assertEquals(config.schema().headers().get("Authorization"), "Bearer token");
     }
 
     @Test(description = "Test reading a configuration file with an introspection endpoint")
     public void testReadSchemaFromIntrospection() throws IOException, ParseException {
         BalGraphqlConfig config = read("schema-from-introspection.toml");
-        Assert.assertEquals(config.getSchema().getSource(), SchemaSource.INTROSPECTION);
-        Assert.assertEquals(config.getSchema().getEndpoint(), "https://api.example.com/graphql");
+        Assert.assertEquals(config.schema().source(), SchemaSource.INTROSPECTION);
+        Assert.assertEquals(config.schema().endpoint(), "https://api.example.com/graphql");
     }
 
     @Test(description = "Test reading a client configuration file with documents")
     public void testReadClientConfig() throws IOException, ParseException {
         BalGraphqlConfig config = read("client-config.toml");
         Assert.assertTrue(config.hasDocuments());
-        Assert.assertEquals(config.getDocuments().size(), 2);
-        Assert.assertEquals(config.getDocuments().get(0), "./queries/getUser.graphql");
-        Assert.assertEquals(config.getDocuments().get(1), "./mutations/createUser.graphql");
+        Assert.assertEquals(config.documents().size(), 2);
+        Assert.assertEquals(config.documents().get(0), "./queries/getUser.graphql");
+        Assert.assertEquals(config.documents().get(1), "./mutations/createUser.graphql");
     }
 
     @Test(description = "Test reading a service configuration file with ID type and DataLoader mappings")
     public void testReadServiceConfig() throws IOException, ParseException {
         BalGraphqlConfig config = read("service-config.toml");
         Assert.assertFalse(config.hasDocuments());
-        Assert.assertEquals(config.getIdTypes().get("Profile.id"), "int");
-        Assert.assertEquals(config.getIdTypes().get("Query.profile.id"), "int");
-        Assert.assertEquals(config.getIdTypes().get("Query.getFloatId"), "float");
-        Assert.assertEquals(config.getDataloaders().get("Query.profile"), "profileLoader");
+        Assert.assertEquals(config.idTypes().get("Profile.id"), "int");
+        Assert.assertEquals(config.idTypes().get("Query.profile.id"), "int");
+        Assert.assertEquals(config.idTypes().get("Query.getFloatId"), "float");
+        Assert.assertEquals(config.dataloaders().get("Query.profile"), "profileLoader");
     }
 
     @Test(description = "Test reading a configuration file with a cleartext schema URL logs a warning but still "
@@ -93,26 +93,39 @@ public class BalGraphqlConfigReaderTest {
         ByteArrayOutputStream console = new ByteArrayOutputStream();
         PrintStream outStream = new PrintStream(console, true, StandardCharsets.UTF_8);
         BalGraphqlConfig config = read("insecure-url.toml", outStream);
-        Assert.assertEquals(config.getSchema().getUrl(), "http://api.example.com/schema.graphql");
+        Assert.assertEquals(config.schema().url(), "http://api.example.com/schema.graphql");
         String output = console.toString(StandardCharsets.UTF_8);
         Assert.assertTrue(output.contains("uses HTTP instead of HTTPS"), "Unexpected output: " + output);
     }
 
-    @Test(description = "Test reading a configuration file with a missing schema URL",
-            expectedExceptions = ParseException.class)
-    public void testReadMissingUrl() throws IOException, ParseException {
-        read("missing-url.toml");
+    @Test(description = "Test reading a configuration file with a missing schema URL")
+    public void testReadMissingUrl() throws IOException {
+        assertReadFails("missing-url.toml", "Required field \"url\" is not provided in the config file.");
     }
 
-    @Test(description = "Test reading a configuration file with an unsupported schema source",
-            expectedExceptions = ParseException.class)
-    public void testReadInvalidSource() throws IOException, ParseException {
-        read("invalid-source.toml");
+    @Test(description = "Test reading a configuration file without a schema source")
+    public void testReadMissingSource() throws IOException {
+        assertReadFails("missing-source.toml", "Required field \"source\" is not provided in the config file.");
     }
 
-    @Test(description = "Test reading a configuration file without the schema section",
-            expectedExceptions = ParseException.class)
-    public void testReadMissingSchemaSection() throws IOException, ParseException {
-        read("missing-schema-section.toml");
+    @Test(description = "Test reading a configuration file with an unsupported schema source")
+    public void testReadInvalidSource() throws IOException {
+        assertReadFails("invalid-source.toml",
+                "\"introspecton\" is not a supported value for the schema source.");
+    }
+
+    @Test(description = "Test reading a configuration file without the schema section")
+    public void testReadMissingSchemaSection() throws IOException {
+        assertReadFails("missing-schema-section.toml",
+                "The balGraphQL.toml file is missing the [schema] section.");
+    }
+
+    private void assertReadFails(String fileName, String expectedMessage) throws IOException {
+        try {
+            read(fileName);
+            Assert.fail("Expected a ParseException containing: " + expectedMessage);
+        } catch (ParseException e) {
+            Assert.assertTrue(e.getMessage().contains(expectedMessage), "Unexpected message: " + e.getMessage());
+        }
     }
 }

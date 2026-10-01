@@ -41,9 +41,6 @@ public enum SchemaSource {
     }
 
     public static Optional<SchemaSource> fromValue(String value) {
-        if (value == null) {
-            return Optional.empty();
-        }
         return Arrays.stream(SchemaSource.values())
                 .filter(source -> source.value.equals(value))
                 .findFirst();

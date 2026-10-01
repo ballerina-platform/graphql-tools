@@ -22,41 +22,13 @@ import java.util.Map;
 
 /**
  * Represents the schema section of the balGraphQL.toml configuration file.
+ *
+ * @param source   where the schema is read from
+ * @param path     the local schema file path, used when the source is file
+ * @param url      the hosted schema file URL, used when the source is url
+ * @param endpoint the GraphQL endpoint to introspect, used when the source is introspection
+ * @param headers  the HTTP headers sent with url and introspection requests, or null if not configured
  */
-public class SchemaConfig {
-
-    private final SchemaSource source;
-    private final String path;
-    private final String url;
-    private final String endpoint;
-    private final Map<String, String> headers;
-
-    public SchemaConfig(SchemaSource source, String path, String url, String endpoint,
-                        Map<String, String> headers) {
-        this.source = source;
-        this.path = path;
-        this.url = url;
-        this.endpoint = endpoint;
-        this.headers = headers;
-    }
-
-    public SchemaSource getSource() {
-        return source;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
+public record SchemaConfig(SchemaSource source, String path, String url, String endpoint,
+                           Map<String, String> headers) {
 }

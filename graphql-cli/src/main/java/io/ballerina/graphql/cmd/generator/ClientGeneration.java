@@ -63,7 +63,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  */
 public class ClientGeneration implements Generator {
 
-    private static final String MESSAGE_FOR_MISSING_DOCUMENTS =
+    private static final String ERROR_MISSING_DOCUMENTS =
             "The balGraphQL.toml file is missing the \"documents\" field, which is required for client generation.";
 
     private final GenerationContext context;
@@ -114,17 +114,17 @@ public class ClientGeneration implements Generator {
      */
     private List<GraphqlClientProject> populateProjectsFromBalGraphqlConfig() throws GenerationException {
         if (!this.balGraphqlConfig.hasDocuments()) {
-            throw new GenerationException(MESSAGE_FOR_MISSING_DOCUMENTS);
+            throw new GenerationException(ERROR_MISSING_DOCUMENTS);
         }
-        SchemaConfig schemaConfig = this.balGraphqlConfig.getSchema();
+        SchemaConfig schemaConfig = this.balGraphqlConfig.schema();
         Path configDirectory = Paths.get(context.getInputPath()).toAbsolutePath().getParent();
         List<String> documents = new ArrayList<>();
-        for (String document : this.balGraphqlConfig.getDocuments()) {
+        for (String document : this.balGraphqlConfig.documents()) {
             documents.add(configDirectory.resolve(document).normalize().toString());
         }
         List<GraphqlClientProject> graphqlClientProjects = new ArrayList<>();
-        if (schemaConfig.getSource() == SchemaSource.FILE) {
-            String schema = configDirectory.resolve(schemaConfig.getPath()).normalize().toString();
+        if (schemaConfig.source() == SchemaSource.FILE) {
+            String schema = configDirectory.resolve(schemaConfig.path()).normalize().toString();
             graphqlClientProjects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, null,
                     context.getTargetOutputPath().toString()));
             return graphqlClientProjects;
@@ -139,8 +139,8 @@ public class ClientGeneration implements Generator {
      */
     private GraphqlClientProject populateRemoteSchemaProject(SchemaConfig schemaConfig, List<String> documents)
             throws GenerationException {
-        String schemaLocation = schemaConfig.getSource() == SchemaSource.URL
-                ? schemaConfig.getUrl() : schemaConfig.getEndpoint();
+        String schemaLocation = schemaConfig.source() == SchemaSource.URL
+                ? schemaConfig.url() : schemaConfig.endpoint();
         GraphqlClientProject project = new GraphqlClientProject(ROOT_PROJECT_NAME, schemaLocation, documents, null,
                 context.getTargetOutputPath().toString());
         try {

@@ -55,7 +55,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final int EXIT_CODE_2 = 2;
     private static final String CMD_NAME = "graphql";
     private static final ExitHandler DEFAULT_EXIT_HANDLER = code -> Runtime.getRuntime().exit(code);
-    private static final String MESSAGE_FOR_INVALID_CONFIG_FILE_NAME =
+    private static final String ERROR_INVALID_CONFIG_FILE_NAME =
             "The GraphQL configuration file should be named \"" + BalGraphqlConfig.FILE_NAME + "\". Found \"%s\".";
 
     private final PrintStream outStream;
@@ -168,7 +168,7 @@ public class GraphqlCmd implements BLauncherCmd {
         }
 
         if (isConfigFileInput(inputPath) && !isBalGraphqlConfigFile(inputPath)) {
-            throw new CmdException(String.format(MESSAGE_FOR_INVALID_CONFIG_FILE_NAME, inputPath));
+            throw new CmdException(String.format(ERROR_INVALID_CONFIG_FILE_NAME, inputPath));
         }
 
         if (!isModeCompatible()) {

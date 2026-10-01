@@ -161,11 +161,11 @@ public class Utils {
      */
     public static GraphQLSchema resolveGraphQLSchema(SchemaConfig schemaConfig)
             throws IntospectionException, SchemaProblem {
-        if (schemaConfig.getSource() == SchemaSource.URL) {
-            String sdlContent = fetchRemoteSchemaContent(schemaConfig.getUrl(), schemaConfig.getHeaders());
+        if (schemaConfig.source() == SchemaSource.URL) {
+            String sdlContent = fetchRemoteSchemaContent(schemaConfig.url(), schemaConfig.headers());
             return getGraphQLSchemaFromSdlContent(sdlContent);
         }
-        return getGraphQLSchemaFromIntrospection(schemaConfig.getEndpoint(), schemaConfig.getHeaders());
+        return getGraphQLSchemaFromIntrospection(schemaConfig.endpoint(), schemaConfig.headers());
     }
 
     /**

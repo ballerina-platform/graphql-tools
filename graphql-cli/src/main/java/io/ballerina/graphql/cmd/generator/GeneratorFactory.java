@@ -33,7 +33,7 @@ import java.util.Optional;
  */
 public class GeneratorFactory {
 
-    private static final String MESSAGE_FOR_UNRESOLVED_OPERATION_MODE =
+    private static final String ERROR_UNRESOLVED_OPERATION_MODE =
             "The operation to perform could not be resolved from the input \"%s\".";
 
     private GeneratorFactory() {}
@@ -46,7 +46,7 @@ public class GeneratorFactory {
             return createGenerator(operationMode, context, config);
         }
         OperationMode operationMode = OperationMode.fromInputPath(inputPath).orElseThrow(
-                () -> new GenerationException(String.format(MESSAGE_FOR_UNRESOLVED_OPERATION_MODE, inputPath)));
+                () -> new GenerationException(String.format(ERROR_UNRESOLVED_OPERATION_MODE, inputPath)));
         return createGenerator(operationMode, context, null);
     }
 
