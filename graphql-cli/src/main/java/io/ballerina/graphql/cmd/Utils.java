@@ -168,14 +168,6 @@ public class Utils {
         return getGraphQLSchemaFromIntrospection(schemaConfig.endpoint(), schemaConfig.headers());
     }
 
-    /**
-     * Fetches the content at the given URL with a plain HTTP GET, for a schema hosted as a static file.
-     *
-     * @param url                                    the URL to fetch
-     * @param headers                                the headers to send with the request, or null
-     * @return                                       the response body
-     * @throws IntospectionException                 If the URL could not be fetched
-     */
     private static String fetchRemoteSchemaContent(String url, Map<String, String> headers)
             throws IntospectionException {
         try {
@@ -199,13 +191,6 @@ public class Utils {
         }
     }
 
-    /**
-     * Parses raw GraphQL SDL text into an executable {@code GraphQLSchema}.
-     *
-     * @param sdlContent                             the schema SDL text
-     * @return                                       the resulting {@code GraphQLSchema} instance
-     * @throws SchemaProblem                         If the SDL text is not a valid GraphQL schema
-     */
     private static GraphQLSchema getGraphQLSchemaFromSdlContent(String sdlContent) {
         SchemaParser schemaParser = new SchemaParser();
         SchemaGenerator schemaGenerator = new SchemaGenerator();
@@ -213,14 +198,6 @@ public class Utils {
         return schemaGenerator.makeExecutableSchema(typeRegistry, RuntimeWiring.MOCKED_WIRING);
     }
 
-    /**
-     * Builds an executable {@code GraphQLSchema} by introspecting a live GraphQL endpoint.
-     *
-     * @param endpoint                               the GraphQL endpoint to introspect
-     * @param headers                                the headers to send with the introspection request, or null
-     * @return                                       the resulting {@code GraphQLSchema} instance
-     * @throws IntospectionException                 If an error occurs during introspection of the GraphQL API
-     */
     private static GraphQLSchema getGraphQLSchemaFromIntrospection(String endpoint, Map<String, String> headers)
             throws IntospectionException {
         Map<String, Object> introspectionResult = Introspector.getInstance().getIntrospectionResult(endpoint,

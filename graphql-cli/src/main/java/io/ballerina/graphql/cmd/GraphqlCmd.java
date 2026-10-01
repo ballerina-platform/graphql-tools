@@ -157,11 +157,6 @@ public class GraphqlCmd implements BLauncherCmd {
         exit(EXIT_CODE_0);
     }
 
-    /**
-     * Validates the input flags in the GraphQL command line tool.
-     *
-     * @throws CmdException when a graphql command related error occurs
-     */
     private void validateInputFlags() throws CmdException {
         if (!validInputFileExtension(inputPath)) {
             throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
@@ -210,12 +205,6 @@ public class GraphqlCmd implements BLauncherCmd {
         return modeFromFlag.equals(OperationMode.fromInputPath(inputPath));
     }
 
-    /**
-     * Execute the correct operation according to the given inputs.
-     *
-     * @throws CmdException        when a graphql command related error occurs
-     * @throws GenerationException when a graphql generation related error occurs
-     */
     private void executeOperation() throws GenerationException {
         GenerationContext context = new GenerationContext(inputPath,
                 OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
@@ -223,11 +212,6 @@ public class GraphqlCmd implements BLauncherCmd {
         GenerationEngine.run(context);
     }
 
-    /**
-     * Gets the target output path for the code generation.
-     *
-     * @return the target output path for the code generation
-     */
     private Path getTargetOutputPath() {
         Path targetOutputPath = executionPath;
         if (this.outputPath != null) {

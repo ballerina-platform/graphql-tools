@@ -107,11 +107,6 @@ public class ClientGeneration implements Generator {
         }
     }
 
-    /**
-     * Builds the project a client is generated for from a balGraphQL.toml configuration file. The schema and the
-     * document locations are resolved against the configuration file directory, so that they are read relative to
-     * the configuration file rather than the directory the command is run from.
-     */
     private List<GraphqlClientProject> populateProjectsFromBalGraphqlConfig() throws GenerationException {
         if (!this.balGraphqlConfig.hasDocuments()) {
             throw new GenerationException(ERROR_MISSING_DOCUMENTS);
@@ -133,10 +128,6 @@ public class ClientGeneration implements Generator {
         return graphqlClientProjects;
     }
 
-    /**
-     * Builds the client project for a "url" or "introspection" schema source: the schema is fetched or
-     * introspected over the network and attached to the project directly, rather than being read from disk.
-     */
     private GraphqlClientProject populateRemoteSchemaProject(SchemaConfig schemaConfig, List<String> documents)
             throws GenerationException {
         String schemaLocation = schemaConfig.source() == SchemaSource.URL

@@ -91,10 +91,6 @@ public class ServiceGeneration implements Generator {
         }
     }
 
-    /**
-     * Builds the service project for a "url" or "introspection" schema source: the schema is fetched or
-     * introspected over the network and attached to the project directly, rather than being read from disk.
-     */
     private void validateFromRemoteSchema(SchemaConfig schemaConfig) throws GenerationException {
         String schemaLocation = schemaConfig.source() == SchemaSource.URL
                 ? schemaConfig.url() : schemaConfig.endpoint();
@@ -110,11 +106,6 @@ public class ServiceGeneration implements Generator {
         }
     }
 
-    /**
-     * Resolves the GraphQL schema file the service is generated from. When a configuration file drives the
-     * generation, the schema location is read from it and resolved against the configuration file directory.
-     * Otherwise the input itself is the schema file.
-     */
     private String resolveSchemaPath() {
         if (this.balGraphqlConfig == null) {
             return context.getInputPath();

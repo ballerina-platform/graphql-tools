@@ -107,12 +107,6 @@ public class Introspector {
         }
     }
 
-    /**
-     * Extracts the headers configured for the default endpoint of a GraphQL config file's extensions, if any.
-     *
-     * @param extensions       the extensions value of the Graphql config file, or null
-     * @return                 the headers map, or null when none are configured
-     */
     private Map<String, String> extractHeaders(Extension extensions) {
         if (extensions == null) {
             return null;
@@ -125,13 +119,6 @@ public class Introspector {
         return defaultName == null ? null : defaultName.getHeaders();
     }
 
-    /**
-     * Creates the HTTP request object with the GraphQL payload & headers attached to it.
-     *
-     * @param endpoint         the Graphql API endpoint
-     * @param headers          the headers to attach to the request, or null
-     * @return                 the HTTP request object
-     */
     private HttpRequest createHttpRequest(String endpoint, Map<String, String> headers) {
         String graphqlPayload = getRequestPayload();
         HttpRequest.Builder builder = HttpRequest.newBuilder()
@@ -144,23 +131,12 @@ public class Introspector {
         return builder.build();
     }
 
-    /**
-     * Gets the GraphQL request payload constructed using the introspection query.
-     *
-     * @return               the GraphQL request payload
-     */
     private String getRequestPayload() {
         JSONObject graphqlJsonPayload = new JSONObject();
         graphqlJsonPayload.put(QUERY_VAR_NAME, INTROSPECTION_QUERY);
         return graphqlJsonPayload.toString();
     }
 
-    /**
-     * Attaches headers to the HTTP request object.
-     *
-     * @param builder         the builder of HTTP requests
-     * @param headers         the headers map
-     */
     private HttpRequest.Builder addHeaders(HttpRequest.Builder builder, Map<String, String> headers) {
         for (Map.Entry<String, String> e : headers.entrySet()) {
             builder.header(e.getKey(), e.getValue());

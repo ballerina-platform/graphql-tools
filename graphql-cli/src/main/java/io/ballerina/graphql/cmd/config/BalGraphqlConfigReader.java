@@ -172,10 +172,7 @@ public class BalGraphqlConfigReader {
         return values;
     }
 
-    /**
-     * Flattens a nested table into dotted keys. A GraphQL field notation such as "Profile.id" is read by the TOML
-     * parser as a nested table, so it is flattened back into the notation used in the configuration file.
-     */
+    // TOML parses a dotted key such as "Profile.id" as nested tables, so flatten it back into the dotted notation.
     private static void flattenTable(Map<String, Object> table, String prefix, Map<String, String> values) {
         for (Map.Entry<String, Object> entry : table.entrySet()) {
             String key = prefix.isEmpty() ? entry.getKey() : prefix + KEY_SEPARATOR + entry.getKey();

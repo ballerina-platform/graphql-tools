@@ -50,12 +50,6 @@ public class GeneratorFactory {
         return createGenerator(operationMode, context, null);
     }
 
-    /**
-     * Resolves the operation mode for a configuration file input. The mode flag, when given, takes precedence over
-     * the configuration contents - for example, "-m service" generates a service from the configured schema even if
-     * the configuration also has documents configured for client generation. When the mode flag is not given, the
-     * mode is inferred from the configuration contents: documents present means client, absent means service.
-     */
     private static OperationMode resolveOperationMode(GenerationContext context, BalGraphqlConfig config) {
         Optional<OperationMode> declaredOperationMode = context.getDeclaredOperationMode();
         return declaredOperationMode.orElseGet(() -> OperationMode.fromConfig(config));
