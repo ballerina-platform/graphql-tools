@@ -68,6 +68,9 @@ dependencies {
     externalJars (group: 'com.graphql-java', name: 'graphql-java', version: "${graphqlJavaVersion}") {
         transitive = false
     }
+    externalJars (group: 'org.json', name: 'json', version: "${orgJsonVersion}") {
+        transitive = false
+    }
 }
 
 task updateTomlFiles {
@@ -77,6 +80,7 @@ task updateTomlFiles {
 
         def newBalToolTomlFile = balToolTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         newBalToolTomlFile = newBalToolTomlFile.replace("@graphql.java.version@", graphqlJavaVersion)
+        newBalToolTomlFile = newBalToolTomlFile.replace("@org.json.version@", orgJsonVersion)
         balToolTomlFile.text = newBalToolTomlFile
     }
 }

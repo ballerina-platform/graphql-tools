@@ -1,0 +1,8 @@
+documents = [
+    "./queries/getUser.graphql",
+    "./mutations/createUser.graphql"
+]
+
+[schema]
+source = "file"
+path = "./schema.graphql"

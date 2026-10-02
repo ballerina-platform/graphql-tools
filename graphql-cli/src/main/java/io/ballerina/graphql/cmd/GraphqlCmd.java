@@ -19,6 +19,7 @@
 package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.BLauncherCmd;
+import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
 import io.ballerina.graphql.cmd.generator.GenerationContext;
 import io.ballerina.graphql.cmd.generator.GenerationEngine;
 import io.ballerina.graphql.cmd.generator.OperationMode;
@@ -54,6 +55,8 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final int EXIT_CODE_2 = 2;
     private static final String CMD_NAME = "graphql";
     private static final ExitHandler DEFAULT_EXIT_HANDLER = code -> Runtime.getRuntime().exit(code);
+    private static final String ERROR_INVALID_CONFIG_FILE_NAME =
+            "The GraphQL configuration file should be named \"" + BalGraphqlConfig.FILE_NAME + "\". Found \"%s\".";
 
     private final PrintStream outStream;
     private final Path executionPath;
@@ -154,14 +157,13 @@ public class GraphqlCmd implements BLauncherCmd {
         exit(EXIT_CODE_0);
     }
 
-    /**
-     * Validates the input flags in the GraphQL command line tool.
-     *
-     * @throws CmdException when a graphql command related error occurs
-     */
     private void validateInputFlags() throws CmdException {
         if (!validInputFileExtension(inputPath)) {
             throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
+        }
+
+        if (isConfigFileInput(inputPath) && !isBalGraphqlConfigFile(inputPath)) {
+            throw new CmdException(String.format(ERROR_INVALID_CONFIG_FILE_NAME, inputPath));
         }
 
         if (!isModeCompatible()) {
@@ -177,6 +179,15 @@ public class GraphqlCmd implements BLauncherCmd {
         return OperationMode.isKnownExtension(filePath);
     }
 
+    private boolean isConfigFileInput(String filePath) {
+        return filePath.endsWith(BalGraphqlConfig.FILE_EXTENSION);
+    }
+
+    private boolean isBalGraphqlConfigFile(String filePath) {
+        Path fileName = Paths.get(filePath).getFileName();
+        return fileName != null && BalGraphqlConfig.FILE_NAME.equals(fileName.toString());
+    }
+
     private boolean isModeCompatible() throws CmdException {
         if (mode == null) {
             return true;
@@ -185,28 +196,21 @@ public class GraphqlCmd implements BLauncherCmd {
         if (modeFromFlag.isEmpty()) {
             throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
         }
+        if (isConfigFileInput(inputPath)) {
+            // A configuration file drives client or service generation only; either declared mode overrides what
+            // the configuration contents would otherwise resolve to.
+            return modeFromFlag.get() != OperationMode.SCHEMA;
+        }
         return modeFromFlag.equals(OperationMode.fromInputPath(inputPath));
     }
 
-    /**
-     * Execute the correct operation according to the given inputs.
-     *
-     * @throws CmdException        when a graphql command related error occurs
-     * @throws GenerationException when a graphql generation related error occurs
-     */
-    private void executeOperation() throws CmdException, GenerationException {
-        OperationMode operationMode = OperationMode.fromInputPath(inputPath).orElseThrow(
-                () -> new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath)));
-        GenerationContext context = new GenerationContext(operationMode, inputPath, getTargetOutputPath(),
-                serviceBasePath, useRecordsForObjectsFlag, outStream);
+    private void executeOperation() throws GenerationException {
+        GenerationContext context = new GenerationContext(inputPath,
+                OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
+                useRecordsForObjectsFlag, outStream);
         GenerationEngine.run(context);
     }
 
-    /**
-     * Gets the target output path for the code generation.
-     *
-     * @return the target output path for the code generation
-     */
     private Path getTargetOutputPath() {
         Path targetOutputPath = executionPath;
         if (this.outputPath != null) {

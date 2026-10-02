@@ -18,14 +18,20 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import graphql.schema.idl.errors.SchemaProblem;
 import io.ballerina.graphql.cmd.Utils;
+import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
+import io.ballerina.graphql.cmd.config.SchemaConfig;
+import io.ballerina.graphql.cmd.config.SchemaSource;
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.cmd.pojo.Project;
 import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.ParseException;
+import io.ballerina.graphql.exception.SDLValidationException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.exception.ClientCodeGenerationException;
+import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.generator.ClientCodeGenerator;
 import io.ballerina.graphql.generator.client.pojo.Extension;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
@@ -42,6 +48,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,29 +63,86 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  */
 public class ClientGeneration implements Generator {
 
+    private static final String ERROR_MISSING_DOCUMENTS =
+            "The balGraphQL.toml file is missing the \"documents\" field, which is required for client generation.";
+
     private final GenerationContext context;
+    private final BalGraphqlConfig balGraphqlConfig;
     private final ClientCodeGenerator clientCodeGenerator;
     private List<GraphqlClientProject> projects;
     private final Map<GraphqlClientProject, List<SrcFilePojo>> generatedSources = new LinkedHashMap<>();
 
-    public ClientGeneration(GenerationContext context) {
+    public ClientGeneration(GenerationContext context, BalGraphqlConfig balGraphqlConfig) {
         this.context = context;
+        this.balGraphqlConfig = balGraphqlConfig;
         this.clientCodeGenerator = new ClientCodeGenerator();
     }
 
     @Override
     public void validate() throws GenerationException {
+        this.projects = this.balGraphqlConfig == null ? populateProjectsFromYamlConfig()
+                : populateProjectsFromBalGraphqlConfig();
+        try {
+            for (GraphqlClientProject project : this.projects) {
+                // A "url" or "introspection" project already had its schema fetched and attached while it was
+                // being populated, since that requires dispatching on the configured schema source rather than
+                // Utils.validateGraphqlProject's URL-prefix-implies-introspection inference.
+                if (project.getGraphQLSchema() == null) {
+                    Utils.validateGraphqlProject(project);
+                }
+                QueryValidator.getInstance().validate(project);
+            }
+        } catch (IOException | ValidationException e) {
+            throw new GenerationException(e);
+        }
+    }
+
+    private List<GraphqlClientProject> populateProjectsFromYamlConfig() throws GenerationException {
         try {
             Config config = readConfig(context.getInputPath());
             ConfigValidator.getInstance().validate(config);
-            this.projects = populateProjects(config);
-            for (GraphqlClientProject project : this.projects) {
-                Utils.validateGraphqlProject(project);
-                QueryValidator.getInstance().validate(project);
-            }
+            return populateProjects(config);
         } catch (ParseException | IOException | ValidationException e) {
             throw new GenerationException(e);
         }
+    }
+
+    private List<GraphqlClientProject> populateProjectsFromBalGraphqlConfig() throws GenerationException {
+        if (!this.balGraphqlConfig.hasDocuments()) {
+            throw new GenerationException(ERROR_MISSING_DOCUMENTS);
+        }
+        SchemaConfig schemaConfig = this.balGraphqlConfig.schema();
+        Path configDirectory = Paths.get(context.getInputPath()).toAbsolutePath().getParent();
+        List<String> documents = new ArrayList<>();
+        for (String document : this.balGraphqlConfig.documents()) {
+            documents.add(configDirectory.resolve(document).normalize().toString());
+        }
+        List<GraphqlClientProject> graphqlClientProjects = new ArrayList<>();
+        if (schemaConfig.source() == SchemaSource.FILE) {
+            String schema = configDirectory.resolve(schemaConfig.path()).normalize().toString();
+            graphqlClientProjects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, null,
+                    context.getTargetOutputPath().toString()));
+            return graphqlClientProjects;
+        }
+        graphqlClientProjects.add(populateRemoteSchemaProject(schemaConfig, documents));
+        return graphqlClientProjects;
+    }
+
+    private GraphqlClientProject populateRemoteSchemaProject(SchemaConfig schemaConfig, List<String> documents)
+            throws GenerationException {
+        String schemaLocation = schemaConfig.source() == SchemaSource.URL
+                ? schemaConfig.url() : schemaConfig.endpoint();
+        GraphqlClientProject project = new GraphqlClientProject(ROOT_PROJECT_NAME, schemaLocation, documents, null,
+                context.getTargetOutputPath().toString());
+        try {
+            project.setGraphQLSchema(Utils.resolveGraphQLSchema(schemaConfig));
+        } catch (IntospectionException e) {
+            throw new GenerationException(new ValidationException(e.getMessage(), project.getName()));
+        } catch (SchemaProblem e) {
+            throw new GenerationException(new SDLValidationException("GraphQL SDL validation failed.",
+                    e.getErrors(), project.getName()));
+        }
+        return project;
     }
 
     @Override

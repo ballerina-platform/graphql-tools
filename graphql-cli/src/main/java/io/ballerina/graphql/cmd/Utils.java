@@ -26,6 +26,8 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.errors.SchemaProblem;
+import io.ballerina.graphql.cmd.config.SchemaConfig;
+import io.ballerina.graphql.cmd.config.SchemaSource;
 import io.ballerina.graphql.cmd.pojo.Config;
 import io.ballerina.graphql.exception.SDLValidationException;
 import io.ballerina.graphql.exception.ValidationException;
@@ -50,11 +52,16 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 
@@ -64,6 +71,9 @@ import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
  * Utility class for GraphQL code generation command line tool.
  */
 public class Utils {
+
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
 
     /**
      * Returns the Snakeyaml `Constructor` instance processing unsupported keywords in Java.
@@ -140,6 +150,70 @@ public class Utils {
         } catch (MalformedURLException | URISyntaxException e) {
             return false;
         }
+    }
+
+    /**
+     * Resolves the {@code GraphQLSchema} for a balGraphQL.toml schema section whose source is "url" or
+     * "introspection". A "url" source is fetched with a plain HTTP GET and its response body is treated as the
+     * schema SDL text, as if it were a hosted schema file. An "introspection" source is queried with a GraphQL
+     * introspection request, since the endpoint is a live GraphQL API rather than a static file.
+     *
+     * @param schemaConfig                           the schema section of the balGraphQL.toml configuration file
+     * @return                                       the resolved {@code GraphQLSchema} instance
+     * @throws IntospectionException                 If an error occurs while fetching or introspecting the schema
+     * @throws SchemaProblem                         If the fetched content is not a valid GraphQL SDL document
+     */
+    public static GraphQLSchema resolveGraphQLSchema(SchemaConfig schemaConfig)
+            throws IntospectionException, SchemaProblem {
+        if (schemaConfig.source() == SchemaSource.URL) {
+            String sdlContent = fetchRemoteSchemaContent(schemaConfig.url(), schemaConfig.headers());
+            return getGraphQLSchemaFromSdlContent(sdlContent);
+        }
+        return getGraphQLSchemaFromIntrospection(schemaConfig.endpoint(), schemaConfig.headers());
+    }
+
+    private static String fetchRemoteSchemaContent(String url, Map<String, String> headers)
+            throws IntospectionException {
+        try {
+            HttpRequest.Builder builder = HttpRequest.newBuilder().uri(URI.create(url)).timeout(REQUEST_TIMEOUT).GET();
+            if (headers != null) {
+                for (Map.Entry<String, String> header : headers.entrySet()) {
+                    builder.header(header.getKey(), header.getValue());
+                }
+            }
+            HttpResponse<String> response = HttpClient.newBuilder()
+                    .connectTimeout(CONNECT_TIMEOUT)
+                    .build()
+                    .send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new IntospectionException(String.format(
+                        "Failed to fetch the GraphQL schema from \"%s\". Received HTTP status %d.",
+                        url, response.statusCode()));
+            }
+            return response.body();
+        } catch (InterruptedException | IOException e) {
+            throw new IntospectionException(String.format("Failed to fetch the GraphQL schema from \"%s\".%s",
+                    url, e.getMessage() != null ? "\n" + e.getMessage() : ""));
+        }
+    }
+
+    private static GraphQLSchema getGraphQLSchemaFromSdlContent(String sdlContent) {
+        SchemaParser schemaParser = new SchemaParser();
+        SchemaGenerator schemaGenerator = new SchemaGenerator();
+        TypeDefinitionRegistry typeRegistry = schemaParser.parse(sdlContent);
+        return schemaGenerator.makeExecutableSchema(typeRegistry, RuntimeWiring.MOCKED_WIRING);
+    }
+
+    private static GraphQLSchema getGraphQLSchemaFromIntrospection(String endpoint, Map<String, String> headers)
+            throws IntospectionException {
+        Map<String, Object> introspectionResult = Introspector.getInstance().getIntrospectionResult(endpoint,
+                headers);
+        IntrospectionResultToSchema introspectionResultToSchema = new IntrospectionResultToSchema();
+        Document introspectSchema = introspectionResultToSchema.createSchemaDefinition(introspectionResult);
+        SchemaParser schemaParser = new SchemaParser();
+        SchemaGenerator schemaGenerator = new SchemaGenerator();
+        TypeDefinitionRegistry typeRegistry = schemaParser.buildRegistry(introspectSchema);
+        return schemaGenerator.makeExecutableSchema(typeRegistry, RuntimeWiring.MOCKED_WIRING);
     }
 
     /**

@@ -17,6 +17,7 @@
  */
 
 module io.ballerina.graphql {
+    requires io.ballerina.toml;
     requires io.ballerina.tools.api;
     requires org.yaml.snakeyaml;
     requires io.ballerina.cli;

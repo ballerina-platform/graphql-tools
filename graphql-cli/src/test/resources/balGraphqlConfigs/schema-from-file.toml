@@ -1,0 +1,3 @@
+[schema]
+source = "file"
+path = "./schema.graphql"

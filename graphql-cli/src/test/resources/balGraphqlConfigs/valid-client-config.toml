@@ -1,0 +1,5 @@
+documents = ["./query.graphql"]
+
+[schema]
+source = "file"
+path = "./schema.graphql"
