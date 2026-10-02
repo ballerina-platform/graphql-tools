@@ -31,6 +31,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.APPLICATION_JSON;
@@ -44,6 +45,8 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY_VAR_NA
  * This class is used to introspect a GraphQL API.
  */
 public class Introspector {
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
     private static Introspector introspector = null;
 
     public static Introspector getInstance() {
@@ -79,7 +82,7 @@ public class Introspector {
     public Map<String, Object> getIntrospectionResult(String endpoint, Map<String, String> headers)
             throws IntospectionException {
         try {
-            HttpClient httpClient = HttpClient.newHttpClient();
+            HttpClient httpClient = HttpClient.newBuilder().connectTimeout(CONNECT_TIMEOUT).build();
             HttpRequest httpRequest = createHttpRequest(endpoint, headers);
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == 200) {
@@ -123,6 +126,7 @@ public class Introspector {
         String graphqlPayload = getRequestPayload();
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
+                .timeout(REQUEST_TIMEOUT)
                 .headers(CONTENT_TYPE, APPLICATION_JSON)
                 .POST(HttpRequest.BodyPublishers.ofString(graphqlPayload, StandardCharsets.UTF_8));
         if (headers != null) {

@@ -197,10 +197,9 @@ public class GraphqlCmd implements BLauncherCmd {
             throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
         }
         if (isConfigFileInput(inputPath)) {
-            // A declared mode overrides what a configuration file's contents would otherwise resolve to, so there
-            // is nothing to check here against the input file extension; the mode is resolved once the
-            // configuration is read.
-            return true;
+            // A configuration file drives client or service generation only; either declared mode overrides what
+            // the configuration contents would otherwise resolve to.
+            return modeFromFlag.get() != OperationMode.SCHEMA;
         }
         return modeFromFlag.equals(OperationMode.fromInputPath(inputPath));
     }

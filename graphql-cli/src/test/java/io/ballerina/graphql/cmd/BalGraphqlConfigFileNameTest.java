@@ -89,6 +89,23 @@ public class BalGraphqlConfigFileNameTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test that the schema mode is rejected for a balGraphQL.toml input")
+    public void testExecuteWithSchemaModeForConfigFile() throws IOException {
+        Path configFile = writeConfigFile("balGraphQL.toml");
+        String[] args = {"-i", configFile.toString(), "-o", this.tmpDir.toString(), "-m", "schema"};
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains("\"schema\" mode is not allowed"), "Unexpected output: " + output);
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, "The schema mode should fail the command");
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
     private Path writeConfigFile(String fileName) throws IOException {
         Path configFile = this.tmpDir.resolve(fileName);
         Files.writeString(configFile, CONFIG_CONTENT);

@@ -61,6 +61,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 
@@ -70,6 +71,9 @@ import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
  * Utility class for GraphQL code generation command line tool.
  */
 public class Utils {
+
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
 
     /**
      * Returns the Snakeyaml `Constructor` instance processing unsupported keywords in Java.
@@ -171,13 +175,15 @@ public class Utils {
     private static String fetchRemoteSchemaContent(String url, Map<String, String> headers)
             throws IntospectionException {
         try {
-            HttpRequest.Builder builder = HttpRequest.newBuilder().uri(URI.create(url)).GET();
+            HttpRequest.Builder builder = HttpRequest.newBuilder().uri(URI.create(url)).timeout(REQUEST_TIMEOUT).GET();
             if (headers != null) {
                 for (Map.Entry<String, String> header : headers.entrySet()) {
                     builder.header(header.getKey(), header.getValue());
                 }
             }
-            HttpResponse<String> response = HttpClient.newHttpClient()
+            HttpResponse<String> response = HttpClient.newBuilder()
+                    .connectTimeout(CONNECT_TIMEOUT)
+                    .build()
                     .send(builder.build(), HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new IntospectionException(String.format(
