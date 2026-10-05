@@ -40,9 +40,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENS
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
 
-/**
- * This class is used to test the functionality of the GraphQL command.
- */
+// This class is used to test the functionality of the GraphQL command.
 public class GraphqlCmdTest extends GraphqlTest {
     private static final Log log = LogFactory.getLog(GraphqlCmdTest.class);
 
@@ -63,7 +61,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test successful graphql command execution")
     public void testExecute() {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -90,7 +88,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     public void testExecuteWithModeFlag() {
         Path graphql = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -117,7 +115,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     public void testExecutionWithoutModeFlagForGraphqlFileInput() {
         Path graphql = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString()};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -140,12 +138,12 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test graphql command execution with mode and use-records-for-objects flags")
-    public void testExecutionWithModeAndUseRecordsForObjectsFlags() {
+    @Test(description = "Test graphql command execution with mode and the record object type")
+    public void testExecutionWithModeAndRecordObjectType() {
         Path graphql = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithObjectTakingInputArgumentApi.graphql"));
-        String[] args = {"-i", graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
-                "--use-records-for-objects"};
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
+                "--object-type", "record"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -171,31 +169,150 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test graphql command execution without input file path argument")
-    public void testExecuteWithoutInputFilePathArgument() {
-        String[] args = {"-i"};
-        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+    @Test(description = "Test that an existing output file is skipped without the force flag")
+    public void testExecuteSkipsExistingFileWithoutForce() {
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
         try {
+            Path typesFile = this.tmpDir.resolve("types.bal");
+            Files.writeString(typesFile, "// existing");
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
-            Assert.fail("Expected picocli to throw exception for missing option value");
-        } catch (CommandLine.MissingParameterException e) {
-            // Expected: picocli validates that -i requires a value
-            Assert.assertTrue(e.getMessage().contains("Missing required parameter for option '--input'"));
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains("the file already exists. Use --force to overwrite it."));
+            Assert.assertEquals(Files.readString(typesFile), "// existing");
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
         }
     }
 
-    @Test
-    public void testExecuteWithInvalidArgument() {
-        String[] args = {"invalid"};
-        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+    @Test(description = "Test that an existing output file is overwritten with the force flag")
+    public void testExecuteOverwritesExistingFileWithForce() {
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "-m", "service", "--force"};
+        try {
+            Path typesFile = this.tmpDir.resolve("types.bal");
+            Files.writeString(typesFile, "// existing");
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertFalse(output.contains("the file already exists"));
+            Path expectedTypesFile = resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "typesWithSingleObjectDefault.bal"));
+            Assert.assertEquals(readContent(typesFile), readContent(expectedTypesFile));
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(description = "Test that a dry run lists the files it would create without writing them")
+    public void testDryRunListsFilesWithoutWriting() {
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        Path outputPath = this.tmpDir.resolve("dry-run-output");
+        String[] args = {graphql.toString(), "-o", outputPath.toString(), "-m", "service", "--dry-run"};
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains("Dry run: no files were written."));
+            Assert.assertTrue(output.contains("2 to create, 0 to overwrite, 0 to skip."));
+            Assert.assertFalse(Files.exists(outputPath));
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(description = "Test that a dry run reports an existing file as skipped and leaves it unchanged")
+    public void testDryRunReportsExistingFileAsSkipped() {
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "-m", "service", "--dry-run"};
+        try {
+            Path typesFile = this.tmpDir.resolve("types.bal");
+            Files.writeString(typesFile, "// existing");
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains("1 to create, 0 to overwrite, 1 to skip."));
+            Assert.assertEquals(Files.readString(typesFile), "// existing");
+            Assert.assertFalse(Files.exists(this.tmpDir.resolve("service.bal")));
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(description = "Test that a dry run with the force flag reports an existing file as overwritten")
+    public void testDryRunWithForceReportsOverwrite() {
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "-m", "service", "--dry-run", "--force"};
+        try {
+            Path typesFile = this.tmpDir.resolve("types.bal");
+            Files.writeString(typesFile, "// existing");
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains("1 to create, 1 to overwrite, 0 to skip."));
+            Assert.assertEquals(Files.readString(typesFile), "// existing");
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(description = "Test that a dry run with an invalid schema shows the error and no report")
+    public void testDryRunWithInvalidSchema() {
+        Path graphql = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "-m", "service", "--dry-run"};
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains("GraphQL SDL validation failed."));
+            Assert.assertFalse(output.contains("Dry run:"));
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(description = "Test that the removed -i flag is rejected")
+    public void testExecuteWithRemovedInputFlag() {
+        String[] args = {"-i", "schema.graphql"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, new ExitCodeCaptor());
         try {
             new CommandLine(graphqlCmd).parseArgs(args);
-            Assert.fail("Expected picocli to throw exception for unexpected positional parameter");
+            Assert.fail("Expected picocli to reject the removed -i option");
         } catch (CommandLine.UnmatchedArgumentException e) {
-            // Expected: picocli rejects positional arguments since we removed @Parameters
-            Assert.assertTrue(e.getMessage().contains("Unmatched argument"));
+            Assert.assertTrue(e.getMessage().contains("-i"), "Unexpected message: " + e.getMessage());
+        }
+    }
+
+    @Test(description = "Test graphql command execution with more than one input argument")
+    public void testExecuteWithMultipleInputArguments() {
+        String[] args = {"schema.graphql", "extra.graphql"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, new ExitCodeCaptor());
+        try {
+            new CommandLine(graphqlCmd).parseArgs(args);
+            Assert.fail("Expected picocli to reject a second input argument");
+        } catch (CommandLine.UnmatchedArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("Unmatched argument"),
+                    "Unexpected message: " + e.getMessage());
         }
     }
 
@@ -204,7 +321,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path filePath = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         String mode = "invalid-service";
-        String[] args = {"-i", filePath.toString(), "--mode", mode, "--use-records-for-objects"};
+        String[] args = {filePath.toString(), "--mode", mode, "--object-type", "record"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -221,7 +338,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with invalid config file extension")
     public void testExecuteWithInvalidConfigFileExtension() {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yam"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -244,7 +361,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             dataProvider = "invalidFileNameExtension")
     public void testExecuteWithInvalidFileExtensions(String invalidFileNameExtension) {
         Path filePath = resourceDir.resolve(Paths.get("specs", invalidFileNameExtension));
-        String[] args = {"-i", filePath.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {filePath.toString(), "-o", this.tmpDir.toString()};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -260,8 +377,22 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @DataProvider(name = "mismatchModeAndFile")
     public Object[][] createMismatchModeAndFileData() {
-        return new Object[][]{{"service", "graphql.config.yaml"}, {"client", "service.bal"},
-                {"schema", "schema.graphql"}};
+        return new Object[][]{{"service", "graphql.config.yaml"}, {"client", "service.bal"}};
+    }
+
+    @Test(description = "Test that schema is no longer accepted as a mode")
+    public void testExecuteWithSchemaMode() {
+        Path filePath = resourceDir.resolve(Paths.get("specs", "service.bal"));
+        String[] args = {filePath.toString(), "-o", this.tmpDir.toString(), "--mode", "schema"};
+        try {
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, new ExitCodeCaptor());
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains(String.format(MESSAGE_FOR_INVALID_MODE, "schema")));
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
+        }
     }
 
     @Test(
@@ -270,7 +401,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     )
     public void testExecuteWithMismatchModeAndFileExtension(String mode, String fileName) {
         Path filePath = resourceDir.resolve(Paths.get("specs", fileName));
-        String[] args = {"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode};
+        String[] args = {filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -284,36 +415,64 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @DataProvider(name = "useRecordsForObjectsFlagMisUse")
-    public Object[][] createUseRecordsForObjectsFlagMisUseData() {
-        return new Object[][]{{"client", "graphql.config.yaml"}, {"schema", "service.bal"}};
+    @DataProvider(name = "objectTypeWithNonServiceInput")
+    public Object[][] createObjectTypeWithNonServiceInputData() {
+        return new Object[][]{{"graphql.config.yaml"}, {"service.bal"}};
     }
 
     @Test(
-            description = "Test graphql command execution with use-records-for-objects and incompatible mode",
-            dataProvider = "useRecordsForObjectsFlagMisUse"
+            description = "Test graphql command execution with an object type for an input that is not a service",
+            dataProvider = "objectTypeWithNonServiceInput"
     )
-    public void testExecuteWithUseRecordsForObjectsFlagAndIncompatibleMode(String mode, String fileName) {
+    public void testExecuteWithObjectTypeForNonServiceInput(String fileName) {
         Path filePath = resourceDir.resolve(Paths.get("specs", fileName));
-        String[] args = new String[]{"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", mode,
-                "--use-records-for-objects"};
+        String[] args = new String[]{filePath.toString(), "-o", this.tmpDir.toString(), "--object-type", "record"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
-            String message = String.format(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE, mode);
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains(message));
+            Assert.assertTrue(output.contains("only applies to service generation"), "Unexpected output: " + output);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(description = "Test graphql command execution with an unsupported object type value")
+    public void testExecuteWithInvalidObjectType() {
+        Path filePath = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        String[] args = {filePath.toString(), "-o", this.tmpDir.toString(), "--object-type", "banana"};
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains("\"banana\" is not a supported value for --object-type"),
+                    "Unexpected output: " + output);
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(description = "Test that the removed -r flag is rejected")
+    public void testExecuteWithRemovedRecordsFlag() {
+        String[] args = {"schema.graphql", "-r"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, new ExitCodeCaptor());
+        try {
+            new CommandLine(graphqlCmd).parseArgs(args);
+            Assert.fail("Expected picocli to reject the removed -r option");
+        } catch (CommandLine.UnmatchedArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("-r"), "Unexpected message: " + e.getMessage());
         }
     }
 
     @Test(description = "Test graphql command execution with invalid schema file path")
     public void testExecuteWithInvalidSchemaFilePath() {
         Path filePath = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "schema.graphql"));
-        String[] args = {"-i", filePath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        String[] args = {filePath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -330,7 +489,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with empty config file")
     public void testExecuteWithEmptyConfigFile() {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "empty.graphql.config.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -346,7 +505,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with invalid config file content")
     public void testExecuteWithInvalidConfigFileContent() {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "invalid.graphql.config.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -362,7 +521,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test successful graphql command execution with projects in config file")
     public void testExecuteWithProjects() {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql-config-with-projects.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -391,7 +550,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test successful graphql command execution with schema URL in config file", enabled = false)
     public void testExecuteWithSchemaUrl() {
         Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql-config-with-schema-url.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -418,7 +577,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     public void testExecuteWithInvalidIntrospectionUrl() {
         Path graphqlConfigYaml =
                 resourceDir.resolve(Paths.get("specs", "graphql-config-with-invalid-introspection-url.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -435,7 +594,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     public void testExecuteWithUnsupportedOperations1() {
         Path graphqlConfigYaml =
                 resourceDir.resolve(Paths.get("specs", "graphql-schema-with-unsupported-operations.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -453,7 +612,7 @@ public class GraphqlCmdTest extends GraphqlTest {
     public void testExecuteWithUnsupportedOperations2() {
         Path graphqlConfigYaml =
                 resourceDir.resolve(Paths.get("specs", "graphql-schema-with-subscription.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -476,10 +635,11 @@ public class GraphqlCmdTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
             String output = readOutput(true);
-            // Read the ballerina-graphql.help file
-            String expectedOutput = new String(Files.readAllBytes(
-                    Paths.get("src", "main", "resources", "ballerina-graphql.help")));
-            Assert.assertEquals(output, expectedOutput);
+            Assert.assertTrue(output.contains("SYNOPSIS"));
+            Assert.assertTrue(output.contains("--force"));
+            Assert.assertTrue(output.contains("--dry-run"));
+            Assert.assertTrue(output.contains("--object-type"));
+            Assert.assertFalse(output.contains("--input"));
             Assert.assertEquals(exitCaptor.getExitCode(), 2, "No arguments should exit with code 2");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
@@ -495,7 +655,11 @@ public class GraphqlCmdTest extends GraphqlTest {
         try {
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains("graphql"), "Help output should contain 'graphql'");
+            Assert.assertTrue(output.contains("SYNOPSIS"));
+            Assert.assertTrue(output.contains("--force"));
+            Assert.assertTrue(output.contains("--dry-run"));
+            Assert.assertTrue(output.contains("--object-type"));
+            Assert.assertFalse(output.contains("--input"));
             Assert.assertEquals(exitCaptor.getExitCode(), 0, "Help flag should exit with code 0");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());

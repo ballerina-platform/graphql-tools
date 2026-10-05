@@ -22,17 +22,13 @@ import io.ballerina.cli.BLauncherCmd;
 import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
 import io.ballerina.graphql.cmd.generator.GenerationContext;
 import io.ballerina.graphql.cmd.generator.GenerationEngine;
+import io.ballerina.graphql.cmd.generator.ObjectType;
 import io.ballerina.graphql.cmd.generator.OperationMode;
 import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.GenerationException;
 import picocli.CommandLine;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -42,13 +38,34 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENS
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION;
 
-/**
- * Main class to implement "graphql" command for Ballerina.
- * Commands for Client, Service and SDL Schema file generation.
- */
+// Main class to implement "graphql" command for Ballerina.
+// Commands for Client, Service and SDL Schema file generation.
 @CommandLine.Command(name = "graphql",
-        description = "Generates Ballerina clients for GraphQL queries with GraphQL SDL, Ballerina services for " +
-                "GraphQL schema and SDL schema for the given Ballerina GraphQL service.")
+        usageHelpWidth = 100,
+        separator = " ",
+        sortOptions = false,
+        headerHeading = "NAME%n",
+        header = GraphqlCmd.HEADER,
+        synopsisHeading = "%nSYNOPSIS%n",
+        customSynopsis = {
+                "  bal graphql <service.bal>",
+                "              [-o <output>]",
+                "              [-s <service-base-path>]",
+                "              [--force]",
+                "              [--dry-run]",
+                "",
+                "  bal graphql <balGraphQL.toml>",
+                "              [-o <output>]",
+                "              [-m <client|service>]",
+                "              [--object-type <service|record>]",
+                "              [--force]",
+                "              [--dry-run]"},
+        descriptionHeading = "%nDESCRIPTION%n",
+        description = {GraphqlCmd.DESCRIPTION_SUMMARY, GraphqlCmd.DESCRIPTION_DETAILS},
+        parameterListHeading = "%nARGUMENTS%n",
+        optionListHeading = "%nOPTIONS%n",
+        footerHeading = "%nEXAMPLES%n",
+        footer = GraphqlCmd.EXAMPLES)
 public class GraphqlCmd implements BLauncherCmd {
     private static final int EXIT_CODE_0 = 0;
     private static final int EXIT_CODE_1 = 1;
@@ -57,6 +74,45 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final ExitHandler DEFAULT_EXIT_HANDLER = code -> Runtime.getRuntime().exit(code);
     private static final String ERROR_INVALID_CONFIG_FILE_NAME =
             "The GraphQL configuration file should be named \"" + BalGraphqlConfig.FILE_NAME + "\". Found \"%s\".";
+    private static final String ERROR_INVALID_OBJECT_TYPE =
+            "\"%s\" is not a supported value for --object-type. It should be either \"service\" or \"record\".";
+    private static final String ERROR_OBJECT_TYPE_NOT_SUPPORTED =
+            "The --object-type flag only applies to service generation. It cannot be used with \"%s\".";
+    // Not private: the @Command annotation on the class can only reference non-private constants.
+    static final String HEADER =
+            "  bal graphql - Generate Ballerina GraphQL services and clients, and GraphQL schemas";
+    static final String DESCRIPTION_SUMMARY =
+            "Generate Ballerina GraphQL services and clients, and GraphQL schemas.";
+    static final String DESCRIPTION_DETAILS =
+            "Services and clients are generated from a balGraphQL.toml file, and schemas are generated " +
+                    "from a Ballerina GraphQL service.";
+    static final String EXAMPLES =
+            "  Generate a GraphQL schema for a Ballerina GraphQL service:%n" +
+                    "    $ bal graphql service.bal -o ./output -s /graphql%n%n" +
+                    "  Generate from a balGraphQL.toml file (client if documents are configured, " +
+                    "otherwise service):%n" +
+                    "    $ bal graphql balGraphQL.toml -o ./output%n%n" +
+                    "  Generate a Ballerina GraphQL service, using record types for object types:%n" +
+                    "    $ bal graphql balGraphQL.toml -m service -o ./output --object-type record%n%n" +
+                    "  Preview the files without writing them, then overwrite existing files:%n" +
+                    "    $ bal graphql balGraphQL.toml -o ./output --dry-run%n" +
+                    "    $ bal graphql balGraphQL.toml -o ./output --force";
+    private static final String INPUT_DESCRIPTION =
+            "Path to a balGraphQL.toml file (client or service generation) or a Ballerina GraphQL service " +
+                    "file (schema generation).";
+    private static final String OUTPUT_DESCRIPTION =
+            "Directory to write the generated files to. Defaults to the current directory.";
+    private static final String SERVICE_DESCRIPTION =
+            "Base path of the service to generate the schema for. Defaults to all GraphQL services in the file.";
+    private static final String MODE_DESCRIPTION =
+            "Operation mode for a balGraphQL.toml file: client or service. Inferred from the file when not " +
+                    "given: client when documents are configured, otherwise service.";
+    private static final String OBJECT_TYPE_DESCRIPTION =
+            "How GraphQL object types are generated in service generation: service (default) or record.";
+    private static final String FORCE_DESCRIPTION =
+            "Overwrite output files that already exist. Without it, existing files are skipped with a warning.";
+    private static final String DRY_RUN_DESCRIPTION =
+            "Show the files that would be created, overwritten or skipped, without writing them.";
 
     private final PrintStream outStream;
     private final Path executionPath;
@@ -65,63 +121,49 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = {"-h", "--help"}, hidden = true)
     private boolean helpFlag;
 
-    @CommandLine.Option(names = {"-i", "--input"},
-            description = "File path to the GraphQL configuration file, GraphQL schema file or Ballerina service file.")
+    @CommandLine.Parameters(arity = "0..1", paramLabel = "<input>", description = INPUT_DESCRIPTION)
     private String inputPath;
 
-    @CommandLine.Option(names = {"-o", "--output"},
-            description = "Directory to store the generated Ballerina clients, Ballerina services or SDL schema file." +
-                    " If this is not provided, the generated files will be stored in the current execution directory.")
+    @CommandLine.Option(names = {"-o", "--output"}, paramLabel = "<output>", description = OUTPUT_DESCRIPTION)
     private String outputPath;
 
-    @CommandLine.Option(names = {"-s", "--service"},
-            description = "Base path of the service that the SDL schema is needed to be generated. " +
-                    "If this is not provided, generate the SDL schema for each GraphQL service in the source file.")
+    @CommandLine.Option(names = {"-s", "--service"}, paramLabel = "<service-base-path>",
+            description = SERVICE_DESCRIPTION)
     private String serviceBasePath;
 
-    @CommandLine.Option(names = {"-m", "--mode"},
-            description = "Ballerina operation mode. It can be client, service or schema.")
+    @CommandLine.Option(names = {"-m", "--mode"}, paramLabel = "<client|service>", description = MODE_DESCRIPTION)
     private String mode;
 
-    @CommandLine.Option(names = {"-r", "--use-records-for-objects"},
-            description = "Inform the generator to generate records types where ever possible")
-    private boolean useRecordsForObjectsFlag;
+    @CommandLine.Option(names = "--object-type", paramLabel = "<service|record>",
+            description = OBJECT_TYPE_DESCRIPTION)
+    private String objectType;
 
-    /**
-     * Functional interface for handling exit behavior.
-     * Public to allow test access from other packages.
-     */
+    @CommandLine.Option(names = "--force", description = FORCE_DESCRIPTION)
+    private boolean force;
+
+    @CommandLine.Option(names = "--dry-run", description = DRY_RUN_DESCRIPTION)
+    private boolean dryRun;
+
+    // Functional interface for handling exit behavior.
+    // Public to allow test access from other packages.
     @FunctionalInterface
     public interface ExitHandler {
         void exit(int code);
     }
 
-    /**
-     * Constructor that initialize with the default values.
-     */
+    // Constructor that initialize with the default values.
     public GraphqlCmd() {
         this(System.err, Paths.get(System.getProperty("user.dir")));
     }
 
-    /**
-     * Constructor override, which takes output stream and execution dir as inputs.
-     * Uses default exit handler that calls Runtime.getRuntime().exit().
-     *
-     * @param outStream    output stream from ballerina
-     * @param executionDir defines the directory location of  execution of ballerina command
-     */
+    // Constructor override, which takes output stream and execution dir as inputs.
+    // Uses default exit handler that calls Runtime.getRuntime().exit().
     public GraphqlCmd(PrintStream outStream, Path executionDir) {
         this(outStream, executionDir, DEFAULT_EXIT_HANDLER);
     }
 
-    /**
-     * Constructor for testing with custom exit handler.
-     * This is public to allow tests in other packages to use it.
-     *
-     * @param outStream    output stream from ballerina
-     * @param executionDir defines the directory location of  execution of ballerina command
-     * @param exitHandler  custom exit handler (for testing)
-     */
+    // Constructor for testing with custom exit handler.
+    // This is public to allow tests in other packages to use it.
     public GraphqlCmd(PrintStream outStream, Path executionDir, ExitHandler exitHandler) {
         this.outStream = outStream;
         this.executionPath = executionDir;
@@ -170,8 +212,13 @@ public class GraphqlCmd implements BLauncherCmd {
             throw new CmdException(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, inputPath));
         }
 
-        if (useRecordsForObjectsFlag && !(inputPath.endsWith(GRAPHQL_EXTENSION))) {
-            throw new CmdException(String.format(Constants.MESSAGE_FOR_USE_RECORDS_FOR_OBJECTS_FLAG_MISUSE, mode));
+        if (objectType != null) {
+            if (ObjectType.fromValue(objectType).isEmpty()) {
+                throw new CmdException(String.format(ERROR_INVALID_OBJECT_TYPE, objectType));
+            }
+            if (!inputPath.endsWith(GRAPHQL_EXTENSION) && !isConfigFileInput(inputPath)) {
+                throw new CmdException(String.format(ERROR_OBJECT_TYPE_NOT_SUPPORTED, inputPath));
+            }
         }
     }
 
@@ -207,8 +254,11 @@ public class GraphqlCmd implements BLauncherCmd {
     private void executeOperation() throws GenerationException {
         GenerationContext context = new GenerationContext(inputPath,
                 OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
-                useRecordsForObjectsFlag, outStream);
+                ObjectType.fromValue(objectType).orElse(null), force, dryRun, outStream);
         GenerationEngine.run(context);
+        if (dryRun) {
+            context.getDryRunReport().print(outStream);
+        }
     }
 
     private Path getTargetOutputPath() {
@@ -230,20 +280,10 @@ public class GraphqlCmd implements BLauncherCmd {
 
     @Override
     public void printLongDesc(StringBuilder stringBuilder) {
-        Class<GraphqlCmd> cmdClass = GraphqlCmd.class;
-        ClassLoader classLoader = cmdClass.getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("ballerina-graphql.help");
-        try (InputStreamReader inputStreamREader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-             BufferedReader br = new BufferedReader(inputStreamREader)) {
-            String content = br.readLine();
-            outStream.append(content);
-            while ((content = br.readLine()) != null) {
-                outStream.append('\n').append(content);
-            }
-            outStream.append('\n');
-        } catch (IOException ex) {
-            throw new IllegalStateException(ex);
-        }
+        CommandLine commandLine = new CommandLine(this);
+        commandLine.getHelpSectionMap().put(CommandLine.Model.UsageMessageSpec.SECTION_KEY_DESCRIPTION,
+                help -> help.description().indent(2));
+        commandLine.usage(outStream, CommandLine.Help.Ansi.OFF);
     }
 
     @Override

@@ -22,25 +22,29 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Optional;
 
-/**
- * Holds the resolved inputs for a single GraphQL generation operation.
- */
+// Holds the resolved inputs for a single GraphQL generation operation.
 public class GenerationContext {
 
     private final String inputPath;
     private final OperationMode declaredOperationMode;
     private final Path targetOutputPath;
     private final String serviceBasePath;
-    private final boolean useRecordsForObjects;
+    private final ObjectType declaredObjectType;
+    private final boolean force;
+    private final boolean dryRun;
     private final PrintStream outStream;
+    private final DryRunReport dryRunReport = new DryRunReport();
 
     public GenerationContext(String inputPath, OperationMode declaredOperationMode, Path targetOutputPath,
-                             String serviceBasePath, boolean useRecordsForObjects, PrintStream outStream) {
+                             String serviceBasePath, ObjectType declaredObjectType, boolean force, boolean dryRun,
+                             PrintStream outStream) {
         this.inputPath = inputPath;
         this.declaredOperationMode = declaredOperationMode;
         this.targetOutputPath = targetOutputPath;
         this.serviceBasePath = serviceBasePath;
-        this.useRecordsForObjects = useRecordsForObjects;
+        this.declaredObjectType = declaredObjectType;
+        this.force = force;
+        this.dryRun = dryRun;
         this.outStream = outStream;
     }
 
@@ -48,10 +52,8 @@ public class GenerationContext {
         return inputPath;
     }
 
-    /**
-     * Returns the operation mode the user declared with the mode flag, if one was given. The mode to generate is
-     * resolved from the input, and this is used to check that the input matches what the user asked for.
-     */
+    // Returns the operation mode the user declared with the mode flag, if one was given. The mode to generate is
+    // resolved from the input, and this is used to check that the input matches what the user asked for.
     public Optional<OperationMode> getDeclaredOperationMode() {
         return Optional.ofNullable(declaredOperationMode);
     }
@@ -64,8 +66,24 @@ public class GenerationContext {
         return serviceBasePath;
     }
 
+    public Optional<ObjectType> getDeclaredObjectType() {
+        return Optional.ofNullable(declaredObjectType);
+    }
+
     public boolean isUseRecordsForObjects() {
-        return useRecordsForObjects;
+        return declaredObjectType == ObjectType.RECORD;
+    }
+
+    public boolean isForce() {
+        return force;
+    }
+
+    public boolean isDryRun() {
+        return dryRun;
+    }
+
+    public DryRunReport getDryRunReport() {
+        return dryRunReport;
     }
 
     public PrintStream getOutStream() {

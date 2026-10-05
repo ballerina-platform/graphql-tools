@@ -30,16 +30,14 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * This class is used to test the functionality of the GraphQL schema (SDL) file validator.
- */
+// This class is used to test the functionality of the GraphQL schema (SDL) file validator.
 public class SDLValidatorTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with invalid local SDL")
     public void testValidateWithInvalidLocalSdl() {
         Path graphqlConfigYaml =
                 resourceDir.resolve(Paths.get("specs", "graphql-config-with-invalid-local-sdl.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);

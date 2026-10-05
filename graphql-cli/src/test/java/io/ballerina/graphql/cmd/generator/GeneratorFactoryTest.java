@@ -25,9 +25,7 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * This class is used to test the functionality of the GeneratorFactory.
- */
+// This class is used to test the functionality of the GeneratorFactory.
 public class GeneratorFactoryTest {
 
     private static final Path OUTPUT_PATH = Paths.get("build");
@@ -38,11 +36,33 @@ public class GeneratorFactoryTest {
     }
 
     private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode) {
-        return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, null, false, System.out);
+        return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, null, null, false, false,
+                System.out);
     }
 
     private Generator getGeneratorForConfig(String fileName) throws GenerationException {
         return GeneratorFactory.getGenerator(createContext(CONFIG_DIR.resolve(fileName).toString()));
+    }
+
+    private Generator getGeneratorForConfigWithRecords(String fileName) throws GenerationException {
+        return GeneratorFactory.getGenerator(new GenerationContext(CONFIG_DIR.resolve(fileName).toString(), null,
+                OUTPUT_PATH, null, ObjectType.RECORD, false, false, System.out));
+    }
+
+    @Test(description = "Test that the record object type is allowed for a service configuration file")
+    public void testGetGeneratorForServiceConfigWithRecordObjectType() throws GenerationException {
+        Assert.assertTrue(getGeneratorForConfigWithRecords("service-config.toml") instanceof ServiceGeneration);
+    }
+
+    @Test(description = "Test that an object type is rejected for a client configuration file")
+    public void testGetGeneratorForClientConfigWithObjectType() {
+        try {
+            getGeneratorForConfigWithRecords("client-config.toml");
+            Assert.fail("Expected a GenerationException for --object-type with a client configuration");
+        } catch (GenerationException e) {
+            Assert.assertTrue(e.getMessage().contains("only applies to service generation"),
+                    "Unexpected message: " + e.getMessage());
+        }
     }
 
     @Test(description = "Test generating a client generator for a GraphQL configuration file")

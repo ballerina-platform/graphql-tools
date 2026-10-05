@@ -30,9 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * This class is used to test the functionality of the GraphQL command.
- */
+// This class is used to test the functionality of the GraphQL command.
 public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @DataProvider(name = "serviceFileNames")
@@ -67,7 +65,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     )
     public void testSdlGeneration(String svcFile, String expSchema, String genSchema) {
         String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "valid", svcFile)).toString();
-        String[] args = {"-i", servicePath, "-o", this.tmpDir.toString()};
+        String[] args = {servicePath, "-o", this.tmpDir.toString(), "--force"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), exitCaptor);
@@ -98,7 +96,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     )
     public void testExecuteWithBalFileIncludeCompilationErrors(String svcFile, String errMessage) {
         String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "invalid", svcFile)).toString();
-        String[] args = {"-i", servicePath, "-o", this.tmpDir.toString()};
+        String[] args = {servicePath, "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -116,7 +114,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     @Test(description = "Test GraphQL command execution with invalid service base path")
     public void testExecuteWithInvalidServiceName() {
         String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "invalid", "service_2.bal")).toString();
-        String[] args = {"-i", servicePath, "-o", this.tmpDir.toString(), "-s", "/service/gql"};
+        String[] args = {servicePath, "-o", this.tmpDir.toString(), "-s", "/service/gql"};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -144,7 +142,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             File file = new File(outPath.toString());
             file.setReadOnly();
             Path servicePath = resourceDir.resolve(Paths.get("graphqlServices/invalid", "service_2.bal"));
-            String[] args = {"-i", servicePath.toString(), "-o", outPath.toString()};
+            String[] args = {servicePath.toString(), "-o", outPath.toString()};
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
@@ -168,7 +166,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             Files.createFile(graphqlService);
             File file = new File(graphqlService.toString());
             file.setReadable(false);
-            String[] args = {"-i", graphqlService.toString(), "-o", tmpDir.toString()};
+            String[] args = {graphqlService.toString(), "-o", tmpDir.toString()};
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);

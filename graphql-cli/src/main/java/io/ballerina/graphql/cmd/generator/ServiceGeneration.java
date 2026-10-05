@@ -32,6 +32,7 @@ import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
+import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
 import java.io.File;
@@ -42,9 +43,7 @@ import java.util.List;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
-/**
- * Generates a Ballerina service for a given GraphQL schema file.
- */
+// Generates a Ballerina service for a given GraphQL schema file.
 public class ServiceGeneration implements Generator {
 
     private final GenerationContext context;
@@ -125,8 +124,13 @@ public class ServiceGeneration implements Generator {
 
     @Override
     public void write() throws GenerationException {
+        Path outputPath = Path.of(this.project.getOutputPath());
+        List<SrcFilePojo> writableSources = this.sources.stream()
+                .filter(source -> OutputFileGuard.canWrite(
+                        CodeGeneratorUtils.resolveFilePath(source, outputPath), context))
+                .toList();
         try {
-            this.serviceCodeGenerator.writeGeneratedSources(this.sources, Path.of(this.project.getOutputPath()));
+            this.serviceCodeGenerator.writeGeneratedSources(writableSources, outputPath);
         } catch (IOException e) {
             throw new GenerationException(new ServiceGenerationException(
                     ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null, e.getMessage()));

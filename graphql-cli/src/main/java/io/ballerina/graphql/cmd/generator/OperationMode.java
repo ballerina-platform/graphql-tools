@@ -23,6 +23,7 @@ import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static io.ballerina.graphql.cmd.Constants.BAL_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
@@ -32,9 +33,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_CLIENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_SCHEMA;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_SERVICE;
 
-/**
- * The operation mode for the GraphQL code generator.
- */
+// The operation mode for the GraphQL code generator.
 public enum OperationMode {
 
     CLIENT(MODE_CLIENT, Set.of(YAML_EXTENSION, YML_EXTENSION)),
@@ -72,7 +71,7 @@ public enum OperationMode {
         if (modeFlag == null) {
             return Optional.empty();
         }
-        return Arrays.stream(OperationMode.values())
+        return Stream.of(CLIENT, SERVICE)
                 .filter(mode -> mode.modeFlag.equals(modeFlag))
                 .findFirst();
     }
@@ -81,10 +80,8 @@ public enum OperationMode {
         return fromInputPath(inputPath).isPresent() || inputPath.endsWith(BalGraphqlConfig.FILE_EXTENSION);
     }
 
-    /**
-     * Resolves the operation mode from the contents of a balGraphQL.toml configuration file. A configuration file
-     * can drive either client or service generation, so the mode is decided by whether documents are configured.
-     */
+    // Resolves the operation mode from the contents of a balGraphQL.toml configuration file. A configuration file
+    // can drive either client or service generation, so the mode is decided by whether documents are configured.
     public static OperationMode fromConfig(BalGraphqlConfig config) {
         return config.hasDocuments() ? CLIENT : SERVICE;
     }

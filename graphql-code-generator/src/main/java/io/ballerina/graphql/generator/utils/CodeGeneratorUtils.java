@@ -70,16 +70,9 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.SLASH;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.SPECIAL_CHAR_REGEX;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
 
-/**
- * Utility class for GraphQL code generation.
- */
+// Utility class for GraphQL code generation.
 public class CodeGeneratorUtils {
-    /**
-     * Gets the document name for a given document.
-     *
-     * @param documentFile     the queries document file
-     * @return                 the document name
-     */
+    // Gets the document name for a given document.
     public static String getDocumentName(File documentFile) {
         return documentFile.getName().split(".graphql")[0]
                 .replaceAll("[-+.^:,]", "").substring(0, 1).toUpperCase() +
@@ -87,49 +80,28 @@ public class CodeGeneratorUtils {
                         .replaceAll("[-+.^:,]", "").substring(1);
     }
 
-    /**
-     * Gets the client file name of the client file to be generated for a given document.
-     *
-     * @param documentFile     the queries document file
-     * @return                 the client file name of the client file to be generated
-     */
+    // Gets the client file name of the client file to be generated for a given document.
     public static String getClientFileName(File documentFile) {
         return documentFile.getName().split(".graphql")[0]
                 .replaceAll("[-+.^:,]", "_").concat("_") + CLIENT_FILE_NAME;
     }
 
-    /**
-     * Gets the absolute file path of a given source file for code generation.
-     *
-     * @param file             the source file
-     * @param outputPath       the target output path
-     * @return                 the client file name of the client file to be generated
-     */
-    public static Path getAbsoluteFilePath(SrcFilePojo file, Path outputPath) {
-        Path filePath;
+    // Builds the path a generated file is written to, without creating any directories.
+    public static Path resolveFilePath(SrcFilePojo file, Path outputPath) {
         if (file.getModuleName().equals(ROOT_PROJECT_NAME)) {
-            File theDir = new File(outputPath.toString());
-            if (!theDir.exists()) {
-                theDir.mkdirs();
-            }
-            filePath = outputPath.resolve(file.getFileName());
-        } else {
-            File theDir = new File(outputPath + MODULES_PATH + file.getModuleName());
-            if (!theDir.exists()) {
-                theDir.mkdirs();
-            }
-            filePath = outputPath.resolve(outputPath + MODULES_PATH + file.getModuleName() + "/" + file.getFileName());
+            return outputPath.resolve(file.getFileName());
         }
+        return outputPath.resolve(outputPath + MODULES_PATH + file.getModuleName() + "/" + file.getFileName());
+    }
+
+    // Gets the absolute file path of a given source file for code generation.
+    public static Path getAbsoluteFilePath(SrcFilePojo file, Path outputPath) {
+        Path filePath = resolveFilePath(file, outputPath);
+        filePath.getParent().toFile().mkdirs();
         return filePath;
     }
 
-    /**
-     * Writes a file with content to specified {@code filePath}.
-     *
-     * @param filePath valid file path to write the content
-     * @param content  content of the file
-     * @throws IOException when a file operation fails
-     */
+    // Writes a file with content to specified {@code filePath}.
     public static void writeFile(Path filePath, String content) throws IOException {
         try (FileWriter writer = new FileWriter(filePath.toString(), StandardCharsets.UTF_8)) {
             writer.write(content);
@@ -138,13 +110,7 @@ public class CodeGeneratorUtils {
 
     public static final MinutiaeList SINGLE_WS_MINUTIAE = getSingleWSMinutiae();
 
-    /**
-     * Gets the `ImportDeclarationNode` instance for a given organization name & module name.
-     *
-     * @param orgName          the organization name
-     * @param moduleName       the module name
-     * @return                 the `ImportDeclarationNode` instance
-     */
+    // Gets the `ImportDeclarationNode` instance for a given organization name & module name.
     public static ImportDeclarationNode getImportDeclarationNode(String orgName, String moduleName) {
         Token importKeyword = AbstractNodeFactory.createIdentifierToken(IMPORT, SINGLE_WS_MINUTIAE,
                 SINGLE_WS_MINUTIAE);
@@ -169,12 +135,7 @@ public class CodeGeneratorUtils {
         return leading;
     }
 
-    /**
-     * Gets the client class name for a given document.
-     *
-     * @param generatorContext   cause of trigger of source generation
-     * @return                 the client class name
-     */
+    // Gets the client class name for a given document.
     public static String getClientClassName(GeneratorContext generatorContext) {
         if (generatorContext == GeneratorContext.IDL_PLUGIN) {
             return CodeGeneratorConstants.IDL_PLUGIN_CLIENT;
@@ -183,23 +144,13 @@ public class CodeGeneratorUtils {
         }
     }
 
-    /**
-     * Gets the remote function signature return type name.
-     *
-     * @param operationName    the name of the operation
-     * @return                 the remote function return type name
-     */
+    // Gets the remote function signature return type name.
     public static String getRemoteFunctionSignatureReturnTypeName(String operationName) {
         return operationName.substring(0, 1).toUpperCase() +
                 operationName.substring(1).concat("Response|graphql:ClientError");
     }
 
-    /**
-     * Gets the remote function body return type name.
-     *
-     * @param operationName    the name of the operation
-     * @return                 the remote function return type name
-     */
+    // Gets the remote function body return type name.
     public static String getRemoteFunctionBodyReturnTypeName(String operationName) {
         return "<" + operationName.substring(0, 1).toUpperCase() +
                 operationName.substring(1) + "Response> check " +
@@ -243,11 +194,7 @@ public class CodeGeneratorUtils {
         return documentElements;
     }
 
-    /**
-     * Generates the imports for client and service files.
-     *
-     * @return the node list which represent imports
-     */
+    // Generates the imports for client and service files.
     public static NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();
         ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
@@ -256,12 +203,7 @@ public class CodeGeneratorUtils {
         return createNodeList(imports);
     }
 
-    /**
-     * This method will escape special characters used in method names and identifiers.
-     *
-     * @param identifier    identifier or method name
-     * @return              escaped string
-     */
+    // This method will escape special characters used in method names and identifiers.
     public static String escapeIdentifier(String identifier) {
 
         if (identifier.matches("\\b[0-9]*\\b")) {
@@ -296,12 +238,7 @@ public class CodeGeneratorUtils {
         return identifier;
     }
 
-    /**
-     * This method will return a valid name for variables.
-     *
-     * @param identifier    identifier or method name
-     * @return              valid name for variables
-     */
+    // This method will return a valid name for variables.
     public static String getValidName(String identifier) {
         // To enable flatten we need to remove first Part of valid name check
         // this - > !identifier.matches("\\b[a-zA-Z][a-zA-Z0-9]*\\b") &&
