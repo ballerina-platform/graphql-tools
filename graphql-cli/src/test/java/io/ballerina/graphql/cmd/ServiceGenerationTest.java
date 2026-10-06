@@ -181,7 +181,8 @@ public class ServiceGenerationTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
-            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
+            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()),
+                    "Unexpected compilation errors: " + diagnosticResult.errors());
         } catch (BLauncherException e) {
             Assert.fail(e.toString());
         }
@@ -201,7 +202,8 @@ public class ServiceGenerationTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
-            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
+            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()),
+                    "Unexpected compilation errors: " + diagnosticResult.errors());
         } catch (BLauncherException e) {
             Assert.fail(e.toString());
         }
