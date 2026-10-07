@@ -21,7 +21,9 @@ package io.ballerina.graphql.cmd.generator;
 import java.util.Arrays;
 import java.util.Optional;
 
-// How GraphQL object types are generated in a Ballerina service.
+/**
+ * How GraphQL object types are generated in a Ballerina service.
+ */
 public enum ObjectType {
 
     SERVICE("service"),
@@ -33,6 +35,12 @@ public enum ObjectType {
         this.value = value;
     }
 
+    /**
+     * Returns the object type for a value of the --object-type flag.
+     *
+     * @param value the flag value, e.g. "service" or "record"
+     * @return the object type, or empty if the value is not supported
+     */
     public static Optional<ObjectType> fromValue(String value) {
         return Arrays.stream(ObjectType.values())
                 .filter(objectType -> objectType.value.equals(value))

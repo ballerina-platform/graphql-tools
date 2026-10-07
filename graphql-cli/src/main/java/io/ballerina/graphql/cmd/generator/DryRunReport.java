@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-// Collects the planned action for each output file during a dry run and prints them with a summary.
+/**
+ * Collects the planned action for each output file during a dry run and prints them with a summary.
+ */
 public final class DryRunReport {
 
     private static final String HEADER = "Dry run: no files were written.";
@@ -38,6 +40,11 @@ public final class DryRunReport {
         files.add(new PlannedFile(action, path));
     }
 
+    /**
+     * Prints each planned file with its action, followed by a count of each action.
+     *
+     * @param outStream the stream to print the report to
+     */
     public void print(PrintStream outStream) {
         outStream.println(HEADER);
         outStream.println();

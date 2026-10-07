@@ -28,7 +28,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-// This class is used to test that only a file named "balGraphQL.toml" is accepted as a GraphQL configuration file.
+/**
+ * This class is used to test that only a file named "balGraphQL.toml" is accepted as a GraphQL configuration file.
+ */
 public class BalGraphqlConfigFileNameTest extends GraphqlTest {
 
     private static final String CONFIG_CONTENT = "[schema]\nsource = \"file\"\npath = \"./schema.graphql\"\n";

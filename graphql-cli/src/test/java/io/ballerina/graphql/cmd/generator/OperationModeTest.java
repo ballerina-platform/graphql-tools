@@ -23,7 +23,9 @@ import org.testng.annotations.Test;
 
 import java.util.Optional;
 
-// This class is used to test the functionality of the OperationMode.
+/**
+ * This class is used to test the functionality of the OperationMode.
+ */
 public class OperationModeTest {
 
     @Test(description = "Test resolving the operation mode from the input file extension")

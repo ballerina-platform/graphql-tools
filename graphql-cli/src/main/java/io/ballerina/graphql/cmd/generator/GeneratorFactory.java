@@ -28,7 +28,9 @@ import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-// Creates the generator that handles a given generation context.
+/**
+ * Creates the generator that handles a given generation context.
+ */
 public class GeneratorFactory {
 
     private static final String ERROR_UNRESOLVED_OPERATION_MODE =
@@ -43,7 +45,7 @@ public class GeneratorFactory {
         if (inputPath.endsWith(BalGraphqlConfig.FILE_EXTENSION)) {
             BalGraphqlConfig config = readConfig(inputPath, context.getOutStream());
             OperationMode operationMode = resolveOperationMode(context, config);
-            if (operationMode == OperationMode.CLIENT && context.getDeclaredObjectType().isPresent()) {
+            if (operationMode == OperationMode.CLIENT && context.isObjectTypeDeclared()) {
                 throw new GenerationException(String.format(ERROR_OBJECT_TYPE_FOR_CLIENT, inputPath));
             }
             return createGenerator(operationMode, context, config);

@@ -46,21 +46,30 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
 
-// This class is used to test that ServiceGeneration and ClientGeneration correctly resolve a schema (and, for
-// client generation, documents) from a balGraphQL.toml configuration file, rather than from the input path itself.
+/**
+ * This class is used to test that ServiceGeneration and ClientGeneration correctly resolve a schema (and, for
+ * client generation, documents) from a balGraphQL.toml configuration file, rather than from the input path itself.
+ */
 public class BalGraphqlConfigGenerationTest {
 
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
     private static final Path OUTPUT_PATH = Paths.get("build");
+    private static final OperationMode NO_OPERATION_MODE = null;
+    private static final String NO_SERVICE_BASE_PATH = null;
+    private static final ObjectType NO_OBJECT_TYPE = null;
+    private static final boolean NO_FORCE = false;
+    private static final boolean NO_DRY_RUN = false;
     private static final String INVALID_SDL = "type Query {\n  broken(: String\n}\n";
 
     private HttpServer server;
     private String baseUrl;
     private final AtomicReference<String> receivedAuthorization = new AtomicReference<>();
 
-    // Starts a local HTTP server standing in for remote schema sources: a hosted SDL file for the "url" source
-    // and a GraphQL endpoint answering introspection queries for the "introspection" source, plus malformed
-    // responses for the failure cases. Paths with no handler respond with 404.
+    /**
+     * Starts a local HTTP server standing in for remote schema sources: a hosted SDL file for the "url" source
+     * and a GraphQL endpoint answering introspection queries for the "introspection" source, plus malformed
+     * responses for the failure cases. Paths with no handler respond with 404.
+     */
     @BeforeClass
     public void startServer() throws IOException {
         String sdl = Files.readString(CONFIG_DIR.resolve("schema.graphql"));
@@ -92,6 +101,21 @@ public class BalGraphqlConfigGenerationTest {
         Path configPath = CONFIG_DIR.resolve("service-config.toml");
         // Should resolve "./schema.graphql" relative to the configuration file directory and validate successfully.
         serviceGeneration(configPath).validate();
+    }
+
+    @Test(description = "Test that the record object type generates object types as records")
+    public void testGenerateServiceWithRecordObjectType() throws IOException, ParseException, GenerationException {
+        Path configPath = CONFIG_DIR.resolve("service-config.toml");
+        Path outputPath = Files.createTempDirectory("record-object-type");
+        GenerationContext context = new GenerationContext(configPath.toString(), NO_OPERATION_MODE, outputPath,
+                NO_SERVICE_BASE_PATH, ObjectType.RECORD, NO_FORCE, NO_DRY_RUN, System.out);
+        Generator generator = new ServiceGeneration(context, readConfig(configPath));
+        generator.validate();
+        generator.generate();
+        generator.write();
+        String types = Files.readString(outputPath.resolve("types.bal"));
+        Assert.assertTrue(types.contains("public type Book record {|"), types);
+        Assert.assertFalse(types.contains("service class Book"), types);
     }
 
     @Test(description = "Test validating a client generator built from a configuration file with a local schema "
@@ -176,7 +200,8 @@ public class BalGraphqlConfigGenerationTest {
     }
 
     private GenerationContext createContext(Path configPath) {
-        return new GenerationContext(configPath.toString(), null, OUTPUT_PATH, null, null, false, false, System.out);
+        return new GenerationContext(configPath.toString(), NO_OPERATION_MODE, OUTPUT_PATH, NO_SERVICE_BASE_PATH,
+                NO_OBJECT_TYPE, NO_FORCE, NO_DRY_RUN, System.out);
     }
 
     private BalGraphqlConfig readConfig(Path configPath) throws IOException, ParseException {
@@ -211,7 +236,6 @@ public class BalGraphqlConfigGenerationTest {
         return configPath;
     }
 
-    // Builds the response a real GraphQL server would send for an introspection query against the given schema.
     private static String createIntrospectionResponse(String sdl) {
         GraphQLSchema schema = new SchemaGenerator().makeExecutableSchema(new SchemaParser().parse(sdl),
                 RuntimeWiring.MOCKED_WIRING);

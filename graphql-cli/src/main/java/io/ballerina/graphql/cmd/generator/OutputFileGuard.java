@@ -21,7 +21,6 @@ package io.ballerina.graphql.cmd.generator;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-// Decides whether a generated file can be written to the output location.
 final class OutputFileGuard {
 
     private static final String WARNING_FILE_EXISTS =

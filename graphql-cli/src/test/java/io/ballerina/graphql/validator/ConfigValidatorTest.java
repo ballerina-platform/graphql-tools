@@ -34,7 +34,9 @@ import java.nio.file.Paths;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_SCHEMA_URL;
 
-// This class is used to test the functionality of the GraphQL configuration file validator.
+/**
+ * This class is used to test the functionality of the GraphQL configuration file validator.
+ */
 public class ConfigValidatorTest extends GraphqlTest {
     private static final Log log = LogFactory.getLog(ConfigValidatorTest.class);
 
@@ -66,7 +68,7 @@ public class ConfigValidatorTest extends GraphqlTest {
 //    public void testValidateWithInvalidSchemaPath() {
 //        Path graphqlConfigYaml =
 //                resourceDir.resolve(Paths.get("specs", "graphql-config-with-invalid-schema-path.yaml"));
-//        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+//        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
 //        GraphqlCmd graphqlCmd = new GraphqlCmd(this.printStream, this.tmpDir, false);
 //        new CommandLine(graphqlCmd).parseArgs(args);
 //        String output = "";

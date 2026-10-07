@@ -59,7 +59,9 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
-// Generates a Ballerina client for a given GraphQL configuration file.
+/**
+ * Generates a Ballerina client for a given GraphQL configuration file.
+ */
 public class ClientGeneration implements Generator {
 
     private static final String ERROR_MISSING_DOCUMENTS =

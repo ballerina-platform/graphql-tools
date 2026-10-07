@@ -30,7 +30,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-// This class is used to test the functionality of the GraphQL command.
+/**
+ * This class is used to test the functionality of the GraphQL command.
+ */
 public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @DataProvider(name = "serviceFileNames")

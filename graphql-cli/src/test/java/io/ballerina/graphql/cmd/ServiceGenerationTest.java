@@ -40,7 +40,9 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
 import static io.ballerina.graphql.common.TestUtils.getDiagnosticResult;
 import static io.ballerina.graphql.common.TestUtils.hasOnlyFuncMustReturnResultErrors;
 
-// This class includes tests for Ballerina Graphql service generation.
+/**
+ * This class includes tests for Ballerina Graphql service generation.
+ */
 public class ServiceGenerationTest extends GraphqlTest {
     private final Path balTomlPath =
             this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "Ballerina.toml"));

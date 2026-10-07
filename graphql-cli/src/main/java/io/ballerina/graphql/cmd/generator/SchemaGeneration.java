@@ -33,7 +33,9 @@ import java.util.List;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_CANNOT_READ_BAL_FILE;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
 
-// Generates the SDL schema for a given Ballerina GraphQL service file.
+/**
+ * Generates the SDL schema for a given Ballerina GraphQL service file.
+ */
 public class SchemaGeneration implements Generator {
 
     private final GenerationContext context;

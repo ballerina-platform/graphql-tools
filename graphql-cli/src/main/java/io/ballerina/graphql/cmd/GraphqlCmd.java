@@ -38,8 +38,10 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENS
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION;
 
-// Main class to implement "graphql" command for Ballerina.
-// Commands for Client, Service and SDL Schema file generation.
+/**
+ * Main class to implement "graphql" command for Ballerina.
+ * Commands for Client, Service and SDL Schema file generation.
+ */
 @CommandLine.Command(name = "graphql",
         usageHelpWidth = 100,
         separator = " ",
@@ -144,26 +146,41 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = "--dry-run", description = DRY_RUN_DESCRIPTION)
     private boolean dryRun;
 
-    // Functional interface for handling exit behavior.
-    // Public to allow test access from other packages.
+    /**
+     * Functional interface for handling exit behavior.
+     * Public to allow test access from other packages.
+     */
     @FunctionalInterface
     public interface ExitHandler {
         void exit(int code);
     }
 
-    // Constructor that initialize with the default values.
+    /**
+     * Constructor that initialize with the default values.
+     */
     public GraphqlCmd() {
         this(System.err, Paths.get(System.getProperty("user.dir")));
     }
 
-    // Constructor override, which takes output stream and execution dir as inputs.
-    // Uses default exit handler that calls Runtime.getRuntime().exit().
+    /**
+     * Constructor override, which takes output stream and execution dir as inputs.
+     * Uses default exit handler that calls Runtime.getRuntime().exit().
+     *
+     * @param outStream    output stream from ballerina
+     * @param executionDir defines the directory location of  execution of ballerina command
+     */
     public GraphqlCmd(PrintStream outStream, Path executionDir) {
         this(outStream, executionDir, DEFAULT_EXIT_HANDLER);
     }
 
-    // Constructor for testing with custom exit handler.
-    // This is public to allow tests in other packages to use it.
+    /**
+     * Constructor for testing with custom exit handler.
+     * This is public to allow tests in other packages to use it.
+     *
+     * @param outStream    output stream from ballerina
+     * @param executionDir defines the directory location of  execution of ballerina command
+     * @param exitHandler  custom exit handler (for testing)
+     */
     public GraphqlCmd(PrintStream outStream, Path executionDir, ExitHandler exitHandler) {
         this.outStream = outStream;
         this.executionPath = executionDir;
@@ -283,6 +300,7 @@ public class GraphqlCmd implements BLauncherCmd {
         CommandLine commandLine = new CommandLine(this);
         commandLine.getHelpSectionMap().put(CommandLine.Model.UsageMessageSpec.SECTION_KEY_DESCRIPTION,
                 help -> help.description().indent(2));
+        // ANSI is off because ANSI codes print as raw characters when the help goes to a file, pipe or test output.
         commandLine.usage(outStream, CommandLine.Help.Ansi.OFF);
     }
 

@@ -43,7 +43,9 @@ import java.util.List;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
-// Generates a Ballerina service for a given GraphQL schema file.
+/**
+ * Generates a Ballerina service for a given GraphQL schema file.
+ */
 public class ServiceGeneration implements Generator {
 
     private final GenerationContext context;

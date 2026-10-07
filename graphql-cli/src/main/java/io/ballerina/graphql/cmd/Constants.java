@@ -18,7 +18,9 @@
 
 package io.ballerina.graphql.cmd;
 
-// This class represents GraphQL command line tool related constants.
+/**
+ * This class represents GraphQL command line tool related constants.
+ */
 public class Constants {
 
     // GraphQL command line tool messages

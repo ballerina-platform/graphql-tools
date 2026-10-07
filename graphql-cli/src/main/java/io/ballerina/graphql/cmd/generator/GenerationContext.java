@@ -22,7 +22,9 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Optional;
 
-// Holds the resolved inputs for a single GraphQL generation operation.
+/**
+ * Holds the resolved inputs for a single GraphQL generation operation.
+ */
 public class GenerationContext {
 
     private final String inputPath;
@@ -52,8 +54,10 @@ public class GenerationContext {
         return inputPath;
     }
 
-    // Returns the operation mode the user declared with the mode flag, if one was given. The mode to generate is
-    // resolved from the input, and this is used to check that the input matches what the user asked for.
+    /**
+     * Returns the operation mode the user declared with the mode flag, if one was given. The mode to generate is
+     * resolved from the input, and this is used to check that the input matches what the user asked for.
+     */
     public Optional<OperationMode> getDeclaredOperationMode() {
         return Optional.ofNullable(declaredOperationMode);
     }
@@ -66,12 +70,16 @@ public class GenerationContext {
         return serviceBasePath;
     }
 
-    public Optional<ObjectType> getDeclaredObjectType() {
-        return Optional.ofNullable(declaredObjectType);
+    public ObjectType getObjectType() {
+        return declaredObjectType != null ? declaredObjectType : ObjectType.SERVICE;
+    }
+
+    public boolean isObjectTypeDeclared() {
+        return declaredObjectType != null;
     }
 
     public boolean isUseRecordsForObjects() {
-        return declaredObjectType == ObjectType.RECORD;
+        return getObjectType() == ObjectType.RECORD;
     }
 
     public boolean isForce() {

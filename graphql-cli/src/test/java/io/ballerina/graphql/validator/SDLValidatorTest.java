@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-// This class is used to test the functionality of the GraphQL schema (SDL) file validator.
+/**
+ * This class is used to test the functionality of the GraphQL schema (SDL) file validator.
+ */
 public class SDLValidatorTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with invalid local SDL")

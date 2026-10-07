@@ -40,7 +40,9 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENS
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
 
-// This class is used to test the functionality of the GraphQL command.
+/**
+ * This class is used to test the functionality of the GraphQL command.
+ */
 public class GraphqlCmdTest extends GraphqlTest {
     private static final Log log = LogFactory.getLog(GraphqlCmdTest.class);
 
