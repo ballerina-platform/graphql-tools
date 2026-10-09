@@ -32,17 +32,47 @@ public class GeneratorFactoryTest {
 
     private static final Path OUTPUT_PATH = Paths.get("build");
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
+    private static final OperationMode NO_OPERATION_MODE = null;
+    private static final String NO_SERVICE_BASE_PATH = null;
+    private static final ObjectType NO_OBJECT_TYPE = null;
+    private static final boolean NO_FORCE = false;
+    private static final boolean NO_DRY_RUN = false;
 
     private GenerationContext createContext(String inputPath) {
-        return createContext(inputPath, null);
+        return createContext(inputPath, NO_OPERATION_MODE);
     }
 
     private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode) {
-        return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, null, false, System.out);
+        return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, NO_SERVICE_BASE_PATH,
+                NO_OBJECT_TYPE, NO_FORCE, NO_DRY_RUN, System.out);
     }
 
     private Generator getGeneratorForConfig(String fileName) throws GenerationException {
         return GeneratorFactory.getGenerator(createContext(CONFIG_DIR.resolve(fileName).toString()));
+    }
+
+    private Generator getGeneratorForConfigWithRecords(String fileName) throws GenerationException {
+        return GeneratorFactory.getGenerator(new GenerationContext(CONFIG_DIR.resolve(fileName).toString(),
+                NO_OPERATION_MODE, OUTPUT_PATH, NO_SERVICE_BASE_PATH, ObjectType.RECORD, NO_FORCE, NO_DRY_RUN,
+                System.out));
+    }
+
+    @Test(description = "Test that an object type is rejected for a client configuration file")
+    public void testGetGeneratorForClientConfigWithObjectType() {
+        try {
+            getGeneratorForConfigWithRecords("client-config.toml");
+            Assert.fail("Expected a GenerationException for --object-type with a client configuration");
+        } catch (GenerationException e) {
+            Assert.assertTrue(e.getMessage().contains("only applies to service generation"),
+                    "Unexpected message: " + e.getMessage());
+        }
+    }
+
+    @Test(description = "Test that the object type defaults to service when the flag is not given")
+    public void testObjectTypeDefaultsToService() {
+        GenerationContext context = createContext(CONFIG_DIR.resolve("service-config.toml").toString());
+        Assert.assertEquals(context.getObjectType(), ObjectType.SERVICE);
+        Assert.assertFalse(context.isObjectTypeDeclared());
     }
 
     @Test(description = "Test generating a client generator for a GraphQL configuration file")

@@ -77,8 +77,16 @@ public class SchemaGeneration implements Generator {
 
     @Override
     public void write() throws GenerationException {
+        Path outputPath = context.getTargetOutputPath();
+        List<SdlSchema> writableSchemas = this.schemas.stream()
+                .filter(schema -> OutputFileGuard.canWrite(outputPath.resolve(schema.getName()), context))
+                .toList();
+        // Every schema file was skipped; don't report "no GraphQL services".
+        if (!this.schemas.isEmpty() && writableSchemas.isEmpty()) {
+            return;
+        }
         try {
-            SdlSchemaGenerator.writeSchemaFiles(this.schemas, context.getTargetOutputPath(), context.getOutStream());
+            SdlSchemaGenerator.writeSchemaFiles(writableSchemas, outputPath, context.getOutStream());
         } catch (SchemaFileGenerationException e) {
             throw new GenerationException(e);
         }

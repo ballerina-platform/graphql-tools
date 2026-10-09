@@ -34,6 +34,7 @@ import io.ballerina.graphql.generator.client.exception.ClientCodeGenerationExcep
 import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.generator.ClientCodeGenerator;
 import io.ballerina.graphql.generator.client.pojo.Extension;
+import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import io.ballerina.graphql.validator.ConfigValidator;
@@ -165,9 +166,13 @@ public class ClientGeneration implements Generator {
     public void write() throws GenerationException {
         for (Map.Entry<GraphqlClientProject, List<SrcFilePojo>> entry : this.generatedSources.entrySet()) {
             GraphqlClientProject project = entry.getKey();
+            Path outputPath = Path.of(project.getOutputPath());
+            List<SrcFilePojo> writableSources = entry.getValue().stream()
+                    .filter(source -> OutputFileGuard.canWrite(
+                            CodeGeneratorUtils.resolveFilePath(source, outputPath), context))
+                    .toList();
             try {
-                this.clientCodeGenerator.writeGeneratedSources(entry.getValue(),
-                        Path.of(project.getOutputPath()));
+                this.clientCodeGenerator.writeGeneratedSources(writableSources, outputPath);
             } catch (IOException e) {
                 throw new GenerationException(new ClientCodeGenerationException(e.getMessage(), project.getName()));
             }

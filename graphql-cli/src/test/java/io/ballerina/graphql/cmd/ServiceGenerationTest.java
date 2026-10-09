@@ -74,7 +74,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testExecuteWithInvalidSchemaForServiceGen() {
         Path graphqlSchema = this.resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
-        String[] args = {"-i", graphqlSchema.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
+        String[] args = {graphqlSchema.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -92,7 +92,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testExecuteWithSchemaInvalidFilePath() {
         Path invalidPath =
                 this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid", "Schema.graphql"));
-        String[] args = {"-i", invalidPath.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
+        String[] args = {invalidPath.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -112,7 +112,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         Path graphqlSchema = this.resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         Path outputPath = Paths.get(tmpDir.toString(), "new");
-        String[] args = {"-i", graphqlSchema.toString(), "-o", outputPath.toString(), "-m", "service"};
+        String[] args = {graphqlSchema.toString(), "-o", outputPath.toString(), "-m", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -135,7 +135,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     )
     public void testExecuteWithSchemaFileWithoutReadPermission() {
         Path graphqlSchema = Paths.get(tmpDir.toString(), "schema.graphql");
-        String[] args = {"-i", graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
+        String[] args = {graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -171,39 +171,41 @@ public class ServiceGenerationTest extends GraphqlTest {
     }
 
     @Test(
-            description = "Test compilation for all schemas without use-records-for-objects flag",
+            description = "Test compilation for all schemas with the default object type",
             dataProvider = "schemaFileNames"
     )
     public void testCompilationForAllSchemas(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
-        String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        String[] args = {schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
-            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
+            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()),
+                    "Unexpected compilation errors: " + diagnosticResult.errors());
         } catch (BLauncherException e) {
             Assert.fail(e.toString());
         }
     }
 
     @Test(
-            description = "Test compilation for all schemas with use-records-for-objects flag",
+            description = "Test compilation for all schemas with the record object type",
             dataProvider = "schemaFileNames"
     )
     public void testCompilationForAllSchemasWithUseRecordsForObjects(String file) {
         Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
-        String[] args = {"-i", schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
-                "--use-records-for-objects"};
+        String[] args = {schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
+                "--object-type", "record"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
-            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()));
+            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()),
+                    "Unexpected compilation errors: " + diagnosticResult.errors());
         } catch (BLauncherException e) {
             Assert.fail(e.toString());
         }

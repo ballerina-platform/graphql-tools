@@ -44,7 +44,7 @@ public class ConfigValidatorTest extends GraphqlTest {
     public void testValidateWithInvalidSchemaUrl() {
         Path graphqlConfigYaml =
                 resourceDir.resolve(Paths.get("specs", "graphql-config-with-invalid-sdl-url.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(this.printStream, this.tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);

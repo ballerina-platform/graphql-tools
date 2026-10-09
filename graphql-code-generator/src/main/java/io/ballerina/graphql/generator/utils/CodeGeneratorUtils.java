@@ -99,6 +99,20 @@ public class CodeGeneratorUtils {
     }
 
     /**
+     * Gets the path a generated source file is written to, without creating any directories.
+     *
+     * @param file       the source file
+     * @param outputPath the target output path
+     * @return the path of the file to be generated
+     */
+    public static Path resolveFilePath(SrcFilePojo file, Path outputPath) {
+        if (file.getModuleName().equals(ROOT_PROJECT_NAME)) {
+            return outputPath.resolve(file.getFileName());
+        }
+        return outputPath.resolve(outputPath + MODULES_PATH + file.getModuleName() + "/" + file.getFileName());
+    }
+
+    /**
      * Gets the absolute file path of a given source file for code generation.
      *
      * @param file             the source file
@@ -106,20 +120,8 @@ public class CodeGeneratorUtils {
      * @return                 the client file name of the client file to be generated
      */
     public static Path getAbsoluteFilePath(SrcFilePojo file, Path outputPath) {
-        Path filePath;
-        if (file.getModuleName().equals(ROOT_PROJECT_NAME)) {
-            File theDir = new File(outputPath.toString());
-            if (!theDir.exists()) {
-                theDir.mkdirs();
-            }
-            filePath = outputPath.resolve(file.getFileName());
-        } else {
-            File theDir = new File(outputPath + MODULES_PATH + file.getModuleName());
-            if (!theDir.exists()) {
-                theDir.mkdirs();
-            }
-            filePath = outputPath.resolve(outputPath + MODULES_PATH + file.getModuleName() + "/" + file.getFileName());
-        }
+        Path filePath = resolveFilePath(file, outputPath);
+        filePath.getParent().toFile().mkdirs();
         return filePath;
     }
 

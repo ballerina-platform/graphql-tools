@@ -23,6 +23,7 @@ import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static io.ballerina.graphql.cmd.Constants.BAL_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
@@ -72,7 +73,7 @@ public enum OperationMode {
         if (modeFlag == null) {
             return Optional.empty();
         }
-        return Arrays.stream(OperationMode.values())
+        return Stream.of(CLIENT, SERVICE)
                 .filter(mode -> mode.modeFlag.equals(modeFlag))
                 .findFirst();
     }

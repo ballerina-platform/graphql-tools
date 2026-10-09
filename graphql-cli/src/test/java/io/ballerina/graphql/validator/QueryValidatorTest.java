@@ -39,7 +39,7 @@ public class QueryValidatorTest extends GraphqlTest {
     public void testValidate() {
         Path graphqlConfigYaml =
                 resourceDir.resolve(Paths.get("specs", "graphql-config-with-invalid-query-file.yaml"));
-        String[] args = {"-i", graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);

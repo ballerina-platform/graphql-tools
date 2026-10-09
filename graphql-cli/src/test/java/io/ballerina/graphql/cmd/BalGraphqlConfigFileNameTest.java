@@ -38,7 +38,7 @@ public class BalGraphqlConfigFileNameTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with a correctly named balGraphQL.toml file")
     public void testExecuteWithCorrectConfigFileName() throws IOException {
         Path configFile = writeConfigFile("balGraphQL.toml");
-        String[] args = {"-i", configFile.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {configFile.toString(), "-o", this.tmpDir.toString()};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -55,7 +55,7 @@ public class BalGraphqlConfigFileNameTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with an incorrectly named .toml file")
     public void testExecuteWithIncorrectConfigFileName() throws IOException {
         Path configFile = writeConfigFile("myconfig.toml");
-        String[] args = {"-i", configFile.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {configFile.toString(), "-o", this.tmpDir.toString()};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -75,7 +75,7 @@ public class BalGraphqlConfigFileNameTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with a .toml file name that differs only in case")
     public void testExecuteWithWrongCaseConfigFileName() throws IOException {
         Path configFile = writeConfigFile("balgraphql.toml");
-        String[] args = {"-i", configFile.toString(), "-o", this.tmpDir.toString()};
+        String[] args = {configFile.toString(), "-o", this.tmpDir.toString()};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -92,14 +92,15 @@ public class BalGraphqlConfigFileNameTest extends GraphqlTest {
     @Test(description = "Test that the schema mode is rejected for a balGraphQL.toml input")
     public void testExecuteWithSchemaModeForConfigFile() throws IOException {
         Path configFile = writeConfigFile("balGraphQL.toml");
-        String[] args = {"-i", configFile.toString(), "-o", this.tmpDir.toString(), "-m", "schema"};
+        String[] args = {configFile.toString(), "-o", this.tmpDir.toString(), "-m", "schema"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains("\"schema\" mode is not allowed"), "Unexpected output: " + output);
+            Assert.assertTrue(output.contains("\"schema\" is not a supported argument for mode flag"), 
+                    "Unexpected output: " + output);
             Assert.assertEquals(exitCaptor.getExitCode(), 1, "The schema mode should fail the command");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());

@@ -35,6 +35,8 @@ public class GeneratorFactory {
 
     private static final String ERROR_UNRESOLVED_OPERATION_MODE =
             "The operation to perform could not be resolved from the input \"%s\".";
+    private static final String ERROR_OBJECT_TYPE_FOR_CLIENT =
+            "The --object-type flag only applies to service generation. \"%s\" resolves to client generation.";
 
     private GeneratorFactory() {}
 
@@ -43,6 +45,9 @@ public class GeneratorFactory {
         if (inputPath.endsWith(BalGraphqlConfig.FILE_EXTENSION)) {
             BalGraphqlConfig config = readConfig(inputPath, context.getOutStream());
             OperationMode operationMode = resolveOperationMode(context, config);
+            if (operationMode == OperationMode.CLIENT && context.isObjectTypeDeclared()) {
+                throw new GenerationException(String.format(ERROR_OBJECT_TYPE_FOR_CLIENT, inputPath));
+            }
             return createGenerator(operationMode, context, config);
         }
         OperationMode operationMode = OperationMode.fromInputPath(inputPath).orElseThrow(

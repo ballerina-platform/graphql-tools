@@ -43,12 +43,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static io.ballerina.graphql.schema.Constants.EMPTY_STRING;
@@ -75,9 +72,6 @@ public final class Utils {
 
     private Utils() {}
 
-    /**
-     * Check whether the given service declaration node is related to a GraphQL service.
-     */
     public static boolean isGraphqlService(ServiceDeclarationNode node, SemanticModel semanticModel) {
         if (semanticModel.symbol(node).isEmpty()) {
             return false;
@@ -89,9 +83,6 @@ public final class Utils {
         return hasGraphqlListener(symbol);
     }
 
-    /**
-     * Get service base path from the given service declaration node.
-     */
     public static String getServiceBasePath(ServiceDeclarationNode serviceDefinition) {
         StringBuilder currentServiceName = new StringBuilder();
         NodeList<Node> serviceNameNodes = serviceDefinition.absoluteResourcePath();
@@ -101,9 +92,6 @@ public final class Utils {
         return formatBasePath(currentServiceName.toString().trim());
     }
 
-    /**
-     * Get encoded schema string from the given node.
-     */
     public static String getSchemaString(ServiceDeclarationNode node) throws SchemaFileGenerationException {
         if (node.metadata().isPresent()) {
             if (!node.metadata().get().annotations().isEmpty()) {
@@ -114,9 +102,6 @@ public final class Utils {
         throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
     }
 
-    /**
-     * Get encoded schema string from the given node.
-     */
     public static String getSchemaString(ObjectConstructorExpressionNode node) throws SchemaFileGenerationException {
         if (!node.annotations().isEmpty()) {
             for (AnnotationNode annotationNode: node.annotations()) {
@@ -128,9 +113,6 @@ public final class Utils {
         throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
     }
 
-    /**
-     * Get annotation value string from the given metadata node.
-     */
     private static MappingConstructorExpressionNode getAnnotationValue(MetadataNode metadataNode)
             throws SchemaFileGenerationException {
         for (AnnotationNode annotationNode: metadataNode.annotations()) {
@@ -142,9 +124,6 @@ public final class Utils {
                 MESSAGE_MISSING_SERVICE_CONFIG);
     }
 
-    /**
-     * Get schema string field from the given node.
-     */
     private static String getSchemaStringFieldFromValue(MappingConstructorExpressionNode annotationValue)
             throws SchemaFileGenerationException {
         SeparatedNodeList<MappingFieldNode> existingFields = annotationValue.fields();
@@ -158,11 +137,6 @@ public final class Utils {
                 MESSAGE_MISSING_FIELD_SCHEMA_STRING);
     }
 
-    /**
-     * Check whether the given annotation is a GraphQL service config.
-     *
-     * @param annotationNode     annotation node
-     */
     private static boolean isGraphqlServiceConfig(AnnotationNode annotationNode) {
         if (annotationNode.annotReference().kind() != SyntaxKind.QUALIFIED_NAME_REFERENCE) {
             return false;
@@ -174,9 +148,6 @@ public final class Utils {
         return SERVICE_CONFIG_IDENTIFIER.equals(referenceNode.identifier().text());
     }
 
-    /**
-     * Generate file name with service basePath.
-     */
     public static String getSdlFileName(String servicePath, String serviceName) {
         String sdlFileName;
         if (serviceName.isBlank()) {
@@ -193,9 +164,6 @@ public final class Utils {
         return String.join("", SCHEMA_PREFIX, UNDERSCORE, sdlFileName, GRAPHQL_EXTENSION);
     }
 
-    /**
-     * Remove special characters from the given file name.
-     */
     public static String getNormalizedFileName(String sdlFileName) {
         String[] splitNames = sdlFileName.split("[^a-zA-Z0-9]");
         if (splitNames.length > 0) {
@@ -206,12 +174,6 @@ public final class Utils {
         return sdlFileName;
     }
 
-    /**
-     * This method use for format the base path.
-     *
-     * @param basePath     service base path
-     * @return formatted base path
-     */
     public static String formatBasePath(String basePath) {
         if (basePath.equals(SLASH)) {
             return EMPTY_STRING;
@@ -219,12 +181,6 @@ public final class Utils {
         return basePath;
     }
 
-    /**
-     * This method use for decode the encoded schema string.
-     *
-     * @param schemaString     encoded schema string
-     * @return GraphQL schema object
-     */
     public static Schema getDecodedSchema(String schemaString) throws SchemaFileGenerationException {
         if (schemaString == null || schemaString.isBlank() || schemaString.isEmpty()) {
             throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
@@ -241,67 +197,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * This method use for checking the duplicate files.
-     *
-     * @param outPath     output path for file generated
-     * @param schemaName  given file name
-     * @return file name with duplicate number tag
-     */
-    public static String resolveSchemaFileName(Path outPath, String schemaName) {
-        if (outPath != null && Files.exists(outPath)) {
-            final File[] listFiles = new File(String.valueOf(outPath)).listFiles();
-            if (listFiles != null) {
-                schemaName = checkAvailabilityOfGivenName(schemaName, listFiles);
-            }
-        }
-        return schemaName;
-    }
-
-    /**
-     * This method for check the availability of the given file name in the output directory.
-     *
-     * @param schemaName     schema file name
-     * @param listFiles      generated files
-     *@return file name with duplicate number tag
-     */
-    private static String checkAvailabilityOfGivenName(String schemaName, File[] listFiles) {
-        for (File file : listFiles) {
-            if (System.console() != null && file.getName().equals(schemaName)) {
-                String userInput = System.console().readLine("There is already a file named '" + file.getName() +
-                        "' in the target location. Do you want to overwrite the file? [y/N] ");
-                if (!Objects.equals(userInput.toLowerCase(Locale.ENGLISH), "y")) {
-                    schemaName = setGeneratedFileName(listFiles, schemaName);
-                }
-            }
-        }
-        return schemaName;
-    }
-
-    /**
-     * This method for setting the file name for generated file.
-     *
-     * @param listFiles      generated files
-     * @param fileName       File name
-     */
-    private static String setGeneratedFileName(File[] listFiles, String fileName) {
-        int duplicateCount = 0;
-        for (File listFile : listFiles) {
-            String listFileName = listFile.getName();
-            if (listFileName.contains(".") && ((listFileName.split("\\.")).length >= 2)
-                    && (listFileName.split("\\.")[0].equals(fileName.split("\\.")[0]))) {
-                duplicateCount++;
-            }
-        }
-        return fileName.split("\\.")[0] + PERIOD + duplicateCount + PERIOD + fileName.split("\\.")[1];
-    }
-
-    /**
-     * This method use for write the generated SDL schema string.
-     *
-     * @param filePath     output file path
-     * @param content      SDL schema string
-     */
     public static void writeFile(Path filePath, String content) throws SchemaFileGenerationException {
         try (FileWriter writer = new FileWriter(filePath.toString(), StandardCharsets.UTF_8)) {
             writer.write(content);
@@ -310,11 +205,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * This method create the given output directory if not exist.
-     *
-     * @param outputPath     output file path
-     */
     public static void createOutputDirectory(Path outputPath) {
         File outputDir = new File(outputPath.toString());
         if (!outputDir.exists()) {

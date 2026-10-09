@@ -54,13 +54,13 @@ public class OperationModeTest {
     public void testFromModeFlag() {
         Assert.assertEquals(OperationMode.fromModeFlag("client"), Optional.of(OperationMode.CLIENT));
         Assert.assertEquals(OperationMode.fromModeFlag("service"), Optional.of(OperationMode.SERVICE));
-        Assert.assertEquals(OperationMode.fromModeFlag("schema"), Optional.of(OperationMode.SCHEMA));
     }
 
     @Test(description = "Test resolving the operation mode from an invalid mode flag")
     public void testFromModeFlagWithInvalidValue() {
         Assert.assertTrue(OperationMode.fromModeFlag("clinet").isEmpty());
         Assert.assertTrue(OperationMode.fromModeFlag("").isEmpty());
+        Assert.assertTrue(OperationMode.fromModeFlag("schema").isEmpty());
         Assert.assertTrue(OperationMode.fromModeFlag(null).isEmpty());
     }
 

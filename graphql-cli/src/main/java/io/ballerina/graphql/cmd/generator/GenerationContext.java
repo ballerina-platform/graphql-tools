@@ -31,16 +31,22 @@ public class GenerationContext {
     private final OperationMode declaredOperationMode;
     private final Path targetOutputPath;
     private final String serviceBasePath;
-    private final boolean useRecordsForObjects;
+    private final ObjectType declaredObjectType;
+    private final boolean force;
+    private final boolean dryRun;
     private final PrintStream outStream;
+    private final DryRunReport dryRunReport = new DryRunReport();
 
     public GenerationContext(String inputPath, OperationMode declaredOperationMode, Path targetOutputPath,
-                             String serviceBasePath, boolean useRecordsForObjects, PrintStream outStream) {
+                             String serviceBasePath, ObjectType declaredObjectType, boolean force, boolean dryRun,
+                             PrintStream outStream) {
         this.inputPath = inputPath;
         this.declaredOperationMode = declaredOperationMode;
         this.targetOutputPath = targetOutputPath;
         this.serviceBasePath = serviceBasePath;
-        this.useRecordsForObjects = useRecordsForObjects;
+        this.declaredObjectType = declaredObjectType;
+        this.force = force;
+        this.dryRun = dryRun;
         this.outStream = outStream;
     }
 
@@ -64,8 +70,28 @@ public class GenerationContext {
         return serviceBasePath;
     }
 
+    public ObjectType getObjectType() {
+        return declaredObjectType != null ? declaredObjectType : ObjectType.SERVICE;
+    }
+
+    public boolean isObjectTypeDeclared() {
+        return declaredObjectType != null;
+    }
+
     public boolean isUseRecordsForObjects() {
-        return useRecordsForObjects;
+        return getObjectType() == ObjectType.RECORD;
+    }
+
+    public boolean isForce() {
+        return force;
+    }
+
+    public boolean isDryRun() {
+        return dryRun;
+    }
+
+    public DryRunReport getDryRunReport() {
+        return dryRunReport;
     }
 
     public PrintStream getOutStream() {
