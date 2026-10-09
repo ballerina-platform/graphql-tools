@@ -45,6 +45,9 @@
             <class name="io.ballerina.graphql.cmd.generator.GeneratorFactoryTest"/>
             <class name="io.ballerina.graphql.cmd.generator.BalGraphqlConfigGenerationTest"/>
             <class name="io.ballerina.graphql.cmd.config.BalGraphqlConfigReaderTest"/>
+            <class name="io.ballerina.graphql.generator.common.mapper.TypeMapperTest"/>
+            <class name="io.ballerina.graphql.generator.common.mapper.NameEscaperTest"/>
+            <class name="io.ballerina.graphql.generator.service.mapper.ServiceModelMapperTest"/>
         </classes>
     </test>
 </suite>
