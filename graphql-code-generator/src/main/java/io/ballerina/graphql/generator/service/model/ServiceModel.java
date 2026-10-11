@@ -26,7 +26,6 @@ import java.util.List;
 /**
  * Everything needed to generate a Ballerina GraphQL service for one schema.
  *
- * @param serviceName     the service name
  * @param queries         the Query resolvers
  * @param mutations       the Mutation resolvers
  * @param subscriptions   the Subscription resolvers
@@ -34,7 +33,7 @@ import java.util.List;
  * @param inputTypes      the input types
  * @param enums           the enums
  */
-public record ServiceModel(String serviceName, List<ResolverModel> queries, List<ResolverModel> mutations,
+public record ServiceModel(List<ResolverModel> queries, List<ResolverModel> mutations,
                            List<ResolverModel> subscriptions, List<TypeDefinitionModel> typeDefinitions,
                            List<InputTypeModel> inputTypes, List<EnumModel> enums) {
 }

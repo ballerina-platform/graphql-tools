@@ -44,7 +44,6 @@ import java.util.List;
  */
 public class ServiceModelMapperTest {
 
-    private static final String SERVICE_NAME = "BookApi";
     private static final boolean SERVICE_CLASSES = false;
     private static final boolean RECORDS = true;
 
@@ -57,7 +56,6 @@ public class ServiceModelMapperTest {
                 type Book { title: String! }
                 """, SERVICE_CLASSES);
 
-        Assert.assertEquals(model.serviceName(), SERVICE_NAME);
         Assert.assertEquals(model.queries(), List.of(new ResolverModel(ResolverKind.RESOURCE_GET, "book",
                 List.of(new ParameterModel("id", new NamedType("int", false), null, null)),
                 new NamedType("Book", true), null, null)));
@@ -190,7 +188,7 @@ public class ServiceModelMapperTest {
 
     private static ServiceModel map(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects);
+        return ServiceModelMapper.map(schema, useRecordsForObjects);
     }
 
     private static TypeDefinitionModel definition(ServiceModel model, String name) {

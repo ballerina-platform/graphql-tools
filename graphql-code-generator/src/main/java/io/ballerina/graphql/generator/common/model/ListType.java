@@ -19,7 +19,7 @@
 package io.ballerina.graphql.generator.common.model;
 
 /**
- * An array type, e.g. {@code (Book?)[]?}. The list and its elements are nullable separately.
+ * An array type, e.g. {@code Book?[]?}. The list and its elements are nullable separately.
  *
  * @param element  the element type
  * @param nullable whether the list itself is optional

@@ -70,7 +70,7 @@ public class TypeMapperTest {
                 {"book", new NamedType("Book", true)},
                 {"books", new ListType(new NamedType("Book", false), true)},
                 {"grid", new ListType(new ListType(new NamedType("int", true), false), true)},
-                {"ids", new ListType(new NamedType("string", false), false)},
+                {"ids", new ListType(new NamedType("string", false, true), false)},
                 {"file", new NamedType("graphql:Upload", false)},
                 {"entry", new NamedType("'map", true)}
         };

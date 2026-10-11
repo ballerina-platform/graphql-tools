@@ -23,6 +23,17 @@ package io.ballerina.graphql.generator.common.model;
  *
  * @param name     the type name
  * @param nullable whether the type is optional
+ * @param id       whether the type represents the GraphQL {@code ID} scalar
  */
-public record NamedType(String name, boolean nullable) implements BalType {
+public record NamedType(String name, boolean nullable, boolean id) implements BalType {
+
+    /**
+     * Creates a type that does not represent the GraphQL {@code ID} scalar.
+     *
+     * @param name     the type name
+     * @param nullable whether the type is optional
+     */
+    public NamedType(String name, boolean nullable) {
+        this(name, nullable, false);
+    }
 }

@@ -55,7 +55,12 @@ public final class TypeMapper {
         if (type instanceof GraphQLList list) {
             return new ListType(map(list.getWrappedType(), true), nullable);
         }
-        return new NamedType(ballerinaName((GraphQLNamedType) type), nullable);
+        GraphQLNamedType namedType = (GraphQLNamedType) type;
+        return new NamedType(ballerinaName(namedType), nullable, isId(namedType));
+    }
+
+    private static boolean isId(GraphQLNamedType type) {
+        return type instanceof GraphQLScalarType && Scalar.fromGraphqlName(type.getName()).orElse(null) == Scalar.ID;
     }
 
     private static String ballerinaName(GraphQLNamedType type) {

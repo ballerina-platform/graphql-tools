@@ -40,8 +40,10 @@ module io.ballerina.graphql.generator {
     exports io.ballerina.graphql.generator.client.generator;
     exports io.ballerina.graphql.generator.service.diagnostic;
     exports io.ballerina.graphql.generator.client.diagnostic;
+    exports io.ballerina.graphql.generator.common.emitter;
     exports io.ballerina.graphql.generator.common.mapper;
     exports io.ballerina.graphql.generator.common.model;
+    exports io.ballerina.graphql.generator.service.emitter;
     exports io.ballerina.graphql.generator.service.mapper;
     exports io.ballerina.graphql.generator.service.model;
 

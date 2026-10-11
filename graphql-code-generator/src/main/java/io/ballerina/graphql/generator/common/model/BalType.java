@@ -23,5 +23,10 @@ package io.ballerina.graphql.generator.common.model;
  */
 public sealed interface BalType permits NamedType, ListType {
 
+    /**
+     * Returns whether the type is optional, e.g. {@code Book?}.
+     *
+     * @return true if the type accepts nil
+     */
     boolean nullable();
 }
