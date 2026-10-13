@@ -3,9 +3,11 @@ import ballerina/graphql;
 configurable int port = 9090;
 
 service SchemaWithObjectTakingInputArgumentApi on new graphql:Listener(port) {
-    resource function get dog(string name) returns Dog? {
+    resource function get dog(string name) returns Dog?|error {
+        return error("Not implemented");
     }
 
-    resource function get cat(string name) returns Cat? {
+    resource function get cat(string name) returns Cat?|error {
+        return error("Not implemented");
     }
 }

@@ -46,14 +46,24 @@ public class DocEmitterTest {
                 """);
     }
 
-    @Test(description = "Test writing parameter descriptions, skipping parameters without one")
+    @Test(description = "Test writing parameter descriptions, skipping parameters without one or with a blank one")
     public void testEmitParameters() {
         Map<String, String> parameterDescriptions = new LinkedHashMap<>();
         parameterDescriptions.put("id", "The id of the book");
         parameterDescriptions.put("title", null);
+        parameterDescriptions.put("author", "");
         Assert.assertEquals(DocEmitter.emit("Fetch a book", parameterDescriptions, null, NO_INDENT), """
                 # Fetch a book
                 # + id - The id of the book
+                """);
+    }
+
+    @Test(description = "Test that a multi-line parameter description keeps its line breaks")
+    public void testEmitMultiLineParameter() {
+        Assert.assertEquals(DocEmitter.emit(null, Map.of("id", "The id of the book\nid is non nullable"), null,
+                MEMBER_INDENT), """
+                    # + id - The id of the book
+                    # id is non nullable
                 """);
     }
 

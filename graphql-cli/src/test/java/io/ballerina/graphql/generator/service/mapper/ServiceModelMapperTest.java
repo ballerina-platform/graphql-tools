@@ -111,7 +111,7 @@ public class ServiceModelMapperTest {
         Assert.assertEquals(definition(recordModel, "Book").kind(), TypeKind.RECORD);
     }
 
-    @Test(description = "Test that interfaces and unions keep their related types")
+    @Test(description = "Test that interfaces and unions keep their related types, skipping inherited ones")
     public void testInterfaceAndUnion() throws ServiceGenerationException {
         ServiceModel model = map("""
                 type Query { named: Named, result: Result }
@@ -125,28 +125,16 @@ public class ServiceModelMapperTest {
         TypeDefinitionModel named = definition(model, "Named");
         Assert.assertEquals(named.kind(), TypeKind.INTERFACE);
         Assert.assertEquals(named.relatedTypes(), List.of("Node"));
-
-        TypeDefinitionModel result = definition(model, "Result");
-        Assert.assertEquals(result.kind(), TypeKind.UNION);
-        Assert.assertEquals(result.relatedTypes(), List.of("Book", "Magazine"));
-        Assert.assertTrue(result.fields().isEmpty());
-    }
-
-    @Test(description = "Test that only the interfaces and fields not already inherited are kept")
-    public void testInheritedInterfacesAndFieldsSkipped() throws ServiceGenerationException {
-        ServiceModel model = map("""
-                type Query { named: Named }
-                interface Node { id: ID! }
-                interface Named implements Node { id: ID!, name: String! }
-                type Book implements Named & Node { id: ID!, name: String! }
-                """, SERVICE_CLASSES);
-
-        TypeDefinitionModel named = definition(model, "Named");
         Assert.assertEquals(named.fields().stream().map(ResolverModel::name).toList(), List.of("name"));
 
         TypeDefinitionModel book = definition(model, "Book");
         Assert.assertEquals(book.relatedTypes(), List.of("Named"));
         Assert.assertEquals(book.fields().stream().map(ResolverModel::name).toList(), List.of("id", "name"));
+
+        TypeDefinitionModel result = definition(model, "Result");
+        Assert.assertEquals(result.kind(), TypeKind.UNION);
+        Assert.assertEquals(result.relatedTypes(), List.of("Book", "Magazine"));
+        Assert.assertTrue(result.fields().isEmpty());
     }
 
     @Test(description = "Test that input types, enums and default values are mapped")

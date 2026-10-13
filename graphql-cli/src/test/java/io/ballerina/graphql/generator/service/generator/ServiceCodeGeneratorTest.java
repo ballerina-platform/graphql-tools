@@ -71,6 +71,10 @@ public class ServiceCodeGeneratorTest extends GraphqlTest {
                 {"SchemaWithDefaultParameters04Api", SERVICE_CLASSES, "typesWithDefaultParameters04Default.bal"},
                 {"SchemaDocsWithQueryResolversApi", SERVICE_CLASSES, "typesDocsWithQueryResolversDefault.bal"},
                 {"SchemaDocsWithResolverArgumentsApi", SERVICE_CLASSES, "typesDocsWithResolverArgumentsDefault.bal"},
+                {"SchemaDocsWithMutationAndSubscriptionResolversApi", SERVICE_CLASSES,
+                        "typesDocsWithMutationAndSubscriptionResolversDefault.bal"},
+                {"SchemaDocsWithResolverMultipleLinesApi", SERVICE_CLASSES,
+                        "typesDocsWithResolverMultipleLinesDefault.bal"},
                 {"SchemaDocsWithMultipleLinesApi", SERVICE_CLASSES, "typesDocsWithMultipleLinesDefault.bal"},
                 {"SchemaDocsWithObjectsApi", SERVICE_CLASSES, "typesDocsWithObjectsDefault.bal"},
                 {"SchemaDocsWithObjectsApi", RECORDS, "typesDocsWithObjectsRecordsAllowed.bal"},
@@ -101,7 +105,8 @@ public class ServiceCodeGeneratorTest extends GraphqlTest {
                 {"SchemaWithSingleObjectApi", "serviceForSchemaWithSingleObject.bal"},
                 {"SchemaDocsWithMutationAndSubscriptionResolversApi",
                         "serviceForSchemaDocsWithMutationAndSubscriptionResolvers.bal"},
-                {"SchemaWithIDTypeApi", "serviceForSchemaWithIDTypeApi.bal"}
+                {"SchemaWithIDTypeApi", "serviceForSchemaWithIDTypeApi.bal"},
+                {"SchemaWithObjectTakingInputArgumentApi", "serviceForSchemaWithObjectTakingInputArgument.bal"}
         };
     }
 

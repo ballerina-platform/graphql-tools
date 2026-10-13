@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.generator.common.emitter;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,7 +32,6 @@ public final class DocEmitter {
     private static final String DEPRECATED_HEADING = "# # Deprecated";
     private static final String DEPRECATED_ANNOTATION = "@deprecated";
     private static final String NEW_LINE = "\n";
-    private static final String SPACE = " ";
 
     private DocEmitter() {
     }
@@ -52,7 +52,8 @@ public final class DocEmitter {
      * Writes the documentation for a function, including its parameter descriptions.
      *
      * @param description           the GraphQL description, or null
-     * @param parameterDescriptions the description of each parameter, in parameter order; null values are skipped
+     * @param parameterDescriptions the description of each parameter, in parameter order; null or blank values are
+     *                              skipped
      * @param deprecationReason     the deprecation reason, or null if not deprecated
      * @param indent                the indentation of each line
      * @return the documentation lines, each ending with a new line; empty if there is nothing to document
@@ -61,26 +62,30 @@ public final class DocEmitter {
                               String deprecationReason, String indent) {
         StringBuilder docs = new StringBuilder();
         if (description != null) {
-            appendLines(docs, description, indent);
+            appendLines(docs, lines(description), indent);
         }
         parameterDescriptions.forEach((name, parameterDescription) -> {
-            if (parameterDescription != null) {
-                docs.append(indent).append(String.format(PARAMETER_DOC_FORMAT, name,
-                        parameterDescription.replace(NEW_LINE, SPACE))).append(NEW_LINE);
+            if (parameterDescription != null && !parameterDescription.isBlank()) {
+                List<String> lines = lines(parameterDescription);
+                docs.append(indent).append(String.format(PARAMETER_DOC_FORMAT, name, lines.get(0))).append(NEW_LINE);
+                appendLines(docs, lines.subList(1, lines.size()), indent);
             }
         });
         if (deprecationReason != null) {
             docs.append(indent).append(DEPRECATED_HEADING).append(NEW_LINE);
-            appendLines(docs, deprecationReason, indent);
+            appendLines(docs, lines(deprecationReason), indent);
             docs.append(indent).append(DEPRECATED_ANNOTATION).append(NEW_LINE);
         }
         return docs.toString();
     }
 
-    private static void appendLines(StringBuilder docs, String text, String indent) {
-        for (String line : text.strip().split(NEW_LINE)) {
-            String content = line.stripTrailing();
-            docs.append(indent).append(content.isEmpty() ? EMPTY_DOC_LINE : DOC_PREFIX + content).append(NEW_LINE);
+    private static List<String> lines(String text) {
+        return text.strip().lines().map(String::stripTrailing).toList();
+    }
+
+    private static void appendLines(StringBuilder docs, List<String> lines, String indent) {
+        for (String line : lines) {
+            docs.append(indent).append(line.isEmpty() ? EMPTY_DOC_LINE : DOC_PREFIX + line).append(NEW_LINE);
         }
     }
 }
