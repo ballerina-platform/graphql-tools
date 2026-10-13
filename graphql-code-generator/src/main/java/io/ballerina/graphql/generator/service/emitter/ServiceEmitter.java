@@ -19,19 +19,18 @@
 package io.ballerina.graphql.generator.service.emitter;
 
 import io.ballerina.graphql.generator.common.emitter.TemplateLoader;
-import io.ballerina.graphql.generator.service.model.ResolverModel;
 import io.ballerina.graphql.generator.service.model.ServiceModel;
 
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
- * Writes the {@code service.bal} file: the GraphQL service with the Query, Mutation and Subscription resolvers.
+ * Writes the {@code service.bal} file: the GraphQL service that implements the service object type, with the
+ * Query, Mutation and Subscription resolvers.
  */
 public final class ServiceEmitter {
 
     private static final String TEMPLATE = "templates/service/service_file.bal";
+    private static final String NAME = "name";
     private static final String RESOLVERS = "resolvers";
     private static final String NEW_LINE = "\n";
 
@@ -45,9 +44,8 @@ public final class ServiceEmitter {
      * @return the file content
      */
     public static String emit(ServiceModel model) {
-        List<ResolverModel> resolvers = Stream.of(model.queries(), model.mutations(), model.subscriptions())
-                .flatMap(List::stream)
-                .toList();
-        return TemplateLoader.fill(TEMPLATE, Map.of(RESOLVERS, ResolverEmitter.emit(resolvers))) + NEW_LINE;
+        return TemplateLoader.fill(TEMPLATE, Map.of(
+                NAME, model.serviceName(),
+                RESOLVERS, ResolverEmitter.emit(model.rootResolvers()))) + NEW_LINE;
     }
 }

@@ -22,10 +22,12 @@ import io.ballerina.graphql.generator.common.model.EnumModel;
 import io.ballerina.graphql.generator.common.model.InputTypeModel;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Everything needed to generate a Ballerina GraphQL service for one schema.
  *
+ * @param serviceName     the name of the service object type the service implements
  * @param queries         the Query resolvers
  * @param mutations       the Mutation resolvers
  * @param subscriptions   the Subscription resolvers
@@ -33,7 +35,16 @@ import java.util.List;
  * @param inputTypes      the input types
  * @param enums           the enums
  */
-public record ServiceModel(List<ResolverModel> queries, List<ResolverModel> mutations,
+public record ServiceModel(String serviceName, List<ResolverModel> queries, List<ResolverModel> mutations,
                            List<ResolverModel> subscriptions, List<TypeDefinitionModel> typeDefinitions,
                            List<InputTypeModel> inputTypes, List<EnumModel> enums) {
+
+    /**
+     * Returns the Query, Mutation and Subscription resolvers, in that order.
+     *
+     * @return the resolvers of the service
+     */
+    public List<ResolverModel> rootResolvers() {
+        return Stream.of(queries, mutations, subscriptions).flatMap(List::stream).toList();
+    }
 }

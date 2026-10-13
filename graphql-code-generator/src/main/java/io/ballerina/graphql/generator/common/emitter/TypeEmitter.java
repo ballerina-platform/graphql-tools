@@ -33,8 +33,6 @@ public final class TypeEmitter {
     private static final String OPTIONAL_SUFFIX = "?";
     private static final String UNION_SEPARATOR = "|";
     private static final String ID_ANNOTATION = "@graphql:ID ";
-    private static final String GRAPHQL_MODULE_PREFIX = "graphql:";
-
     private TypeEmitter() {
     }
 
@@ -60,17 +58,6 @@ public final class TypeEmitter {
      */
     public static String emitAnnotated(BalType type) {
         return isId(type) ? ID_ANNOTATION + emit(type) : emit(type);
-    }
-
-    /**
-     * Checks whether the annotated type refers to the {@code ballerina/graphql} module, e.g. {@code @graphql:ID string}
-     * or {@code graphql:Upload}.
-     *
-     * @param type the type
-     * @return true if the file that uses the type must import {@code ballerina/graphql}
-     */
-    public static boolean usesGraphqlModule(BalType type) {
-        return emitAnnotated(type).contains(GRAPHQL_MODULE_PREFIX);
     }
 
     private static boolean isId(BalType type) {

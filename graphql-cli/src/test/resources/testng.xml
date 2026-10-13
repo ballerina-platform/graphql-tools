@@ -52,6 +52,7 @@
             <class name="io.ballerina.graphql.generator.common.emitter.DocEmitterTest"/>
             <class name="io.ballerina.graphql.generator.common.emitter.RecordEmitterTest"/>
             <class name="io.ballerina.graphql.generator.common.emitter.EnumEmitterTest"/>
+            <class name="io.ballerina.graphql.generator.common.emitter.TemplateLoaderTest"/>
             <class name="io.ballerina.graphql.generator.service.emitter.TypesEmitterTest"/>
             <class name="io.ballerina.graphql.generator.service.emitter.ServiceEmitterTest"/>
         </classes>

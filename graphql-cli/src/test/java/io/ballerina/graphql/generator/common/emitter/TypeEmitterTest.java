@@ -53,17 +53,16 @@ public class TypeEmitterTest {
     @DataProvider(name = "annotatedTypes")
     public Object[][] annotatedTypes() {
         return new Object[][]{
-                {new NamedType("string", false, true), "@graphql:ID string", true},
-                {new ListType(new NamedType("string", true, true), true), "@graphql:ID string?[]?", true},
-                {new NamedType("graphql:Upload", false), "graphql:Upload", true},
-                {new NamedType("string", false), "string", false}
+                {new NamedType("string", false, true), "@graphql:ID string"},
+                {new ListType(new NamedType("string", true, true), true), "@graphql:ID string?[]?"},
+                {new NamedType("graphql:Upload", false), "graphql:Upload"},
+                {new NamedType("string", false), "string"}
         };
     }
 
     @Test(description = "Test writing ID types with the graphql:ID annotation", dataProvider = "annotatedTypes")
-    public void testEmitAnnotated(BalType type, String expectedDescriptor, boolean expectedUsesGraphqlModule) {
+    public void testEmitAnnotated(BalType type, String expectedDescriptor) {
         Assert.assertEquals(TypeEmitter.emitAnnotated(type), expectedDescriptor);
-        Assert.assertEquals(TypeEmitter.usesGraphqlModule(type), expectedUsesGraphqlModule);
     }
 
     @Test(description = "Test writing a union type descriptor")

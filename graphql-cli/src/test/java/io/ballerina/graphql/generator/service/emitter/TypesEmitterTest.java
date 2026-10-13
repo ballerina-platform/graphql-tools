@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
  */
 public class TypesEmitterTest {
 
+    private static final String SERVICE_NAME = "BookApi";
     private static final boolean SERVICE_CLASSES = false;
     private static final boolean RECORDS = true;
 
@@ -46,6 +47,11 @@ public class TypesEmitterTest {
 
         Assert.assertEquals(types, """
                 import ballerina/graphql;
+
+                type BookApi service object {
+                    *graphql:Service;
+                    resource function get profile(@graphql:ID string id) returns Profile?|error;
+                };
 
                 public type Info distinct service object {
                     resource function get name() returns string|error;
@@ -92,6 +98,11 @@ public class TypesEmitterTest {
         Assert.assertEquals(types, """
                 import ballerina/graphql;
 
+                type BookApi service object {
+                    *graphql:Service;
+                    resource function get book(BookInput? input, Genre? genre) returns Book?|error;
+                };
+
                 # A book
                 public type Book record {|
                     # The book ID
@@ -114,29 +125,32 @@ public class TypesEmitterTest {
                 """);
     }
 
-    @Test(description = "Test that the graphql import is left out when no type uses the graphql module")
-    public void testEmitWithoutGraphqlImport() throws ServiceGenerationException {
+    @Test(description = "Test writing the service object type with Query, Mutation and Subscription resolvers")
+    public void testEmitServiceObject() throws ServiceGenerationException {
         String types = emit("""
-                type Query { book: Book }
-                type Book { title: String! }
+                type Query {
+                    "Finds a book title"
+                    title(id: ID!): String
+                }
+                type Mutation { addTitle(title: String!): String! }
+                type Subscription { titles: String! }
                 """, SERVICE_CLASSES);
 
         Assert.assertEquals(types, """
-                public distinct service class Book {
-                    resource function get title() returns string|error {
-                        return error("Not implemented");
-                    }
-                }
-                """);
-    }
+                import ballerina/graphql;
 
-    @Test(description = "Test that a schema without types gives an empty types file")
-    public void testEmitWithoutTypes() throws ServiceGenerationException {
-        Assert.assertEquals(emit("type Query { count: Int! }", SERVICE_CLASSES), "");
+                type BookApi service object {
+                    *graphql:Service;
+                    # Finds a book title
+                    resource function get title(@graphql:ID string id) returns string?|error;
+                    remote function addTitle(string title) returns string|error;
+                    resource function subscribe titles() returns stream<string>|error;
+                };
+                """);
     }
 
     private static String emit(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return TypesEmitter.emit(ServiceModelMapper.map(schema, useRecordsForObjects));
+        return TypesEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects));
     }
 }

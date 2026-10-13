@@ -23,9 +23,7 @@ import io.ballerina.graphql.generator.common.emitter.EnumEmitter;
 import io.ballerina.graphql.generator.common.emitter.RecordEmitter;
 import io.ballerina.graphql.generator.common.emitter.TemplateLoader;
 import io.ballerina.graphql.generator.common.emitter.TypeEmitter;
-import io.ballerina.graphql.generator.common.model.BalType;
 import io.ballerina.graphql.generator.common.model.FieldModel;
-import io.ballerina.graphql.generator.service.model.ParameterModel;
 import io.ballerina.graphql.generator.service.model.ResolverModel;
 import io.ballerina.graphql.generator.service.model.ServiceModel;
 import io.ballerina.graphql.generator.service.model.TypeDefinitionModel;
@@ -35,22 +33,24 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Writes the {@code types.bal} file: the service classes, records, interfaces, unions, input types and enums.
+ * Writes the {@code types.bal} file: the service object type, then the service classes, records, interfaces,
+ * unions, input types and enums.
  */
 public final class TypesEmitter {
 
+    private static final String SERVICE_OBJECT_TEMPLATE = "templates/service/service_object.bal";
     private static final String SERVICE_CLASS_TEMPLATE = "templates/service/service_class.bal";
     private static final String INTERFACE_TEMPLATE = "templates/service/interface.bal";
     private static final String UNION_TEMPLATE = "templates/service/union.bal";
     private static final String DOCS = "docs";
     private static final String NAME = "name";
     private static final String MEMBERS = "members";
+    private static final String RESOLVERS = "resolvers";
     private static final String NO_INDENT = "";
     private static final String INCLUSION_FORMAT = "    *%s;";
     private static final String GRAPHQL_IMPORT = "import ballerina/graphql;";
     private static final String NEW_LINE = "\n";
     private static final String BLANK_LINE = "\n\n";
-    private static final String EMPTY_FILE = "";
 
     private TypesEmitter() {
     }
@@ -59,20 +59,20 @@ public final class TypesEmitter {
      * Writes the types file for a service.
      *
      * @param model the service model
-     * @return the file content, or an empty string if the schema has no types to write
+     * @return the file content
      */
     public static String emit(ServiceModel model) {
-        String definitions = Stream.of(
+        String serviceObject = TemplateLoader.fill(SERVICE_OBJECT_TEMPLATE, Map.of(
+                NAME, model.serviceName(),
+                RESOLVERS, ResolverEmitter.emitDeclarations(model.rootResolvers())));
+        return Stream.of(
+                        Stream.of(GRAPHQL_IMPORT, serviceObject),
                         model.typeDefinitions().stream().map(TypesEmitter::typeDefinition),
                         model.inputTypes().stream().map(inputType ->
                                 RecordEmitter.emit(inputType.name(), inputType.fields(), inputType.description())),
                         model.enums().stream().map(EnumEmitter::emit))
                 .flatMap(stream -> stream)
-                .collect(Collectors.joining(BLANK_LINE));
-        if (definitions.isEmpty()) {
-            return EMPTY_FILE;
-        }
-        return (usesGraphqlModule(model) ? GRAPHQL_IMPORT + BLANK_LINE : EMPTY_FILE) + definitions + NEW_LINE;
+                .collect(Collectors.joining(BLANK_LINE)) + NEW_LINE;
     }
 
     private static String typeDefinition(TypeDefinitionModel definition) {
@@ -103,16 +103,5 @@ public final class TypesEmitter {
 
     private static FieldModel recordField(ResolverModel field) {
         return new FieldModel(field.name(), field.returnType(), null, field.description(), field.deprecationReason());
-    }
-
-    private static boolean usesGraphqlModule(ServiceModel model) {
-        Stream<BalType> resolverTypes = model.typeDefinitions().stream()
-                .flatMap(definition -> definition.fields().stream())
-                .flatMap(resolver -> Stream.concat(Stream.of(resolver.returnType()),
-                        resolver.parameters().stream().map(ParameterModel::type)));
-        Stream<BalType> inputFieldTypes = model.inputTypes().stream()
-                .flatMap(inputType -> inputType.fields().stream())
-                .map(FieldModel::type);
-        return Stream.concat(resolverTypes, inputFieldTypes).anyMatch(TypeEmitter::usesGraphqlModule);
     }
 }

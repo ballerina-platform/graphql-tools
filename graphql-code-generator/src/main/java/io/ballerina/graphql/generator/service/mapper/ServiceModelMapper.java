@@ -92,26 +92,27 @@ public final class ServiceModelMapper {
      * Builds the service model for a schema.
      *
      * @param schema               the GraphQL schema
+     * @param serviceName          the name of the service object type, e.g. the schema file name
      * @param useRecordsForObjects whether object types are generated as records where possible
      * @return the service model
      * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent
      */
-    public static ServiceModel map(GraphQLSchema schema, boolean useRecordsForObjects)
+    public static ServiceModel map(GraphQLSchema schema, String serviceName, boolean useRecordsForObjects)
             throws ServiceGenerationException {
         try {
-            return new ServiceModelMapper(schema, useRecordsForObjects).map();
+            return new ServiceModelMapper(schema, useRecordsForObjects).map(serviceName);
         } catch (IllegalArgumentException e) {
             throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102, null,
                     e.getMessage());
         }
     }
 
-    private ServiceModel map() {
+    private ServiceModel map(String serviceName) {
         List<GraphQLNamedType> types = schema.getAllTypesAsList().stream()
                 .filter(type -> !type.getName().startsWith(INTROSPECTION_TYPE_PREFIX))
                 .filter(type -> !isRootType(type))
                 .toList();
-        return new ServiceModel(
+        return new ServiceModel(NameEscaper.escape(serviceName),
                 resolvers(schema.getQueryType(), ResolverKind.RESOURCE_GET),
                 resolvers(schema.getMutationType(), ResolverKind.REMOTE),
                 resolvers(schema.getSubscriptionType(), ResolverKind.RESOURCE_SUBSCRIBE),

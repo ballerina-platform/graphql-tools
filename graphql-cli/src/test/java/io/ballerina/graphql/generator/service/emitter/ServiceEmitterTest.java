@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
  */
 public class ServiceEmitterTest {
 
+    private static final String SERVICE_NAME = "BookApi";
     private static final boolean SERVICE_CLASSES = false;
 
     @Test(description = "Test writing Query, Mutation and Subscription resolvers into the service")
@@ -51,7 +52,7 @@ public class ServiceEmitterTest {
 
                 configurable int port = 9090;
 
-                service on new graphql:Listener(port) {
+                service BookApi on new graphql:Listener(port) {
                     # Finds books
                     # + author - The author
                     # + count - Max results
@@ -76,6 +77,6 @@ public class ServiceEmitterTest {
 
     private static String emit(String sdl) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_CLASSES));
+        return ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, SERVICE_CLASSES));
     }
 }
