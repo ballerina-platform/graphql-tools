@@ -36,7 +36,6 @@ import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
-import io.ballerina.tools.diagnostics.Diagnostic;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.Assert;
 import org.yaml.snakeyaml.Yaml;
@@ -55,7 +54,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -79,8 +77,6 @@ public class TestUtils {
     public static final String DISTRIBUTION_FILE_NAME = System.getProperty("ballerina.version");
     private static String balFile = "bal";
     public static final String WHITESPACE_REGEX = "\\s+";
-    public static final String ERROR_FOR_RESOURCE_FUNCTION_NO_RETURN = "this resource_func must return a result";
-    public static final String ERROR_FOR_REMOTE_FUNCTION_NO_RETURN = "this function must return a result";
 
     /**
      * Constructs an instance of the `Config` reading the given GraphQL config file.
@@ -272,16 +268,6 @@ public class TestUtils {
                         TestUtils.TEST_DISTRIBUTION_PATH.resolve(Paths.get(TestUtils.DISTRIBUTION_FILE_NAME))
                                 .toAbsolutePath()).build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
-    }
-
-    public static boolean hasOnlyFuncMustReturnResultErrors(Collection<Diagnostic> errors) {
-        for (Diagnostic error : errors) {
-            if (!error.message().contains(ERROR_FOR_RESOURCE_FUNCTION_NO_RETURN) &&
-                    !error.message().contains(ERROR_FOR_REMOTE_FUNCTION_NO_RETURN)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public static void writeContentTo(String content, Path projectDir, String fileName) throws IOException {

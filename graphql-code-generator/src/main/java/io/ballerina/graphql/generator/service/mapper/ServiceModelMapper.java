@@ -33,6 +33,7 @@ import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInterfaceType;
+import graphql.schema.GraphQLNamedOutputType;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
@@ -155,11 +156,11 @@ public final class ServiceModelMapper {
                 definitions.add(new TypeDefinitionModel(NameEscaper.escape(objectType.getName()),
                         isRecord(objectType) ? TypeKind.RECORD : TypeKind.SERVICE_CLASS,
                         resolvers(objectType.getFields(), ResolverKind.RESOURCE_GET),
-                        names(objectType.getInterfaces()), objectType.getDescription()));
+                        names(directInterfaces(objectType.getInterfaces())), objectType.getDescription()));
             } else if (type instanceof GraphQLInterfaceType interfaceType) {
                 definitions.add(new TypeDefinitionModel(NameEscaper.escape(interfaceType.getName()),
-                        TypeKind.INTERFACE, resolvers(interfaceType.getFields(), ResolverKind.RESOURCE_GET),
-                        names(interfaceType.getInterfaces()), interfaceType.getDescription()));
+                        TypeKind.INTERFACE, resolvers(ownFields(interfaceType), ResolverKind.RESOURCE_GET),
+                        names(directInterfaces(interfaceType.getInterfaces())), interfaceType.getDescription()));
             } else if (type instanceof GraphQLUnionType unionType) {
                 definitions.add(new TypeDefinitionModel(NameEscaper.escape(unionType.getName()), TypeKind.UNION,
                         List.of(), names(unionType.getTypes()), unionType.getDescription()));
@@ -173,6 +174,22 @@ public final class ServiceModelMapper {
                 && objectType.getInterfaces().isEmpty()
                 && !unionMembers.contains(objectType.getName())
                 && objectType.getFields().stream().allMatch(field -> field.getArguments().isEmpty());
+    }
+
+    private static List<GraphQLNamedOutputType> directInterfaces(List<GraphQLNamedOutputType> interfaces) {
+        Set<String> inherited = interfaces.stream()
+                .flatMap(interfaceType -> ((GraphQLInterfaceType) interfaceType).getInterfaces().stream())
+                .map(GraphQLNamedType::getName)
+                .collect(Collectors.toSet());
+        return interfaces.stream().filter(interfaceType -> !inherited.contains(interfaceType.getName())).toList();
+    }
+
+    private static List<GraphQLFieldDefinition> ownFields(GraphQLInterfaceType interfaceType) {
+        Set<String> inherited = interfaceType.getInterfaces().stream()
+                .flatMap(parent -> ((GraphQLInterfaceType) parent).getFields().stream())
+                .map(GraphQLFieldDefinition::getName)
+                .collect(Collectors.toSet());
+        return interfaceType.getFields().stream().filter(field -> !inherited.contains(field.getName())).toList();
     }
 
     private static List<String> names(List<? extends GraphQLNamedType> types) {

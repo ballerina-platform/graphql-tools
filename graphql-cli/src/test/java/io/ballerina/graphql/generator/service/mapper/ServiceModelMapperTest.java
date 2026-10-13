@@ -132,6 +132,23 @@ public class ServiceModelMapperTest {
         Assert.assertTrue(result.fields().isEmpty());
     }
 
+    @Test(description = "Test that only the interfaces and fields not already inherited are kept")
+    public void testInheritedInterfacesAndFieldsSkipped() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { named: Named }
+                interface Node { id: ID! }
+                interface Named implements Node { id: ID!, name: String! }
+                type Book implements Named & Node { id: ID!, name: String! }
+                """, SERVICE_CLASSES);
+
+        TypeDefinitionModel named = definition(model, "Named");
+        Assert.assertEquals(named.fields().stream().map(ResolverModel::name).toList(), List.of("name"));
+
+        TypeDefinitionModel book = definition(model, "Book");
+        Assert.assertEquals(book.relatedTypes(), List.of("Named"));
+        Assert.assertEquals(book.fields().stream().map(ResolverModel::name).toList(), List.of("id", "name"));
+    }
+
     @Test(description = "Test that input types, enums and default values are mapped")
     public void testInputTypesEnumsAndDefaults() throws ServiceGenerationException {
         ServiceModel model = map("""
