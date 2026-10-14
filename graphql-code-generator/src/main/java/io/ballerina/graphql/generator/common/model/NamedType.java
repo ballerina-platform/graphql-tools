@@ -27,6 +27,8 @@ package io.ballerina.graphql.generator.common.model;
  */
 public record NamedType(String name, boolean nullable, boolean id) implements BalType {
 
+    private static final boolean NOT_ID = false;
+
     /**
      * Creates a type that does not represent the GraphQL {@code ID} scalar.
      *
@@ -34,6 +36,6 @@ public record NamedType(String name, boolean nullable, boolean id) implements Ba
      * @param nullable whether the type is optional
      */
     public NamedType(String name, boolean nullable) {
-        this(name, nullable, false);
+        this(name, nullable, NOT_ID);
     }
 }

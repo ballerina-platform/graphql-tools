@@ -32,16 +32,20 @@ import java.util.List;
  */
 public class TypeEmitterTest {
 
+    private static final boolean NULLABLE = true;
+    private static final boolean NON_NULL = false;
+    private static final boolean ID = true;
+
     @DataProvider(name = "types")
     public Object[][] types() {
         return new Object[][]{
-                {new NamedType("int", false), "int"},
-                {new NamedType("Book", true), "Book?"},
-                {new NamedType("graphql:Upload", false), "graphql:Upload"},
-                {new ListType(new NamedType("Book", false), true), "Book[]?"},
-                {new ListType(new NamedType("Book", true), true), "Book?[]?"},
-                {new ListType(new NamedType("string", false), false), "string[]"},
-                {new ListType(new ListType(new NamedType("int", true), false), true), "int?[][]?"}
+                {new NamedType("int", NON_NULL), "int"},
+                {new NamedType("Book", NULLABLE), "Book?"},
+                {new NamedType("graphql:Upload", NON_NULL), "graphql:Upload"},
+                {new ListType(new NamedType("Book", NON_NULL), NULLABLE), "Book[]?"},
+                {new ListType(new NamedType("Book", NULLABLE), NULLABLE), "Book?[]?"},
+                {new ListType(new NamedType("string", NON_NULL), NON_NULL), "string[]"},
+                {new ListType(new ListType(new NamedType("int", NULLABLE), NON_NULL), NULLABLE), "int?[][]?"}
         };
     }
 
@@ -53,10 +57,10 @@ public class TypeEmitterTest {
     @DataProvider(name = "annotatedTypes")
     public Object[][] annotatedTypes() {
         return new Object[][]{
-                {new NamedType("string", false, true), "@graphql:ID string"},
-                {new ListType(new NamedType("string", true, true), true), "@graphql:ID string?[]?"},
-                {new NamedType("graphql:Upload", false), "graphql:Upload"},
-                {new NamedType("string", false), "string"}
+                {new NamedType("string", NON_NULL, ID), "@graphql:ID string"},
+                {new ListType(new NamedType("string", NULLABLE, ID), NULLABLE), "@graphql:ID string?[]?"},
+                {new NamedType("graphql:Upload", NON_NULL), "graphql:Upload"},
+                {new NamedType("string", NON_NULL), "string"}
         };
     }
 

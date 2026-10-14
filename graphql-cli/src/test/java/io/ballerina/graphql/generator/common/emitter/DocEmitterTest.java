@@ -31,15 +31,17 @@ public class DocEmitterTest {
 
     private static final String NO_INDENT = "";
     private static final String MEMBER_INDENT = "    ";
+    private static final String NO_DESCRIPTION = null;
+    private static final String NOT_DEPRECATED = null;
 
     @Test(description = "Test that nothing is written when there is nothing to document")
     public void testEmitNothing() {
-        Assert.assertEquals(DocEmitter.emit(null, null, NO_INDENT), "");
+        Assert.assertEquals(DocEmitter.emit(NO_DESCRIPTION, NOT_DEPRECATED, NO_INDENT), "");
     }
 
     @Test(description = "Test writing a multi-line description with indentation")
     public void testEmitDescription() {
-        Assert.assertEquals(DocEmitter.emit("Line one\n\nLine two", null, MEMBER_INDENT), """
+        Assert.assertEquals(DocEmitter.emit("Line one\n\nLine two", NOT_DEPRECATED, MEMBER_INDENT), """
                     # Line one
                     #
                     # Line two
@@ -50,9 +52,9 @@ public class DocEmitterTest {
     public void testEmitParameters() {
         Map<String, String> parameterDescriptions = new LinkedHashMap<>();
         parameterDescriptions.put("id", "The id of the book");
-        parameterDescriptions.put("title", null);
+        parameterDescriptions.put("title", NO_DESCRIPTION);
         parameterDescriptions.put("author", "");
-        Assert.assertEquals(DocEmitter.emit("Fetch a book", parameterDescriptions, null, NO_INDENT), """
+        Assert.assertEquals(DocEmitter.emit("Fetch a book", parameterDescriptions, NOT_DEPRECATED, NO_INDENT), """
                 # Fetch a book
                 # + id - The id of the book
                 """);
@@ -60,8 +62,8 @@ public class DocEmitterTest {
 
     @Test(description = "Test that a multi-line parameter description keeps its line breaks")
     public void testEmitMultiLineParameter() {
-        Assert.assertEquals(DocEmitter.emit(null, Map.of("id", "The id of the book\nid is non nullable"), null,
-                MEMBER_INDENT), """
+        Map<String, String> parameterDescriptions = Map.of("id", "The id of the book\nid is non nullable");
+        Assert.assertEquals(DocEmitter.emit(NO_DESCRIPTION, parameterDescriptions, NOT_DEPRECATED, MEMBER_INDENT), """
                     # + id - The id of the book
                     # id is non nullable
                 """);

@@ -47,6 +47,8 @@ public final class TypesEmitter {
     private static final String MEMBERS = "members";
     private static final String RESOLVERS = "resolvers";
     private static final String NO_INDENT = "";
+    private static final String NOT_DEPRECATED = null;
+    private static final String NO_DEFAULT_VALUE = null;
     private static final String INCLUSION_FORMAT = "    *%s;";
     private static final String GRAPHQL_IMPORT = "import ballerina/graphql;";
     private static final String NEW_LINE = "\n";
@@ -89,7 +91,7 @@ public final class TypesEmitter {
 
     private static String fill(String template, TypeDefinitionModel definition, String members) {
         return TemplateLoader.fill(template, Map.of(
-                DOCS, DocEmitter.emit(definition.description(), null, NO_INDENT),
+                DOCS, DocEmitter.emit(definition.description(), NOT_DEPRECATED, NO_INDENT),
                 NAME, definition.name(),
                 MEMBERS, members));
     }
@@ -102,6 +104,7 @@ public final class TypesEmitter {
     }
 
     private static FieldModel recordField(ResolverModel field) {
-        return new FieldModel(field.name(), field.returnType(), null, field.description(), field.deprecationReason());
+        return new FieldModel(field.name(), field.returnType(), NO_DEFAULT_VALUE, field.description(),
+                field.deprecationReason());
     }
 }

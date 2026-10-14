@@ -30,12 +30,15 @@ import java.util.List;
  */
 public class EnumEmitterTest {
 
+    private static final String NO_DESCRIPTION = null;
+    private static final String NOT_DEPRECATED = null;
+
     @Test(description = "Test writing an enum with docs and a deprecated value")
     public void testEmit() {
         EnumModel status = new EnumModel("Status", List.of(
-                new EnumValueModel("AVAILABLE", "The book is available", null),
-                new EnumValueModel("RESERVED", null, "Use AVAILABLE instead"),
-                new EnumValueModel("NOT_AVAILABLE", null, null)), "Availability of the book");
+                new EnumValueModel("AVAILABLE", "The book is available", NOT_DEPRECATED),
+                new EnumValueModel("RESERVED", NO_DESCRIPTION, "Use AVAILABLE instead"),
+                new EnumValueModel("NOT_AVAILABLE", NO_DESCRIPTION, NOT_DEPRECATED)), "Availability of the book");
 
         Assert.assertEquals(EnumEmitter.emit(status), """
                 # Availability of the book

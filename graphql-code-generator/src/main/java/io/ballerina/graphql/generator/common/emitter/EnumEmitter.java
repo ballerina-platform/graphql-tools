@@ -34,6 +34,7 @@ public final class EnumEmitter {
     private static final String NAME = "name";
     private static final String VALUES = "values";
     private static final String NO_INDENT = "";
+    private static final String NOT_DEPRECATED = null;
     private static final String MEMBER_INDENT = "    ";
     private static final String VALUE_SEPARATOR = ",\n";
 
@@ -48,7 +49,7 @@ public final class EnumEmitter {
      */
     public static String emit(EnumModel enumModel) {
         return TemplateLoader.fill(TEMPLATE, Map.of(
-                DOCS, DocEmitter.emit(enumModel.description(), null, NO_INDENT),
+                DOCS, DocEmitter.emit(enumModel.description(), NOT_DEPRECATED, NO_INDENT),
                 NAME, enumModel.name(),
                 VALUES, enumModel.values().stream().map(EnumEmitter::value)
                         .collect(Collectors.joining(VALUE_SEPARATOR))));

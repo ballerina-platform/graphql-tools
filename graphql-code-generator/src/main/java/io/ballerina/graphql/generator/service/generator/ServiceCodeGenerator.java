@@ -27,6 +27,7 @@ import io.ballerina.graphql.generator.service.emitter.TypesEmitter;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.mapper.ServiceModelMapper;
 import io.ballerina.graphql.generator.service.model.ServiceModel;
+import io.ballerina.graphql.generator.utils.NullLocation;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
 import java.io.IOException;
@@ -65,8 +66,8 @@ public class ServiceCodeGenerator extends CodeGenerator {
         try {
             writeGeneratedSources(generateBalSources(project), Path.of(project.getOutputPath()));
         } catch (IOException e) {
-            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
-                    e.getMessage());
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100,
+                    NullLocation.getInstance(), e.getMessage());
         }
     }
 

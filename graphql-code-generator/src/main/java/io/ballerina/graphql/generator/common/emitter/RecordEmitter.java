@@ -34,6 +34,7 @@ public final class RecordEmitter {
     private static final String NAME = "name";
     private static final String FIELDS = "fields";
     private static final String NO_INDENT = "";
+    private static final String NOT_DEPRECATED = null;
     private static final String MEMBER_INDENT = "    ";
     private static final String FIELD_FORMAT = "%s%s %s;";
     private static final String FIELD_WITH_DEFAULT_FORMAT = "%s%s %s = %s;";
@@ -52,7 +53,7 @@ public final class RecordEmitter {
      */
     public static String emit(String name, List<FieldModel> fields, String description) {
         return TemplateLoader.fill(TEMPLATE, Map.of(
-                DOCS, DocEmitter.emit(description, null, NO_INDENT),
+                DOCS, DocEmitter.emit(description, NOT_DEPRECATED, NO_INDENT),
                 NAME, name,
                 FIELDS, fields.stream().map(RecordEmitter::field).collect(Collectors.joining(NEW_LINE))));
     }

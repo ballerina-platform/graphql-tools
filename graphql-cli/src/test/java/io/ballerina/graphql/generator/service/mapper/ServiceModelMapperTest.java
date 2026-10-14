@@ -47,6 +47,11 @@ public class ServiceModelMapperTest {
     private static final String SERVICE_NAME = "BookApi";
     private static final boolean SERVICE_CLASSES = false;
     private static final boolean RECORDS = true;
+    private static final boolean NULLABLE = true;
+    private static final boolean NON_NULL = false;
+    private static final String NO_DEFAULT = null;
+    private static final String NO_DESCRIPTION = null;
+    private static final String NOT_DEPRECATED = null;
 
     @Test(description = "Test that Query, Mutation and Subscription fields become the matching resolver kinds")
     public void testRootResolvers() throws ServiceGenerationException {
@@ -59,8 +64,8 @@ public class ServiceModelMapperTest {
 
         Assert.assertEquals(model.serviceName(), SERVICE_NAME);
         Assert.assertEquals(model.queries(), List.of(new ResolverModel(ResolverKind.RESOURCE_GET, "book",
-                List.of(new ParameterModel("id", new NamedType("int", false), null, null)),
-                new NamedType("Book", true), null, null)));
+                List.of(new ParameterModel("id", new NamedType("int", NON_NULL), NO_DEFAULT, NO_DESCRIPTION)),
+                new NamedType("Book", NULLABLE), NO_DESCRIPTION, NOT_DEPRECATED)));
         Assert.assertEquals(model.mutations().get(0).kind(), ResolverKind.REMOTE);
         Assert.assertEquals(model.subscriptions().get(0).kind(), ResolverKind.RESOURCE_SUBSCRIBE);
     }
@@ -148,12 +153,15 @@ public class ServiceModelMapperTest {
         Assert.assertEquals(model.queries().get(0).parameters().stream().map(ParameterModel::defaultValue).toList(),
                 List.of("{genre: FICTION, tags: [\"new\"]}", "10"));
         Assert.assertEquals(model.inputTypes(), List.of(new InputTypeModel("Filter", List.of(
-                new FieldModel("genre", new NamedType("Genre", true), "FICTION", null, null),
-                new FieldModel("tags", new ListType(new NamedType("string", false), true), null, null, null),
-                new FieldModel("minRating", new NamedType("float", true), "4.5", null, null)), null)));
+                new FieldModel("genre", new NamedType("Genre", NULLABLE), "FICTION", NO_DESCRIPTION, NOT_DEPRECATED),
+                new FieldModel("tags", new ListType(new NamedType("string", NON_NULL), NULLABLE), NO_DEFAULT,
+                        NO_DESCRIPTION, NOT_DEPRECATED),
+                new FieldModel("minRating", new NamedType("float", NULLABLE), "4.5", NO_DESCRIPTION, NOT_DEPRECATED)),
+                NO_DESCRIPTION)));
         Assert.assertEquals(model.enums(), List.of(new EnumModel("Genre",
-                List.of(new EnumValueModel("FICTION", null, null), new EnumValueModel("HISTORY", null, null)),
-                null)));
+                List.of(new EnumValueModel("FICTION", NO_DESCRIPTION, NOT_DEPRECATED),
+                        new EnumValueModel("HISTORY", NO_DESCRIPTION, NOT_DEPRECATED)),
+                NO_DESCRIPTION)));
     }
 
     @Test(description = "Test that names that are Ballerina keywords are escaped")

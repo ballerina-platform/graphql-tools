@@ -34,6 +34,10 @@ import org.testng.annotations.Test;
  */
 public class TypeMapperTest {
 
+    private static final boolean NULLABLE = true;
+    private static final boolean NON_NULL = false;
+    private static final boolean ID = true;
+
     private static final String SCHEMA = """
             scalar Upload
             scalar DateTime
@@ -65,14 +69,14 @@ public class TypeMapperTest {
     @DataProvider(name = "fieldTypes")
     public Object[][] fieldTypes() {
         return new Object[][]{
-                {"count", new NamedType("int", false)},
-                {"price", new NamedType("float", true)},
-                {"book", new NamedType("Book", true)},
-                {"books", new ListType(new NamedType("Book", false), true)},
-                {"grid", new ListType(new ListType(new NamedType("int", true), false), true)},
-                {"ids", new ListType(new NamedType("string", false, true), false)},
-                {"file", new NamedType("graphql:Upload", false)},
-                {"entry", new NamedType("'map", true)}
+                {"count", new NamedType("int", NON_NULL)},
+                {"price", new NamedType("float", NULLABLE)},
+                {"book", new NamedType("Book", NULLABLE)},
+                {"books", new ListType(new NamedType("Book", NON_NULL), NULLABLE)},
+                {"grid", new ListType(new ListType(new NamedType("int", NULLABLE), NON_NULL), NULLABLE)},
+                {"ids", new ListType(new NamedType("string", NON_NULL, ID), NON_NULL)},
+                {"file", new NamedType("graphql:Upload", NON_NULL)},
+                {"entry", new NamedType("'map", NULLABLE)}
         };
     }
 

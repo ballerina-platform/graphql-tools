@@ -32,6 +32,8 @@ import io.ballerina.graphql.generator.common.model.NamedType;
  */
 public final class TypeMapper {
 
+    private static final boolean NULLABLE = true;
+    private static final boolean NON_NULL = false;
     private static final String ERROR_UNSUPPORTED_SCALAR = "Custom scalar \"%s\" is not supported.";
 
     private TypeMapper() {
@@ -45,22 +47,23 @@ public final class TypeMapper {
      * @throws IllegalArgumentException if the type is a custom scalar
      */
     public static BalType map(GraphQLType type) {
-        return map(type, true);
+        return map(type, NULLABLE);
     }
 
     private static BalType map(GraphQLType type, boolean nullable) {
         if (type instanceof GraphQLNonNull nonNull) {
-            return map(nonNull.getWrappedType(), false);
+            return map(nonNull.getWrappedType(), NON_NULL);
         }
         if (type instanceof GraphQLList list) {
-            return new ListType(map(list.getWrappedType(), true), nullable);
+            return new ListType(map(list.getWrappedType(), NULLABLE), nullable);
         }
         GraphQLNamedType namedType = (GraphQLNamedType) type;
         return new NamedType(ballerinaName(namedType), nullable, isId(namedType));
     }
 
     private static boolean isId(GraphQLNamedType type) {
-        return type instanceof GraphQLScalarType && Scalar.fromGraphqlName(type.getName()).orElse(null) == Scalar.ID;
+        return type instanceof GraphQLScalarType
+                && Scalar.fromGraphqlName(type.getName()).filter(Scalar.ID::equals).isPresent();
     }
 
     private static String ballerinaName(GraphQLNamedType type) {

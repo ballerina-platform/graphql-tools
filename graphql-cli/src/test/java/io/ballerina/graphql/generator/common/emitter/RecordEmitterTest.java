@@ -30,13 +30,19 @@ import java.util.List;
  */
 public class RecordEmitterTest {
 
+    private static final boolean NULLABLE = true;
+    private static final boolean NON_NULL = false;
+    private static final String NO_DEFAULT = null;
+    private static final String NO_DESCRIPTION = null;
+    private static final String NOT_DEPRECATED = null;
+
     @Test(description = "Test writing a record with docs, a deprecated field and a default value")
     public void testEmit() {
         List<FieldModel> fields = List.of(
-                new FieldModel("title", new NamedType("string", false), null, null, null),
-                new FieldModel("author", new NamedType("string", true), null, "The author of the book",
+                new FieldModel("title", new NamedType("string", NON_NULL), NO_DEFAULT, NO_DESCRIPTION, NOT_DEPRECATED),
+                new FieldModel("author", new NamedType("string", NULLABLE), NO_DEFAULT, "The author of the book",
                         "No longer needed"),
-                new FieldModel("pages", new NamedType("int", false), "100", null, null));
+                new FieldModel("pages", new NamedType("int", NON_NULL), "100", NO_DESCRIPTION, NOT_DEPRECATED));
 
         Assert.assertEquals(RecordEmitter.emit("BookInfo", fields, "Represents new book information"), """
                 # Represents new book information
@@ -53,9 +59,10 @@ public class RecordEmitterTest {
 
     @Test(description = "Test writing a record without docs")
     public void testEmitWithoutDocs() {
-        List<FieldModel> fields = List.of(new FieldModel("id", new NamedType("int", false), null, null, null));
+        List<FieldModel> fields = List.of(
+                new FieldModel("id", new NamedType("int", NON_NULL), NO_DEFAULT, NO_DESCRIPTION, NOT_DEPRECATED));
 
-        Assert.assertEquals(RecordEmitter.emit("Book", fields, null), """
+        Assert.assertEquals(RecordEmitter.emit("Book", fields, NO_DESCRIPTION), """
                 public type Book record {|
                     int id;
                 |};""");

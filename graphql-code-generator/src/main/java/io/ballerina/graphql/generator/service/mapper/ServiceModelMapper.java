@@ -52,6 +52,7 @@ import io.ballerina.graphql.generator.service.model.ResolverModel;
 import io.ballerina.graphql.generator.service.model.ServiceModel;
 import io.ballerina.graphql.generator.service.model.TypeDefinitionModel;
 import io.ballerina.graphql.generator.service.model.TypeKind;
+import io.ballerina.graphql.generator.utils.NullLocation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,8 +104,8 @@ public final class ServiceModelMapper {
         try {
             return new ServiceModelMapper(schema, useRecordsForObjects).map(serviceName);
         } catch (IllegalArgumentException e) {
-            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102, null,
-                    e.getMessage());
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102,
+                    NullLocation.getInstance(), e.getMessage());
         }
     }
 
