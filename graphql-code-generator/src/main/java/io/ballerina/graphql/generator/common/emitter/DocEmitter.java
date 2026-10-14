@@ -31,7 +31,7 @@ public final class DocEmitter {
     private static final String PARAMETER_DOC_FORMAT = "# + %s - %s";
     private static final String DEPRECATED_HEADING = "# # Deprecated";
     private static final String DEPRECATED_ANNOTATION = "@deprecated";
-    private static final String NEW_LINE = "\n";
+    private static final String NEW_LINE = System.lineSeparator();
 
     private DocEmitter() {
     }
@@ -41,11 +41,10 @@ public final class DocEmitter {
      *
      * @param description       the GraphQL description, or null
      * @param deprecationReason the deprecation reason, or null if not deprecated
-     * @param indent            the indentation of each line
      * @return the documentation lines, each ending with a new line; empty if there is nothing to document
      */
-    public static String emit(String description, String deprecationReason, String indent) {
-        return emit(description, Map.of(), deprecationReason, indent);
+    public static String emit(String description, String deprecationReason) {
+        return emit(description, Map.of(), deprecationReason);
     }
 
     /**
@@ -55,26 +54,25 @@ public final class DocEmitter {
      * @param parameterDescriptions the description of each parameter, in parameter order; null or blank values are
      *                              skipped
      * @param deprecationReason     the deprecation reason, or null if not deprecated
-     * @param indent                the indentation of each line
      * @return the documentation lines, each ending with a new line; empty if there is nothing to document
      */
     public static String emit(String description, Map<String, String> parameterDescriptions,
-                              String deprecationReason, String indent) {
+                              String deprecationReason) {
         StringBuilder docs = new StringBuilder();
         if (description != null) {
-            appendLines(docs, lines(description), indent);
+            appendLines(docs, lines(description));
         }
         parameterDescriptions.forEach((name, parameterDescription) -> {
             if (parameterDescription != null && !parameterDescription.isBlank()) {
                 List<String> lines = lines(parameterDescription);
-                docs.append(indent).append(String.format(PARAMETER_DOC_FORMAT, name, lines.get(0))).append(NEW_LINE);
-                appendLines(docs, lines.subList(1, lines.size()), indent);
+                docs.append(String.format(PARAMETER_DOC_FORMAT, name, lines.get(0))).append(NEW_LINE);
+                appendLines(docs, lines.subList(1, lines.size()));
             }
         });
         if (deprecationReason != null) {
-            docs.append(indent).append(DEPRECATED_HEADING).append(NEW_LINE);
-            appendLines(docs, lines(deprecationReason), indent);
-            docs.append(indent).append(DEPRECATED_ANNOTATION).append(NEW_LINE);
+            docs.append(DEPRECATED_HEADING).append(NEW_LINE);
+            appendLines(docs, lines(deprecationReason));
+            docs.append(DEPRECATED_ANNOTATION).append(NEW_LINE);
         }
         return docs.toString();
     }
@@ -83,9 +81,9 @@ public final class DocEmitter {
         return text.strip().lines().map(String::stripTrailing).toList();
     }
 
-    private static void appendLines(StringBuilder docs, List<String> lines, String indent) {
+    private static void appendLines(StringBuilder docs, List<String> lines) {
         for (String line : lines) {
-            docs.append(indent).append(line.isEmpty() ? EMPTY_DOC_LINE : DOC_PREFIX + line).append(NEW_LINE);
+            docs.append(line.isEmpty() ? EMPTY_DOC_LINE : DOC_PREFIX + line).append(NEW_LINE);
         }
     }
 }

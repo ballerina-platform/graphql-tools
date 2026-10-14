@@ -13,7 +13,8 @@ type SchemaWithIDTypeApi service object {
 # Represents a book written by an author
 public type Book record {|
     # The id of the book, unique identifier
-    @graphql:ID string id;
+    @graphql:ID
+    string id;
     # The title of the book
     string title;
 |};

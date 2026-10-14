@@ -23,6 +23,8 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.UnExecutableSchemaGenerator;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.mapper.ServiceModelMapper;
+import org.ballerinalang.formatter.core.Formatter;
+import org.ballerinalang.formatter.core.FormatterException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -35,7 +37,7 @@ public class ServiceEmitterTest {
     private static final boolean SERVICE_CLASSES = false;
 
     @Test(description = "Test writing Query, Mutation and Subscription resolvers into the service")
-    public void testEmit() throws ServiceGenerationException {
+    public void testEmit() throws ServiceGenerationException, FormatterException {
         String service = emit("""
                 type Query {
                     "Finds books"
@@ -75,8 +77,8 @@ public class ServiceEmitterTest {
                 """);
     }
 
-    private static String emit(String sdl) throws ServiceGenerationException {
+    private static String emit(String sdl) throws ServiceGenerationException, FormatterException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, SERVICE_CLASSES));
+        return Formatter.format(ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, SERVICE_CLASSES)));
     }
 }

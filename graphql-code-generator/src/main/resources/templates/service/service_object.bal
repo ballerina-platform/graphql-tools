@@ -1,4 +1,4 @@
 type {{name}} service object {
-    *graphql:Service;
+*graphql:Service;
 {{resolvers}}
 };

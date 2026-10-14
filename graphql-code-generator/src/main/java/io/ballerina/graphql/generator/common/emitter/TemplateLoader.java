@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Loads Ballerina code templates from the resources and fills their {@code {{placeholder}}} values.
@@ -66,7 +67,8 @@ public final class TemplateLoader {
             if (stream == null) {
                 throw new IllegalStateException(String.format(ERROR_MISSING_TEMPLATE, templatePath));
             }
-            return new String(stream.readAllBytes(), StandardCharsets.UTF_8).stripTrailing();
+            return new String(stream.readAllBytes(), StandardCharsets.UTF_8).stripTrailing().lines()
+                    .collect(Collectors.joining(System.lineSeparator()));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

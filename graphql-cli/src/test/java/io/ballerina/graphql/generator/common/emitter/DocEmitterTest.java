@@ -29,22 +29,20 @@ import java.util.Map;
  */
 public class DocEmitterTest {
 
-    private static final String NO_INDENT = "";
-    private static final String MEMBER_INDENT = "    ";
     private static final String NO_DESCRIPTION = null;
     private static final String NOT_DEPRECATED = null;
 
     @Test(description = "Test that nothing is written when there is nothing to document")
     public void testEmitNothing() {
-        Assert.assertEquals(DocEmitter.emit(NO_DESCRIPTION, NOT_DEPRECATED, NO_INDENT), "");
+        Assert.assertEquals(DocEmitter.emit(NO_DESCRIPTION, NOT_DEPRECATED), "");
     }
 
-    @Test(description = "Test writing a multi-line description with indentation")
+    @Test(description = "Test writing a multi-line description")
     public void testEmitDescription() {
-        Assert.assertEquals(DocEmitter.emit("Line one\n\nLine two", NOT_DEPRECATED, MEMBER_INDENT), """
-                    # Line one
-                    #
-                    # Line two
+        Assert.assertEquals(DocEmitter.emit("Line one\n\nLine two", NOT_DEPRECATED), """
+                # Line one
+                #
+                # Line two
                 """);
     }
 
@@ -54,7 +52,7 @@ public class DocEmitterTest {
         parameterDescriptions.put("id", "The id of the book");
         parameterDescriptions.put("title", NO_DESCRIPTION);
         parameterDescriptions.put("author", "");
-        Assert.assertEquals(DocEmitter.emit("Fetch a book", parameterDescriptions, NOT_DEPRECATED, NO_INDENT), """
+        Assert.assertEquals(DocEmitter.emit("Fetch a book", parameterDescriptions, NOT_DEPRECATED), """
                 # Fetch a book
                 # + id - The id of the book
                 """);
@@ -63,19 +61,19 @@ public class DocEmitterTest {
     @Test(description = "Test that a multi-line parameter description keeps its line breaks")
     public void testEmitMultiLineParameter() {
         Map<String, String> parameterDescriptions = Map.of("id", "The id of the book\nid is non nullable");
-        Assert.assertEquals(DocEmitter.emit(NO_DESCRIPTION, parameterDescriptions, NOT_DEPRECATED, MEMBER_INDENT), """
-                    # + id - The id of the book
-                    # id is non nullable
+        Assert.assertEquals(DocEmitter.emit(NO_DESCRIPTION, parameterDescriptions, NOT_DEPRECATED), """
+                # + id - The id of the book
+                # id is non nullable
                 """);
     }
 
     @Test(description = "Test writing a deprecation with its reason and annotation")
     public void testEmitDeprecation() {
-        Assert.assertEquals(DocEmitter.emit("The title of the book", "Use `name` instead", MEMBER_INDENT), """
-                    # The title of the book
-                    # # Deprecated
-                    # Use `name` instead
-                    @deprecated
+        Assert.assertEquals(DocEmitter.emit("The title of the book", "Use `name` instead"), """
+                # The title of the book
+                # # Deprecated
+                # Use `name` instead
+                @deprecated
                 """);
     }
 }

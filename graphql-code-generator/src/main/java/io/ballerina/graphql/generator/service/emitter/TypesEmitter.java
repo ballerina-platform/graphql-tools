@@ -46,13 +46,12 @@ public final class TypesEmitter {
     private static final String NAME = "name";
     private static final String MEMBERS = "members";
     private static final String RESOLVERS = "resolvers";
-    private static final String NO_INDENT = "";
     private static final String NOT_DEPRECATED = null;
     private static final String NO_DEFAULT_VALUE = null;
-    private static final String INCLUSION_FORMAT = "    *%s;";
+    private static final String INCLUSION_FORMAT = "*%s;";
     private static final String GRAPHQL_IMPORT = "import ballerina/graphql;";
-    private static final String NEW_LINE = "\n";
-    private static final String BLANK_LINE = "\n\n";
+    private static final String NEW_LINE = System.lineSeparator();
+    private static final String BLANK_LINE = NEW_LINE + NEW_LINE;
 
     private TypesEmitter() {
     }
@@ -91,7 +90,7 @@ public final class TypesEmitter {
 
     private static String fill(String template, TypeDefinitionModel definition, String members) {
         return TemplateLoader.fill(template, Map.of(
-                DOCS, DocEmitter.emit(definition.description(), NOT_DEPRECATED, NO_INDENT),
+                DOCS, DocEmitter.emit(definition.description(), NOT_DEPRECATED),
                 NAME, definition.name(),
                 MEMBERS, members));
     }

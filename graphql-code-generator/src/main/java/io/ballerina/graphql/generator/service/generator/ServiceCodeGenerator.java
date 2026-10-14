@@ -29,6 +29,8 @@ import io.ballerina.graphql.generator.service.mapper.ServiceModelMapper;
 import io.ballerina.graphql.generator.service.model.ServiceModel;
 import io.ballerina.graphql.generator.utils.NullLocation;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import org.ballerinalang.formatter.core.Formatter;
+import org.ballerinalang.formatter.core.FormatterException;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -76,14 +78,15 @@ public class ServiceCodeGenerator extends CodeGenerator {
      *
      * @param project the project with a validated GraphQL schema
      * @return the {@code types.bal} source followed by the {@code service.bal} source
-     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent
+     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or the
+     *                                    generated code cannot be formatted
      */
     public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ServiceGenerationException {
         ServiceModel model = ServiceModelMapper.map(project.getGraphQLSchema(), project.getFileName(),
                 this.useRecordsForObjects);
         return List.of(typesSource(project.getName(), model),
                 new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, project.getName(), SERVICE_FILE_NAME,
-                        ServiceEmitter.emit(model)));
+                        format(ServiceEmitter.emit(model), ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_101)));
     }
 
     /**
@@ -93,7 +96,8 @@ public class ServiceCodeGenerator extends CodeGenerator {
      * @param fileName      the schema file name, used as the service object type name
      * @param graphQLSchema the GraphQL schema
      * @return the {@code types.bal} source
-     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent
+     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or the
+     *                                    generated code cannot be formatted
      *
      * @since 0.14.0
      */
@@ -102,8 +106,17 @@ public class ServiceCodeGenerator extends CodeGenerator {
         return typesSource(projectName, ServiceModelMapper.map(graphQLSchema, fileName, this.useRecordsForObjects));
     }
 
-    private static SrcFilePojo typesSource(String projectName, ServiceModel model) {
+    private static SrcFilePojo typesSource(String projectName, ServiceModel model)
+            throws ServiceGenerationException {
         return new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, TYPES_FILE_NAME,
-                TypesEmitter.emit(model));
+                format(TypesEmitter.emit(model), ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102));
+    }
+
+    private static String format(String source, ServiceDiagnosticMessages error) throws ServiceGenerationException {
+        try {
+            return Formatter.format(source);
+        } catch (FormatterException e) {
+            throw new ServiceGenerationException(error, NullLocation.getInstance(), e.getMessage());
+        }
     }
 }

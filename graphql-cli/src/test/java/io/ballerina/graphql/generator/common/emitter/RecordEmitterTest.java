@@ -47,13 +47,13 @@ public class RecordEmitterTest {
         Assert.assertEquals(RecordEmitter.emit("BookInfo", fields, "Represents new book information"), """
                 # Represents new book information
                 public type BookInfo record {|
-                    string title;
-                    # The author of the book
-                    # # Deprecated
-                    # No longer needed
-                    @deprecated
-                    string? author;
-                    int pages = 100;
+                string title;
+                # The author of the book
+                # # Deprecated
+                # No longer needed
+                @deprecated
+                string? author;
+                int pages = 100;
                 |};""");
     }
 
@@ -64,7 +64,7 @@ public class RecordEmitterTest {
 
         Assert.assertEquals(RecordEmitter.emit("Book", fields, NO_DESCRIPTION), """
                 public type Book record {|
-                    int id;
+                int id;
                 |};""");
     }
 }

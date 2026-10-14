@@ -23,6 +23,8 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.UnExecutableSchemaGenerator;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.mapper.ServiceModelMapper;
+import org.ballerinalang.formatter.core.Formatter;
+import org.ballerinalang.formatter.core.FormatterException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -36,7 +38,7 @@ public class TypesEmitterTest {
     private static final boolean RECORDS = true;
 
     @Test(description = "Test writing interfaces, unions and service classes that include interfaces")
-    public void testEmitServiceClasses() throws ServiceGenerationException {
+    public void testEmitServiceClasses() throws ServiceGenerationException, FormatterException {
         String types = emit("""
                 type Query { profile(id: ID!): Profile }
                 interface Info { name: String! }
@@ -82,7 +84,7 @@ public class TypesEmitterTest {
     }
 
     @Test(description = "Test writing records, input types and enums with docs")
-    public void testEmitRecords() throws ServiceGenerationException {
+    public void testEmitRecords() throws ServiceGenerationException, FormatterException {
         String types = emit("""
                 type Query { book(input: BookInput, genre: Genre): Book }
                 "A book"
@@ -106,7 +108,8 @@ public class TypesEmitterTest {
                 # A book
                 public type Book record {|
                     # The book ID
-                    @graphql:ID string id;
+                    @graphql:ID
+                    string id;
                     # # Deprecated
                     # Use name
                     @deprecated
@@ -126,7 +129,7 @@ public class TypesEmitterTest {
     }
 
     @Test(description = "Test writing the service object type with Query, Mutation and Subscription resolvers")
-    public void testEmitServiceObject() throws ServiceGenerationException {
+    public void testEmitServiceObject() throws ServiceGenerationException, FormatterException {
         String types = emit("""
                 type Query {
                     "Finds a book title"
@@ -149,8 +152,10 @@ public class TypesEmitterTest {
                 """);
     }
 
-    private static String emit(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
+    private static String emit(String sdl, boolean useRecordsForObjects)
+            throws ServiceGenerationException, FormatterException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return TypesEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects));
+        return Formatter.format(
+                TypesEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects)));
     }
 }

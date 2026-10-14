@@ -32,7 +32,7 @@ public final class ServiceEmitter {
     private static final String TEMPLATE = "templates/service/service_file.bal";
     private static final String NAME = "name";
     private static final String RESOLVERS = "resolvers";
-    private static final String NEW_LINE = "\n";
+    private static final String NEW_LINE = System.lineSeparator();
 
     private ServiceEmitter() {
     }

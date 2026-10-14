@@ -1,1 +1,1 @@
-{{docs}}    {{signature}};
+{{docs}}{{signature}};

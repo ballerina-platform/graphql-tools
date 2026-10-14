@@ -40,7 +40,6 @@ final class ResolverEmitter {
     private static final String DECLARATION_TEMPLATE = "templates/service/resolver_declaration.bal";
     private static final String DOCS = "docs";
     private static final String SIGNATURE = "signature";
-    private static final String MEMBER_INDENT = "    ";
     private static final String RESOURCE_GET = "resource function get";
     private static final String REMOTE = "remote function";
     private static final String RESOURCE_SUBSCRIBE = "resource function subscribe";
@@ -50,8 +49,8 @@ final class ResolverEmitter {
     private static final String PARAMETER_FORMAT = "%s %s";
     private static final String PARAMETER_WITH_DEFAULT_FORMAT = "%s %s = %s";
     private static final String PARAMETER_SEPARATOR = ", ";
-    private static final String NEW_LINE = "\n";
-    private static final String BLANK_LINE = "\n\n";
+    private static final String NEW_LINE = System.lineSeparator();
+    private static final String BLANK_LINE = NEW_LINE + NEW_LINE;
 
     private ResolverEmitter() {
     }
@@ -73,8 +72,7 @@ final class ResolverEmitter {
         Map<String, String> parameterDescriptions = new LinkedHashMap<>();
         parameters.forEach(parameter -> parameterDescriptions.put(parameter.name(), parameter.description()));
         return Map.of(
-                DOCS, DocEmitter.emit(resolver.description(), parameterDescriptions, resolver.deprecationReason(),
-                        MEMBER_INDENT),
+                DOCS, DocEmitter.emit(resolver.description(), parameterDescriptions, resolver.deprecationReason()),
                 SIGNATURE, String.format(SIGNATURE_FORMAT, prefix(resolver.kind()), resolver.name(),
                         parameters.stream().map(ResolverEmitter::parameter)
                                 .collect(Collectors.joining(PARAMETER_SEPARATOR)),

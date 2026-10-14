@@ -43,13 +43,13 @@ public class EnumEmitterTest {
         Assert.assertEquals(EnumEmitter.emit(status), """
                 # Availability of the book
                 public enum Status {
-                    # The book is available
-                    AVAILABLE,
-                    # # Deprecated
-                    # Use AVAILABLE instead
-                    @deprecated
-                    RESERVED,
-                    NOT_AVAILABLE
+                # The book is available
+                AVAILABLE,
+                # # Deprecated
+                # Use AVAILABLE instead
+                @deprecated
+                RESERVED,
+                NOT_AVAILABLE
                 }""");
     }
 }
