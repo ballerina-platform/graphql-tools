@@ -34,7 +34,11 @@ public final class TypeMapper {
 
     private static final boolean NULLABLE = true;
     private static final boolean NON_NULL = false;
+    private static final char UNDERSCORE = '_';
+    private static final int FIRST_CHARACTER = 0;
+    private static final String UNICODE_ESCAPE_FORMAT = "\\u{%X}";
     private static final String ERROR_UNSUPPORTED_SCALAR = "Custom scalar \"%s\" is not supported.";
+    private static final String ERROR_INVALID_NAME = "\"%s\" cannot be used as a Ballerina identifier.";
 
     private TypeMapper() {
     }
@@ -51,13 +55,36 @@ public final class TypeMapper {
     }
 
     /**
-     * Quotes a name that is a Ballerina keyword, e.g. {@code type} becomes {@code 'type}.
+     * Makes a name a valid Ballerina identifier. A keyword is quoted, e.g. {@code type} becomes {@code 'type}, and a
+     * character that cannot appear in an identifier is escaped, e.g. {@code my-schema} becomes {@code my\-schema}.
      *
-     * @param name a GraphQL name
-     * @return the name, quoted if it is a keyword
+     * @param name a GraphQL or schema file name
+     * @return the name as a valid Ballerina identifier
+     * @throws IllegalArgumentException if the name cannot be made a valid identifier
      */
     public static String escapeName(String name) {
-        return SyntaxInfo.isKeyword(name) ? SyntaxKind.SINGLE_QUOTE_TOKEN.stringValue() + name : name;
+        if (SyntaxInfo.isKeyword(name)) {
+            return SyntaxKind.SINGLE_QUOTE_TOKEN.stringValue() + name;
+        }
+        if (SyntaxInfo.isIdentifier(name)) {
+            return name;
+        }
+        StringBuilder escaped = new StringBuilder();
+        for (int i = 0; i < name.length(); i++) {
+            char character = name.charAt(i);
+            if (Character.isLetter(character) || character == UNDERSCORE
+                    || (i > FIRST_CHARACTER && Character.isDigit(character))) {
+                escaped.append(character);
+            } else if (Character.isWhitespace(character)) {
+                escaped.append(String.format(UNICODE_ESCAPE_FORMAT, (int) character));
+            } else {
+                escaped.append(SyntaxKind.BACK_SLASH_TOKEN.stringValue()).append(character);
+            }
+        }
+        if (!SyntaxInfo.isIdentifier(escaped.toString())) {
+            throw new IllegalArgumentException(String.format(ERROR_INVALID_NAME, name));
+        }
+        return escaped.toString();
     }
 
     private static TypeModel map(GraphQLType type, boolean nullable) {
