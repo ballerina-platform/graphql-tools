@@ -222,11 +222,17 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test that an existing output file is overwritten with the force flag")
-    public void testExecuteOverwritesExistingFileWithForce() {
+    @DataProvider(name = "forceFlags")
+    public Object[][] forceFlags() {
+        return new Object[][]{{"--force"}, {"-f"}};
+    }
+
+    @Test(description = "Test that an existing output file is overwritten with the force flag",
+            dataProvider = "forceFlags")
+    public void testExecuteOverwritesExistingFileWithForce(String forceFlag) {
         Path graphql = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "-m", "service", "--force"};
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "-m", "service", forceFlag};
         try {
             Path typesFile = this.tmpDir.resolve("types.bal");
             Files.writeString(typesFile, "// existing");
@@ -244,12 +250,18 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test that a dry run lists the files it would create without writing them")
-    public void testDryRunListsFilesWithoutWriting() {
+    @DataProvider(name = "dryRunFlags")
+    public Object[][] dryRunFlags() {
+        return new Object[][]{{"--dry-run"}, {"-d"}};
+    }
+
+    @Test(description = "Test that a dry run lists the files it would create without writing them",
+            dataProvider = "dryRunFlags")
+    public void testDryRunListsFilesWithoutWriting(String dryRunFlag) {
         Path graphql = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         Path outputPath = this.tmpDir.resolve("dry-run-output");
-        String[] args = {graphql.toString(), "-o", outputPath.toString(), "-m", "service", "--dry-run"};
+        String[] args = {graphql.toString(), "-o", outputPath.toString(), "-m", "service", dryRunFlag};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -689,8 +701,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains("SYNOPSIS"));
-            Assert.assertTrue(output.contains("--force"));
-            Assert.assertTrue(output.contains("--dry-run"));
+            Assert.assertTrue(output.contains("-f, --force"), output);
+            Assert.assertTrue(output.contains("-d, --dry-run"), output);
             Assert.assertTrue(output.contains("--object-type"));
             Assert.assertFalse(output.contains("--input"));
             Assert.assertEquals(exitCaptor.getExitCode(), 0, "Help flag should exit with code 0");
