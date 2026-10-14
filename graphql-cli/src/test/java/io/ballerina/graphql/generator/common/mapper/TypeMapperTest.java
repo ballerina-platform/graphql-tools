@@ -85,6 +85,22 @@ public class TypeMapperTest {
         Assert.assertEquals(TypeMapper.map(fieldType(fieldName)), expectedType);
     }
 
+    @DataProvider(name = "names")
+    public Object[][] names() {
+        return new Object[][]{
+                {"type", "'type"},
+                {"map", "'map"},
+                {"error", "'error"},
+                {"book", "book"},
+                {"graphql", "graphql"}
+        };
+    }
+
+    @Test(description = "Test that only Ballerina keywords are quoted", dataProvider = "names")
+    public void testEscapeName(String name, String expectedName) {
+        Assert.assertEquals(TypeMapper.escapeName(name), expectedName);
+    }
+
     @Test(description = "Test that a custom scalar is rejected")
     public void testMapCustomScalar() {
         IllegalArgumentException error = Assert.expectThrows(IllegalArgumentException.class,

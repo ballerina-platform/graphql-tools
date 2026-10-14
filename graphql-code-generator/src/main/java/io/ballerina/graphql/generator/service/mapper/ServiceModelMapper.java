@@ -38,7 +38,6 @@ import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLUnionType;
-import io.ballerina.graphql.generator.common.mapper.NameEscaper;
 import io.ballerina.graphql.generator.common.mapper.TypeMapper;
 import io.ballerina.graphql.generator.common.model.EnumModel;
 import io.ballerina.graphql.generator.common.model.EnumValueModel;
@@ -114,7 +113,7 @@ public final class ServiceModelMapper {
                 .filter(type -> !type.getName().startsWith(INTROSPECTION_TYPE_PREFIX))
                 .filter(type -> !isRootType(type))
                 .toList();
-        return new ServiceModel(NameEscaper.escape(serviceName),
+        return new ServiceModel(TypeMapper.escapeName(serviceName),
                 resolvers(schema.getQueryType(), ResolverKind.RESOURCE_GET),
                 resolvers(schema.getMutationType(), ResolverKind.REMOTE),
                 resolvers(schema.getSubscriptionType(), ResolverKind.RESOURCE_SUBSCRIBE),
@@ -135,7 +134,7 @@ public final class ServiceModelMapper {
 
     private static List<ResolverModel> resolvers(List<GraphQLFieldDefinition> fields, ResolverKind kind) {
         return fields.stream()
-                .map(field -> new ResolverModel(kind, NameEscaper.escape(field.getName()),
+                .map(field -> new ResolverModel(kind, TypeMapper.escapeName(field.getName()),
                         parameters(field.getArguments()), TypeMapper.map(field.getType()), field.getDescription(),
                         field.isDeprecated() ? field.getDeprecationReason() : null))
                 .toList();
@@ -143,7 +142,7 @@ public final class ServiceModelMapper {
 
     private static List<ParameterModel> parameters(List<GraphQLArgument> arguments) {
         return arguments.stream()
-                .map(argument -> new ParameterModel(NameEscaper.escape(argument.getName()),
+                .map(argument -> new ParameterModel(TypeMapper.escapeName(argument.getName()),
                         TypeMapper.map(argument.getType()),
                         argument.hasSetDefaultValue() ? literal(argument.getArgumentDefaultValue().getValue()) : null,
                         argument.getDescription()))
@@ -154,16 +153,16 @@ public final class ServiceModelMapper {
         List<TypeDefinitionModel> definitions = new ArrayList<>();
         for (GraphQLNamedType type : types) {
             if (type instanceof GraphQLObjectType objectType) {
-                definitions.add(new TypeDefinitionModel(NameEscaper.escape(objectType.getName()),
+                definitions.add(new TypeDefinitionModel(TypeMapper.escapeName(objectType.getName()),
                         isRecord(objectType) ? TypeKind.RECORD : TypeKind.SERVICE_CLASS,
                         resolvers(objectType.getFields(), ResolverKind.RESOURCE_GET),
                         names(directInterfaces(objectType.getInterfaces())), objectType.getDescription()));
             } else if (type instanceof GraphQLInterfaceType interfaceType) {
-                definitions.add(new TypeDefinitionModel(NameEscaper.escape(interfaceType.getName()),
+                definitions.add(new TypeDefinitionModel(TypeMapper.escapeName(interfaceType.getName()),
                         TypeKind.INTERFACE, resolvers(ownFields(interfaceType), ResolverKind.RESOURCE_GET),
                         names(directInterfaces(interfaceType.getInterfaces())), interfaceType.getDescription()));
             } else if (type instanceof GraphQLUnionType unionType) {
-                definitions.add(new TypeDefinitionModel(NameEscaper.escape(unionType.getName()), TypeKind.UNION,
+                definitions.add(new TypeDefinitionModel(TypeMapper.escapeName(unionType.getName()), TypeKind.UNION,
                         List.of(), names(unionType.getTypes()), unionType.getDescription()));
             }
         }
@@ -194,21 +193,21 @@ public final class ServiceModelMapper {
     }
 
     private static List<String> names(List<? extends GraphQLNamedType> types) {
-        return types.stream().map(type -> NameEscaper.escape(type.getName())).toList();
+        return types.stream().map(type -> TypeMapper.escapeName(type.getName())).toList();
     }
 
     private static List<InputTypeModel> inputTypes(List<GraphQLNamedType> types) {
         return types.stream()
                 .filter(GraphQLInputObjectType.class::isInstance)
                 .map(GraphQLInputObjectType.class::cast)
-                .map(inputType -> new InputTypeModel(NameEscaper.escape(inputType.getName()),
+                .map(inputType -> new InputTypeModel(TypeMapper.escapeName(inputType.getName()),
                         inputType.getFields().stream().map(ServiceModelMapper::inputField).toList(),
                         inputType.getDescription()))
                 .toList();
     }
 
     private static FieldModel inputField(GraphQLInputObjectField field) {
-        return new FieldModel(NameEscaper.escape(field.getName()), TypeMapper.map(field.getType()),
+        return new FieldModel(TypeMapper.escapeName(field.getName()), TypeMapper.map(field.getType()),
                 field.hasSetDefaultValue() ? literal(field.getInputFieldDefaultValue().getValue()) : null,
                 field.getDescription(), field.isDeprecated() ? field.getDeprecationReason() : null);
     }
@@ -217,14 +216,14 @@ public final class ServiceModelMapper {
         return types.stream()
                 .filter(GraphQLEnumType.class::isInstance)
                 .map(GraphQLEnumType.class::cast)
-                .map(enumType -> new EnumModel(NameEscaper.escape(enumType.getName()),
+                .map(enumType -> new EnumModel(TypeMapper.escapeName(enumType.getName()),
                         enumType.getValues().stream().map(ServiceModelMapper::enumValue).toList(),
                         enumType.getDescription()))
                 .toList();
     }
 
     private static EnumValueModel enumValue(GraphQLEnumValueDefinition value) {
-        return new EnumValueModel(NameEscaper.escape(value.getName()), value.getDescription(),
+        return new EnumValueModel(TypeMapper.escapeName(value.getName()), value.getDescription(),
                 value.isDeprecated() ? value.getDeprecationReason() : null);
     }
 
@@ -242,7 +241,7 @@ public final class ServiceModelMapper {
             return String.valueOf(booleanValue.isValue());
         }
         if (value instanceof EnumValue enumValue) {
-            return NameEscaper.escape(enumValue.getName());
+            return TypeMapper.escapeName(enumValue.getName());
         }
         if (value instanceof NullValue) {
             return NIL_LITERAL;
@@ -254,7 +253,7 @@ public final class ServiceModelMapper {
         }
         if (value instanceof ObjectValue objectValue) {
             return objectValue.getObjectFields().stream()
-                    .map(field -> String.format(MAPPING_FIELD_FORMAT, NameEscaper.escape(field.getName()),
+                    .map(field -> String.format(MAPPING_FIELD_FORMAT, TypeMapper.escapeName(field.getName()),
                             literal(field.getValue())))
                     .collect(Collectors.joining(VALUE_SEPARATOR, MAPPING_START, MAPPING_END));
         }
