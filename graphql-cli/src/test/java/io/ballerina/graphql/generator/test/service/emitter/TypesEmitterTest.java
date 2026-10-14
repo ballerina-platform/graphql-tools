@@ -16,11 +16,12 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.service.emitter;
+package io.ballerina.graphql.generator.test.service.emitter;
 
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.UnExecutableSchemaGenerator;
+import io.ballerina.graphql.generator.service.emitter.TypesEmitter;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.mapper.ServiceModelMapper;
 import org.ballerinalang.formatter.core.Formatter;

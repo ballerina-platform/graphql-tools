@@ -16,13 +16,14 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.service.generator;
+package io.ballerina.graphql.generator.test.service.generator;
 
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;

@@ -16,8 +16,9 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.common.emitter;
+package io.ballerina.graphql.generator.test.common.emitter;
 
+import io.ballerina.graphql.generator.common.emitter.EnumEmitter;
 import io.ballerina.graphql.generator.common.model.EnumModel;
 import io.ballerina.graphql.generator.common.model.EnumValueModel;
 import org.testng.Assert;

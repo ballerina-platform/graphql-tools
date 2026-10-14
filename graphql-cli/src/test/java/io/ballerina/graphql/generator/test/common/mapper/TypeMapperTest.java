@@ -16,12 +16,13 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.common.mapper;
+package io.ballerina.graphql.generator.test.common.mapper;
 
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLType;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.UnExecutableSchemaGenerator;
+import io.ballerina.graphql.generator.common.mapper.TypeMapper;
 import io.ballerina.graphql.generator.common.model.TypeModel;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;

@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.service.mapper;
+package io.ballerina.graphql.generator.test.service.mapper;
 
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.SchemaParser;
@@ -27,6 +27,7 @@ import io.ballerina.graphql.generator.common.model.FieldModel;
 import io.ballerina.graphql.generator.common.model.InputTypeModel;
 import io.ballerina.graphql.generator.common.model.TypeModel;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.service.mapper.ServiceModelMapper;
 import io.ballerina.graphql.generator.service.model.ParameterModel;
 import io.ballerina.graphql.generator.service.model.ResolverKind;
 import io.ballerina.graphql.generator.service.model.ResolverModel;
