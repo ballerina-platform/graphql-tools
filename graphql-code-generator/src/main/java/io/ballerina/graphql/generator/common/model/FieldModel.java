@@ -23,7 +23,8 @@ package io.ballerina.graphql.generator.common.model;
  *
  * @param name              the field name
  * @param type              the field type
- * @param defaultValue      the default value, or null if there is none
+ * @param defaultValue      the default value as a Ballerina literal, e.g. {@code ()} for a GraphQL {@code null};
+ *                          null if there is no default value
  * @param description       the GraphQL description, or null
  * @param deprecationReason the deprecation reason, or null if the field is not deprecated
  */

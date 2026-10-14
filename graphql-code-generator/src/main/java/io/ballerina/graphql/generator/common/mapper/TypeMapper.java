@@ -24,6 +24,7 @@ import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
 import io.ballerina.compiler.syntax.tree.SyntaxInfo;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.generator.common.model.BalType;
 import io.ballerina.graphql.generator.common.model.ListType;
 import io.ballerina.graphql.generator.common.model.NamedType;
@@ -33,7 +34,6 @@ import io.ballerina.graphql.generator.common.model.NamedType;
  */
 public final class TypeMapper {
 
-    private static final String QUOTE = "'";
     private static final boolean NULLABLE = true;
     private static final boolean NON_NULL = false;
     private static final String ERROR_UNSUPPORTED_SCALAR = "Custom scalar \"%s\" is not supported.";
@@ -59,7 +59,7 @@ public final class TypeMapper {
      * @return the name, quoted if it is a keyword
      */
     public static String escapeName(String name) {
-        return SyntaxInfo.isKeyword(name) ? QUOTE + name : name;
+        return SyntaxInfo.isKeyword(name) ? SyntaxKind.SINGLE_QUOTE_TOKEN.stringValue() + name : name;
     }
 
     private static BalType map(GraphQLType type, boolean nullable) {

@@ -77,6 +77,14 @@ public class ServiceEmitterTest {
                 """);
     }
 
+    @Test(description = "Test that a null default value is written as nil")
+    public void testEmitNilDefaultValue() throws ServiceGenerationException, FormatterException {
+        String service = emit("type Query { book(title: String = null): String }");
+
+        Assert.assertTrue(service.contains("resource function get book(string? title = ()) returns string?|error {"),
+                service);
+    }
+
     private static String emit(String sdl) throws ServiceGenerationException, FormatterException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
         return Formatter.format(ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, SERVICE_CLASSES)));

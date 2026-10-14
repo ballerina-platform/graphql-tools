@@ -37,6 +37,7 @@ import io.ballerina.graphql.generator.service.model.TypeKind;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -162,6 +163,19 @@ public class ServiceModelMapperTest {
                 List.of(new EnumValueModel("FICTION", NO_DESCRIPTION, NOT_DEPRECATED),
                         new EnumValueModel("HISTORY", NO_DESCRIPTION, NOT_DEPRECATED)),
                 NO_DESCRIPTION)));
+    }
+
+    @Test(description = "Test that a null default value is kept apart from no default value")
+    public void testNilDefaultValue() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { book(title: String = null, author: String): String }
+                input Filter { title: String = null, author: String }
+                """, SERVICE_CLASSES);
+
+        Assert.assertEquals(model.queries().get(0).parameters().stream().map(ParameterModel::defaultValue).toList(),
+                Arrays.asList("()", NO_DEFAULT));
+        Assert.assertEquals(model.inputTypes().get(0).fields().stream().map(FieldModel::defaultValue).toList(),
+                Arrays.asList("()", NO_DEFAULT));
     }
 
     @Test(description = "Test that names that are Ballerina keywords are escaped")

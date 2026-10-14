@@ -25,7 +25,8 @@ import io.ballerina.graphql.generator.common.model.BalType;
  *
  * @param name         the parameter name
  * @param type         the parameter type
- * @param defaultValue the default value, or null if there is none
+ * @param defaultValue the default value as a Ballerina literal, e.g. {@code ()} for a GraphQL {@code null};
+ *                     null if there is no default value
  * @param description  the GraphQL description, or null
  */
 public record ParameterModel(String name, BalType type, String defaultValue, String description) {
