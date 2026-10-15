@@ -25,9 +25,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
 import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.graphql.generator.common.model.BalType;
-import io.ballerina.graphql.generator.common.model.ListType;
-import io.ballerina.graphql.generator.common.model.NamedType;
+import io.ballerina.graphql.generator.common.model.TypeModel;
 
 /**
  * Maps GraphQL types to Ballerina types.
@@ -48,7 +46,7 @@ public final class TypeMapper {
      * @return the Ballerina type
      * @throws IllegalArgumentException if the type is a custom scalar
      */
-    public static BalType map(GraphQLType type) {
+    public static TypeModel map(GraphQLType type) {
         return map(type, NULLABLE);
     }
 
@@ -62,15 +60,15 @@ public final class TypeMapper {
         return SyntaxInfo.isKeyword(name) ? SyntaxKind.SINGLE_QUOTE_TOKEN.stringValue() + name : name;
     }
 
-    private static BalType map(GraphQLType type, boolean nullable) {
+    private static TypeModel map(GraphQLType type, boolean nullable) {
         if (type instanceof GraphQLNonNull nonNull) {
             return map(nonNull.getWrappedType(), NON_NULL);
         }
         if (type instanceof GraphQLList list) {
-            return new ListType(map(list.getWrappedType(), NULLABLE), nullable);
+            return TypeModel.list(map(list.getWrappedType(), NULLABLE), nullable);
         }
         GraphQLNamedType namedType = (GraphQLNamedType) type;
-        return new NamedType(ballerinaName(namedType), nullable, isId(namedType));
+        return TypeModel.named(ballerinaName(namedType), nullable, isId(namedType));
     }
 
     private static boolean isId(GraphQLNamedType type) {

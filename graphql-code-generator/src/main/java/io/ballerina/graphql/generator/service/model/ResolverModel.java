@@ -18,7 +18,7 @@
 
 package io.ballerina.graphql.generator.service.model;
 
-import io.ballerina.graphql.generator.common.model.BalType;
+import io.ballerina.graphql.generator.common.model.TypeModel;
 
 import java.util.List;
 
@@ -32,6 +32,6 @@ import java.util.List;
  * @param description       the GraphQL description, or null
  * @param deprecationReason the deprecation reason, or null if the field is not deprecated
  */
-public record ResolverModel(ResolverKind kind, String name, List<ParameterModel> parameters, BalType returnType,
+public record ResolverModel(ResolverKind kind, String name, List<ParameterModel> parameters, TypeModel returnType,
                             String description, String deprecationReason) {
 }

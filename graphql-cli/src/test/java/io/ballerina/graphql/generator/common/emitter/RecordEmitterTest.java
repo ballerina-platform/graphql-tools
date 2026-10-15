@@ -19,7 +19,7 @@
 package io.ballerina.graphql.generator.common.emitter;
 
 import io.ballerina.graphql.generator.common.model.FieldModel;
-import io.ballerina.graphql.generator.common.model.NamedType;
+import io.ballerina.graphql.generator.common.model.TypeModel;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -39,10 +39,11 @@ public class RecordEmitterTest {
     @Test(description = "Test writing a record with docs, a deprecated field and a default value")
     public void testEmit() {
         List<FieldModel> fields = List.of(
-                new FieldModel("title", new NamedType("string", NON_NULL), NO_DEFAULT, NO_DESCRIPTION, NOT_DEPRECATED),
-                new FieldModel("author", new NamedType("string", NULLABLE), NO_DEFAULT, "The author of the book",
+                new FieldModel("title", TypeModel.named("string", NON_NULL), NO_DEFAULT, NO_DESCRIPTION,
+                        NOT_DEPRECATED),
+                new FieldModel("author", TypeModel.named("string", NULLABLE), NO_DEFAULT, "The author of the book",
                         "No longer needed"),
-                new FieldModel("pages", new NamedType("int", NON_NULL), "100", NO_DESCRIPTION, NOT_DEPRECATED));
+                new FieldModel("pages", TypeModel.named("int", NON_NULL), "100", NO_DESCRIPTION, NOT_DEPRECATED));
 
         Assert.assertEquals(RecordEmitter.emit("BookInfo", fields, "Represents new book information"), """
                 # Represents new book information
@@ -60,7 +61,7 @@ public class RecordEmitterTest {
     @Test(description = "Test writing a record without docs")
     public void testEmitWithoutDocs() {
         List<FieldModel> fields = List.of(
-                new FieldModel("id", new NamedType("int", NON_NULL), NO_DEFAULT, NO_DESCRIPTION, NOT_DEPRECATED));
+                new FieldModel("id", TypeModel.named("int", NON_NULL), NO_DEFAULT, NO_DESCRIPTION, NOT_DEPRECATED));
 
         Assert.assertEquals(RecordEmitter.emit("Book", fields, NO_DESCRIPTION), """
                 public type Book record {|

@@ -18,9 +18,7 @@
 
 package io.ballerina.graphql.generator.common.emitter;
 
-import io.ballerina.graphql.generator.common.model.BalType;
-import io.ballerina.graphql.generator.common.model.ListType;
-import io.ballerina.graphql.generator.common.model.NamedType;
+import io.ballerina.graphql.generator.common.model.TypeModel;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -39,33 +37,33 @@ public class TypeEmitterTest {
     @DataProvider(name = "types")
     public Object[][] types() {
         return new Object[][]{
-                {new NamedType("int", NON_NULL), "int"},
-                {new NamedType("Book", NULLABLE), "Book?"},
-                {new NamedType("graphql:Upload", NON_NULL), "graphql:Upload"},
-                {new ListType(new NamedType("Book", NON_NULL), NULLABLE), "Book[]?"},
-                {new ListType(new NamedType("Book", NULLABLE), NULLABLE), "Book?[]?"},
-                {new ListType(new NamedType("string", NON_NULL), NON_NULL), "string[]"},
-                {new ListType(new ListType(new NamedType("int", NULLABLE), NON_NULL), NULLABLE), "int?[][]?"}
+                {TypeModel.named("int", NON_NULL), "int"},
+                {TypeModel.named("Book", NULLABLE), "Book?"},
+                {TypeModel.named("graphql:Upload", NON_NULL), "graphql:Upload"},
+                {TypeModel.list(TypeModel.named("Book", NON_NULL), NULLABLE), "Book[]?"},
+                {TypeModel.list(TypeModel.named("Book", NULLABLE), NULLABLE), "Book?[]?"},
+                {TypeModel.list(TypeModel.named("string", NON_NULL), NON_NULL), "string[]"},
+                {TypeModel.list(TypeModel.list(TypeModel.named("int", NULLABLE), NON_NULL), NULLABLE), "int?[][]?"}
         };
     }
 
     @Test(description = "Test writing type descriptors", dataProvider = "types")
-    public void testEmit(BalType type, String expectedDescriptor) {
+    public void testEmit(TypeModel type, String expectedDescriptor) {
         Assert.assertEquals(TypeEmitter.emit(type), expectedDescriptor);
     }
 
     @DataProvider(name = "annotatedTypes")
     public Object[][] annotatedTypes() {
         return new Object[][]{
-                {new NamedType("string", NON_NULL, ID), "@graphql:ID string"},
-                {new ListType(new NamedType("string", NULLABLE, ID), NULLABLE), "@graphql:ID string?[]?"},
-                {new NamedType("graphql:Upload", NON_NULL), "graphql:Upload"},
-                {new NamedType("string", NON_NULL), "string"}
+                {TypeModel.named("string", NON_NULL, ID), "@graphql:ID string"},
+                {TypeModel.list(TypeModel.named("string", NULLABLE, ID), NULLABLE), "@graphql:ID string?[]?"},
+                {TypeModel.named("graphql:Upload", NON_NULL), "graphql:Upload"},
+                {TypeModel.named("string", NON_NULL), "string"}
         };
     }
 
     @Test(description = "Test writing ID types with the graphql:ID annotation", dataProvider = "annotatedTypes")
-    public void testEmitAnnotated(BalType type, String expectedDescriptor) {
+    public void testEmitAnnotated(TypeModel type, String expectedDescriptor) {
         Assert.assertEquals(TypeEmitter.emitAnnotated(type), expectedDescriptor);
     }
 

@@ -28,6 +28,6 @@ package io.ballerina.graphql.generator.common.model;
  * @param description       the GraphQL description, or null
  * @param deprecationReason the deprecation reason, or null if the field is not deprecated
  */
-public record FieldModel(String name, BalType type, String defaultValue, String description,
+public record FieldModel(String name, TypeModel type, String defaultValue, String description,
                          String deprecationReason) {
 }

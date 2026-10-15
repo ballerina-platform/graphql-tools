@@ -25,8 +25,7 @@ import io.ballerina.graphql.generator.common.model.EnumModel;
 import io.ballerina.graphql.generator.common.model.EnumValueModel;
 import io.ballerina.graphql.generator.common.model.FieldModel;
 import io.ballerina.graphql.generator.common.model.InputTypeModel;
-import io.ballerina.graphql.generator.common.model.ListType;
-import io.ballerina.graphql.generator.common.model.NamedType;
+import io.ballerina.graphql.generator.common.model.TypeModel;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.model.ParameterModel;
 import io.ballerina.graphql.generator.service.model.ResolverKind;
@@ -65,8 +64,8 @@ public class ServiceModelMapperTest {
 
         Assert.assertEquals(model.serviceName(), SERVICE_NAME);
         Assert.assertEquals(model.queries(), List.of(new ResolverModel(ResolverKind.RESOURCE_GET, "book",
-                List.of(new ParameterModel("id", new NamedType("int", NON_NULL), NO_DEFAULT, NO_DESCRIPTION)),
-                new NamedType("Book", NULLABLE), NO_DESCRIPTION, NOT_DEPRECATED)));
+                List.of(new ParameterModel("id", TypeModel.named("int", NON_NULL), NO_DEFAULT, NO_DESCRIPTION)),
+                TypeModel.named("Book", NULLABLE), NO_DESCRIPTION, NOT_DEPRECATED)));
         Assert.assertEquals(model.mutations().get(0).kind(), ResolverKind.REMOTE);
         Assert.assertEquals(model.subscriptions().get(0).kind(), ResolverKind.RESOURCE_SUBSCRIBE);
     }
@@ -154,10 +153,10 @@ public class ServiceModelMapperTest {
         Assert.assertEquals(model.queries().get(0).parameters().stream().map(ParameterModel::defaultValue).toList(),
                 List.of("{genre: FICTION, tags: [\"new\"]}", "10"));
         Assert.assertEquals(model.inputTypes(), List.of(new InputTypeModel("Filter", List.of(
-                new FieldModel("genre", new NamedType("Genre", NULLABLE), "FICTION", NO_DESCRIPTION, NOT_DEPRECATED),
-                new FieldModel("tags", new ListType(new NamedType("string", NON_NULL), NULLABLE), NO_DEFAULT,
+                new FieldModel("genre", TypeModel.named("Genre", NULLABLE), "FICTION", NO_DESCRIPTION, NOT_DEPRECATED),
+                new FieldModel("tags", TypeModel.list(TypeModel.named("string", NON_NULL), NULLABLE), NO_DEFAULT,
                         NO_DESCRIPTION, NOT_DEPRECATED),
-                new FieldModel("minRating", new NamedType("float", NULLABLE), "4.5", NO_DESCRIPTION, NOT_DEPRECATED)),
+                new FieldModel("minRating", TypeModel.named("float", NULLABLE), "4.5", NO_DESCRIPTION, NOT_DEPRECATED)),
                 NO_DESCRIPTION)));
         Assert.assertEquals(model.enums(), List.of(new EnumModel("Genre",
                 List.of(new EnumValueModel("FICTION", NO_DESCRIPTION, NOT_DEPRECATED),

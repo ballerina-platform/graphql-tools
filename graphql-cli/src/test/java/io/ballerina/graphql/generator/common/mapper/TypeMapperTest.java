@@ -22,9 +22,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLType;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.UnExecutableSchemaGenerator;
-import io.ballerina.graphql.generator.common.model.BalType;
-import io.ballerina.graphql.generator.common.model.ListType;
-import io.ballerina.graphql.generator.common.model.NamedType;
+import io.ballerina.graphql.generator.common.model.TypeModel;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -69,19 +67,19 @@ public class TypeMapperTest {
     @DataProvider(name = "fieldTypes")
     public Object[][] fieldTypes() {
         return new Object[][]{
-                {"count", new NamedType("int", NON_NULL)},
-                {"price", new NamedType("float", NULLABLE)},
-                {"book", new NamedType("Book", NULLABLE)},
-                {"books", new ListType(new NamedType("Book", NON_NULL), NULLABLE)},
-                {"grid", new ListType(new ListType(new NamedType("int", NULLABLE), NON_NULL), NULLABLE)},
-                {"ids", new ListType(new NamedType("string", NON_NULL, ID), NON_NULL)},
-                {"file", new NamedType("graphql:Upload", NON_NULL)},
-                {"entry", new NamedType("'map", NULLABLE)}
+                {"count", TypeModel.named("int", NON_NULL)},
+                {"price", TypeModel.named("float", NULLABLE)},
+                {"book", TypeModel.named("Book", NULLABLE)},
+                {"books", TypeModel.list(TypeModel.named("Book", NON_NULL), NULLABLE)},
+                {"grid", TypeModel.list(TypeModel.list(TypeModel.named("int", NULLABLE), NON_NULL), NULLABLE)},
+                {"ids", TypeModel.list(TypeModel.named("string", NON_NULL, ID), NON_NULL)},
+                {"file", TypeModel.named("graphql:Upload", NON_NULL)},
+                {"entry", TypeModel.named("'map", NULLABLE)}
         };
     }
 
     @Test(description = "Test mapping GraphQL field types to Ballerina types", dataProvider = "fieldTypes")
-    public void testMap(String fieldName, BalType expectedType) {
+    public void testMap(String fieldName, TypeModel expectedType) {
         Assert.assertEquals(TypeMapper.map(fieldType(fieldName)), expectedType);
     }
 

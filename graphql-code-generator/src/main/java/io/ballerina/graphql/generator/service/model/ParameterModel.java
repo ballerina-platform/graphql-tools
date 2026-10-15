@@ -18,7 +18,7 @@
 
 package io.ballerina.graphql.generator.service.model;
 
-import io.ballerina.graphql.generator.common.model.BalType;
+import io.ballerina.graphql.generator.common.model.TypeModel;
 
 /**
  * A resolver parameter.
@@ -29,5 +29,5 @@ import io.ballerina.graphql.generator.common.model.BalType;
  *                     null if there is no default value
  * @param description  the GraphQL description, or null
  */
-public record ParameterModel(String name, BalType type, String defaultValue, String description) {
+public record ParameterModel(String name, TypeModel type, String defaultValue, String description) {
 }

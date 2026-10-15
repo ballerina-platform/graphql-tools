@@ -18,9 +18,7 @@
 
 package io.ballerina.graphql.generator.common.emitter;
 
-import io.ballerina.graphql.generator.common.model.BalType;
-import io.ballerina.graphql.generator.common.model.ListType;
-import io.ballerina.graphql.generator.common.model.NamedType;
+import io.ballerina.graphql.generator.common.model.TypeModel;
 
 import java.util.List;
 
@@ -42,10 +40,8 @@ public final class TypeEmitter {
      * @param type the type
      * @return the Ballerina type descriptor
      */
-    public static String emit(BalType type) {
-        String descriptor = type instanceof ListType list
-                ? emit(list.element()) + ARRAY_SUFFIX
-                : ((NamedType) type).name();
+    public static String emit(TypeModel type) {
+        String descriptor = type.kind() == TypeModel.Kind.LIST ? emit(type.ofType()) + ARRAY_SUFFIX : type.name();
         return type.nullable() ? descriptor + OPTIONAL_SUFFIX : descriptor;
     }
 
@@ -56,12 +52,12 @@ public final class TypeEmitter {
      * @param type the type
      * @return the Ballerina type descriptor, annotated if needed
      */
-    public static String emitAnnotated(BalType type) {
+    public static String emitAnnotated(TypeModel type) {
         return isId(type) ? ID_ANNOTATION + emit(type) : emit(type);
     }
 
-    private static boolean isId(BalType type) {
-        return type instanceof ListType list ? isId(list.element()) : ((NamedType) type).id();
+    private static boolean isId(TypeModel type) {
+        return type.kind() == TypeModel.Kind.LIST ? isId(type.ofType()) : type.id();
     }
 
     /**
