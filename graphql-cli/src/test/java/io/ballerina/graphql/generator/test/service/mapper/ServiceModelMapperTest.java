@@ -224,7 +224,8 @@ public class ServiceModelMapperTest {
                 type Book implements Named & Labeled { name: String!, label: String! }
                 """, SERVICE_CLASSES));
         Assert.assertTrue(error.getMessage().contains(
-                "Type \"Book\" cannot implement \"Named\" and \"Labeled\" as both have the field \"name\"."),
+                "Type \"Book\" cannot implement \"Named\" and \"Labeled\" as both have the field \"name\". "
+                        + "Do not implement multiple interfaces that have the same field."),
                 error.getMessage());
     }
 

@@ -77,7 +77,8 @@ public final class ServiceModelMapper {
     private static final String MAPPING_END = "}";
     private static final String ERROR_UNSUPPORTED_DEFAULT_VALUE = "Default value \"%s\" is not supported.";
     private static final String ERROR_SHARED_INTERFACE_FIELD =
-            "Type \"%s\" cannot implement \"%s\" and \"%s\" as both have the field \"%s\".";
+            "Type \"%s\" cannot implement \"%s\" and \"%s\" as both have the field \"%s\". "
+                    + "Do not implement multiple interfaces that have the same field.";
 
     private final GraphQLSchema schema;
     private final boolean useRecordsForObjects;
