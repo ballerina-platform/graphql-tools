@@ -215,6 +215,19 @@ public class ServiceModelMapperTest {
         Assert.assertTrue(error.getMessage().contains("DateTime"), error.getMessage());
     }
 
+    @Test(description = "Test that a type implementing two interfaces with the same field is rejected")
+    public void testSharedInterfaceFieldRejected() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class, () -> map("""
+                type Query { book: Book }
+                interface Named { name: String! }
+                interface Labeled { name: String!, label: String! }
+                type Book implements Named & Labeled { name: String!, label: String! }
+                """, SERVICE_CLASSES));
+        Assert.assertTrue(error.getMessage().contains(
+                "Type \"Book\" cannot implement \"Named\" and \"Labeled\" as both have the field \"name\"."),
+                error.getMessage());
+    }
+
     private static ServiceModel map(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
         return ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects);
