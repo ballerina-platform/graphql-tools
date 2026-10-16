@@ -38,7 +38,6 @@ import java.nio.file.Paths;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
 import static io.ballerina.graphql.common.TestUtils.getDiagnosticResult;
-import static io.ballerina.graphql.common.TestUtils.hasOnlyFuncMustReturnResultErrors;
 
 /**
  * This class includes tests for Ballerina Graphql service generation.
@@ -183,7 +182,7 @@ public class ServiceGenerationTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
-            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()),
+            Assert.assertTrue(diagnosticResult.errors().isEmpty(),
                     "Unexpected compilation errors: " + diagnosticResult.errors());
         } catch (BLauncherException e) {
             Assert.fail(e.toString());
@@ -204,7 +203,7 @@ public class ServiceGenerationTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
-            Assert.assertTrue(hasOnlyFuncMustReturnResultErrors(diagnosticResult.errors()),
+            Assert.assertTrue(diagnosticResult.errors().isEmpty(),
                     "Unexpected compilation errors: " + diagnosticResult.errors());
         } catch (BLauncherException e) {
             Assert.fail(e.toString());

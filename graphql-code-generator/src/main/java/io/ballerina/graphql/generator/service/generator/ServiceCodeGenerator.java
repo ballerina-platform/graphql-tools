@@ -19,95 +19,104 @@
 package io.ballerina.graphql.generator.service.generator;
 
 import graphql.schema.GraphQLSchema;
-import io.ballerina.compiler.syntax.tree.MethodDeclarationNode;
 import io.ballerina.graphql.generator.CodeGenerator;
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
+import io.ballerina.graphql.generator.service.emitter.ServiceEmitter;
+import io.ballerina.graphql.generator.service.emitter.TypesEmitter;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.service.mapper.ServiceModelMapper;
+import io.ballerina.graphql.generator.service.model.ServiceModel;
+import io.ballerina.graphql.generator.utils.NullLocation;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import org.ballerinalang.formatter.core.Formatter;
+import org.ballerinalang.formatter.core.FormatterException;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Generates Ballerina code for service files.
+ * Generates the {@code types.bal} and {@code service.bal} files of a Ballerina GraphQL service from a schema.
  */
 public class ServiceCodeGenerator extends CodeGenerator {
-    private ServiceGenerator serviceGenerator;
-    private ServiceTypesGenerator serviceTypesGenerator;
-    private List<MethodDeclarationNode> serviceMethodDeclarations;
 
+    private static final String TYPES_FILE_NAME = "types.bal";
+    private static final String SERVICE_FILE_NAME = "service.bal";
+    private static final boolean SERVICE_CLASSES_FOR_OBJECTS = false;
+
+    private final boolean useRecordsForObjects;
+
+    /**
+     * Creates a generator that generates object types as service classes.
+     */
     public ServiceCodeGenerator() {
-        this(false);
+        this(SERVICE_CLASSES_FOR_OBJECTS);
     }
 
+    /**
+     * Creates a generator.
+     *
+     * @param useRecordsForObjects whether object types are generated as records where possible
+     */
     public ServiceCodeGenerator(boolean useRecordsForObjects) {
-        this.serviceGenerator = new ServiceGenerator();
-        this.serviceTypesGenerator = new ServiceTypesGenerator();
-        this.serviceTypesGenerator.setUseRecordsForObjects(useRecordsForObjects);
+        this.useRecordsForObjects = useRecordsForObjects;
     }
 
     @Override
     public void generate(GraphqlProject project) throws ServiceGenerationException {
-        String outputPath = project.getOutputPath();
         try {
-            List<SrcFilePojo> genSources = generateBalSources(project);
-            writeGeneratedSources(genSources, Path.of(outputPath));
+            writeGeneratedSources(generateBalSources(project), Path.of(project.getOutputPath()));
         } catch (IOException e) {
-            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
-                    e.getMessage());
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100,
+                    NullLocation.getInstance(), e.getMessage());
         }
     }
 
+    /**
+     * Generates the service sources for a project. The service object type is named after the schema file.
+     *
+     * @param project the project with a validated GraphQL schema
+     * @return the {@code types.bal} source followed by the {@code service.bal} source
+     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or the
+     *                                    generated code cannot be formatted
+     */
     public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ServiceGenerationException {
-        String projectName = project.getName();
-        String fileName = project.getFileName();
-        GraphQLSchema graphQLSchema = project.getGraphQLSchema();
-
-        List<SrcFilePojo> sourceFiles = new ArrayList<>();
-        sourceFiles.add(generateServiceTypes(projectName, fileName, graphQLSchema));
-        generateServices(projectName, fileName, sourceFiles);
-        return sourceFiles;
-    }
-
-    private void generateServices(String projectName, String fileName, List<SrcFilePojo> sourceFiles)
-            throws ServiceGenerationException {
-        this.serviceGenerator.setFileName(fileName);
-        this.serviceGenerator.setMethodDeclarations(this.serviceMethodDeclarations);
-        String serviceSrc = this.serviceGenerator.generateSrc();
-        sourceFiles.add(
-                new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, projectName, CodeGeneratorConstants.SERVICE_FILE_NAME,
-                        serviceSrc));
+        ServiceModel model = ServiceModelMapper.map(project.getGraphQLSchema(), project.getFileName(),
+                this.useRecordsForObjects);
+        return List.of(typesSource(project.getName(), model),
+                new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, project.getName(), SERVICE_FILE_NAME,
+                        format(ServiceEmitter.emit(model), ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_101)));
     }
 
     /**
-     * Generates the service type file.
+     * Generates the types file only.
      *
-     * @param projectName    Name of the project
-     * @param fileName       Name of the file
-     * @param graphQLSchema  GraphQL schema object
-     * @return SrcFilePojo Containing the generated service types
-     * @throws ServiceGenerationException when a code generation error occurs
+     * @param projectName   the project name
+     * @param fileName      the schema file name, used as the service object type name
+     * @param graphQLSchema the GraphQL schema
+     * @return the {@code types.bal} source
+     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or the
+     *                                    generated code cannot be formatted
      *
      * @since 0.14.0
      */
     public SrcFilePojo generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema)
             throws ServiceGenerationException {
-        this.serviceTypesGenerator.setFileName(fileName);
-        String typesFileContent = this.serviceTypesGenerator.generateSrc(graphQLSchema);
-        setServiceMethodDeclarations(this.serviceTypesGenerator.getServiceMethodDeclarations());
-        return new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, CodeGeneratorConstants.TYPES_FILE_NAME,
-                typesFileContent);
+        return typesSource(projectName, ServiceModelMapper.map(graphQLSchema, fileName, this.useRecordsForObjects));
     }
 
-    public void enableToUseRecords() {
-        this.serviceTypesGenerator.setUseRecordsForObjects(true);
+    private static SrcFilePojo typesSource(String projectName, ServiceModel model)
+            throws ServiceGenerationException {
+        return new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, TYPES_FILE_NAME,
+                format(TypesEmitter.emit(model), ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102));
     }
 
-    public void setServiceMethodDeclarations(List<MethodDeclarationNode> serviceMethodDeclarations) {
-        this.serviceMethodDeclarations = serviceMethodDeclarations;
+    private static String format(String source, ServiceDiagnosticMessages error) throws ServiceGenerationException {
+        try {
+            return Formatter.format(source);
+        } catch (FormatterException e) {
+            throw new ServiceGenerationException(error, NullLocation.getInstance(), e.getMessage());
+        }
     }
 }

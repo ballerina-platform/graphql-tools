@@ -35,9 +35,7 @@
             <class name="io.ballerina.graphql.generator.ballerina.FunctionSignatureGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.FunctionBodyGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.TypesGeneratorTest"/>
-            <class name="io.ballerina.graphql.generator.ballerina.ServiceTypesGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.ClientGeneratorTest"/>
-            <class name="io.ballerina.graphql.generator.ballerina.ServiceGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.UtilsGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ballerina.ConfigTypesGeneratorTest"/>
             <class name="io.ballerina.graphql.generator.ClientCodeGeneratorTest"/>
@@ -45,6 +43,16 @@
             <class name="io.ballerina.graphql.cmd.generator.GeneratorFactoryTest"/>
             <class name="io.ballerina.graphql.cmd.generator.BalGraphqlConfigGenerationTest"/>
             <class name="io.ballerina.graphql.cmd.config.BalGraphqlConfigReaderTest"/>
+            <class name="io.ballerina.graphql.generator.common.mapper.TypeMapperTest"/>
+            <class name="io.ballerina.graphql.generator.service.mapper.ServiceModelMapperTest"/>
+            <class name="io.ballerina.graphql.generator.common.emitter.TypeEmitterTest"/>
+            <class name="io.ballerina.graphql.generator.common.emitter.DocEmitterTest"/>
+            <class name="io.ballerina.graphql.generator.common.emitter.RecordEmitterTest"/>
+            <class name="io.ballerina.graphql.generator.common.emitter.EnumEmitterTest"/>
+            <class name="io.ballerina.graphql.generator.common.emitter.TemplateLoaderTest"/>
+            <class name="io.ballerina.graphql.generator.service.emitter.TypesEmitterTest"/>
+            <class name="io.ballerina.graphql.generator.service.emitter.ServiceEmitterTest"/>
+            <class name="io.ballerina.graphql.generator.service.generator.ServiceCodeGeneratorTest"/>
         </classes>
     </test>
 </suite>
