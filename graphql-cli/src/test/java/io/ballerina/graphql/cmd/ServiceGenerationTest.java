@@ -166,7 +166,7 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "SchemaDocsWithMultipleLinesApi.graphql", "SchemaDocsWithObjectsApi.graphql",
                 "SchemaDocsWithUnionApi.graphql", "SchemaDocsWithEnumApi.graphql", "SchemaDocsWithInputsApi.graphql",
                 "SchemaDocsWithInterfacesApi.graphql", "SchemaDocsWithDeprecated01Api.graphql",
-                "SchemaCompleteApi.graphql"};
+                "SchemaCompleteApi.graphql", "SchemaWith-HyphenApi.graphql"};
     }
 
     @Test(

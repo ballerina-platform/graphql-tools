@@ -16,8 +16,9 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.common.emitter;
+package io.ballerina.graphql.generator.test.common.emitter;
 
+import io.ballerina.graphql.generator.common.emitter.DocEmitter;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

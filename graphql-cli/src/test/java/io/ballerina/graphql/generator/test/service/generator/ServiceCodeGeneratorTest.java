@@ -16,13 +16,14 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.service.generator;
+package io.ballerina.graphql.generator.test.service.generator;
 
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.common.TestUtils;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -114,6 +115,17 @@ public class ServiceCodeGeneratorTest extends GraphqlTest {
     public void testGenerateService(String schemaName, String expectedFile)
             throws ValidationException, IOException, ServiceGenerationException {
         Assert.assertEquals(generate(schemaName, SERVICE_CLASSES, SERVICE_FILE), expected(expectedFile));
+    }
+
+    @Test(description = "Test that a schema file name that is not a valid identifier is escaped")
+    public void testGenerateWithEscapedServiceName()
+            throws ValidationException, IOException, ServiceGenerationException {
+        String types = generate("SchemaWith-HyphenApi", SERVICE_CLASSES, TYPES_FILE);
+        String service = generate("SchemaWith-HyphenApi", SERVICE_CLASSES, SERVICE_FILE);
+
+        Assert.assertTrue(types.contains("type SchemaWith\\-HyphenApi service object {"), types);
+        Assert.assertTrue(service.contains("service SchemaWith\\-HyphenApi on new graphql:Listener(port) {"),
+                service);
     }
 
     @DataProvider(name = "invalidSchemas")

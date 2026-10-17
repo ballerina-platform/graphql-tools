@@ -16,12 +16,13 @@
  *  under the License.
  */
 
-package io.ballerina.graphql.generator.common.mapper;
+package io.ballerina.graphql.generator.test.common.mapper;
 
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLType;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.UnExecutableSchemaGenerator;
+import io.ballerina.graphql.generator.common.mapper.TypeMapper;
 import io.ballerina.graphql.generator.common.model.TypeModel;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -90,13 +91,25 @@ public class TypeMapperTest {
                 {"map", "'map"},
                 {"error", "'error"},
                 {"book", "book"},
-                {"graphql", "graphql"}
+                {"graphql", "graphql"},
+                {"my_schema", "my_schema"},
+                {"my-schema", "my\\-schema"},
+                {"my@api", "my\\@api"},
+                {"1schema", "\\1schema"},
+                {"my schema", "my\\u{20}schema"}
         };
     }
 
-    @Test(description = "Test that only Ballerina keywords are quoted", dataProvider = "names")
+    @Test(description = "Test that keywords are quoted and invalid characters are escaped", dataProvider = "names")
     public void testEscapeName(String name, String expectedName) {
         Assert.assertEquals(TypeMapper.escapeName(name), expectedName);
+    }
+
+    @Test(description = "Test that a name that cannot be made an identifier is rejected")
+    public void testEscapeEmptyName() {
+        IllegalArgumentException error = Assert.expectThrows(IllegalArgumentException.class,
+                () -> TypeMapper.escapeName(""));
+        Assert.assertEquals(error.getMessage(), "\"\" cannot be used as a Ballerina identifier.");
     }
 
     @Test(description = "Test that a custom scalar is rejected")

@@ -48,6 +48,10 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
  */
 public class ServiceGeneration implements Generator {
 
+    private static final String SUCCESS_MESSAGE =
+            "The service generation process is complete. The following files were created.";
+    private static final String CREATED_FILE_FORMAT = "-- %s";
+
     private final GenerationContext context;
     private final BalGraphqlConfig balGraphqlConfig;
     private final ServiceCodeGenerator serviceCodeGenerator;
@@ -136,6 +140,11 @@ public class ServiceGeneration implements Generator {
         } catch (IOException e) {
             throw new GenerationException(new ServiceGenerationException(
                     ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null, e.getMessage()));
+        }
+        if (!writableSources.isEmpty()) {
+            context.getOutStream().println(SUCCESS_MESSAGE);
+            writableSources.forEach(source -> context.getOutStream().println(String.format(CREATED_FILE_FORMAT,
+                    OutputFileGuard.displayPath(CodeGeneratorUtils.resolveFilePath(source, outputPath)))));
         }
     }
 }
