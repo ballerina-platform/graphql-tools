@@ -24,7 +24,7 @@ import java.nio.file.Path;
 final class OutputFileGuard {
 
     private static final String WARNING_FILE_EXISTS =
-            "WARNING: Skipped \"%s\": the file already exists. Use --force to overwrite it.";
+            "WARNING: Skipped \"%s\": the file already exists. Use -f or --force to overwrite it.";
 
     private OutputFileGuard() {
     }

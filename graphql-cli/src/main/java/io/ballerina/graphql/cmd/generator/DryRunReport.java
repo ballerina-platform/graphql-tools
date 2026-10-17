@@ -31,7 +31,7 @@ public final class DryRunReport {
 
     private static final String HEADER = "Dry run: no files were written.";
     private static final String LINE_FORMAT = "  %-10s %s";
-    private static final String SKIP_NOTE = "  (already exists, use --force to overwrite)";
+    private static final String SKIP_NOTE = "  (already exists, use -f or --force to overwrite)";
     private static final String SUMMARY = "%d to create, %d to overwrite, %d to skip.";
 
     private final List<PlannedFile> files = new ArrayList<>();

@@ -211,7 +211,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains("the file already exists. Use --force to overwrite it."));
+            Assert.assertTrue(output.contains("the file already exists. Use -f or --force to overwrite it."));
             Assert.assertEquals(Files.readString(typesFile), "// existing");
             Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
             List<String> createdFiles = createdFiles(output);
