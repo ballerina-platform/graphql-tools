@@ -47,7 +47,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
 public class GraphqlCmdTest extends GraphqlTest {
 
     private static final String SUCCESS_MESSAGE =
-            "The service generation process is complete. The following files were created.";
+            "The service generation process is complete. The following files were written.";
     private static final String CREATED_FILE_PREFIX = "-- ";
     private static final Log log = LogFactory.getLog(GraphqlCmdTest.class);
 
@@ -193,6 +193,28 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.assertEquals(createdFiles.size(), 2, output);
             Assert.assertTrue(createdFiles.get(0).endsWith("types.bal"), output);
             Assert.assertTrue(createdFiles.get(1).endsWith("service.bal"), output);
+        } catch (BLauncherException | IOException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test(description = "Test that a schema file name that cannot be made an identifier is reported clearly")
+    public void testExecuteWithInvalidServiceName() {
+        Path validSchema = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        try {
+            // A file named ".graphql" has an empty name, which cannot be used as the service name.
+            Path graphql = Files.createDirectories(this.tmpDir.resolve("nameless-schema")).resolve(".graphql");
+            Files.copy(validSchema, graphql);
+            String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+            new CommandLine(graphqlCmd).parseArgs(args);
+            graphqlCmd.execute();
+            String output = readOutput(true);
+            Assert.assertTrue(output.contains("GraphQL service types file generation failed: "
+                    + "\"\" cannot be used as a Ballerina identifier."), output);
+            Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }

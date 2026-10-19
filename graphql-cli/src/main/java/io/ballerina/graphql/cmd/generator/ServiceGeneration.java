@@ -49,7 +49,7 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT
 public class ServiceGeneration implements Generator {
 
     private static final String SUCCESS_MESSAGE =
-            "The service generation process is complete. The following files were created.";
+            "The service generation process is complete. The following files were written.";
     private static final String CREATED_FILE_FORMAT = "-- %s";
 
     private final GenerationContext context;

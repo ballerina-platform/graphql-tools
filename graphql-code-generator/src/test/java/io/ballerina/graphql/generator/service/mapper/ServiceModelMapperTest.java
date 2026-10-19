@@ -238,7 +238,7 @@ public class ServiceModelMapperTest {
                 type Item implements A & B & Base { id: Int!, a: String!, b: String! }
                 """, SERVICE_CLASSES));
         Assert.assertTrue(error.getMessage().contains(
-                "Type \"Item\" cannot implement \"A\" and \"B\" as both have the field \"id\". "
+                "Type \"Item\" cannot implement \"A\" and \"B\" as both inherit the field \"id\" from \"Base\". "
                         + "Do not implement multiple interfaces that have the same field."),
                 error.getMessage());
     }
