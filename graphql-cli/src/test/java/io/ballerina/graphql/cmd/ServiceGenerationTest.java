@@ -20,6 +20,7 @@ package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.launcher.BLauncherException;
 import io.ballerina.graphql.common.GraphqlTest;
+import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.projects.DiagnosticResult;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -38,6 +39,7 @@ import java.nio.file.Paths;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
 import static io.ballerina.graphql.common.TestUtils.getDiagnosticResult;
+import static io.ballerina.graphql.common.TestUtils.getValidatedMockServiceProject;
 
 /**
  * This class includes tests for Ballerina Graphql service generation.
@@ -208,5 +210,28 @@ public class ServiceGenerationTest extends GraphqlTest {
         } catch (BLauncherException e) {
             Assert.fail(e.toString());
         }
+    }
+
+    @DataProvider(name = "invalidSchemas")
+    public Object[][] invalidSchemas() {
+        return new Object[][]{
+                {"InvalidSchemaWithUnionMemberTypeOfEnum", "The member types of a Union type must all be Object " +
+                        "base types. member type Gender in Union Profile is invalid."},
+                {"InvalidSchemaWithUnionMemberTypeOfInterface", "The member types of a Union type must all be " +
+                        "Object base types. member type Info in Union Profile is invalid."},
+                {"InvalidSchemaWithUnionMemberTypeOfUnion", "The member types of a Union type must all be Object " +
+                        "base types. member type Internal in Union Profile is invalid."},
+                {"InvalidSchemaWithUnionMemberTypeOfInputType", "The member types of a Union type must all be " +
+                        "Object base types. member type Info in Union PersonInfo is invalid."}
+        };
+    }
+
+    @Test(description = "Test that an invalid schema is rejected before generation", dataProvider = "invalidSchemas")
+    public void testInvalidSchema(String schemaName, String expectedMessage) {
+        Path schemaPath = this.resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "invalid", schemaName + ".graphql"));
+        ValidationException error = Assert.expectThrows(ValidationException.class,
+                () -> getValidatedMockServiceProject(schemaPath.toString(), this.tmpDir));
+        Assert.assertTrue(error.getMessage().contains(expectedMessage), error.getMessage());
     }
 }

@@ -1,0 +1,51 @@
+type Query {
+    "Fetch all the books from database"
+    books: [Book]
+    "Fetch a book by its id"
+    book(
+        "The id of the book to fetch"
+        id: Int!
+    ): Book
+}
+
+"Contact information of a person"
+interface ContactInfo {
+    "The email of the person"
+    email: String!
+}
+
+interface ExamInfo {
+    "Get a student is passed or not"
+    pass(
+        """
+        The marks student achieved
+        """
+        marks: Int!
+    ): Boolean!
+}
+
+"""
+General Information of a person
+"""
+interface Info {
+    "The name of the person"
+    name: String!
+}
+
+"Represents a book written by an author"
+type Book {
+    "The id of the book, unique identifier"
+    id: Int!
+    "The title of the book"
+    title: String!
+}
+
+type Student implements ContactInfo & Info & ExamInfo {
+    "The id of the student, unique identifier"
+    id: Int!
+    "The name of the student"
+    name: String!
+    "The email of the student"
+    email: String!
+    pass(marks: Int!): Boolean!
+}

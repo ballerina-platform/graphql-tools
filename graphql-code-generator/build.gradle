@@ -19,6 +19,7 @@ plugins {
     id "java"
     id "com.gradleup.shadow"
     id "checkstyle"
+    id "jacoco"
 }
 
 dependencies {
@@ -55,6 +56,18 @@ checkstyle {
 
 checkstyleMain.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 checkstyleTest.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
+
+test {
+    useTestNG()
+    testLogging {
+        showStackTraces = true
+        exceptionFormat = "full"
+    }
+}
+
+jacoco {
+    toolVersion = jacocoVersion
+}
 
 def bDistribution = layout.buildDirectory.dir("extracted-distribution/jballerina-tools-${ballerinaLangVersion}").get().asFile
 task jBallerinaPack {

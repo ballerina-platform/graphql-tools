@@ -1,0 +1,23 @@
+type Query {
+    studentInfo(id: Int!): Info
+    teacherInfo(id: Int!): Info!
+    book(name: String!): Book!
+}
+
+interface Info {
+    name: String!
+}
+
+type Book {
+    name: String!
+}
+
+type Student implements Info {
+    id: Int!
+    name: String!
+}
+
+type Teacher implements Info {
+    id: Int!
+    name: String!
+}
