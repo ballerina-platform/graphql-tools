@@ -27,6 +27,9 @@ import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.generator.common.model.TypeModel;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Maps GraphQL types to Ballerina types.
  */
@@ -34,7 +37,8 @@ public final class TypeMapper {
 
     private static final boolean NULLABLE = true;
     private static final boolean NON_NULL = false;
-    private static final char UNDERSCORE = '_';
+    // A leading digit, or any character that is not a letter, digit or underscore.
+    private static final Pattern INVALID_IDENTIFIER_CHARACTER = Pattern.compile("^\\p{Nd}|[^\\p{L}\\p{Nd}_]");
     private static final int FIRST_CHARACTER = 0;
     private static final String UNICODE_ESCAPE_FORMAT = "\\u{%X}";
     private static final String ERROR_UNSUPPORTED_SCALAR = "Custom scalar \"%s\" is not supported.";
@@ -69,22 +73,18 @@ public final class TypeMapper {
         if (SyntaxInfo.isIdentifier(name)) {
             return name;
         }
-        StringBuilder escaped = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char character = name.charAt(i);
-            if (Character.isLetter(character) || character == UNDERSCORE
-                    || (i > FIRST_CHARACTER && Character.isDigit(character))) {
-                escaped.append(character);
-            } else if (Character.isWhitespace(character)) {
-                escaped.append(String.format(UNICODE_ESCAPE_FORMAT, (int) character));
-            } else {
-                escaped.append(SyntaxKind.BACK_SLASH_TOKEN.stringValue()).append(character);
-            }
-        }
-        if (!SyntaxInfo.isIdentifier(escaped.toString())) {
+        String escaped = INVALID_IDENTIFIER_CHARACTER.matcher(name)
+                .replaceAll(match -> Matcher.quoteReplacement(escapeCharacter(match.group())));
+        if (!SyntaxInfo.isIdentifier(escaped)) {
             throw new IllegalArgumentException(String.format(ERROR_INVALID_NAME, name));
         }
-        return escaped.toString();
+        return escaped;
+    }
+
+    private static String escapeCharacter(String character) {
+        int codePoint = character.codePointAt(FIRST_CHARACTER);
+        return Character.isWhitespace(codePoint) ? String.format(UNICODE_ESCAPE_FORMAT, codePoint)
+                : SyntaxKind.BACK_SLASH_TOKEN.stringValue() + character;
     }
 
     private static TypeModel map(GraphQLType type, boolean nullable) {
