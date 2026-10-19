@@ -41,6 +41,7 @@
             <class name="io.ballerina.graphql.generator.ClientCodeGeneratorTest"/>
             <class name="io.ballerina.graphql.cmd.generator.OperationModeTest"/>
             <class name="io.ballerina.graphql.cmd.generator.GeneratorFactoryTest"/>
+            <class name="io.ballerina.graphql.cmd.generator.PackageOutputTest"/>
             <class name="io.ballerina.graphql.cmd.generator.BalGraphqlConfigGenerationTest"/>
             <class name="io.ballerina.graphql.cmd.config.BalGraphqlConfigReaderTest"/>
         </classes>
