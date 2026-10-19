@@ -32,19 +32,21 @@ public class GenerationContext {
     private final Path targetOutputPath;
     private final String serviceBasePath;
     private final ObjectType declaredObjectType;
+    private final String moduleName;
     private final boolean force;
     private final boolean dryRun;
     private final PrintStream outStream;
     private final DryRunReport dryRunReport = new DryRunReport();
 
     public GenerationContext(String inputPath, OperationMode declaredOperationMode, Path targetOutputPath,
-                             String serviceBasePath, ObjectType declaredObjectType, boolean force, boolean dryRun,
-                             PrintStream outStream) {
+                             String serviceBasePath, ObjectType declaredObjectType, String moduleName, boolean force,
+                             boolean dryRun, PrintStream outStream) {
         this.inputPath = inputPath;
         this.declaredOperationMode = declaredOperationMode;
         this.targetOutputPath = targetOutputPath;
         this.serviceBasePath = serviceBasePath;
         this.declaredObjectType = declaredObjectType;
+        this.moduleName = moduleName;
         this.force = force;
         this.dryRun = dryRun;
         this.outStream = outStream;
@@ -80,6 +82,10 @@ public class GenerationContext {
 
     public boolean isUseRecordsForObjects() {
         return getObjectType() == ObjectType.RECORD;
+    }
+
+    public String getModuleName() {
+        return moduleName;
     }
 
     public boolean isForce() {

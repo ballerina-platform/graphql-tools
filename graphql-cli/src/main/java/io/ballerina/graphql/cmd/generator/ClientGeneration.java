@@ -70,6 +70,7 @@ public class ClientGeneration implements Generator {
     private final GenerationContext context;
     private final BalGraphqlConfig balGraphqlConfig;
     private final ClientCodeGenerator clientCodeGenerator;
+    private Path outputPath;
     private List<GraphqlClientProject> projects;
     private final Map<GraphqlClientProject, List<SrcFilePojo>> generatedSources = new LinkedHashMap<>();
 
@@ -81,6 +82,7 @@ public class ClientGeneration implements Generator {
 
     @Override
     public void validate() throws GenerationException {
+        this.outputPath = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName());
         this.projects = this.balGraphqlConfig == null ? populateProjectsFromYamlConfig()
                 : populateProjectsFromBalGraphqlConfig();
         try {
@@ -122,7 +124,7 @@ public class ClientGeneration implements Generator {
         if (schemaConfig.source() == SchemaSource.FILE) {
             String schema = configDirectory.resolve(schemaConfig.path()).normalize().toString();
             graphqlClientProjects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, null,
-                    context.getTargetOutputPath().toString()));
+                    this.outputPath.toString()));
             return graphqlClientProjects;
         }
         graphqlClientProjects.add(populateRemoteSchemaProject(schemaConfig, documents));
@@ -134,7 +136,7 @@ public class ClientGeneration implements Generator {
         String schemaLocation = schemaConfig.source() == SchemaSource.URL
                 ? schemaConfig.url() : schemaConfig.endpoint();
         GraphqlClientProject project = new GraphqlClientProject(ROOT_PROJECT_NAME, schemaLocation, documents, null,
-                context.getTargetOutputPath().toString());
+                this.outputPath.toString());
         try {
             project.setGraphQLSchema(Utils.resolveGraphQLSchema(schemaConfig));
         } catch (IntospectionException e) {
@@ -200,7 +202,7 @@ public class ClientGeneration implements Generator {
         List<String> documents = config.getDocuments();
         Extension extensions = config.getExtensions();
         Map<String, Project> configProjects = config.getProjects();
-        String targetOutputPath = context.getTargetOutputPath().toString();
+        String targetOutputPath = this.outputPath.toString();
 
         if (schema != null || documents != null || extensions != null) {
             graphqlClientProjects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, extensions,

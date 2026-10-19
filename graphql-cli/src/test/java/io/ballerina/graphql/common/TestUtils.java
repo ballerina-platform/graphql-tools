@@ -77,6 +77,13 @@ public class TestUtils {
     public static final String DISTRIBUTION_FILE_NAME = System.getProperty("ballerina.version");
     private static String balFile = "bal";
     public static final String WHITESPACE_REGEX = "\\s+";
+    private static final String BALLERINA_TOML = "Ballerina.toml";
+    private static final String BALLERINA_TOML_CONTENT = """
+            [package]
+            org = "test"
+            name = "graphql_test"
+            version = "0.1.0"
+            """;
 
     /**
      * Constructs an instance of the `Config` reading the given GraphQL config file.
@@ -87,6 +94,23 @@ public class TestUtils {
      * @throws ParseException               when a parsing related error occurs
      * @throws CmdException                 when a graphql command related error occurs
      */
+    /**
+     * Makes a directory a Ballerina package by adding a minimal Ballerina.toml, so that client and service
+     * generation can write to it. An existing Ballerina.toml is kept.
+     *
+     * @param directory the directory, created if it does not exist
+     * @return the directory
+     * @throws IOException if the directory or Ballerina.toml cannot be created
+     */
+    public static Path createBallerinaPackage(Path directory) throws IOException {
+        Files.createDirectories(directory);
+        Path ballerinaToml = directory.resolve(BALLERINA_TOML);
+        if (!Files.exists(ballerinaToml)) {
+            Files.writeString(ballerinaToml, BALLERINA_TOML_CONTENT);
+        }
+        return directory;
+    }
+
     public static Config readConfig(String filePath) throws FileNotFoundException, ParseException, CmdException {
         try {
             if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {

@@ -55,6 +55,7 @@ public class ServiceGeneration implements Generator {
     private final GenerationContext context;
     private final BalGraphqlConfig balGraphqlConfig;
     private final ServiceCodeGenerator serviceCodeGenerator;
+    private Path outputPath;
     private GraphqlServiceProject project;
     private List<SrcFilePojo> sources;
 
@@ -66,6 +67,7 @@ public class ServiceGeneration implements Generator {
 
     @Override
     public void validate() throws GenerationException {
+        this.outputPath = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName());
         if (this.balGraphqlConfig != null
                 && this.balGraphqlConfig.schema().source() != SchemaSource.FILE) {
             validateFromRemoteSchema(this.balGraphqlConfig.schema());
@@ -87,8 +89,7 @@ public class ServiceGeneration implements Generator {
                     ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
                     String.format(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE, schemaPath)));
         }
-        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaPath,
-                context.getTargetOutputPath().toString());
+        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaPath, this.outputPath.toString());
         try {
             Utils.validateGraphqlProject(this.project);
         } catch (IOException | ValidationException e) {
@@ -99,8 +100,7 @@ public class ServiceGeneration implements Generator {
     private void validateFromRemoteSchema(SchemaConfig schemaConfig) throws GenerationException {
         String schemaLocation = schemaConfig.source() == SchemaSource.URL
                 ? schemaConfig.url() : schemaConfig.endpoint();
-        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaLocation,
-                context.getTargetOutputPath().toString());
+        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaLocation, this.outputPath.toString());
         try {
             this.project.setGraphQLSchema(Utils.resolveGraphQLSchema(schemaConfig));
         } catch (IntospectionException e) {
@@ -130,7 +130,6 @@ public class ServiceGeneration implements Generator {
 
     @Override
     public void write() throws GenerationException {
-        Path outputPath = Path.of(this.project.getOutputPath());
         List<SrcFilePojo> writableSources = this.sources.stream()
                 .filter(source -> OutputFileGuard.canWrite(
                         CodeGeneratorUtils.resolveFilePath(source, outputPath), context))

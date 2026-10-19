@@ -59,6 +59,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
                 "  bal graphql <balGraphQL.toml>",
                 "              [-o <output>]",
                 "              [-m <client|service>]",
+                "              [--module <module-name>]",
                 "              [--object-type <service|record>]",
                 "              [--force]",
                 "              [--dry-run]"},
@@ -80,6 +81,8 @@ public class GraphqlCmd implements BLauncherCmd {
             "\"%s\" is not a supported value for --object-type. It should be either \"service\" or \"record\".";
     private static final String ERROR_OBJECT_TYPE_NOT_SUPPORTED =
             "The --object-type flag only applies to service generation. It cannot be used with \"%s\".";
+    private static final String ERROR_MODULE_NOT_SUPPORTED =
+            "The --module flag only applies to client and service generation. It cannot be used with \"%s\".";
     // Not private: the @Command annotation on the class can only reference non-private constants.
     static final String HEADER =
             "  bal graphql - Generate Ballerina GraphQL services and clients, and GraphQL schemas";
@@ -96,6 +99,8 @@ public class GraphqlCmd implements BLauncherCmd {
                     "    $ bal graphql balGraphQL.toml -o ./output%n%n" +
                     "  Generate a Ballerina GraphQL service, using record types for object types:%n" +
                     "    $ bal graphql balGraphQL.toml -m service -o ./output --object-type record%n%n" +
+                    "  Generate a Ballerina GraphQL client into the \"countries\" module of the package:%n" +
+                    "    $ bal graphql balGraphQL.toml -m client --module countries%n%n" +
                     "  Preview the files without writing them, then overwrite existing files:%n" +
                     "    $ bal graphql balGraphQL.toml -o ./output --dry-run%n" +
                     "    $ bal graphql balGraphQL.toml -o ./output --force";
@@ -103,12 +108,16 @@ public class GraphqlCmd implements BLauncherCmd {
             "Path to a balGraphQL.toml file (client or service generation) or a Ballerina GraphQL service " +
                     "file (schema generation).";
     private static final String OUTPUT_DESCRIPTION =
-            "Directory to write the generated files to. Defaults to the current directory.";
+            "Directory to write the generated files to. Defaults to the current directory. For client and service "
+                    + "generation, it must be the root of a Ballerina package.";
     private static final String SERVICE_DESCRIPTION =
             "Base path of the service to generate the schema for. Defaults to all GraphQL services in the file.";
     private static final String MODE_DESCRIPTION =
             "Operation mode for a balGraphQL.toml file: client or service. Inferred from the file when not " +
                     "given: client when documents are configured, otherwise service.";
+    private static final String MODULE_DESCRIPTION =
+            "Module of the package to write the generated client or service to. Defaults to the default module. "
+                    + "The module is created if it does not exist.";
     private static final String OBJECT_TYPE_DESCRIPTION =
             "How GraphQL object types are generated in service generation: service (default) or record.";
     private static final String FORCE_DESCRIPTION =
@@ -135,6 +144,9 @@ public class GraphqlCmd implements BLauncherCmd {
 
     @CommandLine.Option(names = {"-m", "--mode"}, paramLabel = "<client|service>", description = MODE_DESCRIPTION)
     private String mode;
+
+    @CommandLine.Option(names = "--module", paramLabel = "<module-name>", description = MODULE_DESCRIPTION)
+    private String moduleName;
 
     @CommandLine.Option(names = "--object-type", paramLabel = "<service|record>",
             description = OBJECT_TYPE_DESCRIPTION)
@@ -237,6 +249,10 @@ public class GraphqlCmd implements BLauncherCmd {
                 throw new CmdException(String.format(ERROR_OBJECT_TYPE_NOT_SUPPORTED, inputPath));
             }
         }
+
+        if (moduleName != null && OperationMode.fromInputPath(inputPath).orElse(null) == OperationMode.SCHEMA) {
+            throw new CmdException(String.format(ERROR_MODULE_NOT_SUPPORTED, inputPath));
+        }
     }
 
     private boolean validInputFileExtension(String filePath) {
@@ -271,7 +287,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private void executeOperation() throws GenerationException {
         GenerationContext context = new GenerationContext(inputPath,
                 OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
-                ObjectType.fromValue(objectType).orElse(null), force, dryRun, outStream);
+                ObjectType.fromValue(objectType).orElse(null), moduleName, force, dryRun, outStream);
         GenerationEngine.run(context);
         if (dryRun) {
             context.getDryRunReport().print(outStream);

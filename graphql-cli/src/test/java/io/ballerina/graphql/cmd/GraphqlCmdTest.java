@@ -40,6 +40,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATI
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
+import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
 
 /**
  * This class is used to test the functionality of the GraphQL command.
@@ -183,6 +184,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path outputPath = this.tmpDir.resolve("created-files-output");
         String[] args = {graphql.toString(), "-o", outputPath.toString(), "-m", "service"};
         try {
+            createBallerinaPackage(outputPath);
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
@@ -285,6 +287,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         Path outputPath = this.tmpDir.resolve("dry-run-output");
         String[] args = {graphql.toString(), "-o", outputPath.toString(), "-m", "service", dryRunFlag};
         try {
+            createBallerinaPackage(outputPath);
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
@@ -293,7 +296,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.assertTrue(output.contains("Dry run: no files were written."));
             Assert.assertTrue(output.contains("2 to create, 0 to overwrite, 0 to skip."));
             Assert.assertFalse(output.contains(SUCCESS_MESSAGE), output);
-            Assert.assertFalse(Files.exists(outputPath));
+            Assert.assertFalse(Files.exists(outputPath.resolve("types.bal")));
+            Assert.assertFalse(Files.exists(outputPath.resolve("service.bal")));
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }

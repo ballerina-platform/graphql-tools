@@ -31,6 +31,7 @@ import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
 import io.ballerina.graphql.cmd.config.BalGraphqlConfigReader;
 import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.ParseException;
+import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -46,6 +47,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
+
 /**
  * This class is used to test that ServiceGeneration and ClientGeneration correctly resolve a schema (and, for
  * client generation, documents) from a balGraphQL.toml configuration file, rather than from the input path itself.
@@ -53,14 +56,15 @@ import java.util.concurrent.atomic.AtomicReference;
 public class BalGraphqlConfigGenerationTest {
 
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
-    private static final Path OUTPUT_PATH = Paths.get("build");
     private static final OperationMode NO_OPERATION_MODE = null;
     private static final String NO_SERVICE_BASE_PATH = null;
     private static final ObjectType NO_OBJECT_TYPE = null;
+    private static final String NO_MODULE = null;
     private static final boolean NO_FORCE = false;
     private static final boolean NO_DRY_RUN = false;
     private static final String INVALID_SDL = "type Query {\n  broken(: String\n}\n";
 
+    private Path outputPath;
     private HttpServer server;
     private String baseUrl;
     private final AtomicReference<String> receivedAuthorization = new AtomicReference<>();
@@ -91,9 +95,19 @@ public class BalGraphqlConfigGenerationTest {
         baseUrl = "http://localhost:" + server.getAddress().getPort();
     }
 
+    @BeforeClass
+    public void createOutputPackage() throws IOException {
+        outputPath = createBallerinaPackage(Files.createTempDirectory("bal-graphql-config-output"));
+    }
+
     @AfterClass
     public void stopServer() {
         server.stop(0);
+    }
+
+    @AfterClass
+    public void deleteOutputPackage() throws IOException {
+        FileUtils.deleteDirectory(outputPath.toFile());
     }
 
     @Test(description = "Test validating a service generator built from a configuration file with a local schema")
@@ -106,14 +120,14 @@ public class BalGraphqlConfigGenerationTest {
     @Test(description = "Test that the record object type generates object types as records")
     public void testGenerateServiceWithRecordObjectType() throws IOException, ParseException, GenerationException {
         Path configPath = CONFIG_DIR.resolve("service-config.toml");
-        Path outputPath = Files.createTempDirectory("record-object-type");
-        GenerationContext context = new GenerationContext(configPath.toString(), NO_OPERATION_MODE, outputPath,
-                NO_SERVICE_BASE_PATH, ObjectType.RECORD, NO_FORCE, NO_DRY_RUN, System.out);
+        Path recordOutputPath = createBallerinaPackage(Files.createTempDirectory("record-object-type"));
+        GenerationContext context = new GenerationContext(configPath.toString(), NO_OPERATION_MODE, recordOutputPath,
+                NO_SERVICE_BASE_PATH, ObjectType.RECORD, NO_MODULE, NO_FORCE, NO_DRY_RUN, System.out);
         Generator generator = new ServiceGeneration(context, readConfig(configPath));
         generator.validate();
         generator.generate();
         generator.write();
-        String types = Files.readString(outputPath.resolve("types.bal"));
+        String types = Files.readString(recordOutputPath.resolve("types.bal"));
         Assert.assertTrue(types.contains("public type Book record {|"), types);
         Assert.assertFalse(types.contains("service class Book"), types);
     }
@@ -200,8 +214,8 @@ public class BalGraphqlConfigGenerationTest {
     }
 
     private GenerationContext createContext(Path configPath) {
-        return new GenerationContext(configPath.toString(), NO_OPERATION_MODE, OUTPUT_PATH, NO_SERVICE_BASE_PATH,
-                NO_OBJECT_TYPE, NO_FORCE, NO_DRY_RUN, System.out);
+        return new GenerationContext(configPath.toString(), NO_OPERATION_MODE, outputPath, NO_SERVICE_BASE_PATH,
+                NO_OBJECT_TYPE, NO_MODULE, NO_FORCE, NO_DRY_RUN, System.out);
     }
 
     private BalGraphqlConfig readConfig(Path configPath) throws IOException, ParseException {

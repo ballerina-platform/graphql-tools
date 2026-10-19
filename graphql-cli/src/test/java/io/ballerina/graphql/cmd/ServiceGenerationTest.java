@@ -38,6 +38,7 @@ import java.nio.file.Paths;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_MISSING_SCHEMA_FILE;
+import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
 import static io.ballerina.graphql.common.TestUtils.getDiagnosticResult;
 import static io.ballerina.graphql.common.TestUtils.getValidatedMockServiceProject;
 
@@ -114,19 +115,22 @@ public class ServiceGenerationTest extends GraphqlTest {
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         Path outputPath = Paths.get(tmpDir.toString(), "new");
         String[] args = {graphqlSchema.toString(), "-o", outputPath.toString(), "-m", "service"};
+        File file = new File(outputPath.toString());
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             String message = String.format("%s/types.bal (Permission denied)", outputPath);
-            Files.createDirectories(outputPath);
-            File file = new File(outputPath.toString());
+            createBallerinaPackage(outputPath);
             file.setReadOnly();
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
         } catch (IOException e) {
             Assert.fail(e.toString());
+        } finally {
+            // Restores write access so that the class cleanup can delete the package inside.
+            file.setWritable(true);
         }
     }
 
