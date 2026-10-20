@@ -1,20 +1,18 @@
-/*
- *  Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
- */
+// Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
 package io.ballerina.graphql.cmd;
 
@@ -31,6 +29,7 @@ import picocli.CommandLine;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
@@ -58,7 +57,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
                 "",
                 "  bal graphql <balGraphQL.toml>",
                 "              [-o | --output <output>]",
-                "              [-m | --mode <client|service>]",
+                "              [--mode <client|service>]",
                 "              [--module <module-name>]",
                 "              [--object-type <service|record>]",
                 "              [-f | --force]",
@@ -83,6 +82,9 @@ public class GraphqlCmd implements BLauncherCmd {
             "The --object-type flag only applies to service generation. It cannot be used with \"%s\".";
     private static final String ERROR_MODULE_NOT_SUPPORTED =
             "The --module flag only applies to client and service generation. It cannot be used with \"%s\".";
+    private static final String ERROR_UNKNOWN_OPTION =
+            "Unknown option \"%s\". Run \"bal graphql --help\" to see the available options.";
+    private static final String ERROR_MULTIPLE_INPUTS = "Only one input file can be given. Found: %s.";
     // Not private: the @Command annotation on the class can only reference non-private constants.
     static final String HEADER =
             "  bal graphql - Generate Ballerina GraphQL services and clients, and GraphQL schemas";
@@ -132,7 +134,12 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = {"-h", "--help"}, hidden = true)
     private boolean helpFlag;
 
-    @CommandLine.Parameters(arity = "0..1", paramLabel = "<input>", description = INPUT_DESCRIPTION)
+    @CommandLine.Parameters(paramLabel = "[<input>]", hideParamSyntax = true, description = INPUT_DESCRIPTION)
+    private List<String> inputs;
+
+    @CommandLine.Unmatched
+    private List<String> unknownOptions;
+
     private String inputPath;
 
     @CommandLine.Option(names = {"-o", "--output"}, paramLabel = "<output>", description = OUTPUT_DESCRIPTION)
@@ -142,7 +149,7 @@ public class GraphqlCmd implements BLauncherCmd {
             description = SERVICE_DESCRIPTION)
     private String serviceBasePath;
 
-    @CommandLine.Option(names = {"-m", "--mode"}, paramLabel = "<client|service>", description = MODE_DESCRIPTION)
+    @CommandLine.Option(names = "--mode", paramLabel = "<client|service>", description = MODE_DESCRIPTION)
     private String mode;
 
     @CommandLine.Option(names = "--module", paramLabel = "<module-name>", description = MODULE_DESCRIPTION)
@@ -212,12 +219,17 @@ public class GraphqlCmd implements BLauncherCmd {
                 exit(EXIT_CODE_0);
                 return;
             }
-            if (inputPath == null || inputPath.isEmpty()) {
+            if (unknownOptions != null && !unknownOptions.isEmpty()) {
+                throw new CmdException(String.format(ERROR_UNKNOWN_OPTION, unknownOptions.get(0)));
+            }
+            if (inputs == null || inputs.isEmpty() || inputs.get(0).isEmpty()) {
                 printLongDesc(new StringBuilder());
                 outStream.flush();
                 exit(EXIT_CODE_2);
                 return;
             }
+            validateInputs();
+            inputPath = inputs.get(0);
             validateInputFlags();
             executeOperation();
         } catch (CmdException | GenerationException e) {
@@ -226,6 +238,12 @@ public class GraphqlCmd implements BLauncherCmd {
             return;
         }
         exit(EXIT_CODE_0);
+    }
+
+    private void validateInputs() throws CmdException {
+        if (inputs.size() > 1) {
+            throw new CmdException(String.format(ERROR_MULTIPLE_INPUTS, String.join(", ", inputs)));
+        }
     }
 
     private void validateInputFlags() throws CmdException {

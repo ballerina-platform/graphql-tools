@@ -1,20 +1,18 @@
-/*
- *  Copyright (c) 2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
- *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
- */
+// Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
 package io.ballerina.graphql.cmd;
 
@@ -76,7 +74,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testExecuteWithInvalidSchemaForServiceGen() {
         Path graphqlSchema = this.resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
-        String[] args = {graphqlSchema.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
+        String[] args = {graphqlSchema.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -94,7 +92,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     public void testExecuteWithSchemaInvalidFilePath() {
         Path invalidPath =
                 this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid", "Schema.graphql"));
-        String[] args = {invalidPath.toString(), "-o", this.tmpDir.toString(), "-m", "service"};
+        String[] args = {invalidPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -114,7 +112,7 @@ public class ServiceGenerationTest extends GraphqlTest {
         Path graphqlSchema = this.resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
         Path outputPath = Paths.get(tmpDir.toString(), "new");
-        String[] args = {graphqlSchema.toString(), "-o", outputPath.toString(), "-m", "service"};
+        String[] args = {graphqlSchema.toString(), "-o", outputPath.toString(), "--mode", "service"};
         File file = new File(outputPath.toString());
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
@@ -140,7 +138,7 @@ public class ServiceGenerationTest extends GraphqlTest {
     )
     public void testExecuteWithSchemaFileWithoutReadPermission() {
         Path graphqlSchema = Paths.get(tmpDir.toString(), "schema.graphql");
-        String[] args = {graphqlSchema.toString(), "-o", tmpDir.toString(), "-m", "service"};
+        String[] args = {graphqlSchema.toString(), "-o", tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
