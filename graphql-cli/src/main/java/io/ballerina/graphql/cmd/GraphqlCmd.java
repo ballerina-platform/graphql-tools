@@ -58,7 +58,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
                 "",
                 "  bal graphql <balGraphQL.toml>",
                 "              [-o <output>]",
-                "              [-m <client|service>]",
+                "              [--mode <client|service>]",
                 "              [--module <module-name>]",
                 "              [--object-type <service|record>]",
                 "              [--force]",
@@ -98,9 +98,9 @@ public class GraphqlCmd implements BLauncherCmd {
                     "documents are configured, otherwise service):%n" +
                     "    $ bal graphql balGraphQL.toml%n%n" +
                     "  Generate a Ballerina GraphQL service, using record types for object types:%n" +
-                    "    $ bal graphql balGraphQL.toml -m service --object-type record%n%n" +
+                    "    $ bal graphql balGraphQL.toml --mode service --object-type record%n%n" +
                     "  Generate a Ballerina GraphQL client into the \"countries\" module of the package:%n" +
-                    "    $ bal graphql balGraphQL.toml -m client --module countries%n%n" +
+                    "    $ bal graphql balGraphQL.toml --mode client --module countries%n%n" +
                     "  Preview the files without writing them, then overwrite existing files:%n" +
                     "    $ bal graphql balGraphQL.toml --dry-run%n" +
                     "    $ bal graphql balGraphQL.toml --force";

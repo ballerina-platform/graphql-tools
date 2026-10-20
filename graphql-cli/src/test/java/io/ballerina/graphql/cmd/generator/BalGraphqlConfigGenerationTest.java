@@ -56,10 +56,6 @@ import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
 public class BalGraphqlConfigGenerationTest {
 
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
-    private static final OperationMode NO_OPERATION_MODE = null;
-    private static final String NO_SERVICE_BASE_PATH = null;
-    private static final ObjectType NO_OBJECT_TYPE = null;
-    private static final String NO_MODULE = null;
     private static final boolean NO_FORCE = false;
     private static final boolean NO_DRY_RUN = false;
     private static final String INVALID_SDL = "type Query {\n  broken(: String\n}\n";
@@ -121,8 +117,7 @@ public class BalGraphqlConfigGenerationTest {
     public void testGenerateServiceWithRecordObjectType() throws IOException, ParseException, GenerationException {
         Path configPath = CONFIG_DIR.resolve("service-config.toml");
         Path recordOutputPath = createBallerinaPackage(Files.createTempDirectory("record-object-type"));
-        GenerationContext context = new GenerationContext(configPath.toString(), NO_OPERATION_MODE, recordOutputPath,
-                NO_SERVICE_BASE_PATH, ObjectType.RECORD, NO_MODULE, NO_FORCE, NO_DRY_RUN, System.out);
+        GenerationContext context = createContext(configPath, recordOutputPath, ObjectType.RECORD);
         Generator generator = new ServiceGeneration(context, readConfig(configPath));
         generator.validate();
         generator.generate();
@@ -214,8 +209,12 @@ public class BalGraphqlConfigGenerationTest {
     }
 
     private GenerationContext createContext(Path configPath) {
-        return new GenerationContext(configPath.toString(), NO_OPERATION_MODE, outputPath, NO_SERVICE_BASE_PATH,
-                NO_OBJECT_TYPE, NO_MODULE, NO_FORCE, NO_DRY_RUN, System.out);
+        return createContext(configPath, outputPath, null);
+    }
+
+    private GenerationContext createContext(Path configPath, Path targetOutputPath, ObjectType declaredObjectType) {
+        return new GenerationContext(configPath.toString(), null, targetOutputPath, null, declaredObjectType, null,
+                NO_FORCE, NO_DRY_RUN, System.out);
     }
 
     private BalGraphqlConfig readConfig(Path configPath) throws IOException, ParseException {
