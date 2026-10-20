@@ -140,10 +140,10 @@ public class GraphqlCmd implements BLauncherCmd {
             description = OBJECT_TYPE_DESCRIPTION)
     private String objectType;
 
-    @CommandLine.Option(names = "--force", description = FORCE_DESCRIPTION)
+    @CommandLine.Option(names = {"-f", "--force"}, description = FORCE_DESCRIPTION)
     private boolean force;
 
-    @CommandLine.Option(names = "--dry-run", description = DRY_RUN_DESCRIPTION)
+    @CommandLine.Option(names = {"-d", "--dry-run"}, description = DRY_RUN_DESCRIPTION)
     private boolean dryRun;
 
     /**

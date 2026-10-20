@@ -54,7 +54,9 @@ import io.ballerina.graphql.generator.service.model.TypeKind;
 import io.ballerina.graphql.generator.utils.NullLocation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -74,6 +76,12 @@ public final class ServiceModelMapper {
     private static final String MAPPING_START = "{";
     private static final String MAPPING_END = "}";
     private static final String ERROR_UNSUPPORTED_DEFAULT_VALUE = "Default value \"%s\" is not supported.";
+    private static final String ERROR_SHARED_INTERFACE_FIELD =
+            "Type \"%s\" cannot implement \"%s\" and \"%s\" as both have the field \"%s\". "
+                    + "Do not implement multiple interfaces that have the same field.";
+    private static final String ERROR_SHARED_PARENT_INTERFACE_FIELD =
+            "Type \"%s\" cannot implement \"%s\" and \"%s\" as both inherit the field \"%s\" from \"%s\". "
+                    + "Do not implement multiple interfaces that have the same field.";
 
     private final GraphQLSchema schema;
     private final boolean useRecordsForObjects;
@@ -153,14 +161,18 @@ public final class ServiceModelMapper {
         List<TypeDefinitionModel> definitions = new ArrayList<>();
         for (GraphQLNamedType type : types) {
             if (type instanceof GraphQLObjectType objectType) {
+                List<GraphQLNamedOutputType> interfaces = directInterfaces(objectType.getInterfaces());
+                checkSharedFields(objectType.getName(), interfaces);
                 definitions.add(new TypeDefinitionModel(TypeMapper.escapeName(objectType.getName()),
                         isRecord(objectType) ? TypeKind.RECORD : TypeKind.SERVICE_CLASS,
                         resolvers(objectType.getFields(), ResolverKind.RESOURCE_GET),
-                        names(directInterfaces(objectType.getInterfaces())), objectType.getDescription()));
+                        names(interfaces), objectType.getDescription()));
             } else if (type instanceof GraphQLInterfaceType interfaceType) {
+                List<GraphQLNamedOutputType> interfaces = directInterfaces(interfaceType.getInterfaces());
+                checkSharedFields(interfaceType.getName(), interfaces);
                 definitions.add(new TypeDefinitionModel(TypeMapper.escapeName(interfaceType.getName()),
                         TypeKind.INTERFACE, resolvers(ownFields(interfaceType), ResolverKind.RESOURCE_GET),
-                        names(directInterfaces(interfaceType.getInterfaces())), interfaceType.getDescription()));
+                        names(interfaces), interfaceType.getDescription()));
             } else if (type instanceof GraphQLUnionType unionType) {
                 definitions.add(new TypeDefinitionModel(TypeMapper.escapeName(unionType.getName()), TypeKind.UNION,
                         List.of(), names(unionType.getTypes()), unionType.getDescription()));
@@ -182,6 +194,40 @@ public final class ServiceModelMapper {
                 .map(GraphQLNamedType::getName)
                 .collect(Collectors.toSet());
         return interfaces.stream().filter(interfaceType -> !inherited.contains(interfaceType.getName())).toList();
+    }
+
+    private static void checkSharedFields(String typeName, List<GraphQLNamedOutputType> interfaces) {
+        Map<String, GraphQLInterfaceType> owners = new HashMap<>();
+        for (GraphQLNamedOutputType namedType : interfaces) {
+            GraphQLInterfaceType interfaceType = (GraphQLInterfaceType) namedType;
+            for (GraphQLFieldDefinition field : interfaceType.getFields()) {
+                GraphQLInterfaceType owner = owners.putIfAbsent(field.getName(), interfaceType);
+                if (owner != null) {
+                    throw new IllegalArgumentException(
+                            sharedFieldError(typeName, owner, interfaceType, field.getName()));
+                }
+            }
+        }
+    }
+
+    private static String sharedFieldError(String typeName, GraphQLInterfaceType first, GraphQLInterfaceType second,
+                                           String fieldName) {
+        String declaringInterface = declaringInterface(first, fieldName);
+        if (declaringInterface.equals(declaringInterface(second, fieldName))) {
+            return String.format(ERROR_SHARED_PARENT_INTERFACE_FIELD, typeName, first.getName(), second.getName(),
+                    fieldName, declaringInterface);
+        }
+        return String.format(ERROR_SHARED_INTERFACE_FIELD, typeName, first.getName(), second.getName(), fieldName);
+    }
+
+    // Follows a field up through the parent interfaces to the interface that declares it.
+    private static String declaringInterface(GraphQLInterfaceType interfaceType, String fieldName) {
+        return interfaceType.getInterfaces().stream()
+                .map(GraphQLInterfaceType.class::cast)
+                .filter(parent -> parent.getFieldDefinition(fieldName) != null)
+                .findFirst()
+                .map(parent -> declaringInterface(parent, fieldName))
+                .orElse(interfaceType.getName());
     }
 
     private static List<GraphQLFieldDefinition> ownFields(GraphQLInterfaceType interfaceType) {

@@ -1,0 +1,25 @@
+type Query {
+    "Fetch all the books from database"
+    books: [Book]
+    "Fetch a book by its id"
+    book(
+        "The id of the book to fetch"
+        id: Int!
+    ): Book
+}
+
+"Contact information of a person"
+interface ContactInfo {
+    "The email of the person"
+    email: String!
+    "The name of the person"
+    name: String! @deprecated(reason: "no longer used, use email.")
+}
+
+"Represents a book written by an author"
+type Book {
+    "The id of the book, unique identifier"
+    id: Int!
+    "The title of the book"
+    title: String!
+}

@@ -18,9 +18,8 @@
 
 package io.ballerina.graphql.generator.service.generator;
 
-import io.ballerina.graphql.common.GraphqlTest;
-import io.ballerina.graphql.common.TestUtils;
-import io.ballerina.graphql.exception.ValidationException;
+import graphql.schema.idl.SchemaParser;
+import graphql.schema.idl.UnExecutableSchemaGenerator;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
@@ -34,11 +33,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+
 /**
  * Tests the types and service files generated for the GraphQL schemas in the test resources.
  */
-public class ServiceCodeGeneratorTest extends GraphqlTest {
+public class ServiceCodeGeneratorTest {
 
+    private static final Path RESOURCE_DIR = Paths.get("src/test/resources").toAbsolutePath();
+    private static final String OUTPUT_PATH = "build";
     private static final boolean SERVICE_CLASSES = false;
     private static final boolean RECORDS = true;
     private static final String TYPES_FILE = "types.bal";
@@ -95,7 +98,7 @@ public class ServiceCodeGeneratorTest extends GraphqlTest {
 
     @Test(description = "Test the generated types file", dataProvider = "typesFiles")
     public void testGenerateTypes(String schemaName, boolean useRecordsForObjects, String expectedFile)
-            throws ValidationException, IOException, ServiceGenerationException {
+            throws IOException, ServiceGenerationException {
         Assert.assertEquals(generate(schemaName, useRecordsForObjects, TYPES_FILE), expected(expectedFile));
     }
 
@@ -112,35 +115,24 @@ public class ServiceCodeGeneratorTest extends GraphqlTest {
 
     @Test(description = "Test the generated service file", dataProvider = "serviceFiles")
     public void testGenerateService(String schemaName, String expectedFile)
-            throws ValidationException, IOException, ServiceGenerationException {
+            throws IOException, ServiceGenerationException {
         Assert.assertEquals(generate(schemaName, SERVICE_CLASSES, SERVICE_FILE), expected(expectedFile));
     }
 
-    @DataProvider(name = "invalidSchemas")
-    public Object[][] invalidSchemas() {
-        return new Object[][]{
-                {"InvalidSchemaWithUnionMemberTypeOfEnum", "The member types of a Union type must all be Object " +
-                        "base types. member type Gender in Union Profile is invalid."},
-                {"InvalidSchemaWithUnionMemberTypeOfInterface", "The member types of a Union type must all be " +
-                        "Object base types. member type Info in Union Profile is invalid."},
-                {"InvalidSchemaWithUnionMemberTypeOfUnion", "The member types of a Union type must all be Object " +
-                        "base types. member type Internal in Union Profile is invalid."},
-                {"InvalidSchemaWithUnionMemberTypeOfInputType", "The member types of a Union type must all be " +
-                        "Object base types. member type Info in Union PersonInfo is invalid."}
-        };
-    }
+    @Test(description = "Test that a schema file name that is not a valid identifier is escaped")
+    public void testGenerateWithEscapedServiceName() throws IOException, ServiceGenerationException {
+        String types = generate("SchemaWith-HyphenApi", SERVICE_CLASSES, TYPES_FILE);
+        String service = generate("SchemaWith-HyphenApi", SERVICE_CLASSES, SERVICE_FILE);
 
-    @Test(description = "Test that an invalid schema is rejected before generation", dataProvider = "invalidSchemas")
-    public void testInvalidSchema(String schemaName, String expectedMessage) {
-        ValidationException error = Assert.expectThrows(ValidationException.class,
-                () -> project("invalid", schemaName));
-        Assert.assertTrue(error.getMessage().contains(expectedMessage), error.getMessage());
+        Assert.assertTrue(types.contains("type SchemaWith\\-HyphenApi service object {"), types);
+        Assert.assertTrue(service.contains("service SchemaWith\\-HyphenApi on new graphql:Listener(port) {"),
+                service);
     }
 
     private String generate(String schemaName, boolean useRecordsForObjects, String fileName)
-            throws ValidationException, IOException, ServiceGenerationException {
+            throws IOException, ServiceGenerationException {
         List<SrcFilePojo> sources = new ServiceCodeGenerator(useRecordsForObjects)
-                .generateBalSources(project("valid", schemaName));
+                .generateBalSources(project(schemaName));
         return sources.stream()
                 .filter(source -> source.getFileName().equals(fileName))
                 .findFirst()
@@ -148,13 +140,17 @@ public class ServiceCodeGeneratorTest extends GraphqlTest {
                 .getContent();
     }
 
-    private GraphqlServiceProject project(String folder, String schemaName) throws ValidationException, IOException {
-        Path schemaPath = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", folder, schemaName + SCHEMA_EXTENSION));
-        return TestUtils.getValidatedMockServiceProject(schemaPath.toString(), this.tmpDir);
+    private static GraphqlServiceProject project(String schemaName) throws IOException {
+        Path schemaPath = RESOURCE_DIR.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", schemaName + SCHEMA_EXTENSION));
+        GraphqlServiceProject project =
+                new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaPath.toString(), OUTPUT_PATH);
+        project.setGraphQLSchema(UnExecutableSchemaGenerator.makeUnExecutableSchema(
+                new SchemaParser().parse(Files.readString(schemaPath))));
+        return project;
     }
 
-    private String expected(String expectedFile) throws IOException {
-        return Files.readString(this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", expectedFile)));
+    private static String expected(String expectedFile) throws IOException {
+        return Files.readString(RESOURCE_DIR.resolve(Paths.get("serviceGen", "expectedServices", expectedFile)));
     }
 }

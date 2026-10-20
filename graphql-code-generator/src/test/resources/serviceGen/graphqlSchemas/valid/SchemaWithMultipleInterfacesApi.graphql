@@ -1,0 +1,27 @@
+type Query {
+    student(id: Int!): Student
+}
+
+interface ContactInfo {
+    email: String!
+}
+
+interface ExamInfo {
+    pass(marks: Int!): Boolean!
+}
+
+interface Info {
+    name: String!
+}
+
+type Student implements Info & ExamInfo {
+    id: Int!
+    name: String!
+    pass(marks: Int!): Boolean!
+}
+
+type Teacher implements Info & ContactInfo {
+    id: Int!
+    name: String!
+    email: String!
+}

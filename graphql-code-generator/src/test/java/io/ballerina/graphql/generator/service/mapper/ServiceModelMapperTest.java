@@ -214,6 +214,50 @@ public class ServiceModelMapperTest {
         Assert.assertTrue(error.getMessage().contains("DateTime"), error.getMessage());
     }
 
+    @Test(description = "Test that a type implementing two interfaces with the same field is rejected")
+    public void testSharedInterfaceFieldRejected() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class, () -> map("""
+                type Query { book: Book }
+                interface Named { name: String! }
+                interface Labeled { name: String!, label: String! }
+                type Book implements Named & Labeled { name: String!, label: String! }
+                """, SERVICE_CLASSES));
+        Assert.assertTrue(error.getMessage().contains(
+                "Type \"Book\" cannot implement \"Named\" and \"Labeled\" as both have the field \"name\". "
+                        + "Do not implement multiple interfaces that have the same field."),
+                error.getMessage());
+    }
+
+    @Test(description = "Test that a type implementing two interfaces with a shared parent interface is rejected")
+    public void testSharedParentInterfaceFieldRejected() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class, () -> map("""
+                type Query { item: Item }
+                interface Base { id: Int! }
+                interface A implements Base { id: Int!, a: String! }
+                interface B implements Base { id: Int!, b: String! }
+                type Item implements A & B & Base { id: Int!, a: String!, b: String! }
+                """, SERVICE_CLASSES));
+        Assert.assertTrue(error.getMessage().contains(
+                "Type \"Item\" cannot implement \"A\" and \"B\" as both inherit the field \"id\" from \"Base\". "
+                        + "Do not implement multiple interfaces that have the same field."),
+                error.getMessage());
+    }
+
+    @Test(description = "Test that an interface implementing two interfaces with the same field is rejected")
+    public void testInterfaceWithSharedInterfaceFieldRejected() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class, () -> map("""
+                type Query { item: Item }
+                interface Named { name: String! }
+                interface Labeled { name: String!, label: String! }
+                interface Tagged implements Named & Labeled { name: String!, label: String! }
+                type Item implements Tagged & Named & Labeled { name: String!, label: String! }
+                """, SERVICE_CLASSES));
+        Assert.assertTrue(error.getMessage().contains(
+                "Type \"Tagged\" cannot implement \"Named\" and \"Labeled\" as both have the field \"name\". "
+                        + "Do not implement multiple interfaces that have the same field."),
+                error.getMessage());
+    }
+
     private static ServiceModel map(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
         return ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects);

@@ -24,7 +24,7 @@ import java.nio.file.Path;
 final class OutputFileGuard {
 
     private static final String WARNING_FILE_EXISTS =
-            "WARNING: Skipped \"%s\": the file already exists. Use --force to overwrite it.";
+            "WARNING: Skipped \"%s\": the file already exists. Use -f or --force to overwrite it.";
 
     private OutputFileGuard() {
     }
@@ -46,7 +46,7 @@ final class OutputFileGuard {
     }
 
     // A path can only be shown relative to the current directory when both are on the same drive (Windows).
-    private static Path displayPath(Path filePath) {
+    static Path displayPath(Path filePath) {
         Path currentDir = Path.of("").toAbsolutePath();
         Path absolutePath = filePath.toAbsolutePath();
         return currentDir.getRoot().equals(absolutePath.getRoot()) ?

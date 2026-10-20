@@ -1,0 +1,21 @@
+type Query {
+    "Fetch a book by its id"
+    book(
+        "The id of the book to fetch"
+        id: ID!
+    ): Book
+
+    "Fetch a list of books by their ids"
+    books(
+        "The list of book ids to fetch"
+        ids: [ID!]!
+    ): [Book!]!
+}
+
+"Represents a book written by an author"
+type Book {
+    "The id of the book, unique identifier"
+    id: ID!
+    "The title of the book"
+    title: String!
+}

@@ -27,6 +27,9 @@ import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.generator.common.model.TypeModel;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Maps GraphQL types to Ballerina types.
  */
@@ -34,7 +37,12 @@ public final class TypeMapper {
 
     private static final boolean NULLABLE = true;
     private static final boolean NON_NULL = false;
+    // A leading digit, or any character that is not a letter, digit or underscore.
+    private static final Pattern INVALID_IDENTIFIER_CHARACTER = Pattern.compile("^\\p{Nd}|[^\\p{L}\\p{Nd}_]");
+    private static final int FIRST_CHARACTER = 0;
+    private static final String UNICODE_ESCAPE_FORMAT = "\\u{%X}";
     private static final String ERROR_UNSUPPORTED_SCALAR = "Custom scalar \"%s\" is not supported.";
+    private static final String ERROR_INVALID_NAME = "\"%s\" cannot be used as a Ballerina identifier.";
 
     private TypeMapper() {
     }
@@ -51,13 +59,32 @@ public final class TypeMapper {
     }
 
     /**
-     * Quotes a name that is a Ballerina keyword, e.g. {@code type} becomes {@code 'type}.
+     * Makes a name a valid Ballerina identifier. A keyword is quoted, e.g. {@code type} becomes {@code 'type}, and a
+     * character that cannot appear in an identifier is escaped, e.g. {@code my-schema} becomes {@code my\-schema}.
      *
-     * @param name a GraphQL name
-     * @return the name, quoted if it is a keyword
+     * @param name a GraphQL or schema file name
+     * @return the name as a valid Ballerina identifier
+     * @throws IllegalArgumentException if the name cannot be made a valid identifier
      */
     public static String escapeName(String name) {
-        return SyntaxInfo.isKeyword(name) ? SyntaxKind.SINGLE_QUOTE_TOKEN.stringValue() + name : name;
+        if (SyntaxInfo.isKeyword(name)) {
+            return SyntaxKind.SINGLE_QUOTE_TOKEN.stringValue() + name;
+        }
+        if (SyntaxInfo.isIdentifier(name)) {
+            return name;
+        }
+        String escaped = INVALID_IDENTIFIER_CHARACTER.matcher(name)
+                .replaceAll(match -> Matcher.quoteReplacement(escapeCharacter(match.group())));
+        if (!SyntaxInfo.isIdentifier(escaped)) {
+            throw new IllegalArgumentException(String.format(ERROR_INVALID_NAME, name));
+        }
+        return escaped;
+    }
+
+    private static String escapeCharacter(String character) {
+        int codePoint = character.codePointAt(FIRST_CHARACTER);
+        return Character.isWhitespace(codePoint) ? String.format(UNICODE_ESCAPE_FORMAT, codePoint)
+                : SyntaxKind.BACK_SLASH_TOKEN.stringValue() + character;
     }
 
     private static TypeModel map(GraphQLType type, boolean nullable) {

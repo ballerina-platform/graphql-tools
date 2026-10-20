@@ -180,6 +180,9 @@ jacocoTestReport {
             "/generator")
     additionalClassDirs(classFiles)
     additionalClassDirs(codeGenFiles)
+    // The code generator has its own tests, so their coverage is added to this report.
+    dependsOn ":graphql-code-generator:test"
+    executionData fileTree("${rootDir}/graphql-code-generator/build/jacoco").include("*.exec")
     reports {
         xml.required = true
     }

@@ -1,0 +1,12 @@
+type Query {
+    book(id: Int!, title: String): Book
+    booksPattern1: [Book]
+    booksPattern2: [Book!]!
+    booksPattern3: [Book]!
+    booksPattern4: [Book!]
+}
+
+type Book {
+    id: Int!
+    title: String!
+}
