@@ -94,16 +94,16 @@ public class GraphqlCmd implements BLauncherCmd {
     static final String EXAMPLES =
             "  Generate a GraphQL schema for a Ballerina GraphQL service:%n" +
                     "    $ bal graphql service.bal -o ./output -s /graphql%n%n" +
-                    "  Generate from a balGraphQL.toml file (client if documents are configured, " +
-                    "otherwise service):%n" +
-                    "    $ bal graphql balGraphQL.toml -o ./output%n%n" +
+                    "  Generate into the current Ballerina package from a balGraphQL.toml file (client if " +
+                    "documents are configured, otherwise service):%n" +
+                    "    $ bal graphql balGraphQL.toml%n%n" +
                     "  Generate a Ballerina GraphQL service, using record types for object types:%n" +
-                    "    $ bal graphql balGraphQL.toml -m service -o ./output --object-type record%n%n" +
+                    "    $ bal graphql balGraphQL.toml -m service --object-type record%n%n" +
                     "  Generate a Ballerina GraphQL client into the \"countries\" module of the package:%n" +
                     "    $ bal graphql balGraphQL.toml -m client --module countries%n%n" +
                     "  Preview the files without writing them, then overwrite existing files:%n" +
-                    "    $ bal graphql balGraphQL.toml -o ./output --dry-run%n" +
-                    "    $ bal graphql balGraphQL.toml -o ./output --force";
+                    "    $ bal graphql balGraphQL.toml --dry-run%n" +
+                    "    $ bal graphql balGraphQL.toml --force";
     private static final String INPUT_DESCRIPTION =
             "Path to a balGraphQL.toml file (client or service generation) or a Ballerina GraphQL service " +
                     "file (schema generation).";

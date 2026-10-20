@@ -168,13 +168,13 @@ public class ClientGeneration implements Generator {
     public void write() throws GenerationException {
         for (Map.Entry<GraphqlClientProject, List<SrcFilePojo>> entry : this.generatedSources.entrySet()) {
             GraphqlClientProject project = entry.getKey();
-            Path outputPath = Path.of(project.getOutputPath());
+            Path projectOutputPath = Path.of(project.getOutputPath());
             List<SrcFilePojo> writableSources = entry.getValue().stream()
                     .filter(source -> OutputFileGuard.canWrite(
-                            CodeGeneratorUtils.resolveFilePath(source, outputPath), context))
+                            CodeGeneratorUtils.resolveFilePath(source, projectOutputPath), context))
                     .toList();
             try {
-                this.clientCodeGenerator.writeGeneratedSources(writableSources, outputPath);
+                this.clientCodeGenerator.writeGeneratedSources(writableSources, projectOutputPath);
             } catch (IOException e) {
                 throw new GenerationException(new ClientCodeGenerationException(e.getMessage(), project.getName()));
             }

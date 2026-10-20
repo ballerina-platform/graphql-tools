@@ -21,25 +21,24 @@ package io.ballerina.graphql.cmd.generator;
 import io.ballerina.graphql.exception.GenerationException;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
 
 /**
  * Tests resolving the output folder of client and service generation inside a Ballerina package.
  */
 public class PackageOutputTest {
 
-    private static final String BALLERINA_TOML = """
-            [package]
-            org = "test"
-            name = "books"
-            version = "0.1.0"
-            """;
     private static final String NO_MODULE = null;
 
     private Path tmpDir;
@@ -56,14 +55,14 @@ public class PackageOutputTest {
 
     @Test(description = "Test that the package root is the output folder when no module is given")
     public void testPackageRoot() throws IOException, GenerationException {
-        Path packageRoot = createPackage(tmpDir);
+        Path packageRoot = createBallerinaPackage(tmpDir);
 
         Assert.assertEquals(PackageOutput.resolve(packageRoot, NO_MODULE), packageRoot.toAbsolutePath().normalize());
     }
 
     @Test(description = "Test that a module resolves to the modules folder of the package")
     public void testModule() throws IOException, GenerationException {
-        Path packageRoot = createPackage(tmpDir);
+        Path packageRoot = createBallerinaPackage(tmpDir);
 
         Assert.assertEquals(PackageOutput.resolve(packageRoot, "books"),
                 packageRoot.toAbsolutePath().normalize().resolve("modules").resolve("books"));
@@ -71,7 +70,7 @@ public class PackageOutputTest {
 
     @Test(description = "Test that a folder inside a package is rejected")
     public void testSubfolderRejected() throws IOException {
-        Path subfolder = Files.createDirectory(createPackage(tmpDir).resolve("sub"));
+        Path subfolder = Files.createDirectory(createBallerinaPackage(tmpDir).resolve("sub"));
 
         GenerationException error = Assert.expectThrows(GenerationException.class,
                 () -> PackageOutput.resolve(subfolder, NO_MODULE));
@@ -87,17 +86,44 @@ public class PackageOutputTest {
                 + "\" is not a Ballerina package. Run the command from the package root, or use -o to point to it.");
     }
 
-    @Test(description = "Test that an invalid module name is rejected")
-    public void testInvalidModuleNameRejected() throws IOException {
-        Path packageRoot = createPackage(tmpDir);
+    @Test(description = "Test that a nested module name resolves to its own folder")
+    public void testNestedModule() throws IOException, GenerationException {
+        Path packageRoot = createBallerinaPackage(tmpDir);
 
-        GenerationException error = Assert.expectThrows(GenerationException.class,
-                () -> PackageOutput.resolve(packageRoot, "my-module"));
-        Assert.assertEquals(error.getMessage(), "\"my-module\" is not a valid module name.");
+        Assert.assertEquals(PackageOutput.resolve(packageRoot, "books.v2"),
+                packageRoot.toAbsolutePath().normalize().resolve("modules").resolve("books.v2"));
     }
 
-    private static Path createPackage(Path directory) throws IOException {
-        Files.writeString(directory.resolve("Ballerina.toml"), BALLERINA_TOML);
-        return directory;
+    @DataProvider(name = "invalidModuleNames")
+    public Object[][] invalidModuleNames() {
+        return new Object[][]{{"my-module"}, {""}, {".x"}, {"x."}, {"a..b"}, {"2books"}, {"_books"}};
+    }
+
+    @Test(description = "Test that an unreadable Ballerina.toml gives a clear error")
+    public void testUnreadableBallerinaToml() throws IOException {
+        Path ballerinaToml = createBallerinaPackage(tmpDir).resolve("Ballerina.toml");
+        File file = ballerinaToml.toFile();
+        if (!file.setReadable(false) || file.canRead()) {
+            throw new SkipException("Cannot make Ballerina.toml unreadable on this system");
+        }
+        try {
+            GenerationException error = Assert.expectThrows(GenerationException.class,
+                    () -> PackageOutput.resolve(tmpDir, NO_MODULE));
+            Assert.assertEquals(error.getMessage(), "Could not read \""
+                    + tmpDir.toAbsolutePath().normalize().resolve("Ballerina.toml") + "\".");
+        } finally {
+            file.setReadable(true);
+        }
+    }
+
+    @Test(description = "Test that an invalid module name is rejected", dataProvider = "invalidModuleNames")
+    public void testInvalidModuleNameRejected(String moduleName) throws IOException {
+        Path packageRoot = createBallerinaPackage(tmpDir);
+
+        GenerationException error = Assert.expectThrows(GenerationException.class,
+                () -> PackageOutput.resolve(packageRoot, moduleName));
+        Assert.assertEquals(error.getMessage(), "\"" + moduleName + "\" is not a valid module name. Use letters, "
+                + "digits and underscores, start with a letter, and separate parts with single periods "
+                + "(e.g. books or books.v2).");
     }
 }

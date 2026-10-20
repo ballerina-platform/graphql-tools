@@ -86,15 +86,6 @@ public class TestUtils {
             """;
 
     /**
-     * Constructs an instance of the `Config` reading the given GraphQL config file.
-     *
-     * @param filePath                      the path to the Graphql config file
-     * @return                              the instance of the Graphql config file
-     * @throws FileNotFoundException        when the GraphQL config file doesn't exist
-     * @throws ParseException               when a parsing related error occurs
-     * @throws CmdException                 when a graphql command related error occurs
-     */
-    /**
      * Makes a directory a Ballerina package by adding a minimal Ballerina.toml, so that client and service
      * generation can write to it. An existing Ballerina.toml is kept.
      *
@@ -111,6 +102,15 @@ public class TestUtils {
         return directory;
     }
 
+    /**
+     * Constructs an instance of the `Config` reading the given GraphQL config file.
+     *
+     * @param filePath                      the path to the Graphql config file
+     * @return                              the instance of the Graphql config file
+     * @throws FileNotFoundException        when the GraphQL config file doesn't exist
+     * @throws ParseException               when a parsing related error occurs
+     * @throws CmdException                 when a graphql command related error occurs
+     */
     public static Config readConfig(String filePath) throws FileNotFoundException, ParseException, CmdException {
         try {
             if (filePath.endsWith(YAML_EXTENSION) || filePath.endsWith(YML_EXTENSION)) {

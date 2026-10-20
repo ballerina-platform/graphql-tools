@@ -20,6 +20,7 @@ package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.launcher.BLauncherException;
 import io.ballerina.graphql.common.GraphqlTest;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
@@ -729,12 +730,123 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.assertTrue(output.contains("SYNOPSIS"));
             Assert.assertTrue(output.contains("-f, --force"), output);
             Assert.assertTrue(output.contains("-d, --dry-run"), output);
+            Assert.assertTrue(output.contains("--module"), output);
             Assert.assertTrue(output.contains("--object-type"));
             Assert.assertFalse(output.contains("--input"));
             Assert.assertEquals(exitCaptor.getExitCode(), 0, "Help flag should exit with code 0");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
+    }
+
+    @Test(description = "Test that service generation outside a Ballerina package is rejected")
+    public void testServiceGenerationOutsidePackage() throws IOException {
+        Path outputPath = Files.createTempDirectory("no-package");
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            String output = run(exitCaptor, singleObjectSchema(), "-o", outputPath.toString(), "-m", "service");
+            Assert.assertTrue(output.contains(notAPackage(outputPath)), output);
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+            Assert.assertFalse(Files.exists(outputPath.resolve("types.bal")), output);
+        } finally {
+            FileUtils.deleteDirectory(outputPath.toFile());
+        }
+    }
+
+    @Test(description = "Test that client generation outside a Ballerina package is rejected")
+    public void testClientGenerationOutsidePackage() throws IOException {
+        Path outputPath = Files.createTempDirectory("no-package");
+        try {
+            Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yaml"));
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            String output = run(exitCaptor, graphqlConfigYaml.toString(), "-o", outputPath.toString());
+            Assert.assertTrue(output.contains(notAPackage(outputPath)), output);
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+            Assert.assertFalse(Files.exists(outputPath.resolve("client.bal")), output);
+        } finally {
+            FileUtils.deleteDirectory(outputPath.toFile());
+        }
+    }
+
+    @Test(description = "Test that a folder inside a Ballerina package is rejected as the output")
+    public void testGenerationInPackageSubfolder() throws IOException {
+        Path subfolder = Files.createDirectories(this.tmpDir.resolve("subfolder"));
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            String output = run(exitCaptor, singleObjectSchema(), "-o", subfolder.toString(), "-m", "service");
+            Assert.assertTrue(output.contains(notAPackage(subfolder)), output);
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+            Assert.assertFalse(Files.exists(subfolder.resolve("types.bal")), output);
+        } finally {
+            FileUtils.deleteDirectory(subfolder.toFile());
+        }
+    }
+
+    @Test(description = "Test that a missing output folder outside a Ballerina package is not created")
+    public void testGenerationToMissingFolderOutsidePackage() throws IOException {
+        Path parent = Files.createTempDirectory("no-package");
+        Path outputPath = parent.resolve("output");
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            String output = run(exitCaptor, singleObjectSchema(), "-o", outputPath.toString(), "-m", "service");
+            Assert.assertTrue(output.contains(notAPackage(outputPath)), output);
+            Assert.assertFalse(Files.exists(outputPath), output);
+        } finally {
+            FileUtils.deleteDirectory(parent.toFile());
+        }
+    }
+
+    @Test(description = "Test that the module flag writes the generated files into that module")
+    public void testGenerationIntoModule() throws IOException {
+        Path modulePath = this.tmpDir.resolve(Paths.get("modules", "books"));
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            String output = run(exitCaptor, singleObjectSchema(), "-o", this.tmpDir.toString(), "-m", "service",
+                    "--module", "books");
+            Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+            Assert.assertTrue(Files.exists(modulePath.resolve("types.bal")), output);
+            Assert.assertTrue(Files.exists(modulePath.resolve("service.bal")), output);
+            Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
+        } finally {
+            FileUtils.deleteDirectory(this.tmpDir.resolve("modules").toFile());
+        }
+    }
+
+    @Test(description = "Test that an invalid module name is rejected")
+    public void testGenerationWithInvalidModuleName() throws IOException {
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = run(exitCaptor, singleObjectSchema(), "-o", this.tmpDir.toString(), "-m", "service",
+                "--module", "my-module");
+        Assert.assertTrue(output.contains("\"my-module\" is not a valid module name."), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("modules")), output);
+    }
+
+    @Test(description = "Test that the module flag is rejected for schema generation")
+    public void testModuleWithSchemaGeneration() throws IOException {
+        String service = resourceDir.resolve(Paths.get("graphqlServices", "valid", "service_1.bal")).toString();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = run(exitCaptor, service, "-o", this.tmpDir.toString(), "--module", "books");
+        Assert.assertTrue(output.contains("The --module flag only applies to client and service generation. "
+                + "It cannot be used with \"" + service + "\"."), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+    }
+
+    private String run(ExitCodeCaptor exitCaptor, String... args) throws IOException {
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        return readOutput(true);
+    }
+
+    private String singleObjectSchema() {
+        return resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql")).toString();
+    }
+
+    private static String notAPackage(Path outputPath) {
+        return "\"" + outputPath.toAbsolutePath().normalize() + "\" is not a Ballerina package. "
+                + "Run the command from the package root, or use -o to point to it.";
     }
 
     private static List<String> createdFiles(String output) {
