@@ -1,25 +1,26 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.cmd.config;
 
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.toml.api.Toml;
+import io.ballerina.toml.syntax.tree.SyntaxKind;
 import io.ballerina.tools.diagnostics.Diagnostic;
 
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Reads a balGraphQL.toml configuration file.
@@ -172,10 +174,12 @@ public class BalGraphqlConfigReader {
         return values;
     }
 
-    // TOML parses a dotted key such as "Profile.id" as nested tables, so flatten it back into the dotted notation.
+    // TOML parses a dotted key such as Profile.id as nested tables, so flatten it back into the dotted notation.
+    // A quoted key such as "Profile.id" stays one key but keeps its quotes, so remove them.
     private static void flattenTable(Map<String, Object> table, String prefix, Map<String, String> values) {
         for (Map.Entry<String, Object> entry : table.entrySet()) {
-            String key = prefix.isEmpty() ? entry.getKey() : prefix + KEY_SEPARATOR + entry.getKey();
+            String name = unquote(entry.getKey());
+            String key = prefix.isEmpty() ? name : prefix + KEY_SEPARATOR + name;
             Object value = entry.getValue();
             if (value instanceof Map) {
                 flattenTable(castToMap(value), key, values);
@@ -183,6 +187,15 @@ public class BalGraphqlConfigReader {
                 values.put(key, value.toString());
             }
         }
+    }
+
+    private static String unquote(String key) {
+        return Stream.of(SyntaxKind.DOUBLE_QUOTE_TOKEN, SyntaxKind.SINGLE_QUOTE_TOKEN)
+                .map(SyntaxKind::stringValue)
+                .filter(quote -> key.length() > quote.length() && key.startsWith(quote) && key.endsWith(quote))
+                .findFirst()
+                .map(quote -> key.substring(quote.length(), key.length() - quote.length()))
+                .orElse(key);
     }
 
     private static String readString(Map<String, Object> content, String key) throws ParseException {

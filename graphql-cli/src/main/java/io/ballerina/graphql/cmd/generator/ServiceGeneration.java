@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
@@ -62,7 +63,14 @@ public class ServiceGeneration implements Generator {
     public ServiceGeneration(GenerationContext context, BalGraphqlConfig balGraphqlConfig) {
         this.context = context;
         this.balGraphqlConfig = balGraphqlConfig;
-        this.serviceCodeGenerator = new ServiceCodeGenerator(context.isUseRecordsForObjects());
+        this.serviceCodeGenerator = new ServiceCodeGenerator(context.isUseRecordsForObjects(), idTypes());
+    }
+
+    private Map<String, String> idTypes() {
+        if (this.balGraphqlConfig == null || this.balGraphqlConfig.idTypes() == null) {
+            return Map.of();
+        }
+        return this.balGraphqlConfig.idTypes();
     }
 
     @Override
