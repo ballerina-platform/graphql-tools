@@ -1,0 +1,14 @@
+[schema]
+source = "file"
+path = "./schema.graphql"
+
+[id-types]
+Node.id = "int"
+Query.profile.id = "int"
+Query.node.id = "int"
+Mutation.updateProfile.id = "int"
+Profile.friendIds = "int"
+Profile.accountId = "decimal"
+Account.id = "int"
+ProfileInput.id = "string"
+ProfileInput.score = "float"

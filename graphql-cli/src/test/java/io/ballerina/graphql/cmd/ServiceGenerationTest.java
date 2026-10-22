@@ -216,6 +216,52 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
+    @DataProvider(name = "objectTypes")
+    public Object[] objectTypes() {
+        return new Object[]{"service", "record"};
+    }
+
+    @Test(description = "Test that a service generated with configured ID types uses them and compiles",
+            dataProvider = "objectTypes")
+    public void testIdTypes(String objectType) throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "idTypes", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--object-type",
+                objectType};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, new ExitCodeCaptor());
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        String types = readContent(this.tmpDir.resolve("types.bal"));
+        Assert.assertTrue(types.contains("resourcefunctiongetid()returns@graphql:IDint|error;"), types);
+        Assert.assertTrue(types.contains("resourcefunctiongetfriendIds()returns@graphql:IDint[]|error"), types);
+        Assert.assertTrue(types.contains("resourcefunctiongetaccountId()returns@graphql:IDdecimal?|error"), types);
+        Assert.assertTrue(types.contains("remotefunctionupdateProfile(@graphql:IDintid,ProfileInputinput)"), types);
+        Assert.assertTrue(types.contains("@graphql:IDstringid;@graphql:IDfloat?score;"), types);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+        Assert.assertTrue(diagnosticResult.errors().isEmpty(),
+                "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
+    }
+
+    @Test(description = "Test that every invalid ID type mapping is reported and nothing is generated")
+    public void testInvalidIdTypes() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "idTypesInvalid", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        Assert.assertTrue(output.contains(
+                "\"Profile.nope\" in [id-types] does not match any field or argument in the schema."), output);
+        Assert.assertTrue(output.contains("\"Profile.name\" in [id-types] is not an ID field or argument."), output);
+        Assert.assertTrue(output.contains(
+                "\"long\" is not a supported ID type for \"Account.id\". Use string, int, float or decimal."), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
+    }
+
     @DataProvider(name = "invalidSchemas")
     public Object[][] invalidSchemas() {
         return new Object[][]{

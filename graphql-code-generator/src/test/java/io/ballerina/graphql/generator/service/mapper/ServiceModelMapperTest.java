@@ -282,6 +282,17 @@ public class ServiceModelMapperTest {
                 TypeModel.named("decimal", NON_NULL, ID));
     }
 
+    @Test(description = "Test that a configured ID type applies to every item of an ID list")
+    public void testIdTypeForList() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { profile: Profile }
+                type Profile { friendIds: [ID!]! }
+                """, Map.of("Profile.friendIds", "int"));
+
+        Assert.assertEquals(resolver(definition(model, "Profile").fields(), "friendIds").returnType(),
+                TypeModel.list(TypeModel.named("int", NON_NULL, ID), NON_NULL));
+    }
+
     @Test(description = "Test that a type implementing an interface uses the ID type configured on the interface")
     public void testIdTypeFromInterface() throws ServiceGenerationException {
         ServiceModel model = map("""
