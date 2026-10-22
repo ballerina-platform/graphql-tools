@@ -22,6 +22,7 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 
 import java.io.ByteArrayOutputStream;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.graphql.common.TestUtils.DISTRIBUTION_FILE_NAME;
+import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
 import static io.ballerina.graphql.common.TestUtils.executeGraphql;
 import static io.ballerina.graphql.common.TestUtils.executeGraphqlWithErrors;
 
@@ -56,6 +58,11 @@ public class GraphqlTest {
         this.tmpDir = Files.createTempDirectory("graphql-cmd-test-out-" + System.nanoTime());
         this.console = new ByteArrayOutputStream();
         this.printStream = new PrintStream(this.console);
+    }
+
+    @BeforeMethod
+    public void createPackage() throws IOException {
+        createBallerinaPackage(this.tmpDir);
     }
 
     @AfterClass

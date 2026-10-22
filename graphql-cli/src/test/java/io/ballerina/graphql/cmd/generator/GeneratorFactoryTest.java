@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.cmd.generator;
@@ -32,19 +32,25 @@ public class GeneratorFactoryTest {
 
     private static final Path OUTPUT_PATH = Paths.get("build");
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
-    private static final OperationMode NO_OPERATION_MODE = null;
-    private static final String NO_SERVICE_BASE_PATH = null;
-    private static final ObjectType NO_OBJECT_TYPE = null;
     private static final boolean NO_FORCE = false;
     private static final boolean NO_DRY_RUN = false;
 
     private GenerationContext createContext(String inputPath) {
-        return createContext(inputPath, NO_OPERATION_MODE);
+        return createContext(inputPath, null, null);
     }
 
     private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode) {
-        return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, NO_SERVICE_BASE_PATH,
-                NO_OBJECT_TYPE, NO_FORCE, NO_DRY_RUN, System.out);
+        return createContext(inputPath, declaredOperationMode, null);
+    }
+
+    private GenerationContext createContext(String inputPath, ObjectType declaredObjectType) {
+        return createContext(inputPath, null, declaredObjectType);
+    }
+
+    private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode,
+                                            ObjectType declaredObjectType) {
+        return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, null, declaredObjectType, null,
+                NO_FORCE, NO_DRY_RUN, System.out);
     }
 
     private Generator getGeneratorForConfig(String fileName) throws GenerationException {
@@ -52,9 +58,8 @@ public class GeneratorFactoryTest {
     }
 
     private Generator getGeneratorForConfigWithRecords(String fileName) throws GenerationException {
-        return GeneratorFactory.getGenerator(new GenerationContext(CONFIG_DIR.resolve(fileName).toString(),
-                NO_OPERATION_MODE, OUTPUT_PATH, NO_SERVICE_BASE_PATH, ObjectType.RECORD, NO_FORCE, NO_DRY_RUN,
-                System.out));
+        return GeneratorFactory.getGenerator(createContext(CONFIG_DIR.resolve(fileName).toString(),
+                ObjectType.RECORD));
     }
 
     @Test(description = "Test that an object type is rejected for a client configuration file")

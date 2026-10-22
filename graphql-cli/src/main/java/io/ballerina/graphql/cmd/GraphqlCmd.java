@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.cmd;
@@ -31,6 +31,7 @@ import picocli.CommandLine;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
@@ -51,17 +52,18 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
         synopsisHeading = "%nSYNOPSIS%n",
         customSynopsis = {
                 "  bal graphql <service.bal>",
-                "              [-o <output>]",
-                "              [-s <service-base-path>]",
-                "              [--force]",
-                "              [--dry-run]",
+                "              [-o | --output <output>]",
+                "              [-s | --service <service-base-path>]",
+                "              [-f | --force]",
+                "              [-d | --dry-run]",
                 "",
                 "  bal graphql <balGraphQL.toml>",
-                "              [-o <output>]",
-                "              [-m <client|service>]",
+                "              [-o | --output <output>]",
+                "              [--mode <client|service>]",
+                "              [--module <module-name>]",
                 "              [--object-type <service|record>]",
-                "              [--force]",
-                "              [--dry-run]"},
+                "              [-f | --force]",
+                "              [-d | --dry-run]"},
         descriptionHeading = "%nDESCRIPTION%n",
         description = {GraphqlCmd.DESCRIPTION_SUMMARY, GraphqlCmd.DESCRIPTION_DETAILS},
         parameterListHeading = "%nARGUMENTS%n",
@@ -80,6 +82,11 @@ public class GraphqlCmd implements BLauncherCmd {
             "\"%s\" is not a supported value for --object-type. It should be either \"service\" or \"record\".";
     private static final String ERROR_OBJECT_TYPE_NOT_SUPPORTED =
             "The --object-type flag only applies to service generation. It cannot be used with \"%s\".";
+    private static final String ERROR_MODULE_NOT_SUPPORTED =
+            "The --module flag only applies to client and service generation. It cannot be used with \"%s\".";
+    private static final String ERROR_UNKNOWN_OPTION =
+            "Unknown option \"%s\". Run \"bal graphql --help\" to see the available options.";
+    private static final String ERROR_MULTIPLE_INPUTS = "Only one input file can be given. Found: %s.";
     // Not private: the @Command annotation on the class can only reference non-private constants.
     static final String HEADER =
             "  bal graphql - Generate Ballerina GraphQL services and clients, and GraphQL schemas";
@@ -91,24 +98,30 @@ public class GraphqlCmd implements BLauncherCmd {
     static final String EXAMPLES =
             "  Generate a GraphQL schema for a Ballerina GraphQL service:%n" +
                     "    $ bal graphql service.bal -o ./output -s /graphql%n%n" +
-                    "  Generate from a balGraphQL.toml file (client if documents are configured, " +
-                    "otherwise service):%n" +
-                    "    $ bal graphql balGraphQL.toml -o ./output%n%n" +
+                    "  Generate into the current Ballerina package from a balGraphQL.toml file (client if " +
+                    "documents are configured, otherwise service):%n" +
+                    "    $ bal graphql balGraphQL.toml%n%n" +
                     "  Generate a Ballerina GraphQL service, using record types for object types:%n" +
-                    "    $ bal graphql balGraphQL.toml -m service -o ./output --object-type record%n%n" +
+                    "    $ bal graphql balGraphQL.toml --mode service --object-type record%n%n" +
+                    "  Generate a Ballerina GraphQL client into the \"countries\" module of the package:%n" +
+                    "    $ bal graphql balGraphQL.toml --mode client --module countries%n%n" +
                     "  Preview the files without writing them, then overwrite existing files:%n" +
-                    "    $ bal graphql balGraphQL.toml -o ./output --dry-run%n" +
-                    "    $ bal graphql balGraphQL.toml -o ./output --force";
+                    "    $ bal graphql balGraphQL.toml --dry-run%n" +
+                    "    $ bal graphql balGraphQL.toml --force";
     private static final String INPUT_DESCRIPTION =
             "Path to a balGraphQL.toml file (client or service generation) or a Ballerina GraphQL service " +
                     "file (schema generation).";
     private static final String OUTPUT_DESCRIPTION =
-            "Directory to write the generated files to. Defaults to the current directory.";
+            "Directory to write the generated files to. Defaults to the current directory. For client and service "
+                    + "generation, it must be the root of a Ballerina package.";
     private static final String SERVICE_DESCRIPTION =
             "Base path of the service to generate the schema for. Defaults to all GraphQL services in the file.";
     private static final String MODE_DESCRIPTION =
             "Operation mode for a balGraphQL.toml file: client or service. Inferred from the file when not " +
                     "given: client when documents are configured, otherwise service.";
+    private static final String MODULE_DESCRIPTION =
+            "Module of the package to write the generated client or service to. Defaults to the default module. "
+                    + "The module is created if it does not exist.";
     private static final String OBJECT_TYPE_DESCRIPTION =
             "How GraphQL object types are generated in service generation: service (default) or record.";
     private static final String FORCE_DESCRIPTION =
@@ -123,7 +136,12 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = {"-h", "--help"}, hidden = true)
     private boolean helpFlag;
 
-    @CommandLine.Parameters(arity = "0..1", paramLabel = "<input>", description = INPUT_DESCRIPTION)
+    @CommandLine.Parameters(paramLabel = "[<input>]", hideParamSyntax = true, description = INPUT_DESCRIPTION)
+    private List<String> inputs;
+
+    @CommandLine.Unmatched
+    private List<String> unknownOptions;
+
     private String inputPath;
 
     @CommandLine.Option(names = {"-o", "--output"}, paramLabel = "<output>", description = OUTPUT_DESCRIPTION)
@@ -133,8 +151,11 @@ public class GraphqlCmd implements BLauncherCmd {
             description = SERVICE_DESCRIPTION)
     private String serviceBasePath;
 
-    @CommandLine.Option(names = {"-m", "--mode"}, paramLabel = "<client|service>", description = MODE_DESCRIPTION)
+    @CommandLine.Option(names = "--mode", paramLabel = "<client|service>", description = MODE_DESCRIPTION)
     private String mode;
+
+    @CommandLine.Option(names = "--module", paramLabel = "<module-name>", description = MODULE_DESCRIPTION)
+    private String moduleName;
 
     @CommandLine.Option(names = "--object-type", paramLabel = "<service|record>",
             description = OBJECT_TYPE_DESCRIPTION)
@@ -200,12 +221,17 @@ public class GraphqlCmd implements BLauncherCmd {
                 exit(EXIT_CODE_0);
                 return;
             }
-            if (inputPath == null || inputPath.isEmpty()) {
+            if (unknownOptions != null && !unknownOptions.isEmpty()) {
+                throw new CmdException(String.format(ERROR_UNKNOWN_OPTION, unknownOptions.get(0)));
+            }
+            if (inputs == null || inputs.isEmpty() || inputs.get(0).isEmpty()) {
                 printLongDesc(new StringBuilder());
                 outStream.flush();
                 exit(EXIT_CODE_2);
                 return;
             }
+            validateInputs();
+            inputPath = inputs.get(0);
             validateInputFlags();
             executeOperation();
         } catch (CmdException | GenerationException e) {
@@ -214,6 +240,12 @@ public class GraphqlCmd implements BLauncherCmd {
             return;
         }
         exit(EXIT_CODE_0);
+    }
+
+    private void validateInputs() throws CmdException {
+        if (inputs.size() > 1) {
+            throw new CmdException(String.format(ERROR_MULTIPLE_INPUTS, String.join(", ", inputs)));
+        }
     }
 
     private void validateInputFlags() throws CmdException {
@@ -236,6 +268,10 @@ public class GraphqlCmd implements BLauncherCmd {
             if (!inputPath.endsWith(GRAPHQL_EXTENSION) && !isConfigFileInput(inputPath)) {
                 throw new CmdException(String.format(ERROR_OBJECT_TYPE_NOT_SUPPORTED, inputPath));
             }
+        }
+
+        if (moduleName != null && OperationMode.fromInputPath(inputPath).orElse(null) == OperationMode.SCHEMA) {
+            throw new CmdException(String.format(ERROR_MODULE_NOT_SUPPORTED, inputPath));
         }
     }
 
@@ -271,7 +307,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private void executeOperation() throws GenerationException {
         GenerationContext context = new GenerationContext(inputPath,
                 OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
-                ObjectType.fromValue(objectType).orElse(null), force, dryRun, outStream);
+                ObjectType.fromValue(objectType).orElse(null), moduleName, force, dryRun, outStream);
         GenerationEngine.run(context);
         if (dryRun) {
             context.getDryRunReport().print(outStream);

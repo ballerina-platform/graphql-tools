@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.cmd.generator;
@@ -70,6 +70,7 @@ public class ClientGeneration implements Generator {
     private final GenerationContext context;
     private final BalGraphqlConfig balGraphqlConfig;
     private final ClientCodeGenerator clientCodeGenerator;
+    private Path outputPath;
     private List<GraphqlClientProject> projects;
     private final Map<GraphqlClientProject, List<SrcFilePojo>> generatedSources = new LinkedHashMap<>();
 
@@ -81,6 +82,7 @@ public class ClientGeneration implements Generator {
 
     @Override
     public void validate() throws GenerationException {
+        this.outputPath = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName());
         this.projects = this.balGraphqlConfig == null ? populateProjectsFromYamlConfig()
                 : populateProjectsFromBalGraphqlConfig();
         try {
@@ -122,7 +124,7 @@ public class ClientGeneration implements Generator {
         if (schemaConfig.source() == SchemaSource.FILE) {
             String schema = configDirectory.resolve(schemaConfig.path()).normalize().toString();
             graphqlClientProjects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, null,
-                    context.getTargetOutputPath().toString()));
+                    this.outputPath.toString()));
             return graphqlClientProjects;
         }
         graphqlClientProjects.add(populateRemoteSchemaProject(schemaConfig, documents));
@@ -134,7 +136,7 @@ public class ClientGeneration implements Generator {
         String schemaLocation = schemaConfig.source() == SchemaSource.URL
                 ? schemaConfig.url() : schemaConfig.endpoint();
         GraphqlClientProject project = new GraphqlClientProject(ROOT_PROJECT_NAME, schemaLocation, documents, null,
-                context.getTargetOutputPath().toString());
+                this.outputPath.toString());
         try {
             project.setGraphQLSchema(Utils.resolveGraphQLSchema(schemaConfig));
         } catch (IntospectionException e) {
@@ -166,13 +168,13 @@ public class ClientGeneration implements Generator {
     public void write() throws GenerationException {
         for (Map.Entry<GraphqlClientProject, List<SrcFilePojo>> entry : this.generatedSources.entrySet()) {
             GraphqlClientProject project = entry.getKey();
-            Path outputPath = Path.of(project.getOutputPath());
+            Path projectOutputPath = Path.of(project.getOutputPath());
             List<SrcFilePojo> writableSources = entry.getValue().stream()
                     .filter(source -> OutputFileGuard.canWrite(
-                            CodeGeneratorUtils.resolveFilePath(source, outputPath), context))
+                            CodeGeneratorUtils.resolveFilePath(source, projectOutputPath), context))
                     .toList();
             try {
-                this.clientCodeGenerator.writeGeneratedSources(writableSources, outputPath);
+                this.clientCodeGenerator.writeGeneratedSources(writableSources, projectOutputPath);
             } catch (IOException e) {
                 throw new GenerationException(new ClientCodeGenerationException(e.getMessage(), project.getName()));
             }
@@ -200,7 +202,7 @@ public class ClientGeneration implements Generator {
         List<String> documents = config.getDocuments();
         Extension extensions = config.getExtensions();
         Map<String, Project> configProjects = config.getProjects();
-        String targetOutputPath = context.getTargetOutputPath().toString();
+        String targetOutputPath = this.outputPath.toString();
 
         if (schema != null || documents != null || extensions != null) {
             graphqlClientProjects.add(new GraphqlClientProject(ROOT_PROJECT_NAME, schema, documents, extensions,

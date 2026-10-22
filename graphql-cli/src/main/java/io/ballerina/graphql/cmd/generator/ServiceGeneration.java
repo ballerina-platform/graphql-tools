@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.cmd.generator;
@@ -55,6 +55,7 @@ public class ServiceGeneration implements Generator {
     private final GenerationContext context;
     private final BalGraphqlConfig balGraphqlConfig;
     private final ServiceCodeGenerator serviceCodeGenerator;
+    private Path outputPath;
     private GraphqlServiceProject project;
     private List<SrcFilePojo> sources;
 
@@ -66,6 +67,7 @@ public class ServiceGeneration implements Generator {
 
     @Override
     public void validate() throws GenerationException {
+        this.outputPath = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName());
         if (this.balGraphqlConfig != null
                 && this.balGraphqlConfig.schema().source() != SchemaSource.FILE) {
             validateFromRemoteSchema(this.balGraphqlConfig.schema());
@@ -87,8 +89,7 @@ public class ServiceGeneration implements Generator {
                     ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
                     String.format(Constants.MESSAGE_CAN_NOT_READ_SCHEMA_FILE, schemaPath)));
         }
-        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaPath,
-                context.getTargetOutputPath().toString());
+        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaPath, this.outputPath.toString());
         try {
             Utils.validateGraphqlProject(this.project);
         } catch (IOException | ValidationException e) {
@@ -99,8 +100,7 @@ public class ServiceGeneration implements Generator {
     private void validateFromRemoteSchema(SchemaConfig schemaConfig) throws GenerationException {
         String schemaLocation = schemaConfig.source() == SchemaSource.URL
                 ? schemaConfig.url() : schemaConfig.endpoint();
-        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaLocation,
-                context.getTargetOutputPath().toString());
+        this.project = new GraphqlServiceProject(ROOT_PROJECT_NAME, schemaLocation, this.outputPath.toString());
         try {
             this.project.setGraphQLSchema(Utils.resolveGraphQLSchema(schemaConfig));
         } catch (IntospectionException e) {
@@ -130,7 +130,6 @@ public class ServiceGeneration implements Generator {
 
     @Override
     public void write() throws GenerationException {
-        Path outputPath = Path.of(this.project.getOutputPath());
         List<SrcFilePojo> writableSources = this.sources.stream()
                 .filter(source -> OutputFileGuard.canWrite(
                         CodeGeneratorUtils.resolveFilePath(source, outputPath), context))
