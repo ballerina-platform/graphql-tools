@@ -115,7 +115,7 @@ public class BalGraphqlConfigGenerationTest {
 
     @Test(description = "Test that the record object type generates object types as records")
     public void testGenerateServiceWithRecordObjectType() throws IOException, ParseException, GenerationException {
-        Path configPath = CONFIG_DIR.resolve("service-config.toml");
+        Path configPath = CONFIG_DIR.resolve("schema-from-file.toml");
         Path recordOutputPath = createBallerinaPackage(Files.createTempDirectory("record-object-type"));
         GenerationContext context = createContext(configPath, recordOutputPath, ObjectType.RECORD);
         Generator generator = new ServiceGeneration(context, readConfig(configPath));
