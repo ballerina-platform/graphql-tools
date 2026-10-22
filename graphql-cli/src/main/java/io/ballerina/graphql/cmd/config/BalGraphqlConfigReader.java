@@ -69,6 +69,7 @@ public class BalGraphqlConfigReader {
             "The \"%s\" field should be a string. Found \"%s\".";
     private static final String ERROR_NON_LIST_FIELD =
             "The \"%s\" field should be a list of strings. Found \"%s\".";
+    private static final String ERROR_NON_STRING_TABLE_VALUE = "The value of \"%s\" in [%s] must be a string.";
 
     private BalGraphqlConfigReader() {}
 
@@ -103,7 +104,8 @@ public class BalGraphqlConfigReader {
         }
         Map<String, Object> schema = castToMap(schemaValue);
         SchemaConfig schemaConfig = new SchemaConfig(readSource(schema), readString(schema, PATH_KEY),
-                readString(schema, URL_KEY), readString(schema, ENDPOINT_KEY), readStringTable(schema, HEADERS_KEY));
+                readString(schema, URL_KEY), readString(schema, ENDPOINT_KEY),
+                readStringTable(schema, HEADERS_KEY, SCHEMA_KEY + KEY_SEPARATOR + HEADERS_KEY));
         validateSchemaConfig(schemaConfig, outStream);
         return schemaConfig;
     }
@@ -164,27 +166,40 @@ public class BalGraphqlConfigReader {
         return paths;
     }
 
-    private static Map<String, String> readStringTable(Map<String, Object> content, String key) {
+    private static Map<String, String> readStringTable(Map<String, Object> content, String key)
+            throws ParseException {
+        return readStringTable(content, key, key);
+    }
+
+    private static Map<String, String> readStringTable(Map<String, Object> content, String key, String section)
+            throws ParseException {
         Object table = content.get(key);
         if (!(table instanceof Map)) {
             return null;
         }
         Map<String, String> values = new LinkedHashMap<>();
-        flattenTable(castToMap(table), "", values);
+        List<String> errors = new ArrayList<>();
+        flattenTable(castToMap(table), "", section, values, errors);
+        if (!errors.isEmpty()) {
+            throw new ParseException(String.join(System.lineSeparator(), errors));
+        }
         return values;
     }
 
     // TOML parses a dotted key such as Profile.id as nested tables, so flatten it back into the dotted notation.
     // A quoted key such as "Profile.id" stays one key but keeps its quotes, so remove them.
-    private static void flattenTable(Map<String, Object> table, String prefix, Map<String, String> values) {
+    private static void flattenTable(Map<String, Object> table, String prefix, String section,
+                                     Map<String, String> values, List<String> errors) {
         for (Map.Entry<String, Object> entry : table.entrySet()) {
             String name = unquote(entry.getKey());
             String key = prefix.isEmpty() ? name : prefix + KEY_SEPARATOR + name;
             Object value = entry.getValue();
             if (value instanceof Map) {
-                flattenTable(castToMap(value), key, values);
+                flattenTable(castToMap(value), key, section, values, errors);
+            } else if (value instanceof String text) {
+                values.put(key, text);
             } else if (value != null) {
-                values.put(key, value.toString());
+                errors.add(String.format(ERROR_NON_STRING_TABLE_VALUE, key, section));
             }
         }
     }

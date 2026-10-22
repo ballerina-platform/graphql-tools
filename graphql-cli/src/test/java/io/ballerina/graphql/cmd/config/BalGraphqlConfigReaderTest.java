@@ -128,6 +128,12 @@ public class BalGraphqlConfigReaderTest {
                 "The balGraphQL.toml file is missing the [schema] section.");
     }
 
+    @Test(description = "Test that every non-string value in a table is reported")
+    public void testReadNonStringTableValues() throws IOException {
+        assertReadFails("non-string-id-types.toml", "The value of \"Book.isbn\" in [id-types] must be a string.");
+        assertReadFails("non-string-id-types.toml", "The value of \"Book.authorId\" in [id-types] must be a string.");
+    }
+
     private void assertReadFails(String fileName, String expectedMessage) throws IOException {
         try {
             read(fileName);
