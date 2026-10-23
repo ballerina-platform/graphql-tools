@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.generator.service.emitter;
@@ -27,6 +27,8 @@ import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.util.Map;
 
 /**
  * Tests writing the service file.
@@ -85,8 +87,34 @@ public class ServiceEmitterTest {
                 service);
     }
 
+    @Test(description = "Test that the module of a type used by a root resolver is imported into the service")
+    public void testImportForRootResolverType() throws ServiceGenerationException, FormatterException {
+        String service = emit("type Query { book(id: ID!): String }", Map.of("Query.book.id", "uuid:Uuid"));
+
+        Assert.assertTrue(service.contains("import ballerina/uuid;"), service);
+        Assert.assertTrue(
+                service.contains("resource function get book(@graphql:ID uuid:Uuid id) returns string?|error {"),
+                service);
+    }
+
+    @Test(description = "Test that a module used only outside the root resolvers is not imported into the service")
+    public void testNoImportForModuleUsedOnlyInTypes() throws ServiceGenerationException, FormatterException {
+        String service = emit("""
+                type Query { book: Book }
+                type Book { id: ID! }
+                """, Map.of("Book.id", "uuid:Uuid"));
+
+        Assert.assertFalse(service.contains("import ballerina/uuid;"), service);
+    }
+
     private static String emit(String sdl) throws ServiceGenerationException, FormatterException {
+        return emit(sdl, Map.of());
+    }
+
+    private static String emit(String sdl, Map<String, String> idTypes)
+            throws ServiceGenerationException, FormatterException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return Formatter.format(ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, SERVICE_CLASSES)));
+        return Formatter.format(
+                ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, SERVICE_CLASSES, idTypes)));
     }
 }

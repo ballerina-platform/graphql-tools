@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.generator.service.emitter;
@@ -24,6 +24,7 @@ import io.ballerina.graphql.generator.common.emitter.RecordEmitter;
 import io.ballerina.graphql.generator.common.emitter.TemplateLoader;
 import io.ballerina.graphql.generator.common.emitter.TypeEmitter;
 import io.ballerina.graphql.generator.common.model.FieldModel;
+import io.ballerina.graphql.generator.common.model.TypeModel;
 import io.ballerina.graphql.generator.service.model.ResolverModel;
 import io.ballerina.graphql.generator.service.model.ServiceModel;
 import io.ballerina.graphql.generator.service.model.TypeDefinitionModel;
@@ -49,7 +50,6 @@ public final class TypesEmitter {
     private static final String NOT_DEPRECATED = null;
     private static final String NO_DEFAULT_VALUE = null;
     private static final String INCLUSION_FORMAT = "*%s;";
-    private static final String GRAPHQL_IMPORT = "import ballerina/graphql;";
     private static final String NEW_LINE = System.lineSeparator();
     private static final String BLANK_LINE = NEW_LINE + NEW_LINE;
 
@@ -67,13 +67,22 @@ public final class TypesEmitter {
                 NAME, model.serviceName(),
                 RESOLVERS, ResolverEmitter.emitDeclarations(model.rootResolvers())));
         return Stream.of(
-                        Stream.of(GRAPHQL_IMPORT, serviceObject),
+                        Stream.of(ImportEmitter.emit(usedTypes(model)), serviceObject),
                         model.typeDefinitions().stream().map(TypesEmitter::typeDefinition),
                         model.inputTypes().stream().map(inputType ->
                                 RecordEmitter.emit(inputType.name(), inputType.fields(), inputType.description())),
                         model.enums().stream().map(EnumEmitter::emit))
                 .flatMap(stream -> stream)
                 .collect(Collectors.joining(BLANK_LINE)) + NEW_LINE;
+    }
+
+    private static Stream<TypeModel> usedTypes(ServiceModel model) {
+        return Stream.of(ImportEmitter.types(model.rootResolvers()),
+                        model.typeDefinitions().stream()
+                                .flatMap(definition -> ImportEmitter.types(definition.fields())),
+                        model.inputTypes().stream()
+                                .flatMap(inputType -> inputType.fields().stream().map(FieldModel::type)))
+                .flatMap(stream -> stream);
     }
 
     private static String typeDefinition(TypeDefinitionModel definition) {

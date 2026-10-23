@@ -282,6 +282,17 @@ public class ServiceModelMapperTest {
                 TypeModel.named("decimal", NON_NULL, ID));
     }
 
+    @Test(description = "Test that uuid:Uuid can be configured as an ID type")
+    public void testUuidIdType() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { profile: Profile }
+                type Profile { id: ID! }
+                """, Map.of("Profile.id", "uuid:Uuid"));
+
+        Assert.assertEquals(resolver(definition(model, "Profile").fields(), "id").returnType(),
+                TypeModel.named("uuid:Uuid", NON_NULL, ID));
+    }
+
     @Test(description = "Test that a configured ID type applies to every item of an ID list")
     public void testIdTypeForList() throws ServiceGenerationException {
         ServiceModel model = map("""
@@ -320,7 +331,8 @@ public class ServiceModelMapperTest {
         Assert.assertTrue(error.getMessage().contains("\"Profile.name\" in [id-types] is not an ID field or argument."),
                 error.getMessage());
         Assert.assertTrue(error.getMessage().contains(
-                "\"long\" is not a supported ID type for \"Profile.id\". Use string, int, float or decimal."),
+                "\"long\" is not a supported ID type for \"Profile.id\". Use string, int, float, decimal or "
+                        + "uuid:Uuid."),
                 error.getMessage());
     }
 

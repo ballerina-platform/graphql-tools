@@ -238,6 +238,10 @@ public class ServiceGenerationTest extends GraphqlTest {
         Assert.assertTrue(types.contains("resourcefunctiongetaccountId()returns@graphql:IDdecimal?|error"), types);
         Assert.assertTrue(types.contains("remotefunctionupdateProfile(@graphql:IDintid,ProfileInputinput)"), types);
         Assert.assertTrue(types.contains("@graphql:IDstringid;@graphql:IDfloat?score;"), types);
+        Assert.assertTrue(types.contains("importballerina/uuid;"), types);
+        String service = readContent(this.tmpDir.resolve("service.bal"));
+        Assert.assertTrue(service.contains("importballerina/uuid;"), service);
+        Assert.assertTrue(service.contains("resourcefunctiongetnode(@graphql:IDuuid:Uuidid)"), service);
         DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
         Assert.assertTrue(diagnosticResult.errors().isEmpty(),
                 "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
@@ -256,8 +260,8 @@ public class ServiceGenerationTest extends GraphqlTest {
         Assert.assertTrue(output.contains(
                 "\"Profile.nope\" in [id-types] does not match any field or argument in the schema."), output);
         Assert.assertTrue(output.contains("\"Profile.name\" in [id-types] is not an ID field or argument."), output);
-        Assert.assertTrue(output.contains(
-                "\"long\" is not a supported ID type for \"Account.id\". Use string, int, float or decimal."), output);
+        Assert.assertTrue(output.contains("\"long\" is not a supported ID type for \"Account.id\". Use string, int, "
+                + "float, decimal or uuid:Uuid."), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
     }

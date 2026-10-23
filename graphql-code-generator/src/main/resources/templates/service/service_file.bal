@@ -1,4 +1,4 @@
-import ballerina/graphql;
+{{imports}}
 
 configurable int port = 9090;
 

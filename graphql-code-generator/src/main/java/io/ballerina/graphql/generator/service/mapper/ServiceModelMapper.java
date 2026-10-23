@@ -93,10 +93,10 @@ public final class ServiceModelMapper {
             "\"%s\" in [id-types] does not match any field or argument in the schema.";
     private static final String ERROR_NOT_AN_ID = "\"%s\" in [id-types] is not an ID field or argument.";
     private static final String ERROR_UNSUPPORTED_ID_TYPE =
-            "\"%s\" is not a supported ID type for \"%s\". Use string, int, float or decimal.";
+            "\"%s\" is not a supported ID type for \"%s\". Use string, int, float, decimal or uuid:Uuid.";
     private static final String ERROR_ID_TYPE_MISMATCH =
             "\"%s\" in [id-types] must use the same type as \"%s\" (\"%s\").";
-    private static final Set<String> SUPPORTED_ID_TYPES = Set.of("string", "int", "float", "decimal");
+    private static final Set<String> SUPPORTED_ID_TYPES = Set.of("string", "int", "float", "decimal", "uuid:Uuid");
     private static final String PATH_SEPARATOR = ".";
     private static final int TYPE_PART = 0;
     private static final int FIELD_PART = 1;
