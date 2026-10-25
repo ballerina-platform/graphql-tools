@@ -1,0 +1,6 @@
+[schema]
+source = "file"
+path = "../dataLoaders/schema.graphql"
+
+[dataloaders]
+Query.profile = "profileLoader"

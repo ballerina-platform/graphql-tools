@@ -1,0 +1,7 @@
+[schema]
+source = "file"
+path = "./schema.graphql"
+
+[dataloaders]
+Query.profile = "profileLoader"
+Book.author = "authorLoader"

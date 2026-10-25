@@ -43,10 +43,14 @@ final class ImportEmitter {
     }
 
     static String emit(Stream<TypeModel> types) {
-        Stream<String> otherModules = types.flatMap(ImportEmitter::namedTypes)
-                .map(TypeModel::name)
-                .filter(name -> name.contains(MODULE_SEPARATOR))
-                .map(name -> name.substring(0, name.indexOf(MODULE_SEPARATOR)))
+        return emit(types, List.of());
+    }
+
+    static String emit(Stream<TypeModel> types, List<String> modules) {
+        Stream<String> otherModules = Stream.concat(modules.stream(), types.flatMap(ImportEmitter::namedTypes)
+                        .map(TypeModel::name)
+                        .filter(name -> name.contains(MODULE_SEPARATOR))
+                        .map(name -> name.substring(0, name.indexOf(MODULE_SEPARATOR))))
                 .filter(module -> !module.equals(GRAPHQL_MODULE))
                 .distinct()
                 .sorted();

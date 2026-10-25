@@ -1,0 +1,17 @@
+type Query {
+    profile(id: ID!): Profile
+    book(id: ID!): Book
+}
+
+type Mutation {
+    addBook(title: String!): Book
+}
+
+type Profile {
+    name: String!
+}
+
+type Book {
+    title: String!
+    author: Profile!
+}

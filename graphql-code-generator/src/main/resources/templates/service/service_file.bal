@@ -1,7 +1,7 @@
 {{imports}}
 
-configurable int port = 9090;
+configurable int port = 9090;{{contextInit}}
 
-service {{name}} on new graphql:Listener(port) {
+{{serviceConfig}}service {{name}} on new graphql:Listener(port) {
 {{resolvers}}
-}
+}{{batchFunctions}}

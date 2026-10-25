@@ -63,7 +63,8 @@ public class ServiceGeneration implements Generator {
     public ServiceGeneration(GenerationContext context, BalGraphqlConfig balGraphqlConfig) {
         this.context = context;
         this.balGraphqlConfig = balGraphqlConfig;
-        this.serviceCodeGenerator = new ServiceCodeGenerator(context.isUseRecordsForObjects(), idTypes());
+        this.serviceCodeGenerator = new ServiceCodeGenerator(context.isUseRecordsForObjects(), idTypes(),
+                dataLoaders());
     }
 
     private Map<String, String> idTypes() {
@@ -71,6 +72,13 @@ public class ServiceGeneration implements Generator {
             return Map.of();
         }
         return this.balGraphqlConfig.idTypes();
+    }
+
+    private Map<String, String> dataLoaders() {
+        if (this.balGraphqlConfig == null || this.balGraphqlConfig.dataloaders() == null) {
+            return Map.of();
+        }
+        return this.balGraphqlConfig.dataloaders();
     }
 
     @Override

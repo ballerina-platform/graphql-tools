@@ -37,6 +37,7 @@ public class ServiceEmitterTest {
 
     private static final String SERVICE_NAME = "BookApi";
     private static final boolean SERVICE_CLASSES = false;
+    private static final boolean RECORDS = true;
 
     @Test(description = "Test writing Query, Mutation and Subscription resolvers into the service")
     public void testEmit() throws ServiceGenerationException, FormatterException {
@@ -105,6 +106,61 @@ public class ServiceEmitterTest {
                 """, Map.of("Book.id", "uuid:Uuid"));
 
         Assert.assertFalse(service.contains("import ballerina/uuid;"), service);
+    }
+
+    @Test(description = "Test writing the DataLoader registration, prefetch methods and batch functions")
+    public void testEmitDataLoaders() throws ServiceGenerationException, FormatterException {
+        GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse("""
+                type Query { profile(id: ID!): Profile profiles(name: String!, age: Int): [Profile!]! }
+                type Profile { name: String! }
+                """));
+        String service = Formatter.format(ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, RECORDS,
+                Map.of(), Map.of("Query.profile", "profileLoader", "Query.profiles", "profilesLoader"))));
+
+        Assert.assertEquals(service, """
+                import ballerina/graphql;
+                import ballerina/graphql.dataloader;
+                import ballerina/http;
+
+                configurable int port = 9090;
+
+                isolated function initContext(http:RequestContext requestContext, http:Request request) \
+                returns graphql:Context|error {
+                    graphql:Context context = new;
+                    context.registerDataLoader("profileLoader", new dataloader:DefaultDataLoader(profileLoader));
+                    context.registerDataLoader("profilesLoader", new dataloader:DefaultDataLoader(profilesLoader));
+                    return context;
+                }
+
+                @graphql:ServiceConfig {contextInit: initContext}
+                service BookApi on new graphql:Listener(port) {
+                    function preProfile(graphql:Context context, @graphql:ID string id) {
+                        context.getDataLoader("profileLoader").add(id);
+                    }
+
+                    resource function get profile(graphql:Context context, @graphql:ID string id) \
+                returns Profile?|error {
+                        return context.getDataLoader("profileLoader").get(id);
+                    }
+
+                    function preProfiles(graphql:Context context, string name, int? age) {
+                        context.getDataLoader("profilesLoader").add([name, age]);
+                    }
+
+                    resource function get profiles(graphql:Context context, string name, int? age) \
+                returns Profile[]|error {
+                        return context.getDataLoader("profilesLoader").get([name, age]);
+                    }
+                }
+
+                isolated function profileLoader(readonly & anydata[] keys) returns anydata[]|error {
+                    return error("Not implemented");
+                }
+
+                isolated function profilesLoader(readonly & anydata[] keys) returns anydata[]|error {
+                    return error("Not implemented");
+                }
+                """);
     }
 
     private static String emit(String sdl) throws ServiceGenerationException, FormatterException {

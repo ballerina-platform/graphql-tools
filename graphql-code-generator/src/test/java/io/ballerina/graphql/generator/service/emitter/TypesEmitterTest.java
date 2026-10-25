@@ -167,6 +167,32 @@ public class TypesEmitterTest {
         Assert.assertTrue(types.contains("resource function get id() returns @graphql:ID uuid:Uuid|error {"), types);
     }
 
+    @Test(description = "Test writing a service class field and a Query declaration that use DataLoaders")
+    public void testEmitDataLoaderFields() throws ServiceGenerationException, FormatterException {
+        GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse("""
+                type Query { book(id: ID!): Book }
+                type Book { author: Author! }
+                type Author { name: String! }
+                """));
+        String types = Formatter.format(TypesEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME,
+                SERVICE_CLASSES, Map.of(), Map.of("Query.book", "bookLoader", "Book.author", "authorLoader"))));
+
+        Assert.assertTrue(types.contains(
+                "resource function get book(graphql:Context context, @graphql:ID string id) returns Book?|error;"),
+                types);
+        Assert.assertTrue(types.contains("""
+                public distinct service class Book {
+                    function preAuthor(graphql:Context context) {
+                    }
+
+                    resource function get author(graphql:Context context) returns Author|error {
+                        return error("Not implemented");
+                    }
+                }
+                """), types);
+        Assert.assertFalse(types.contains("import ballerina/graphql.dataloader;"), types);
+    }
+
     private static String emit(String sdl, boolean useRecordsForObjects)
             throws ServiceGenerationException, FormatterException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));

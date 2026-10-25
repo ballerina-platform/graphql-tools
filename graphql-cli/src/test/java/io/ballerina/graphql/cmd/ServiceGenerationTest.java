@@ -266,6 +266,69 @@ public class ServiceGenerationTest extends GraphqlTest {
         Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
     }
 
+    @Test(description = "Test that a service generated with DataLoaders wires them and compiles")
+    public void testDataLoaders() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "dataLoaders", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, new ExitCodeCaptor());
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        String service = readContent(this.tmpDir.resolve("service.bal"));
+        Assert.assertTrue(service.contains("importballerina/graphql.dataloader;importballerina/http;"), service);
+        Assert.assertTrue(service.contains("context.registerDataLoader(\"profileLoader\",newdataloader:"
+                + "DefaultDataLoader(profileLoader));context.registerDataLoader(\"authorLoader\",newdataloader:"
+                + "DefaultDataLoader(authorLoader));"), service);
+        Assert.assertTrue(service.contains("@graphql:ServiceConfig{contextInit:initContext}"), service);
+        Assert.assertTrue(service.contains("functionpreProfile(graphql:Contextcontext,@graphql:IDstringid){"
+                + "context.getDataLoader(\"profileLoader\").add(id);}"), service);
+        Assert.assertTrue(service.contains("isolatedfunctionauthorLoader(readonly&anydata[]keys)"), service);
+        String types = readContent(this.tmpDir.resolve("types.bal"));
+        Assert.assertTrue(types.contains("functionpreAuthor(graphql:Contextcontext){}"), types);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+        Assert.assertTrue(diagnosticResult.errors().isEmpty(),
+                "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
+    }
+
+    @Test(description = "Test that a DataLoader field returning a record returns the loaded value and compiles")
+    public void testDataLoadersWithRecords() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "dataLoadersRecords", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--object-type",
+                "record"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, new ExitCodeCaptor());
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        String service = readContent(this.tmpDir.resolve("service.bal"));
+        Assert.assertTrue(service.contains("resourcefunctiongetprofile(graphql:Contextcontext,@graphql:IDstringid)"
+                + "returnsProfile?|error{returncontext.getDataLoader(\"profileLoader\").get(id);}"), service);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+        Assert.assertTrue(diagnosticResult.errors().isEmpty(),
+                "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
+    }
+
+    @Test(description = "Test that every invalid DataLoader mapping is reported and nothing is generated")
+    public void testInvalidDataLoaders() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "dataLoadersInvalid", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        Assert.assertTrue(output.contains(
+                "\"Query.nope\" in [dataloaders] does not match any object type field in the schema."), output);
+        Assert.assertTrue(output.contains("\"Mutation.addBook\" in [dataloaders] cannot use a DataLoader. Only Query "
+                + "fields and object type fields can."), output);
+        Assert.assertTrue(output.contains(
+                "\"type\" in [dataloaders] is not a valid Ballerina function name for \"Query.profile\"."), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
+    }
+
     @DataProvider(name = "invalidSchemas")
     public Object[][] invalidSchemas() {
         return new Object[][]{

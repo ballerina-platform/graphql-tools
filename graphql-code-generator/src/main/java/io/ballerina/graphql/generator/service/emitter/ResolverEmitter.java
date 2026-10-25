@@ -1,26 +1,28 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.generator.service.emitter;
 
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.generator.common.emitter.DocEmitter;
 import io.ballerina.graphql.generator.common.emitter.TemplateLoader;
 import io.ballerina.graphql.generator.common.emitter.TypeEmitter;
+import io.ballerina.graphql.generator.service.model.DataLoaderModel;
 import io.ballerina.graphql.generator.service.model.ParameterModel;
 import io.ballerina.graphql.generator.service.model.ResolverKind;
 import io.ballerina.graphql.generator.service.model.ResolverModel;
@@ -30,16 +32,22 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * Writes resolver functions, shared by the service, the service classes and the interfaces.
+ * Writes resolver functions, shared by the service, the service classes and the interfaces. A resolver wired to a
+ * DataLoader also gets a {@code graphql:Context} parameter and a prefetch method that adds its key to the loader.
  */
 final class ResolverEmitter {
 
     private static final String TEMPLATE = "templates/service/resolver.bal";
     private static final String DECLARATION_TEMPLATE = "templates/service/resolver_declaration.bal";
+    private static final String PREFETCH_TEMPLATE = "templates/service/prefetch.bal";
     private static final String DOCS = "docs";
     private static final String SIGNATURE = "signature";
+    private static final String BODY = "body";
+    private static final String NAME = "name";
+    private static final String PARAMETERS = "parameters";
     private static final String RESOURCE_GET = "resource function get";
     private static final String REMOTE = "remote function";
     private static final String RESOURCE_SUBSCRIBE = "resource function subscribe";
@@ -49,6 +57,10 @@ final class ResolverEmitter {
     private static final String PARAMETER_FORMAT = "%s %s";
     private static final String PARAMETER_WITH_DEFAULT_FORMAT = "%s %s = %s";
     private static final String PARAMETER_SEPARATOR = ", ";
+    private static final String CONTEXT_PARAMETER = "graphql:Context context";
+    private static final String NOT_IMPLEMENTED = "return error(\"Not implemented\");";
+    private static final String ADD_KEY_FORMAT = "context.getDataLoader(\"%s\").add(%s);";
+    private static final String LOAD_VALUE_FORMAT = "return context.getDataLoader(\"%s\").get(%s);";
     private static final String NEW_LINE = System.lineSeparator();
     private static final String BLANK_LINE = NEW_LINE + NEW_LINE;
 
@@ -57,7 +69,9 @@ final class ResolverEmitter {
 
     static String emit(List<ResolverModel> resolvers) {
         return resolvers.stream()
-                .map(resolver -> TemplateLoader.fill(TEMPLATE, values(resolver)))
+                .flatMap(resolver -> resolver.dataLoader() == null
+                        ? Stream.of(TemplateLoader.fill(TEMPLATE, values(resolver)))
+                        : Stream.of(prefetch(resolver), TemplateLoader.fill(TEMPLATE, values(resolver))))
                 .collect(Collectors.joining(BLANK_LINE));
     }
 
@@ -74,9 +88,34 @@ final class ResolverEmitter {
         return Map.of(
                 DOCS, DocEmitter.emit(resolver.description(), parameterDescriptions, resolver.deprecationReason()),
                 SIGNATURE, String.format(SIGNATURE_FORMAT, prefix(resolver.kind()), resolver.name(),
-                        parameters.stream().map(ResolverEmitter::parameter)
-                                .collect(Collectors.joining(PARAMETER_SEPARATOR)),
-                        returnType(resolver)));
+                        parameters(resolver), returnType(resolver)),
+                BODY, body(resolver.dataLoader()));
+    }
+
+    private static String prefetch(ResolverModel resolver) {
+        DataLoaderModel dataLoader = resolver.dataLoader();
+        return TemplateLoader.fill(PREFETCH_TEMPLATE, Map.of(
+                NAME, dataLoader.prefetchMethod(),
+                PARAMETERS, parameters(resolver),
+                BODY, dataLoader.keys().isEmpty() ? ""
+                        : NEW_LINE + String.format(ADD_KEY_FORMAT, dataLoader.name(), key(dataLoader.keys()))));
+    }
+
+    private static String body(DataLoaderModel dataLoader) {
+        return dataLoader != null && dataLoader.loadsValue()
+                ? String.format(LOAD_VALUE_FORMAT, dataLoader.name(), key(dataLoader.keys()))
+                : NOT_IMPLEMENTED;
+    }
+
+    private static String key(List<String> keys) {
+        return keys.size() == 1 ? keys.get(0) : keys.stream().collect(Collectors.joining(PARAMETER_SEPARATOR,
+                SyntaxKind.OPEN_BRACKET_TOKEN.stringValue(), SyntaxKind.CLOSE_BRACKET_TOKEN.stringValue()));
+    }
+
+    private static String parameters(ResolverModel resolver) {
+        Stream<String> parameters = requiredFirst(resolver.parameters()).stream().map(ResolverEmitter::parameter);
+        return (resolver.dataLoader() == null ? parameters : Stream.concat(Stream.of(CONTEXT_PARAMETER), parameters))
+                .collect(Collectors.joining(PARAMETER_SEPARATOR));
     }
 
     private static List<ParameterModel> requiredFirst(List<ParameterModel> parameters) {

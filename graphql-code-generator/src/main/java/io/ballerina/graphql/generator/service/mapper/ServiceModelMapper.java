@@ -40,7 +40,9 @@ import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLTypeUtil;
 import graphql.schema.GraphQLUnionType;
+import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.graphql.generator.common.mapper.Scalar;
 import io.ballerina.graphql.generator.common.mapper.TypeMapper;
 import io.ballerina.graphql.generator.common.model.EnumModel;
@@ -49,6 +51,7 @@ import io.ballerina.graphql.generator.common.model.FieldModel;
 import io.ballerina.graphql.generator.common.model.InputTypeModel;
 import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.service.model.DataLoaderModel;
 import io.ballerina.graphql.generator.service.model.ParameterModel;
 import io.ballerina.graphql.generator.service.model.ResolverKind;
 import io.ballerina.graphql.generator.service.model.ResolverModel;
@@ -59,11 +62,13 @@ import io.ballerina.graphql.generator.utils.NullLocation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -97,6 +102,18 @@ public final class ServiceModelMapper {
     private static final String ERROR_ID_TYPE_MISMATCH =
             "\"%s\" in [id-types] must use the same type as \"%s\" (\"%s\").";
     private static final Set<String> SUPPORTED_ID_TYPES = Set.of("string", "int", "float", "decimal", "uuid:Uuid");
+    private static final String ERROR_UNKNOWN_DATALOADER_PATH =
+            "\"%s\" in [dataloaders] does not match any object type field in the schema.";
+    private static final String ERROR_DATALOADER_ON_MUTATION_OR_SUBSCRIPTION =
+            "\"%s\" in [dataloaders] cannot use a DataLoader. Only Query fields and object type fields can.";
+    private static final String ERROR_DATALOADER_ON_INTERFACE_FIELD =
+            "\"%s\" in [dataloaders] cannot use a DataLoader, as the field comes from the interface \"%s\".";
+    private static final String ERROR_DATALOADER_ON_RECORD_FIELD =
+            "\"%s\" in [dataloaders] cannot use a DataLoader, as \"%s\" is generated as a record.";
+    private static final String ERROR_INVALID_DATALOADER_NAME =
+            "\"%s\" in [dataloaders] is not a valid Ballerina function name for \"%s\".";
+    private static final Pattern DATALOADER_NAME = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
+    private static final String PREFETCH_METHOD_FORMAT = "pre%s%s";
     private static final String PATH_SEPARATOR = ".";
     private static final int TYPE_PART = 0;
     private static final int FIELD_PART = 1;
@@ -108,18 +125,21 @@ public final class ServiceModelMapper {
     private final GraphQLSchema schema;
     private final boolean useRecordsForObjects;
     private final Map<String, String> idTypes;
+    private final Map<String, String> dataLoaders;
     private final Set<String> unionMembers;
 
-    private ServiceModelMapper(GraphQLSchema schema, boolean useRecordsForObjects, Map<String, String> idTypes) {
+    private ServiceModelMapper(GraphQLSchema schema, boolean useRecordsForObjects, Map<String, String> idTypes,
+                               Map<String, String> dataLoaders) {
         this.schema = schema;
         this.useRecordsForObjects = useRecordsForObjects;
         this.idTypes = idTypes;
+        this.dataLoaders = dataLoaders;
         this.unionMembers = schema.getAllTypesAsList().stream()
                 .filter(GraphQLUnionType.class::isInstance)
                 .flatMap(union -> ((GraphQLUnionType) union).getTypes().stream())
                 .map(GraphQLNamedType::getName)
                 .collect(Collectors.toSet());
-        validateIdTypes();
+        validate();
     }
 
     /**
@@ -137,7 +157,7 @@ public final class ServiceModelMapper {
     }
 
     /**
-     * Builds the service model for a schema.
+     * Builds the service model for a schema, with no DataLoaders.
      *
      * @param schema               the GraphQL schema
      * @param serviceName          the name of the service object type, e.g. the schema file name
@@ -150,8 +170,28 @@ public final class ServiceModelMapper {
      */
     public static ServiceModel map(GraphQLSchema schema, String serviceName, boolean useRecordsForObjects,
                                    Map<String, String> idTypes) throws ServiceGenerationException {
+        return map(schema, serviceName, useRecordsForObjects, idTypes, Map.of());
+    }
+
+    /**
+     * Builds the service model for a schema.
+     *
+     * @param schema               the GraphQL schema
+     * @param serviceName          the name of the service object type, e.g. the schema file name
+     * @param useRecordsForObjects whether object types are generated as records where possible
+     * @param idTypes              the Ballerina type of each GraphQL {@code ID} field or argument, keyed by its path,
+     *                             e.g. {@code Profile.id} or {@code Query.profile.id}; others use {@code string}
+     * @param dataLoaders          the DataLoader name of each field that is wired to one, keyed by its path,
+     *                             e.g. {@code Query.profile}
+     * @return the service model
+     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or an
+     *                                    ID type or DataLoader mapping is invalid
+     */
+    public static ServiceModel map(GraphQLSchema schema, String serviceName, boolean useRecordsForObjects,
+                                   Map<String, String> idTypes, Map<String, String> dataLoaders)
+            throws ServiceGenerationException {
         try {
-            return new ServiceModelMapper(schema, useRecordsForObjects, idTypes).map(serviceName);
+            return new ServiceModelMapper(schema, useRecordsForObjects, idTypes, dataLoaders).map(serviceName);
         } catch (IllegalArgumentException e) {
             throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102,
                     NullLocation.getInstance(), e.getMessage());
@@ -183,12 +223,38 @@ public final class ServiceModelMapper {
     }
 
     private List<ResolverModel> resolvers(String typeName, List<GraphQLFieldDefinition> fields, ResolverKind kind) {
-        return fields.stream()
-                .map(field -> new ResolverModel(kind, TypeMapper.escapeName(field.getName()),
-                        parameters(typeName, field),
-                        TypeMapper.map(field.getType(), idType(typeName, field.getName())), field.getDescription(),
-                        field.isDeprecated() ? field.getDeprecationReason() : null))
-                .toList();
+        return fields.stream().map(field -> resolver(typeName, field, kind)).toList();
+    }
+
+    private ResolverModel resolver(String typeName, GraphQLFieldDefinition field, ResolverKind kind) {
+        List<ParameterModel> parameters = parameters(typeName, field);
+        return new ResolverModel(kind, TypeMapper.escapeName(field.getName()), parameters,
+                TypeMapper.map(field.getType(), idType(typeName, field.getName())), field.getDescription(),
+                field.isDeprecated() ? field.getDeprecationReason() : null,
+                dataLoader(typeName, field, parameters));
+    }
+
+    private DataLoaderModel dataLoader(String typeName, GraphQLFieldDefinition field,
+                                       List<ParameterModel> parameters) {
+        String name = dataLoaders.get(path(typeName, field.getName()));
+        if (name == null) {
+            return null;
+        }
+        List<String> keys = parameters.stream().map(ParameterModel::name).toList();
+        String fieldName = field.getName();
+        return new DataLoaderModel(name,
+                String.format(PREFETCH_METHOD_FORMAT, Character.toUpperCase(fieldName.charAt(0)),
+                        fieldName.substring(1)),
+                keys, !keys.isEmpty() && isPlainData(field.getType(), new HashSet<>()));
+    }
+
+    private boolean isPlainData(GraphQLType type, Set<String> visited) {
+        GraphQLType namedType = GraphQLTypeUtil.unwrapAll(type);
+        if (namedType instanceof GraphQLObjectType objectType) {
+            return isRecord(objectType) && (!visited.add(objectType.getName())
+                    || objectType.getFields().stream().allMatch(field -> isPlainData(field.getType(), visited)));
+        }
+        return !(namedType instanceof GraphQLInterfaceType) && !(namedType instanceof GraphQLUnionType);
     }
 
     private List<ParameterModel> parameters(String typeName, GraphQLFieldDefinition field) {
@@ -220,15 +286,48 @@ public final class ServiceModelMapper {
         return String.join(PATH_SEPARATOR, parts);
     }
 
-    private void validateIdTypes() {
-        List<String> errors = idTypes.keySet().stream()
-                .sorted()
-                .map(path -> idTypeError(path, idTypes.get(path)))
-                .flatMap(Optional::stream)
-                .toList();
+    private void validate() {
+        List<String> errors = Stream.concat(errors(idTypes, this::idTypeError),
+                errors(dataLoaders, this::dataLoaderError)).toList();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException(String.join(System.lineSeparator(), errors));
         }
+    }
+
+    private static Stream<String> errors(Map<String, String> mappings,
+                                         BiFunction<String, String, Optional<String>> check) {
+        return mappings.keySet().stream()
+                .sorted()
+                .map(path -> check.apply(path, mappings.get(path)))
+                .flatMap(Optional::stream);
+    }
+
+    private Optional<String> dataLoaderError(String path, String name) {
+        String[] parts = path.split(Pattern.quote(PATH_SEPARATOR), KEEP_EMPTY_PARTS);
+        GraphQLObjectType objectType = parts.length == FIELD_PATH_LENGTH ? schema.getObjectType(parts[TYPE_PART])
+                : null;
+        if (objectType == null || objectType.getFieldDefinition(parts[FIELD_PART]) == null) {
+            return Optional.of(String.format(ERROR_UNKNOWN_DATALOADER_PATH, path));
+        }
+        if (Stream.of(schema.getMutationType(), schema.getSubscriptionType())
+                .anyMatch(rootType -> rootType != null && rootType.getName().equals(objectType.getName()))) {
+            return Optional.of(String.format(ERROR_DATALOADER_ON_MUTATION_OR_SUBSCRIPTION, path));
+        }
+        Optional<String> interfaceName = objectType.getInterfaces().stream()
+                .filter(interfaceType -> ((GraphQLInterfaceType) interfaceType)
+                        .getFieldDefinition(parts[FIELD_PART]) != null)
+                .map(GraphQLNamedType::getName)
+                .findFirst();
+        if (interfaceName.isPresent()) {
+            return Optional.of(String.format(ERROR_DATALOADER_ON_INTERFACE_FIELD, path, interfaceName.get()));
+        }
+        if (isRecord(objectType)) {
+            return Optional.of(String.format(ERROR_DATALOADER_ON_RECORD_FIELD, path, objectType.getName()));
+        }
+        if (!DATALOADER_NAME.matcher(name).matches() || SyntaxInfo.isKeyword(name)) {
+            return Optional.of(String.format(ERROR_INVALID_DATALOADER_NAME, name, path));
+        }
+        return Optional.empty();
     }
 
     private Optional<String> idTypeError(String path, String idType) {
