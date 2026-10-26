@@ -247,6 +247,29 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
     }
 
+    @Test(description = "Test that every ID is generated as string when the config has no [id-types]")
+    public void testDefaultIdTypes() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "noIdTypes", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, new ExitCodeCaptor());
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        String types = readContent(this.tmpDir.resolve("types.bal"));
+        Assert.assertTrue(types.contains("resourcefunctiongetid()returns@graphql:IDstring|error;"), types);
+        Assert.assertTrue(types.contains("resourcefunctiongetfriendIds()returns@graphql:IDstring[]|error"), types);
+        Assert.assertTrue(types.contains("resourcefunctiongetaccountId()returns@graphql:IDstring?|error"), types);
+        Assert.assertTrue(types.contains("remotefunctionupdateProfile(@graphql:IDstringid,ProfileInputinput)"), types);
+        Assert.assertTrue(types.contains("@graphql:IDstringid;@graphql:IDstring?score;"), types);
+        Assert.assertFalse(types.contains("importballerina/uuid;"), types);
+        String service = readContent(this.tmpDir.resolve("service.bal"));
+        Assert.assertTrue(service.contains("resourcefunctiongetnode(@graphql:IDstringid)"), service);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+        Assert.assertTrue(diagnosticResult.errors().isEmpty(),
+                "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
+    }
+
     @Test(description = "Test that every invalid ID type mapping is reported and nothing is generated")
     public void testInvalidIdTypes() throws IOException {
         Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "idTypesInvalid", "balGraphQL.toml"));
