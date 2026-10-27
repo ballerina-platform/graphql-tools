@@ -35,6 +35,7 @@ import java.nio.file.Paths;
 public class BalGraphqlConfigReaderTest {
 
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
+    private static final Path INVALID_CONFIG_DIR = CONFIG_DIR.resolve("invalid");
 
     private BalGraphqlConfig read(String fileName) throws IOException, ParseException {
         return read(fileName, new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
@@ -147,7 +148,8 @@ public class BalGraphqlConfigReaderTest {
 
     private void assertReadFails(String fileName, String expectedMessage) throws IOException {
         try {
-            read(fileName);
+            BalGraphqlConfigReader.read(INVALID_CONFIG_DIR.resolve(fileName),
+                    new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
             Assert.fail("Expected a ParseException containing: " + expectedMessage);
         } catch (ParseException e) {
             Assert.assertTrue(e.getMessage().contains(expectedMessage), "Unexpected message: " + e.getMessage());

@@ -111,7 +111,7 @@ public class GeneratorFactoryTest {
     @Test(description = "Test generating a generator for a configuration file with an invalid schema source")
     public void testGetGeneratorForInvalidConfig() {
         try {
-            getGeneratorForConfig("invalid-source.toml");
+            getGeneratorForConfig("invalid/invalid-source.toml");
             Assert.fail("Expected a GenerationException for an unsupported schema source");
         } catch (GenerationException e) {
             Assert.assertTrue(e.getMessage().contains("is not a supported value for the schema source"),
