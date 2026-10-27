@@ -2,7 +2,14 @@
 source = "file"
 path = "../dataLoaders/schema.graphql"
 
-[dataloaders]
-Query.nope = "nopeLoader"
-Mutation.addBook = "bookLoader"
-Query.profile = "type"
+[[dataloaders]]
+field = "Query.nope"
+loader = "nopeLoader"
+
+[[dataloaders]]
+field = "Mutation.addBook"
+loader = "bookLoader"
+
+[[dataloaders]]
+field = "Query.profile"
+loader = "type"

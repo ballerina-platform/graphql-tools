@@ -2,6 +2,10 @@
 source = "file"
 path = "./schema.graphql"
 
-[id-types]
-Book.isbn = ["int"]
-Book.authorId = 5
+[[id-types]]
+field = "Book.isbn"
+type = ["int"]
+
+[[id-types]]
+field = 5
+type = "int"

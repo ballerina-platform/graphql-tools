@@ -1,0 +1,6 @@
+[schema]
+source = "file"
+path = "./schema.graphql"
+
+[id-types]
+Book.id = "int"

@@ -95,23 +95,23 @@ public final class ServiceModelMapper {
             "Type \"%s\" cannot implement \"%s\" and \"%s\" as both inherit the field \"%s\" from \"%s\". "
                     + "Do not implement multiple interfaces that have the same field.";
     private static final String ERROR_UNKNOWN_ID_PATH =
-            "\"%s\" in [id-types] does not match any field or argument in the schema.";
-    private static final String ERROR_NOT_AN_ID = "\"%s\" in [id-types] is not an ID field or argument.";
+            "\"%s\" in [[id-types]] does not match any field or argument in the schema.";
+    private static final String ERROR_NOT_AN_ID = "\"%s\" in [[id-types]] is not an ID field or argument.";
     private static final String ERROR_UNSUPPORTED_ID_TYPE =
             "\"%s\" is not a supported ID type for \"%s\". Use string, int, float, decimal or uuid:Uuid.";
     private static final String ERROR_ID_TYPE_MISMATCH =
-            "\"%s\" in [id-types] must use the same type as \"%s\" (\"%s\").";
+            "\"%s\" in [[id-types]] must use the same type as \"%s\" (\"%s\").";
     private static final Set<String> SUPPORTED_ID_TYPES = Set.of("string", "int", "float", "decimal", "uuid:Uuid");
     private static final String ERROR_UNKNOWN_DATALOADER_PATH =
-            "\"%s\" in [dataloaders] does not match any object type field in the schema.";
+            "\"%s\" in [[dataloaders]] does not match any object type field in the schema.";
     private static final String ERROR_DATALOADER_ON_MUTATION_OR_SUBSCRIPTION =
-            "\"%s\" in [dataloaders] cannot use a DataLoader. Only Query fields and object type fields can.";
+            "\"%s\" in [[dataloaders]] cannot use a DataLoader. Only Query fields and object type fields can.";
     private static final String ERROR_DATALOADER_ON_INTERFACE_FIELD =
-            "\"%s\" in [dataloaders] cannot use a DataLoader, as the field comes from the interface \"%s\".";
+            "\"%s\" in [[dataloaders]] cannot use a DataLoader, as the field comes from the interface \"%s\".";
     private static final String ERROR_DATALOADER_ON_RECORD_FIELD =
-            "\"%s\" in [dataloaders] cannot use a DataLoader, as \"%s\" is generated as a record.";
+            "\"%s\" in [[dataloaders]] cannot use a DataLoader, as \"%s\" is generated as a record.";
     private static final String ERROR_INVALID_DATALOADER_NAME =
-            "\"%s\" in [dataloaders] is not a valid Ballerina function name for \"%s\".";
+            "\"%s\" in [[dataloaders]] is not a valid Ballerina function name for \"%s\".";
     private static final Pattern DATALOADER_NAME = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
     private static final String PREFETCH_METHOD_FORMAT = "pre%s%s";
     private static final String PATH_SEPARATOR = ".";

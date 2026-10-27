@@ -329,10 +329,10 @@ public class ServiceModelMapperTest {
                 """, Map.of("Profile.nope", "int", "Profile.name", "int", "Profile.id", "long")));
 
         Assert.assertTrue(error.getMessage().contains(
-                "\"Profile.nope\" in [id-types] does not match any field or argument in the schema."),
+                "\"Profile.nope\" in [[id-types]] does not match any field or argument in the schema."),
                 error.getMessage());
-        Assert.assertTrue(error.getMessage().contains("\"Profile.name\" in [id-types] is not an ID field or argument."),
-                error.getMessage());
+        Assert.assertTrue(error.getMessage().contains(
+                "\"Profile.name\" in [[id-types]] is not an ID field or argument."), error.getMessage());
         Assert.assertTrue(error.getMessage().contains(
                 "\"long\" is not a supported ID type for \"Profile.id\". Use string, int, float, decimal or "
                         + "uuid:Uuid."),
@@ -348,7 +348,7 @@ public class ServiceModelMapperTest {
                 """, Map.of("Profile.id", "int")));
 
         Assert.assertTrue(error.getMessage().contains(
-                "\"Profile.id\" in [id-types] must use the same type as \"Node.id\" (\"string\")."),
+                "\"Profile.id\" in [[id-types]] must use the same type as \"Node.id\" (\"string\")."),
                 error.getMessage());
     }
 
@@ -393,20 +393,20 @@ public class ServiceModelMapperTest {
                 "Query.profile", "profile-loader")));
 
         Assert.assertTrue(error.getMessage().contains(
-                "\"Query.nope\" in [dataloaders] does not match any object type field in the schema."),
+                "\"Query.nope\" in [[dataloaders]] does not match any object type field in the schema."),
                 error.getMessage());
         Assert.assertTrue(error.getMessage().contains(
-                "\"Query.profile.id\" in [dataloaders] does not match any object type field in the schema."),
+                "\"Query.profile.id\" in [[dataloaders]] does not match any object type field in the schema."),
                 error.getMessage());
-        Assert.assertTrue(error.getMessage().contains("\"Mutation.addProfile\" in [dataloaders] cannot use a "
+        Assert.assertTrue(error.getMessage().contains("\"Mutation.addProfile\" in [[dataloaders]] cannot use a "
                         + "DataLoader. Only Query fields and object type fields can."), error.getMessage());
-        Assert.assertTrue(error.getMessage().contains("\"Profile.id\" in [dataloaders] cannot use a DataLoader, as "
+        Assert.assertTrue(error.getMessage().contains("\"Profile.id\" in [[dataloaders]] cannot use a DataLoader, as "
                         + "the field comes from the interface \"Node\"."), error.getMessage());
         Assert.assertTrue(error.getMessage().contains(
-                "\"type\" in [dataloaders] is not a valid Ballerina function name for \"Profile.name\"."),
+                "\"type\" in [[dataloaders]] is not a valid Ballerina function name for \"Profile.name\"."),
                 error.getMessage());
         Assert.assertTrue(error.getMessage().contains(
-                "\"profile-loader\" in [dataloaders] is not a valid Ballerina function name for \"Query.profile\"."),
+                "\"profile-loader\" in [[dataloaders]] is not a valid Ballerina function name for \"Query.profile\"."),
                 error.getMessage());
     }
 
@@ -418,7 +418,7 @@ public class ServiceModelMapperTest {
                 """, RECORDS, Map.of("Book.author", "authorLoader")));
 
         Assert.assertTrue(error.getMessage().contains(
-                "\"Book.author\" in [dataloaders] cannot use a DataLoader, as \"Book\" is generated as a record."),
+                "\"Book.author\" in [[dataloaders]] cannot use a DataLoader, as \"Book\" is generated as a record."),
                 error.getMessage());
     }
 

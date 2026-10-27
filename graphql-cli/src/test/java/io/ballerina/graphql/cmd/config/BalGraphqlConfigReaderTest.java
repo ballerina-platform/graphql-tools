@@ -87,14 +87,6 @@ public class BalGraphqlConfigReaderTest {
         Assert.assertEquals(config.dataloaders().get("Query.profile"), "profileLoader");
     }
 
-    @Test(description = "Test that quoted keys are read without their quotes")
-    public void testReadQuotedKeys() throws IOException, ParseException {
-        BalGraphqlConfig config = read("service-config-quoted-keys.toml");
-        Assert.assertEquals(config.idTypes().get("Profile.id"), "int");
-        Assert.assertEquals(config.idTypes().get("Query.profile.id"), "int");
-        Assert.assertEquals(config.dataloaders().get("Query.profile"), "profileLoader");
-    }
-
     @Test(description = "Test reading a configuration file with a cleartext schema URL logs a warning but still "
             + "generates, since using HTTP is the user's own responsibility")
     public void testReadInsecureUrl() throws IOException, ParseException {
@@ -128,10 +120,29 @@ public class BalGraphqlConfigReaderTest {
                 "The balGraphQL.toml file is missing the [schema] section.");
     }
 
-    @Test(description = "Test that every non-string value in a table is reported")
-    public void testReadNonStringTableValues() throws IOException {
-        assertReadFails("non-string-id-types.toml", "The value of \"Book.isbn\" in [id-types] must be a string.");
-        assertReadFails("non-string-id-types.toml", "The value of \"Book.authorId\" in [id-types] must be a string.");
+    @Test(description = "Test that every non-string value in the mapping entries is reported")
+    public void testReadNonStringMappingFields() throws IOException {
+        assertReadFails("non-string-id-types.toml",
+                "The \"type\" field in [[id-types]] entry 1 should be a string. Found \"[int]\".");
+        assertReadFails("non-string-id-types.toml",
+                "The \"field\" field in [[id-types]] entry 2 should be a string. Found \"5\".");
+    }
+
+    @Test(description = "Test that missing and duplicate fields in the mapping entries are reported")
+    public void testReadInvalidMappingEntries() throws IOException {
+        assertReadFails("invalid-id-type-entries.toml",
+                "Required field \"type\" is not provided in [[id-types]] entry 1.");
+        assertReadFails("invalid-id-type-entries.toml",
+                "Required field \"field\" is not provided in [[id-types]] entry 2.");
+        assertReadFails("invalid-id-type-entries.toml", "\"Book.id\" is given more than once in [[id-types]].");
+    }
+
+    @Test(description = "Test that a mapping section written as a table instead of an array of tables is reported")
+    public void testReadMappingSectionAsTable() throws IOException {
+        assertReadFails("id-types-as-table.toml",
+                "The \"id-types\" section should be a list of [[id-types]] entries, each with \"field\" and \"type\".");
+        assertReadFails("id-types-as-table.toml", String.format(
+                "For example:%n[[id-types]]%nfield = \"Profile.id\"%ntype = \"int\""));
     }
 
     private void assertReadFails(String fileName, String expectedMessage) throws IOException {

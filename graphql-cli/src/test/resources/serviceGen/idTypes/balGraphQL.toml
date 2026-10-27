@@ -2,13 +2,38 @@
 source = "file"
 path = "./schema.graphql"
 
-[id-types]
-Node.id = "int"
-Query.profile.id = "int"
-Query.node.id = "uuid:Uuid"
-Mutation.updateProfile.id = "int"
-Profile.friendIds = "int"
-Profile.accountId = "decimal"
-Account.id = "uuid:Uuid"
-ProfileInput.id = "string"
-ProfileInput.score = "float"
+[[id-types]]
+field = "Node.id"
+type = "int"
+
+[[id-types]]
+field = "Query.profile.id"
+type = "int"
+
+[[id-types]]
+field = "Query.node.id"
+type = "uuid:Uuid"
+
+[[id-types]]
+field = "Mutation.updateProfile.id"
+type = "int"
+
+[[id-types]]
+field = "Profile.friendIds"
+type = "int"
+
+[[id-types]]
+field = "Profile.accountId"
+type = "decimal"
+
+[[id-types]]
+field = "Account.id"
+type = "uuid:Uuid"
+
+[[id-types]]
+field = "ProfileInput.id"
+type = "string"
+
+[[id-types]]
+field = "ProfileInput.score"
+type = "float"

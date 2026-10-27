@@ -20,7 +20,6 @@ package io.ballerina.graphql.cmd.config;
 
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.toml.api.Toml;
-import io.ballerina.toml.syntax.tree.SyntaxKind;
 import io.ballerina.tools.diagnostics.Diagnostic;
 
 import java.io.IOException;
@@ -30,8 +29,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Reads a balGraphQL.toml configuration file.
@@ -49,6 +48,12 @@ public class BalGraphqlConfigReader {
     private static final String DOCUMENTS_KEY = "documents";
     private static final String ID_TYPES_KEY = "id-types";
     private static final String DATALOADERS_KEY = "dataloaders";
+    private static final String FIELD_KEY = "field";
+    private static final String TYPE_KEY = "type";
+    private static final String LOADER_KEY = "loader";
+    private static final String ID_TYPES_EXAMPLE = "[[id-types]]%nfield = \"Profile.id\"%ntype = \"int\"";
+    private static final String DATALOADERS_EXAMPLE =
+            "[[dataloaders]]%nfield = \"Query.profile\"%nloader = \"profileLoader\"";
     private static final String ERROR_MISSING_SCHEMA_SECTION =
             "The balGraphQL.toml file is missing the [schema] section.";
     private static final String ERROR_INVALID_SCHEMA_SOURCE =
@@ -70,13 +75,22 @@ public class BalGraphqlConfigReader {
     private static final String ERROR_NON_LIST_FIELD =
             "The \"%s\" field should be a list of strings. Found \"%s\".";
     private static final String ERROR_NON_STRING_TABLE_VALUE = "The value of \"%s\" in [%s] must be a string.";
+    private static final String ERROR_INVALID_MAPPING_SECTION =
+            "The \"%s\" section should be a list of [[%s]] entries, each with \"field\" and \"%s\". "
+                    + "For example:%n%s";
+    private static final String ERROR_MISSING_MAPPING_FIELD =
+            "Required field \"%s\" is not provided in [[%s]] entry %d.";
+    private static final String ERROR_NON_STRING_MAPPING_FIELD =
+            "The \"%s\" field in [[%s]] entry %d should be a string. Found \"%s\".";
+    private static final String ERROR_DUPLICATE_MAPPING_FIELD = "\"%s\" is given more than once in [[%s]].";
 
     private BalGraphqlConfigReader() {}
 
     public static BalGraphqlConfig read(Path configPath, PrintStream outStream) throws IOException, ParseException {
         Map<String, Object> content = readContent(configPath);
         return new BalGraphqlConfig(readSchemaConfig(content, outStream), readDocuments(content),
-                readStringTable(content, ID_TYPES_KEY), readStringTable(content, DATALOADERS_KEY));
+                readMappings(content, ID_TYPES_KEY, TYPE_KEY, ID_TYPES_EXAMPLE),
+                readMappings(content, DATALOADERS_KEY, LOADER_KEY, DATALOADERS_EXAMPLE));
     }
 
     private static Map<String, Object> readContent(Path configPath) throws IOException, ParseException {
@@ -105,7 +119,7 @@ public class BalGraphqlConfigReader {
         Map<String, Object> schema = castToMap(schemaValue);
         SchemaConfig schemaConfig = new SchemaConfig(readSource(schema), readString(schema, PATH_KEY),
                 readString(schema, URL_KEY), readString(schema, ENDPOINT_KEY),
-                readStringTable(schema, HEADERS_KEY, SCHEMA_KEY + KEY_SEPARATOR + HEADERS_KEY));
+                readHeaders(schema));
         validateSchemaConfig(schemaConfig, outStream);
         return schemaConfig;
     }
@@ -166,51 +180,67 @@ public class BalGraphqlConfigReader {
         return paths;
     }
 
-    private static Map<String, String> readStringTable(Map<String, Object> content, String key)
-            throws ParseException {
-        return readStringTable(content, key, key);
-    }
-
-    private static Map<String, String> readStringTable(Map<String, Object> content, String key, String section)
-            throws ParseException {
-        Object table = content.get(key);
+    private static Map<String, String> readHeaders(Map<String, Object> schema) throws ParseException {
+        Object table = schema.get(HEADERS_KEY);
         if (!(table instanceof Map)) {
             return null;
         }
-        Map<String, String> values = new LinkedHashMap<>();
+        Map<String, String> headers = new LinkedHashMap<>();
         List<String> errors = new ArrayList<>();
-        flattenTable(castToMap(table), "", section, values, errors);
+        for (Map.Entry<String, Object> entry : castToMap(table).entrySet()) {
+            if (entry.getValue() instanceof String value) {
+                headers.put(entry.getKey(), value);
+            } else {
+                errors.add(String.format(ERROR_NON_STRING_TABLE_VALUE, entry.getKey(),
+                        SCHEMA_KEY + KEY_SEPARATOR + HEADERS_KEY));
+            }
+        }
+        throwIfAny(errors);
+        return headers;
+    }
+
+    private static Map<String, String> readMappings(Map<String, Object> content, String section, String valueKey,
+                                                    String example) throws ParseException {
+        Object entries = content.get(section);
+        if (entries == null) {
+            return null;
+        }
+        if (!(entries instanceof List<?> list) || !list.stream().allMatch(Map.class::isInstance)) {
+            throw new ParseException(String.format(ERROR_INVALID_MAPPING_SECTION, section, section, valueKey,
+                    String.format(example)));
+        }
+        Map<String, String> mappings = new LinkedHashMap<>();
+        List<String> errors = new ArrayList<>();
+        for (int index = 0; index < list.size(); index++) {
+            Map<String, Object> entry = castToMap(list.get(index));
+            int entryNumber = index + 1;
+            Optional<String> field = readMappingField(entry, FIELD_KEY, section, entryNumber, errors);
+            Optional<String> value = readMappingField(entry, valueKey, section, entryNumber, errors);
+            if (field.isPresent() && value.isPresent()
+                    && mappings.putIfAbsent(field.get(), value.get()) != null) {
+                errors.add(String.format(ERROR_DUPLICATE_MAPPING_FIELD, field.get(), section));
+            }
+        }
+        throwIfAny(errors);
+        return mappings;
+    }
+
+    private static Optional<String> readMappingField(Map<String, Object> entry, String key, String section,
+                                                     int entryNumber, List<String> errors) {
+        Object value = entry.get(key);
+        if (value instanceof String text && !text.isBlank()) {
+            return Optional.of(text);
+        }
+        errors.add(value == null || value instanceof String
+                ? String.format(ERROR_MISSING_MAPPING_FIELD, key, section, entryNumber)
+                : String.format(ERROR_NON_STRING_MAPPING_FIELD, key, section, entryNumber, value));
+        return Optional.empty();
+    }
+
+    private static void throwIfAny(List<String> errors) throws ParseException {
         if (!errors.isEmpty()) {
             throw new ParseException(String.join(System.lineSeparator(), errors));
         }
-        return values;
-    }
-
-    // TOML parses a dotted key such as Profile.id as nested tables, so flatten it back into the dotted notation.
-    // A quoted key such as "Profile.id" stays one key but keeps its quotes, so remove them.
-    private static void flattenTable(Map<String, Object> table, String prefix, String section,
-                                     Map<String, String> values, List<String> errors) {
-        for (Map.Entry<String, Object> entry : table.entrySet()) {
-            String name = unquote(entry.getKey());
-            String key = prefix.isEmpty() ? name : prefix + KEY_SEPARATOR + name;
-            Object value = entry.getValue();
-            if (value instanceof Map) {
-                flattenTable(castToMap(value), key, section, values, errors);
-            } else if (value instanceof String text) {
-                values.put(key, text);
-            } else if (value != null) {
-                errors.add(String.format(ERROR_NON_STRING_TABLE_VALUE, key, section));
-            }
-        }
-    }
-
-    private static String unquote(String key) {
-        return Stream.of(SyntaxKind.DOUBLE_QUOTE_TOKEN, SyntaxKind.SINGLE_QUOTE_TOKEN)
-                .map(SyntaxKind::stringValue)
-                .filter(quote -> key.length() > quote.length() && key.startsWith(quote) && key.endsWith(quote))
-                .findFirst()
-                .map(quote -> key.substring(quote.length(), key.length() - quote.length()))
-                .orElse(key);
     }
 
     private static String readString(Map<String, Object> content, String key) throws ParseException {

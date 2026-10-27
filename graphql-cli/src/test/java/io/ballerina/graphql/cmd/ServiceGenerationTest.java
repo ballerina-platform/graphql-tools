@@ -281,8 +281,8 @@ public class ServiceGenerationTest extends GraphqlTest {
         String output = readOutput(true);
 
         Assert.assertTrue(output.contains(
-                "\"Profile.nope\" in [id-types] does not match any field or argument in the schema."), output);
-        Assert.assertTrue(output.contains("\"Profile.name\" in [id-types] is not an ID field or argument."), output);
+                "\"Profile.nope\" in [[id-types]] does not match any field or argument in the schema."), output);
+        Assert.assertTrue(output.contains("\"Profile.name\" in [[id-types]] is not an ID field or argument."), output);
         Assert.assertTrue(output.contains("\"long\" is not a supported ID type for \"Account.id\". Use string, int, "
                 + "float, decimal or uuid:Uuid."), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
@@ -343,11 +343,11 @@ public class ServiceGenerationTest extends GraphqlTest {
         String output = readOutput(true);
 
         Assert.assertTrue(output.contains(
-                "\"Query.nope\" in [dataloaders] does not match any object type field in the schema."), output);
-        Assert.assertTrue(output.contains("\"Mutation.addBook\" in [dataloaders] cannot use a DataLoader. Only Query "
+                "\"Query.nope\" in [[dataloaders]] does not match any object type field in the schema."), output);
+        Assert.assertTrue(output.contains("\"Mutation.addBook\" in [[dataloaders]] cannot use a DataLoader. Only Query "
                 + "fields and object type fields can."), output);
         Assert.assertTrue(output.contains(
-                "\"type\" in [dataloaders] is not a valid Ballerina function name for \"Query.profile\"."), output);
+                "\"type\" in [[dataloaders]] is not a valid Ballerina function name for \"Query.profile\"."), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
     }
