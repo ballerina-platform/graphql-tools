@@ -112,8 +112,8 @@ public class ServiceCodeGenerator extends CodeGenerator {
      *                                    generated code cannot be formatted
      */
     public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ServiceGenerationException {
-        ServiceModel model = ServiceModelMapper.map(project.getGraphQLSchema(), project.getFileName(),
-                this.useRecordsForObjects, this.idTypes, this.dataLoaders);
+        ServiceModel model = new ServiceModelMapper(project.getGraphQLSchema(), this.useRecordsForObjects,
+                this.idTypes, this.dataLoaders).map(project.getFileName());
         return List.of(typesSource(project.getName(), model),
                 new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, project.getName(), SERVICE_FILE_NAME,
                         format(ServiceEmitter.emit(model), ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_101)));
@@ -134,8 +134,8 @@ public class ServiceCodeGenerator extends CodeGenerator {
     public SrcFilePojo generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema)
             throws ServiceGenerationException {
         return typesSource(projectName,
-                ServiceModelMapper.map(graphQLSchema, fileName, this.useRecordsForObjects, this.idTypes,
-                        this.dataLoaders));
+                new ServiceModelMapper(graphQLSchema, this.useRecordsForObjects, this.idTypes, this.dataLoaders)
+                        .map(fileName));
     }
 
     private static SrcFilePojo typesSource(String projectName, ServiceModel model)

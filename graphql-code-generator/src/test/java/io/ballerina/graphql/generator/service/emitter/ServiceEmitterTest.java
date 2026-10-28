@@ -114,8 +114,8 @@ public class ServiceEmitterTest {
                 type Query { profile(id: ID!): Profile profiles(name: String!, age: Int): [Profile!]! }
                 type Profile { name: String! }
                 """));
-        String service = Formatter.format(ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, RECORDS,
-                Map.of(), Map.of("Query.profile", "profileLoader", "Query.profiles", "profilesLoader"))));
+        String service = Formatter.format(ServiceEmitter.emit(new ServiceModelMapper(schema, RECORDS, Map.of(),
+                Map.of("Query.profile", "profileLoader", "Query.profiles", "profilesLoader")).map(SERVICE_NAME)));
 
         Assert.assertEquals(service, """
                 import ballerina/graphql;
@@ -171,6 +171,7 @@ public class ServiceEmitterTest {
             throws ServiceGenerationException, FormatterException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
         return Formatter.format(
-                ServiceEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, SERVICE_CLASSES, idTypes)));
+                ServiceEmitter.emit(new ServiceModelMapper(schema, SERVICE_CLASSES, idTypes, Map.of())
+                        .map(SERVICE_NAME)));
     }
 }

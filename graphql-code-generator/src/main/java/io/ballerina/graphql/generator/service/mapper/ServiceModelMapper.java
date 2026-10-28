@@ -128,8 +128,18 @@ public final class ServiceModelMapper {
     private final Map<String, String> dataLoaders;
     private final Set<String> unionMembers;
 
-    private ServiceModelMapper(GraphQLSchema schema, boolean useRecordsForObjects, Map<String, String> idTypes,
-                               Map<String, String> dataLoaders) {
+    /**
+     * Creates a mapper for a schema.
+     *
+     * @param schema               the GraphQL schema
+     * @param useRecordsForObjects whether object types are generated as records where possible
+     * @param idTypes              the Ballerina type of each GraphQL {@code ID} field or argument, keyed by its path,
+     *                             e.g. {@code Profile.id} or {@code Query.profile.id}; others use {@code string}
+     * @param dataLoaders          the DataLoader name of each field that is wired to one, keyed by its path,
+     *                             e.g. {@code Query.profile}
+     */
+    public ServiceModelMapper(GraphQLSchema schema, boolean useRecordsForObjects, Map<String, String> idTypes,
+                              Map<String, String> dataLoaders) {
         this.schema = schema;
         this.useRecordsForObjects = useRecordsForObjects;
         this.idTypes = idTypes;
@@ -139,66 +149,27 @@ public final class ServiceModelMapper {
                 .flatMap(union -> ((GraphQLUnionType) union).getTypes().stream())
                 .map(GraphQLNamedType::getName)
                 .collect(Collectors.toSet());
-        validate();
     }
 
     /**
-     * Builds the service model for a schema, using {@code string} for every GraphQL {@code ID}.
+     * Builds the service model for the schema.
      *
-     * @param schema               the GraphQL schema
-     * @param serviceName          the name of the service object type, e.g. the schema file name
-     * @param useRecordsForObjects whether object types are generated as records where possible
-     * @return the service model
-     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent
-     */
-    public static ServiceModel map(GraphQLSchema schema, String serviceName, boolean useRecordsForObjects)
-            throws ServiceGenerationException {
-        return map(schema, serviceName, useRecordsForObjects, Map.of());
-    }
-
-    /**
-     * Builds the service model for a schema, with no DataLoaders.
-     *
-     * @param schema               the GraphQL schema
-     * @param serviceName          the name of the service object type, e.g. the schema file name
-     * @param useRecordsForObjects whether object types are generated as records where possible
-     * @param idTypes              the Ballerina type of each GraphQL {@code ID} field or argument, keyed by its path,
-     *                             e.g. {@code Profile.id} or {@code Query.profile.id}; others use {@code string}
-     * @return the service model
-     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or an
-     *                                    ID type mapping is invalid
-     */
-    public static ServiceModel map(GraphQLSchema schema, String serviceName, boolean useRecordsForObjects,
-                                   Map<String, String> idTypes) throws ServiceGenerationException {
-        return map(schema, serviceName, useRecordsForObjects, idTypes, Map.of());
-    }
-
-    /**
-     * Builds the service model for a schema.
-     *
-     * @param schema               the GraphQL schema
-     * @param serviceName          the name of the service object type, e.g. the schema file name
-     * @param useRecordsForObjects whether object types are generated as records where possible
-     * @param idTypes              the Ballerina type of each GraphQL {@code ID} field or argument, keyed by its path,
-     *                             e.g. {@code Profile.id} or {@code Query.profile.id}; others use {@code string}
-     * @param dataLoaders          the DataLoader name of each field that is wired to one, keyed by its path,
-     *                             e.g. {@code Query.profile}
+     * @param serviceName the name of the service object type, e.g. the schema file name
      * @return the service model
      * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or an
      *                                    ID type or DataLoader mapping is invalid
      */
-    public static ServiceModel map(GraphQLSchema schema, String serviceName, boolean useRecordsForObjects,
-                                   Map<String, String> idTypes, Map<String, String> dataLoaders)
-            throws ServiceGenerationException {
+    public ServiceModel map(String serviceName) throws ServiceGenerationException {
         try {
-            return new ServiceModelMapper(schema, useRecordsForObjects, idTypes, dataLoaders).map(serviceName);
+            validate();
+            return buildModel(serviceName);
         } catch (IllegalArgumentException e) {
             throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102,
                     NullLocation.getInstance(), e.getMessage());
         }
     }
 
-    private ServiceModel map(String serviceName) {
+    private ServiceModel buildModel(String serviceName) {
         List<GraphQLNamedType> types = schema.getAllTypesAsList().stream()
                 .filter(type -> !type.getName().startsWith(INTROSPECTION_TYPE_PREFIX))
                 .filter(type -> !isRootType(type))

@@ -424,18 +424,18 @@ public class ServiceModelMapperTest {
 
     private static ServiceModel map(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects);
+        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), Map.of()).map(SERVICE_NAME);
     }
 
     private static ServiceModel map(String sdl, Map<String, String> idTypes) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return ServiceModelMapper.map(schema, SERVICE_NAME, SERVICE_CLASSES, idTypes);
+        return new ServiceModelMapper(schema, SERVICE_CLASSES, idTypes, Map.of()).map(SERVICE_NAME);
     }
 
     private static ServiceModel map(String sdl, boolean useRecordsForObjects, Map<String, String> dataLoaders)
             throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects, Map.of(), dataLoaders);
+        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), dataLoaders).map(SERVICE_NAME);
     }
 
     private static ResolverModel resolver(List<ResolverModel> resolvers, String name) {

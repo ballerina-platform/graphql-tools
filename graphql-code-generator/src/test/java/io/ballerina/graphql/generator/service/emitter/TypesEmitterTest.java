@@ -160,8 +160,8 @@ public class TypesEmitterTest {
                 type Query { book: Book }
                 type Book { id: ID! }
                 """));
-        String types = Formatter.format(TypesEmitter.emit(
-                ServiceModelMapper.map(schema, SERVICE_NAME, SERVICE_CLASSES, Map.of("Book.id", "uuid:Uuid"))));
+        String types = Formatter.format(TypesEmitter.emit(new ServiceModelMapper(schema, SERVICE_CLASSES,
+                Map.of("Book.id", "uuid:Uuid"), Map.of()).map(SERVICE_NAME)));
 
         Assert.assertTrue(types.contains("import ballerina/uuid;"), types);
         Assert.assertTrue(types.contains("resource function get id() returns @graphql:ID uuid:Uuid|error {"), types);
@@ -174,8 +174,8 @@ public class TypesEmitterTest {
                 type Book { author: Author! }
                 type Author { name: String! }
                 """));
-        String types = Formatter.format(TypesEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME,
-                SERVICE_CLASSES, Map.of(), Map.of("Query.book", "bookLoader", "Book.author", "authorLoader"))));
+        String types = Formatter.format(TypesEmitter.emit(new ServiceModelMapper(schema, SERVICE_CLASSES, Map.of(),
+                Map.of("Query.book", "bookLoader", "Book.author", "authorLoader")).map(SERVICE_NAME)));
 
         Assert.assertTrue(types.contains(
                 "resource function get book(graphql:Context context, @graphql:ID string id) returns Book?|error;"),
@@ -197,6 +197,7 @@ public class TypesEmitterTest {
             throws ServiceGenerationException, FormatterException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
         return Formatter.format(
-                TypesEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects)));
+                TypesEmitter.emit(new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), Map.of())
+                        .map(SERVICE_NAME)));
     }
 }
