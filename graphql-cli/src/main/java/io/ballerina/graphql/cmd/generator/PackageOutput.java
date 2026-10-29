@@ -22,8 +22,12 @@ import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectPaths;
+import io.ballerina.projects.util.ProjectUtils;
+import io.ballerina.toml.api.Toml;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 final class PackageOutput {
@@ -34,6 +38,8 @@ final class PackageOutput {
     private static final String ERROR_INVALID_MODULE_NAME = "\"%s\" is not a valid module name. Use letters, digits "
             + "and underscores, start with a letter, and separate parts with single periods (e.g. books or books.v2).";
     private static final Pattern MODULE_NAME = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)*$");
+    private static final String PACKAGE_KEY = "package";
+    private static final String NAME_KEY = "name";
 
     private PackageOutput() {
     }
@@ -57,5 +63,21 @@ final class PackageOutput {
             throw new GenerationException(String.format(ERROR_INVALID_MODULE_NAME, moduleName));
         }
         return packageRoot.resolve(ProjectConstants.MODULES_ROOT).resolve(moduleName);
+    }
+
+    static String packageName(Path outputPath) throws GenerationException {
+        Path packageRoot = outputPath.toAbsolutePath().normalize();
+        Path ballerinaToml = packageRoot.resolve(ProjectConstants.BALLERINA_TOML);
+        Map<String, Object> content;
+        try {
+            content = Toml.read(ballerinaToml).toMap();
+        } catch (IOException | RuntimeException e) {
+            throw new GenerationException(String.format(ERROR_UNREADABLE_BALLERINA_TOML, ballerinaToml));
+        }
+        if (content.get(PACKAGE_KEY) instanceof Map<?, ?> packageTable
+                && packageTable.get(NAME_KEY) instanceof String name) {
+            return name;
+        }
+        return ProjectUtils.defaultName(packageRoot).value();
     }
 }

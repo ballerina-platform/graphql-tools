@@ -47,7 +47,8 @@ import java.util.Map;
  */
 public class ServiceModelMapperTest {
 
-    private static final String SERVICE_NAME = "BookApi";
+    private static final String BASE_NAME = "BookApi";
+    private static final String SERVICE_NAME = "BookApiService";
     private static final String BOOK_QUERY = "type Query { book: String }";
     private static final boolean SERVICE_CLASSES = false;
     private static final boolean RECORDS = true;
@@ -69,7 +70,7 @@ public class ServiceModelMapperTest {
                 type Book { title: String! }
                 """, SERVICE_CLASSES);
 
-        Assert.assertEquals(model.serviceName(), "BookApiService");
+        Assert.assertEquals(model.serviceName(), SERVICE_NAME);
         Assert.assertEquals(model.queries(), List.of(new ResolverModel(ResolverKind.RESOURCE_GET, "book",
                 List.of(new ParameterModel("id", TypeModel.named("int", NON_NULL), NO_DEFAULT, NO_DESCRIPTION)),
                 TypeModel.named("Book", NULLABLE), NO_DESCRIPTION, NOT_DEPRECATED)));
@@ -478,18 +479,18 @@ public class ServiceModelMapperTest {
 
     private static ServiceModel map(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), Map.of()).map(SERVICE_NAME);
+        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), Map.of()).map(BASE_NAME);
     }
 
     private static ServiceModel map(String sdl, Map<String, String> idTypes) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return new ServiceModelMapper(schema, SERVICE_CLASSES, idTypes, Map.of()).map(SERVICE_NAME);
+        return new ServiceModelMapper(schema, SERVICE_CLASSES, idTypes, Map.of()).map(BASE_NAME);
     }
 
     private static ServiceModel map(String sdl, boolean useRecordsForObjects, Map<String, String> dataLoaders)
             throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), dataLoaders).map(SERVICE_NAME);
+        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), dataLoaders).map(BASE_NAME);
     }
 
     private static ResolverModel resolver(List<ResolverModel> resolvers, String name) {

@@ -200,6 +200,52 @@ public class BalGraphqlConfigGenerationTest {
                 "Failed to retrieve SDL");
     }
 
+    @Test(description = "Test that a service from a url schema is named after the package, not the url")
+    public void testUrlSchemaServiceNamedAfterPackage() throws IOException, ParseException, GenerationException {
+        Path packagePath = createBallerinaPackage(Files.createTempDirectory("url-service-name"));
+        generateService(writeConfig(urlConfig("/schema.graphql?key=a4ewe")), packagePath);
+
+        String types = Files.readString(packagePath.resolve("types.bal"));
+        String service = Files.readString(packagePath.resolve("service.bal"));
+        Assert.assertTrue(types.contains("type GraphqlTestService service object {"), types);
+        Assert.assertTrue(service.contains("service GraphqlTestService on new graphql:Listener(port) {"), service);
+        Assert.assertFalse(types.contains("a4ewe") || service.contains("a4ewe"), types + service);
+    }
+
+    @Test(description = "Test that a service from an introspected schema is named after the module when one is given")
+    public void testIntrospectionServiceNamedAfterModule() throws IOException, ParseException, GenerationException {
+        Path packagePath = createBallerinaPackage(Files.createTempDirectory("module-service-name"));
+        generateService(writeConfig(introspectionConfig("/graphql")), packagePath, "orders");
+
+        String types = Files.readString(packagePath.resolve("modules").resolve("orders").resolve("types.bal"));
+        Assert.assertTrue(types.contains("type OrdersService service object {"), types);
+    }
+
+    @Test(description = "Test that a service from a url schema is named after the folder when the package has no name")
+    public void testUrlSchemaServiceNamedAfterFolder() throws IOException, ParseException, GenerationException {
+        Path packagePath = Files.createDirectories(Files.createTempDirectory("unnamed-package").resolve("my_shop"));
+        Files.writeString(packagePath.resolve("Ballerina.toml"), "[package]\norg = \"test\"\nversion = \"0.1.0\"\n");
+        generateService(writeConfig(urlConfig("/schema.graphql")), packagePath);
+
+        String types = Files.readString(packagePath.resolve("types.bal"));
+        Assert.assertTrue(types.contains("type MyShopService service object {"), types);
+    }
+
+    private void generateService(Path configPath, Path packagePath)
+            throws IOException, ParseException, GenerationException {
+        generateService(configPath, packagePath, null);
+    }
+
+    private void generateService(Path configPath, Path packagePath, String moduleName)
+            throws IOException, ParseException, GenerationException {
+        GenerationContext context = new GenerationContext(configPath.toString(), null, packagePath, null, null,
+                moduleName, NO_FORCE, NO_DRY_RUN, System.out);
+        Generator generator = new ServiceGeneration(context, readConfig(configPath));
+        generator.validate();
+        generator.generate();
+        generator.write();
+    }
+
     private ServiceGeneration serviceGeneration(Path configPath) throws IOException, ParseException {
         return new ServiceGeneration(createContext(configPath), readConfig(configPath));
     }

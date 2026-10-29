@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public class ServiceEmitterTest {
 
-    private static final String SERVICE_NAME = "BookApi";
+    private static final String BASE_NAME = "BookApi";
     private static final boolean SERVICE_CLASSES = false;
     private static final boolean RECORDS = true;
 
@@ -115,7 +115,7 @@ public class ServiceEmitterTest {
                 type Profile { name: String! }
                 """));
         String service = Formatter.format(ServiceEmitter.emit(new ServiceModelMapper(schema, RECORDS, Map.of(),
-                Map.of("Query.profile", "profileLoader", "Query.profiles", "profilesLoader")).map(SERVICE_NAME)));
+                Map.of("Query.profile", "profileLoader", "Query.profiles", "profilesLoader")).map(BASE_NAME)));
 
         Assert.assertEquals(service, """
                 import ballerina/graphql;
@@ -172,6 +172,6 @@ public class ServiceEmitterTest {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
         return Formatter.format(
                 ServiceEmitter.emit(new ServiceModelMapper(schema, SERVICE_CLASSES, idTypes, Map.of())
-                        .map(SERVICE_NAME)));
+                        .map(BASE_NAME)));
     }
 }

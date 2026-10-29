@@ -129,10 +129,25 @@ public class ServiceCodeGeneratorTest {
                 service);
     }
 
+    @Test(description = "Test that only the last extension is removed from a schema file name that has dots")
+    public void testGenerateWithDottedFileName() throws ServiceGenerationException {
+        GraphqlServiceProject project = new GraphqlServiceProject(ROOT_PROJECT_NAME,
+                Paths.get("schemas", "books.v2.graphql").toString(), OUTPUT_PATH);
+        project.setGraphQLSchema(UnExecutableSchemaGenerator.makeUnExecutableSchema(
+                new SchemaParser().parse("type Query { book: String }")));
+
+        String types = content(new ServiceCodeGenerator().generateBalSources(project), TYPES_FILE);
+
+        Assert.assertTrue(types.contains("type BooksV2Service service object {"), types);
+    }
+
     private String generate(String schemaName, boolean useRecordsForObjects, String fileName)
             throws IOException, ServiceGenerationException {
-        List<SrcFilePojo> sources = new ServiceCodeGenerator(useRecordsForObjects)
-                .generateBalSources(project(schemaName));
+        return content(new ServiceCodeGenerator(useRecordsForObjects).generateBalSources(project(schemaName)),
+                fileName);
+    }
+
+    private static String content(List<SrcFilePojo> sources, String fileName) {
         return sources.stream()
                 .filter(source -> source.getFileName().equals(fileName))
                 .findFirst()

@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public class TypesEmitterTest {
 
-    private static final String SERVICE_NAME = "BookApi";
+    private static final String BASE_NAME = "BookApi";
     private static final boolean SERVICE_CLASSES = false;
     private static final boolean RECORDS = true;
 
@@ -161,7 +161,7 @@ public class TypesEmitterTest {
                 type Book { id: ID! }
                 """));
         String types = Formatter.format(TypesEmitter.emit(new ServiceModelMapper(schema, SERVICE_CLASSES,
-                Map.of("Book.id", "uuid:Uuid"), Map.of()).map(SERVICE_NAME)));
+                Map.of("Book.id", "uuid:Uuid"), Map.of()).map(BASE_NAME)));
 
         Assert.assertTrue(types.contains("import ballerina/uuid;"), types);
         Assert.assertTrue(types.contains("resource function get id() returns @graphql:ID uuid:Uuid|error {"), types);
@@ -175,7 +175,7 @@ public class TypesEmitterTest {
                 type Author { name: String! }
                 """));
         String types = Formatter.format(TypesEmitter.emit(new ServiceModelMapper(schema, SERVICE_CLASSES, Map.of(),
-                Map.of("Query.book", "bookLoader", "Book.author", "authorLoader")).map(SERVICE_NAME)));
+                Map.of("Query.book", "bookLoader", "Book.author", "authorLoader")).map(BASE_NAME)));
 
         Assert.assertTrue(types.contains(
                 "resource function get book(graphql:Context context, @graphql:ID string id) returns Book?|error;"),
@@ -198,6 +198,6 @@ public class TypesEmitterTest {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
         return Formatter.format(
                 TypesEmitter.emit(new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), Map.of())
-                        .map(SERVICE_NAME)));
+                        .map(BASE_NAME)));
     }
 }

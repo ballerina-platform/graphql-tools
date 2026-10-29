@@ -138,10 +138,20 @@ public class ServiceGeneration implements Generator {
     @Override
     public void generate() throws GenerationException {
         try {
-            this.sources = this.serviceCodeGenerator.generateBalSources(this.project);
+            this.sources = this.serviceCodeGenerator.generateBalSources(this.project, serviceBaseName());
         } catch (ServiceGenerationException e) {
             throw new GenerationException(e);
         }
+    }
+
+    private String serviceBaseName() throws GenerationException {
+        if (this.balGraphqlConfig == null || this.balGraphqlConfig.schema().source() == SchemaSource.FILE) {
+            return this.project.getFileName();
+        }
+        if (context.getModuleName() != null) {
+            return context.getModuleName();
+        }
+        return PackageOutput.packageName(context.getTargetOutputPath());
     }
 
     @Override

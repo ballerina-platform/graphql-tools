@@ -112,8 +112,24 @@ public class ServiceCodeGenerator extends CodeGenerator {
      *                                    generated code cannot be formatted
      */
     public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ServiceGenerationException {
+        return generateBalSources(project, project.getFileName());
+    }
+
+    /**
+     * Generates the service sources for a project.
+     *
+     * @param project  the project with a validated GraphQL schema
+     * @param baseName the name the service object type is named after, e.g. {@code book-api} gives
+     *                 {@code BookApiService}
+     * @return the {@code types.bal} source followed by the {@code service.bal} source
+     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, no valid
+     *                                    service name can be made from the base name, or the generated code
+     *                                    cannot be formatted
+     */
+    public List<SrcFilePojo> generateBalSources(GraphqlProject project, String baseName)
+            throws ServiceGenerationException {
         ServiceModel model = new ServiceModelMapper(project.getGraphQLSchema(), this.useRecordsForObjects,
-                this.idTypes, this.dataLoaders).map(project.getFileName());
+                this.idTypes, this.dataLoaders).map(baseName);
         return List.of(typesSource(project.getName(), model),
                 new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, project.getName(), SERVICE_FILE_NAME,
                         format(ServiceEmitter.emit(model), ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_101)));
@@ -123,11 +139,13 @@ public class ServiceCodeGenerator extends CodeGenerator {
      * Generates the types file only.
      *
      * @param projectName   the project name
-     * @param fileName      the schema file name, used as the service object type name
+     * @param fileName      the schema file name the service object type is named after, e.g. {@code book-api} gives
+     *                      {@code BookApiService}
      * @param graphQLSchema the GraphQL schema
      * @return the {@code types.bal} source
-     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or the
-     *                                    generated code cannot be formatted
+     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, no valid
+     *                                    service name can be made from the file name, or the generated code
+     *                                    cannot be formatted
      *
      * @since 0.14.0
      */
