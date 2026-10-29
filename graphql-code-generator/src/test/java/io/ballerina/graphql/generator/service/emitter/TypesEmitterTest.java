@@ -52,7 +52,7 @@ public class TypesEmitterTest {
         Assert.assertEquals(types, """
                 import ballerina/graphql;
 
-                type BookApi service object {
+                type BookApiService service object {
                     *graphql:Service;
                     resource function get profile(@graphql:ID string id) returns Profile?|error;
                 };
@@ -102,7 +102,7 @@ public class TypesEmitterTest {
         Assert.assertEquals(types, """
                 import ballerina/graphql;
 
-                type BookApi service object {
+                type BookApiService service object {
                     *graphql:Service;
                     resource function get book(BookInput? input, Genre? genre) returns Book?|error;
                 };
@@ -144,7 +144,7 @@ public class TypesEmitterTest {
         Assert.assertEquals(types, """
                 import ballerina/graphql;
 
-                type BookApi service object {
+                type BookApiService service object {
                     *graphql:Service;
                     # Finds a book title
                     resource function get title(@graphql:ID string id) returns string?|error;

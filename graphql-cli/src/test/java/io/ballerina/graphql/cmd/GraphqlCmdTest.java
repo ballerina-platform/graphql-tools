@@ -216,7 +216,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains("GraphQL service types file generation failed: "
-                    + "\"\" cannot be used as a Ballerina identifier."), output);
+                    + "Cannot name the service from \"\". The name must start with a letter. Rename the schema file."),
+                    output);
             Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());

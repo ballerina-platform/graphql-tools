@@ -114,6 +114,12 @@ public final class ServiceModelMapper {
             "\"%s\" in [[dataloaders]] is not a valid Ballerina function name for \"%s\".";
     private static final Pattern DATALOADER_NAME = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
     private static final String PREFETCH_METHOD_FORMAT = "pre%s%s";
+    private static final String ERROR_INVALID_SERVICE_NAME =
+            "Cannot name the service from \"%s\". The name must start with a letter. Rename the schema file.";
+    private static final String ERROR_SERVICE_NAME_CLASH =
+            "Service name \"%s\" is already used by a type in the schema.";
+    private static final Pattern SERVICE_NAME_SEPARATOR = Pattern.compile("[^A-Za-z0-9]+");
+    private static final String SERVICE_NAME_SUFFIX = "Service";
     private static final String PATH_SEPARATOR = ".";
     private static final int TYPE_PART = 0;
     private static final int FIELD_PART = 1;
@@ -154,15 +160,17 @@ public final class ServiceModelMapper {
     /**
      * Builds the service model for the schema.
      *
-     * @param serviceName the name of the service object type, e.g. the schema file name
+     * @param baseName the name the service is named after, e.g. the schema file name; {@code book-api} gives
+     *                 {@code BookApiService}
      * @return the service model
-     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or an
-     *                                    ID type or DataLoader mapping is invalid
+     * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, an
+     *                                    ID type or DataLoader mapping is invalid, or no valid service name can be
+     *                                    made from the base name
      */
-    public ServiceModel map(String serviceName) throws ServiceGenerationException {
+    public ServiceModel map(String baseName) throws ServiceGenerationException {
         try {
             validate();
-            return buildModel(serviceName);
+            return buildModel(serviceName(baseName));
         } catch (IllegalArgumentException e) {
             throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102,
                     NullLocation.getInstance(), e.getMessage());
@@ -174,11 +182,28 @@ public final class ServiceModelMapper {
                 .filter(type -> !type.getName().startsWith(INTROSPECTION_TYPE_PREFIX))
                 .filter(type -> !isRootType(type))
                 .toList();
-        return new ServiceModel(TypeMapper.escapeName(serviceName),
+        return new ServiceModel(serviceName,
                 resolvers(schema.getQueryType(), ResolverKind.RESOURCE_GET),
                 resolvers(schema.getMutationType(), ResolverKind.REMOTE),
                 resolvers(schema.getSubscriptionType(), ResolverKind.RESOURCE_SUBSCRIBE),
                 typeDefinitions(types), inputTypes(types), enums(types));
+    }
+
+    private String serviceName(String baseName) {
+        String name = SERVICE_NAME_SEPARATOR.splitAsStream(baseName)
+                .filter(part -> !part.isEmpty())
+                .map(part -> Character.toUpperCase(part.charAt(0)) + part.substring(1))
+                .collect(Collectors.joining());
+        if (name.isEmpty() || !Character.isLetter(name.charAt(0))) {
+            throw new IllegalArgumentException(String.format(ERROR_INVALID_SERVICE_NAME, baseName));
+        }
+        if (!name.endsWith(SERVICE_NAME_SUFFIX)) {
+            name += SERVICE_NAME_SUFFIX;
+        }
+        if (schema.getType(name) != null) {
+            throw new IllegalArgumentException(String.format(ERROR_SERVICE_NAME_CLASH, name));
+        }
+        return name;
     }
 
     private boolean isRootType(GraphQLNamedType type) {

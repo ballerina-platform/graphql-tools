@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaWithUnionApi service object {
+type SchemaWithUnionApiService service object {
     *graphql:Service;
     resource function get student(int id) returns Profile?|error;
     resource function get teacher(int id) returns Profile?|error;

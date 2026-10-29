@@ -57,7 +57,7 @@ public class ServiceEmitterTest {
 
                 configurable int port = 9090;
 
-                service BookApi on new graphql:Listener(port) {
+                service BookApiService on new graphql:Listener(port) {
                     # Finds books
                     # + author - The author
                     # + count - Max results
@@ -133,7 +133,7 @@ public class ServiceEmitterTest {
                 }
 
                 @graphql:ServiceConfig {contextInit: initContext}
-                service BookApi on new graphql:Listener(port) {
+                service BookApiService on new graphql:Listener(port) {
                     function preProfile(graphql:Context context, @graphql:ID string id) {
                         context.getDataLoader("profileLoader").add(id);
                     }

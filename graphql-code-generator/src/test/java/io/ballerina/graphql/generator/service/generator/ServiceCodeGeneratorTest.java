@@ -119,13 +119,13 @@ public class ServiceCodeGeneratorTest {
         Assert.assertEquals(generate(schemaName, SERVICE_CLASSES, SERVICE_FILE), expected(expectedFile));
     }
 
-    @Test(description = "Test that a schema file name that is not a valid identifier is escaped")
-    public void testGenerateWithEscapedServiceName() throws IOException, ServiceGenerationException {
+    @Test(description = "Test that a schema file name that is not a valid identifier gives a PascalCase service name")
+    public void testGenerateWithHyphenatedFileName() throws IOException, ServiceGenerationException {
         String types = generate("SchemaWith-HyphenApi", SERVICE_CLASSES, TYPES_FILE);
         String service = generate("SchemaWith-HyphenApi", SERVICE_CLASSES, SERVICE_FILE);
 
-        Assert.assertTrue(types.contains("type SchemaWith\\-HyphenApi service object {"), types);
-        Assert.assertTrue(service.contains("service SchemaWith\\-HyphenApi on new graphql:Listener(port) {"),
+        Assert.assertTrue(types.contains("type SchemaWithHyphenApiService service object {"), types);
+        Assert.assertTrue(service.contains("service SchemaWithHyphenApiService on new graphql:Listener(port) {"),
                 service);
     }
 

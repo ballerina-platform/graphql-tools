@@ -35,6 +35,7 @@ import io.ballerina.graphql.generator.service.model.ServiceModel;
 import io.ballerina.graphql.generator.service.model.TypeDefinitionModel;
 import io.ballerina.graphql.generator.service.model.TypeKind;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import java.util.Map;
 public class ServiceModelMapperTest {
 
     private static final String SERVICE_NAME = "BookApi";
+    private static final String BOOK_QUERY = "type Query { book: String }";
     private static final boolean SERVICE_CLASSES = false;
     private static final boolean RECORDS = true;
     private static final boolean NULLABLE = true;
@@ -67,7 +69,7 @@ public class ServiceModelMapperTest {
                 type Book { title: String! }
                 """, SERVICE_CLASSES);
 
-        Assert.assertEquals(model.serviceName(), SERVICE_NAME);
+        Assert.assertEquals(model.serviceName(), "BookApiService");
         Assert.assertEquals(model.queries(), List.of(new ResolverModel(ResolverKind.RESOURCE_GET, "book",
                 List.of(new ParameterModel("id", TypeModel.named("int", NON_NULL), NO_DEFAULT, NO_DESCRIPTION)),
                 TypeModel.named("Book", NULLABLE), NO_DESCRIPTION, NOT_DEPRECATED)));
@@ -420,6 +422,58 @@ public class ServiceModelMapperTest {
         Assert.assertTrue(error.getMessage().contains(
                 "\"Book.author\" in [[dataloaders]] cannot use a DataLoader, as \"Book\" is generated as a record."),
                 error.getMessage());
+    }
+
+    @Test(description = "Test that the service is named in PascalCase with a Service suffix",
+            dataProvider = "serviceNames")
+    public void testServiceName(String baseName, String serviceName) throws ServiceGenerationException {
+        Assert.assertEquals(mapWithBaseName(BOOK_QUERY, baseName).serviceName(), serviceName);
+    }
+
+    @DataProvider
+    public Object[][] serviceNames() {
+        return new Object[][]{
+                {"schema", "SchemaService"},
+                {"book-api", "BookApiService"},
+                {"book_api", "BookApiService"},
+                {"book api", "BookApiService"},
+                {"bookApi", "BookApiService"},
+                {"book-service", "BookService"},
+                {"books.v2", "BooksV2Service"}
+        };
+    }
+
+    @Test(description = "Test that a base name that does not start with a letter is rejected",
+            dataProvider = "invalidServiceNames")
+    public void testInvalidServiceName(String baseName) {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class,
+                () -> mapWithBaseName(BOOK_QUERY, baseName));
+
+        Assert.assertTrue(error.getMessage().contains(String.format(
+                "Cannot name the service from \"%s\". The name must start with a letter. Rename the schema file.",
+                baseName)), error.getMessage());
+    }
+
+    @DataProvider
+    public Object[][] invalidServiceNames() {
+        return new Object[][]{{"1books"}, {"---"}};
+    }
+
+    @Test(description = "Test that a service name used by a schema type is rejected")
+    public void testServiceNameClash() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class,
+                () -> mapWithBaseName("""
+                        type Query { book: SchemaService }
+                        type SchemaService { name: String! }
+                        """, "schema"));
+
+        Assert.assertTrue(error.getMessage().contains(
+                "Service name \"SchemaService\" is already used by a type in the schema."), error.getMessage());
+    }
+
+    private static ServiceModel mapWithBaseName(String sdl, String baseName) throws ServiceGenerationException {
+        GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
+        return new ServiceModelMapper(schema, SERVICE_CLASSES, Map.of(), Map.of()).map(baseName);
     }
 
     private static ServiceModel map(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
