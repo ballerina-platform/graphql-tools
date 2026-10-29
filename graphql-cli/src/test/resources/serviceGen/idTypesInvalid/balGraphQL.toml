@@ -1,0 +1,15 @@
+[schema]
+source = "file"
+path = "../idTypes/schema.graphql"
+
+[[id-types]]
+field = "Profile.nope"
+type = "int"
+
+[[id-types]]
+field = "Profile.name"
+type = "int"
+
+[[id-types]]
+field = "Account.id"
+type = "long"

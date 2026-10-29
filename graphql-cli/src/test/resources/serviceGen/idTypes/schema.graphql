@@ -1,0 +1,29 @@
+type Query {
+    profile(id: ID!): Profile
+    node(id: ID!): Node
+    account: Account
+}
+
+type Mutation {
+    updateProfile(id: ID!, input: ProfileInput!): Profile
+}
+
+interface Node {
+    id: ID!
+}
+
+type Profile implements Node {
+    id: ID!
+    name: String!
+    friendIds: [ID!]!
+    accountId: ID
+}
+
+type Account {
+    id: ID!
+}
+
+input ProfileInput {
+    id: ID!
+    score: ID
+}

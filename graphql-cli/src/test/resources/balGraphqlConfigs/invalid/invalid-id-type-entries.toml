@@ -1,0 +1,17 @@
+[schema]
+source = "file"
+path = "./schema.graphql"
+
+[[id-types]]
+field = "Book.isbn"
+
+[[id-types]]
+type = "int"
+
+[[id-types]]
+field = "Book.id"
+type = "int"
+
+[[id-types]]
+field = "Book.id"
+type = "string"

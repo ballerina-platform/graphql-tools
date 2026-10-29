@@ -216,6 +216,142 @@ public class ServiceGenerationTest extends GraphqlTest {
         }
     }
 
+    @DataProvider(name = "objectTypes")
+    public Object[] objectTypes() {
+        return new Object[]{"service", "record"};
+    }
+
+    @Test(description = "Test that a service generated with configured ID types uses them and compiles",
+            dataProvider = "objectTypes")
+    public void testIdTypes(String objectType) throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "idTypes", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--object-type",
+                objectType};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, new ExitCodeCaptor());
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        String types = readContent(this.tmpDir.resolve("types.bal"));
+        Assert.assertTrue(types.contains("resourcefunctiongetid()returns@graphql:IDint|error;"), types);
+        Assert.assertTrue(types.contains("resourcefunctiongetfriendIds()returns@graphql:IDint[]|error"), types);
+        Assert.assertTrue(types.contains("resourcefunctiongetaccountId()returns@graphql:IDdecimal?|error"), types);
+        Assert.assertTrue(types.contains("remotefunctionupdateProfile(@graphql:IDintid,ProfileInputinput)"), types);
+        Assert.assertTrue(types.contains("@graphql:IDstringid;@graphql:IDfloat?score;"), types);
+        Assert.assertTrue(types.contains("importballerina/uuid;"), types);
+        String service = readContent(this.tmpDir.resolve("service.bal"));
+        Assert.assertTrue(service.contains("importballerina/uuid;"), service);
+        Assert.assertTrue(service.contains("resourcefunctiongetnode(@graphql:IDuuid:Uuidid)"), service);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+        Assert.assertTrue(diagnosticResult.errors().isEmpty(),
+                "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
+    }
+
+    @Test(description = "Test that every ID is generated as string when the config has no [id-types]")
+    public void testDefaultIdTypes() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "noIdTypes", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, new ExitCodeCaptor());
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        String types = readContent(this.tmpDir.resolve("types.bal"));
+        Assert.assertTrue(types.contains("resourcefunctiongetid()returns@graphql:IDstring|error;"), types);
+        Assert.assertTrue(types.contains("resourcefunctiongetfriendIds()returns@graphql:IDstring[]|error"), types);
+        Assert.assertTrue(types.contains("resourcefunctiongetaccountId()returns@graphql:IDstring?|error"), types);
+        Assert.assertTrue(types.contains("remotefunctionupdateProfile(@graphql:IDstringid,ProfileInputinput)"), types);
+        Assert.assertTrue(types.contains("@graphql:IDstringid;@graphql:IDstring?score;"), types);
+        Assert.assertFalse(types.contains("importballerina/uuid;"), types);
+        String service = readContent(this.tmpDir.resolve("service.bal"));
+        Assert.assertTrue(service.contains("resourcefunctiongetnode(@graphql:IDstringid)"), service);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+        Assert.assertTrue(diagnosticResult.errors().isEmpty(),
+                "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
+    }
+
+    @Test(description = "Test that every invalid ID type mapping is reported and nothing is generated")
+    public void testInvalidIdTypes() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "idTypesInvalid", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        Assert.assertTrue(output.contains(
+                "\"Profile.nope\" in [[id-types]] does not match any field or argument in the schema."), output);
+        Assert.assertTrue(output.contains("\"Profile.name\" in [[id-types]] is not an ID field or argument."), output);
+        Assert.assertTrue(output.contains("\"long\" is not a supported ID type for \"Account.id\". Use string, int, "
+                + "float, decimal or uuid:Uuid."), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
+    }
+
+    @Test(description = "Test that a service generated with DataLoaders wires them and compiles")
+    public void testDataLoaders() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "dataLoaders", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, new ExitCodeCaptor());
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        String service = readContent(this.tmpDir.resolve("service.bal"));
+        Assert.assertTrue(service.contains("importballerina/graphql.dataloader;importballerina/http;"), service);
+        Assert.assertTrue(service.contains("context.registerDataLoader(\"profileLoader\",newdataloader:"
+                + "DefaultDataLoader(profileLoader));context.registerDataLoader(\"authorLoader\",newdataloader:"
+                + "DefaultDataLoader(authorLoader));"), service);
+        Assert.assertTrue(service.contains("@graphql:ServiceConfig{contextInit:initContext}"), service);
+        Assert.assertTrue(service.contains("functionpreProfile(graphql:Contextcontext,@graphql:IDstringid){"
+                + "context.getDataLoader(\"profileLoader\").add(id);}"), service);
+        Assert.assertTrue(service.contains("isolatedfunctionauthorLoader(readonly&anydata[]keys)"), service);
+        String types = readContent(this.tmpDir.resolve("types.bal"));
+        Assert.assertTrue(types.contains("functionpreAuthor(graphql:Contextcontext){}"), types);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+        Assert.assertTrue(diagnosticResult.errors().isEmpty(),
+                "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
+    }
+
+    @Test(description = "Test that a DataLoader field returning a record returns the loaded value and compiles")
+    public void testDataLoadersWithRecords() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "dataLoadersRecords", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--object-type",
+                "record"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, new ExitCodeCaptor());
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        String service = readContent(this.tmpDir.resolve("service.bal"));
+        Assert.assertTrue(service.contains("resourcefunctiongetprofile(graphql:Contextcontext,@graphql:IDstringid)"
+                + "returnsProfile?|error{returncontext.getDataLoader(\"profileLoader\").get(id);}"), service);
+        DiagnosticResult diagnosticResult = getDiagnosticResult(this.tmpDir);
+        Assert.assertTrue(diagnosticResult.errors().isEmpty(),
+                "Unexpected compilation errors: " + diagnosticResult.errors() + System.lineSeparator() + output);
+    }
+
+    @Test(description = "Test that every invalid DataLoader mapping is reported and nothing is generated")
+    public void testInvalidDataLoaders() throws IOException {
+        Path configPath = this.resourceDir.resolve(Paths.get("serviceGen", "dataLoadersInvalid", "balGraphQL.toml"));
+        String[] args = {configPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+
+        Assert.assertTrue(output.contains(
+                "\"Query.nope\" in [[dataloaders]] does not match any object type field in the schema."), output);
+        Assert.assertTrue(output.contains("\"Mutation.addBook\" in [[dataloaders]] cannot use a DataLoader. Only Query "
+                + "fields and object type fields can."), output);
+        Assert.assertTrue(output.contains(
+                "\"type\" in [[dataloaders]] is not a valid Ballerina function name for \"Query.profile\"."), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
+    }
+
     @DataProvider(name = "invalidSchemas")
     public Object[][] invalidSchemas() {
         return new Object[][]{

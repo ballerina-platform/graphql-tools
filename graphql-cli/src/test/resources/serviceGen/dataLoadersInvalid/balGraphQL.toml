@@ -1,0 +1,15 @@
+[schema]
+source = "file"
+path = "../dataLoaders/schema.graphql"
+
+[[dataloaders]]
+field = "Query.nope"
+loader = "nopeLoader"
+
+[[dataloaders]]
+field = "Mutation.addBook"
+loader = "bookLoader"
+
+[[dataloaders]]
+field = "Query.profile"
+loader = "type"

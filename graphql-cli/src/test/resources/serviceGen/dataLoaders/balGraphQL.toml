@@ -1,0 +1,11 @@
+[schema]
+source = "file"
+path = "./schema.graphql"
+
+[[dataloaders]]
+field = "Query.profile"
+loader = "profileLoader"
+
+[[dataloaders]]
+field = "Book.author"
+loader = "authorLoader"

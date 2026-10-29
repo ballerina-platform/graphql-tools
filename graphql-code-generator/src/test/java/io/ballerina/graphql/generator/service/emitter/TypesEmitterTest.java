@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.generator.service.emitter;
@@ -27,6 +27,8 @@ import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.util.Map;
 
 /**
  * Tests writing the types file of a service.
@@ -152,10 +154,50 @@ public class TypesEmitterTest {
                 """);
     }
 
+    @Test(description = "Test that the module of a type used by a field is imported into the types file")
+    public void testImportForFieldType() throws ServiceGenerationException, FormatterException {
+        GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse("""
+                type Query { book: Book }
+                type Book { id: ID! }
+                """));
+        String types = Formatter.format(TypesEmitter.emit(new ServiceModelMapper(schema, SERVICE_CLASSES,
+                Map.of("Book.id", "uuid:Uuid"), Map.of()).map(SERVICE_NAME)));
+
+        Assert.assertTrue(types.contains("import ballerina/uuid;"), types);
+        Assert.assertTrue(types.contains("resource function get id() returns @graphql:ID uuid:Uuid|error {"), types);
+    }
+
+    @Test(description = "Test writing a service class field and a Query declaration that use DataLoaders")
+    public void testEmitDataLoaderFields() throws ServiceGenerationException, FormatterException {
+        GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse("""
+                type Query { book(id: ID!): Book }
+                type Book { author: Author! }
+                type Author { name: String! }
+                """));
+        String types = Formatter.format(TypesEmitter.emit(new ServiceModelMapper(schema, SERVICE_CLASSES, Map.of(),
+                Map.of("Query.book", "bookLoader", "Book.author", "authorLoader")).map(SERVICE_NAME)));
+
+        Assert.assertTrue(types.contains(
+                "resource function get book(graphql:Context context, @graphql:ID string id) returns Book?|error;"),
+                types);
+        Assert.assertTrue(types.contains("""
+                public distinct service class Book {
+                    function preAuthor(graphql:Context context) {
+                    }
+
+                    resource function get author(graphql:Context context) returns Author|error {
+                        return error("Not implemented");
+                    }
+                }
+                """), types);
+        Assert.assertFalse(types.contains("import ballerina/graphql.dataloader;"), types);
+    }
+
     private static String emit(String sdl, boolean useRecordsForObjects)
             throws ServiceGenerationException, FormatterException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
         return Formatter.format(
-                TypesEmitter.emit(ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects)));
+                TypesEmitter.emit(new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), Map.of())
+                        .map(SERVICE_NAME)));
     }
 }

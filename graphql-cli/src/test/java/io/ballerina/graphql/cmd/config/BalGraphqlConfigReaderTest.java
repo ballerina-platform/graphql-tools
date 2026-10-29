@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.cmd.config;
@@ -35,6 +35,7 @@ import java.nio.file.Paths;
 public class BalGraphqlConfigReaderTest {
 
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
+    private static final Path INVALID_CONFIG_DIR = CONFIG_DIR.resolve("invalid");
 
     private BalGraphqlConfig read(String fileName) throws IOException, ParseException {
         return read(fileName, new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
@@ -120,9 +121,35 @@ public class BalGraphqlConfigReaderTest {
                 "The balGraphQL.toml file is missing the [schema] section.");
     }
 
+    @Test(description = "Test that every non-string value in the mapping entries is reported")
+    public void testReadNonStringMappingFields() throws IOException {
+        assertReadFails("non-string-id-types.toml",
+                "The \"type\" field in [[id-types]] entry 1 should be a string. Found \"[int]\".");
+        assertReadFails("non-string-id-types.toml",
+                "The \"field\" field in [[id-types]] entry 2 should be a string. Found \"5\".");
+    }
+
+    @Test(description = "Test that missing and duplicate fields in the mapping entries are reported")
+    public void testReadInvalidMappingEntries() throws IOException {
+        assertReadFails("invalid-id-type-entries.toml",
+                "Required field \"type\" is not provided in [[id-types]] entry 1.");
+        assertReadFails("invalid-id-type-entries.toml",
+                "Required field \"field\" is not provided in [[id-types]] entry 2.");
+        assertReadFails("invalid-id-type-entries.toml", "\"Book.id\" is given more than once in [[id-types]].");
+    }
+
+    @Test(description = "Test that a mapping section written as a table instead of an array of tables is reported")
+    public void testReadMappingSectionAsTable() throws IOException {
+        assertReadFails("id-types-as-table.toml",
+                "The \"id-types\" section should be a list of [[id-types]] entries, each with \"field\" and \"type\".");
+        assertReadFails("id-types-as-table.toml", String.format(
+                "For example:%n[[id-types]]%nfield = \"Profile.id\"%ntype = \"int\""));
+    }
+
     private void assertReadFails(String fileName, String expectedMessage) throws IOException {
         try {
-            read(fileName);
+            BalGraphqlConfigReader.read(INVALID_CONFIG_DIR.resolve(fileName),
+                    new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
             Assert.fail("Expected a ParseException containing: " + expectedMessage);
         } catch (ParseException e) {
             Assert.assertTrue(e.getMessage().contains(expectedMessage), "Unexpected message: " + e.getMessage());

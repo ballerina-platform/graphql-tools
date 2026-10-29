@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.generator.common.mapper;
@@ -23,6 +23,7 @@ import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLTypeUtil;
 import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.generator.common.model.TypeModel;
@@ -37,6 +38,7 @@ public final class TypeMapper {
 
     private static final boolean NULLABLE = true;
     private static final boolean NON_NULL = false;
+    private static final boolean IS_ID = true;
     // A leading digit, or any character that is not a letter, digit or underscore.
     private static final Pattern INVALID_IDENTIFIER_CHARACTER = Pattern.compile("^\\p{Nd}|[^\\p{L}\\p{Nd}_]");
     private static final int FIRST_CHARACTER = 0;
@@ -55,7 +57,31 @@ public final class TypeMapper {
      * @throws IllegalArgumentException if the type is a custom scalar
      */
     public static TypeModel map(GraphQLType type) {
-        return map(type, NULLABLE);
+        return map(type, Scalar.ID.getBallerinaType());
+    }
+
+    /**
+     * Maps a GraphQL type to a Ballerina type, using the given Ballerina type for the GraphQL {@code ID} scalar,
+     * e.g. {@code [ID!]} to {@code int[]?} when the ID type is {@code int}.
+     *
+     * @param type   the GraphQL type
+     * @param idType the Ballerina type of the {@code ID} scalar, e.g. {@code int}
+     * @return the Ballerina type
+     * @throws IllegalArgumentException if the type is a custom scalar
+     */
+    public static TypeModel map(GraphQLType type, String idType) {
+        return map(type, NULLABLE, idType);
+    }
+
+    /**
+     * Checks whether a GraphQL type is the {@code ID} scalar, or a list of it, e.g. {@code ID!} or {@code [ID!]}.
+     *
+     * @param type the GraphQL type
+     * @return whether the type is the {@code ID} scalar, ignoring lists and non-null wrappers
+     */
+    public static boolean isId(GraphQLType type) {
+        return GraphQLTypeUtil.unwrapAll(type) instanceof GraphQLScalarType scalarType
+                && Scalar.fromGraphqlName(scalarType.getName()).filter(Scalar.ID::equals).isPresent();
     }
 
     /**
@@ -87,20 +113,18 @@ public final class TypeMapper {
                 : SyntaxKind.BACK_SLASH_TOKEN.stringValue() + character;
     }
 
-    private static TypeModel map(GraphQLType type, boolean nullable) {
+    private static TypeModel map(GraphQLType type, boolean nullable, String idType) {
         if (type instanceof GraphQLNonNull nonNull) {
-            return map(nonNull.getWrappedType(), NON_NULL);
+            return map(nonNull.getWrappedType(), NON_NULL, idType);
         }
         if (type instanceof GraphQLList list) {
-            return TypeModel.list(map(list.getWrappedType(), NULLABLE), nullable);
+            return TypeModel.list(map(list.getWrappedType(), NULLABLE, idType), nullable);
         }
         GraphQLNamedType namedType = (GraphQLNamedType) type;
-        return TypeModel.named(ballerinaName(namedType), nullable, isId(namedType));
-    }
-
-    private static boolean isId(GraphQLNamedType type) {
-        return type instanceof GraphQLScalarType
-                && Scalar.fromGraphqlName(type.getName()).filter(Scalar.ID::equals).isPresent();
+        if (isId(namedType)) {
+            return TypeModel.named(idType, nullable, IS_ID);
+        }
+        return TypeModel.named(ballerinaName(namedType), nullable);
     }
 
     private static String ballerinaName(GraphQLNamedType type) {

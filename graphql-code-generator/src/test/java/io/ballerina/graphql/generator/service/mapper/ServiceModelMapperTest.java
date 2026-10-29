@@ -1,19 +1,19 @@
 /*
- *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
  *
- *  WSO2 LLC. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package io.ballerina.graphql.generator.service.mapper;
@@ -27,6 +27,7 @@ import io.ballerina.graphql.generator.common.model.FieldModel;
 import io.ballerina.graphql.generator.common.model.InputTypeModel;
 import io.ballerina.graphql.generator.common.model.TypeModel;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
+import io.ballerina.graphql.generator.service.model.DataLoaderModel;
 import io.ballerina.graphql.generator.service.model.ParameterModel;
 import io.ballerina.graphql.generator.service.model.ResolverKind;
 import io.ballerina.graphql.generator.service.model.ResolverModel;
@@ -38,6 +39,7 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Tests building the service model from a GraphQL schema.
@@ -49,6 +51,9 @@ public class ServiceModelMapperTest {
     private static final boolean RECORDS = true;
     private static final boolean NULLABLE = true;
     private static final boolean NON_NULL = false;
+    private static final boolean ID = true;
+    private static final boolean LOADS_VALUE = true;
+    private static final boolean NO_LOADED_VALUE = false;
     private static final String NO_DEFAULT = null;
     private static final String NO_DESCRIPTION = null;
     private static final String NOT_DEPRECATED = null;
@@ -258,9 +263,186 @@ public class ServiceModelMapperTest {
                 error.getMessage());
     }
 
+    @Test(description = "Test that configured ID types are used for fields, arguments and input fields")
+    public void testIdTypes() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { profile(id: ID!): Profile, getFloatId: ID! }
+                type Mutation { updateProfile(input: ProfileInput!): Profile }
+                type Profile { id: ID!, name: String!, friendIds: [ID!]! }
+                input ProfileInput { id: ID! }
+                """, Map.of("Profile.id", "int", "Query.profile.id", "int", "Query.getFloatId", "float",
+                "ProfileInput.id", "decimal"));
+
+        Assert.assertEquals(resolver(model.queries(), "profile").parameters().get(0).type(),
+                TypeModel.named("int", NON_NULL, ID));
+        Assert.assertEquals(resolver(model.queries(), "getFloatId").returnType(),
+                TypeModel.named("float", NON_NULL, ID));
+        Assert.assertEquals(resolver(definition(model, "Profile").fields(), "id").returnType(),
+                TypeModel.named("int", NON_NULL, ID));
+        Assert.assertEquals(resolver(definition(model, "Profile").fields(), "friendIds").returnType(),
+                TypeModel.list(TypeModel.named("string", NON_NULL, ID), NON_NULL), "An unmapped ID stays a string");
+        Assert.assertEquals(model.inputTypes().get(0).fields().get(0).type(),
+                TypeModel.named("decimal", NON_NULL, ID));
+    }
+
+    @Test(description = "Test that uuid:Uuid can be configured as an ID type")
+    public void testUuidIdType() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { profile: Profile }
+                type Profile { id: ID! }
+                """, Map.of("Profile.id", "uuid:Uuid"));
+
+        Assert.assertEquals(resolver(definition(model, "Profile").fields(), "id").returnType(),
+                TypeModel.named("uuid:Uuid", NON_NULL, ID));
+    }
+
+    @Test(description = "Test that a configured ID type applies to every item of an ID list")
+    public void testIdTypeForList() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { profile: Profile }
+                type Profile { friendIds: [ID!]! }
+                """, Map.of("Profile.friendIds", "int"));
+
+        Assert.assertEquals(resolver(definition(model, "Profile").fields(), "friendIds").returnType(),
+                TypeModel.list(TypeModel.named("int", NON_NULL, ID), NON_NULL));
+    }
+
+    @Test(description = "Test that a type implementing an interface uses the ID type configured on the interface")
+    public void testIdTypeFromInterface() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { node: Node }
+                interface Node { id: ID! }
+                type Profile implements Node { id: ID! }
+                """, Map.of("Node.id", "int"));
+
+        Assert.assertEquals(resolver(definition(model, "Node").fields(), "id").returnType(),
+                TypeModel.named("int", NON_NULL, ID));
+        Assert.assertEquals(resolver(definition(model, "Profile").fields(), "id").returnType(),
+                TypeModel.named("int", NON_NULL, ID));
+    }
+
+    @Test(description = "Test that every invalid ID type mapping is reported")
+    public void testInvalidIdTypesRejected() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class, () -> map("""
+                type Query { profile(id: ID!): Profile }
+                type Profile { id: ID!, name: String! }
+                """, Map.of("Profile.nope", "int", "Profile.name", "int", "Profile.id", "long")));
+
+        Assert.assertTrue(error.getMessage().contains(
+                "\"Profile.nope\" in [[id-types]] does not match any field or argument in the schema."),
+                error.getMessage());
+        Assert.assertTrue(error.getMessage().contains(
+                "\"Profile.name\" in [[id-types]] is not an ID field or argument."), error.getMessage());
+        Assert.assertTrue(error.getMessage().contains(
+                "\"long\" is not a supported ID type for \"Profile.id\". Use string, int, float, decimal or "
+                        + "uuid:Uuid."),
+                error.getMessage());
+    }
+
+    @Test(description = "Test that an ID type that differs from the implemented interface is rejected")
+    public void testIdTypeDifferentFromInterfaceRejected() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class, () -> map("""
+                type Query { node: Node }
+                interface Node { id: ID! }
+                type Profile implements Node { id: ID! }
+                """, Map.of("Profile.id", "int")));
+
+        Assert.assertTrue(error.getMessage().contains(
+                "\"Profile.id\" in [[id-types]] must use the same type as \"Node.id\" (\"string\")."),
+                error.getMessage());
+    }
+
+    @Test(description = "Test that a field wired to a DataLoader uses its arguments as the key")
+    public void testDataLoaders() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { profile(id: ID!): Profile search(name: String!, age: Int): Profile }
+                type Profile { name: String! }
+                """, RECORDS, Map.of("Query.profile", "profileLoader", "Query.search", "searchLoader"));
+
+        Assert.assertEquals(resolver(model.queries(), "profile").dataLoader(),
+                new DataLoaderModel("profileLoader", "preProfile", List.of("id"), LOADS_VALUE));
+        Assert.assertEquals(resolver(model.queries(), "search").dataLoader(),
+                new DataLoaderModel("searchLoader", "preSearch", List.of("name", "age"), LOADS_VALUE));
+        Assert.assertEquals(model.dataLoaderNames(), List.of("profileLoader", "searchLoader"));
+    }
+
+    @Test(description = "Test that a DataLoader field returns no loaded value without a key or a plain data type")
+    public void testDataLoadersWithoutLoadedValue() throws ServiceGenerationException {
+        ServiceModel model = map("""
+                type Query { profile(id: ID!): Profile book(id: ID!): Book }
+                type Profile { name: String! }
+                type Book { author: Profile! }
+                """, SERVICE_CLASSES, Map.of("Query.profile", "profileLoader", "Book.author", "profileLoader"));
+
+        Assert.assertEquals(resolver(model.queries(), "profile").dataLoader(),
+                new DataLoaderModel("profileLoader", "preProfile", List.of("id"), NO_LOADED_VALUE));
+        Assert.assertEquals(resolver(definition(model, "Book").fields(), "author").dataLoader(),
+                new DataLoaderModel("profileLoader", "preAuthor", List.of(), NO_LOADED_VALUE));
+        Assert.assertEquals(model.dataLoaderNames(), List.of("profileLoader"));
+    }
+
+    @Test(description = "Test that every invalid DataLoader mapping is reported")
+    public void testInvalidDataLoadersRejected() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class, () -> map("""
+                type Query { profile(id: ID!): Profile node: Node }
+                type Mutation { addProfile(name: String!): Profile }
+                interface Node { id: ID! }
+                type Profile implements Node { id: ID! name: String! }
+                """, SERVICE_CLASSES, Map.of("Query.nope", "nopeLoader", "Query.profile.id", "idLoader",
+                "Mutation.addProfile", "addLoader", "Profile.id", "idLoader", "Profile.name", "type",
+                "Query.profile", "profile-loader")));
+
+        Assert.assertTrue(error.getMessage().contains(
+                "\"Query.nope\" in [[dataloaders]] does not match any object type field in the schema."),
+                error.getMessage());
+        Assert.assertTrue(error.getMessage().contains(
+                "\"Query.profile.id\" in [[dataloaders]] does not match any object type field in the schema."),
+                error.getMessage());
+        Assert.assertTrue(error.getMessage().contains("\"Mutation.addProfile\" in [[dataloaders]] cannot use a "
+                        + "DataLoader. Only Query fields and object type fields can."), error.getMessage());
+        Assert.assertTrue(error.getMessage().contains("\"Profile.id\" in [[dataloaders]] cannot use a DataLoader, as "
+                        + "the field comes from the interface \"Node\"."), error.getMessage());
+        Assert.assertTrue(error.getMessage().contains(
+                "\"type\" in [[dataloaders]] is not a valid Ballerina function name for \"Profile.name\"."),
+                error.getMessage());
+        Assert.assertTrue(error.getMessage().contains(
+                "\"profile-loader\" in [[dataloaders]] is not a valid Ballerina function name for \"Query.profile\"."),
+                error.getMessage());
+    }
+
+    @Test(description = "Test that a DataLoader on a field of a type generated as a record is rejected")
+    public void testDataLoaderOnRecordFieldRejected() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class, () -> map("""
+                type Query { book: Book }
+                type Book { author: String! }
+                """, RECORDS, Map.of("Book.author", "authorLoader")));
+
+        Assert.assertTrue(error.getMessage().contains(
+                "\"Book.author\" in [[dataloaders]] cannot use a DataLoader, as \"Book\" is generated as a record."),
+                error.getMessage());
+    }
+
     private static ServiceModel map(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return ServiceModelMapper.map(schema, SERVICE_NAME, useRecordsForObjects);
+        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), Map.of()).map(SERVICE_NAME);
+    }
+
+    private static ServiceModel map(String sdl, Map<String, String> idTypes) throws ServiceGenerationException {
+        GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
+        return new ServiceModelMapper(schema, SERVICE_CLASSES, idTypes, Map.of()).map(SERVICE_NAME);
+    }
+
+    private static ServiceModel map(String sdl, boolean useRecordsForObjects, Map<String, String> dataLoaders)
+            throws ServiceGenerationException {
+        GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
+        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), dataLoaders).map(SERVICE_NAME);
+    }
+
+    private static ResolverModel resolver(List<ResolverModel> resolvers, String name) {
+        return resolvers.stream()
+                .filter(resolver -> resolver.name().equals(name))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No resolver named " + name));
     }
 
     private static TypeDefinitionModel definition(ServiceModel model, String name) {
