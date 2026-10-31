@@ -119,20 +119,50 @@ public class ServiceCodeGeneratorTest {
         Assert.assertEquals(generate(schemaName, SERVICE_CLASSES, SERVICE_FILE), expected(expectedFile));
     }
 
-    @Test(description = "Test that a schema file name that is not a valid identifier is escaped")
-    public void testGenerateWithEscapedServiceName() throws IOException, ServiceGenerationException {
+    @Test(description = "Test that a schema file name that is not a valid identifier gives a PascalCase service name")
+    public void testGenerateWithHyphenatedFileName() throws IOException, ServiceGenerationException {
         String types = generate("SchemaWith-HyphenApi", SERVICE_CLASSES, TYPES_FILE);
         String service = generate("SchemaWith-HyphenApi", SERVICE_CLASSES, SERVICE_FILE);
 
-        Assert.assertTrue(types.contains("type SchemaWith\\-HyphenApi service object {"), types);
-        Assert.assertTrue(service.contains("service SchemaWith\\-HyphenApi on new graphql:Listener(port) {"),
+        Assert.assertTrue(types.contains("type SchemaWithHyphenApiService service object {"), types);
+        Assert.assertTrue(service.contains("service SchemaWithHyphenApiService on new graphql:Listener(port) {"),
                 service);
+    }
+
+    @Test(description = "Test that only the last extension is removed from a schema file name that has dots")
+    public void testGenerateWithDottedFileName() throws ServiceGenerationException {
+        GraphqlServiceProject project = new GraphqlServiceProject(ROOT_PROJECT_NAME,
+                Paths.get("schemas", "books.v2.graphql").toString(), OUTPUT_PATH);
+        project.setGraphQLSchema(UnExecutableSchemaGenerator.makeUnExecutableSchema(
+                new SchemaParser().parse("type Query { book: String }")));
+
+        String types = content(new ServiceCodeGenerator().generateBalSources(project), TYPES_FILE);
+
+        Assert.assertTrue(types.contains("type BooksV2Service service object {"), types);
+    }
+
+    @Test(description = "Test that non-ASCII letters in a schema file name are kept in the service name")
+    public void testGenerateWithUnicodeFileName() throws ServiceGenerationException {
+        GraphqlServiceProject project = new GraphqlServiceProject(ROOT_PROJECT_NAME,
+                Paths.get("schemas", "café-api.graphql").toString(), OUTPUT_PATH);
+        project.setGraphQLSchema(UnExecutableSchemaGenerator.makeUnExecutableSchema(
+                new SchemaParser().parse("type Query { book: String }")));
+
+        List<SrcFilePojo> sources = new ServiceCodeGenerator().generateBalSources(project);
+
+        Assert.assertTrue(content(sources, TYPES_FILE).contains("type CaféApiService service object {"),
+                content(sources, TYPES_FILE));
+        Assert.assertTrue(content(sources, SERVICE_FILE).contains(
+                "service CaféApiService on new graphql:Listener(port) {"), content(sources, SERVICE_FILE));
     }
 
     private String generate(String schemaName, boolean useRecordsForObjects, String fileName)
             throws IOException, ServiceGenerationException {
-        List<SrcFilePojo> sources = new ServiceCodeGenerator(useRecordsForObjects)
-                .generateBalSources(project(schemaName));
+        return content(new ServiceCodeGenerator(useRecordsForObjects).generateBalSources(project(schemaName)),
+                fileName);
+    }
+
+    private static String content(List<SrcFilePojo> sources, String fileName) {
         return sources.stream()
                 .filter(source -> source.getFileName().equals(fileName))
                 .findFirst()

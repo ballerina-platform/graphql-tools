@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaWithDefaultParameters02Api service object {
+type SchemaWithDefaultParameters02ApiService service object {
     *graphql:Service;
     resource function get book(int id, Availability? available = UNAVAILABLE) returns Book?|error;
     remote function addBook(string title, int authorId) returns Book?|error;

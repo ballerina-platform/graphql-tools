@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaWithEnumApi service object {
+type SchemaWithEnumApiService service object {
     *graphql:Service;
     resource function get student(int id) returns Student?|error;
 };

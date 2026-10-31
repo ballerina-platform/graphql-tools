@@ -20,6 +20,7 @@ package io.ballerina.graphql.generator;
 
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.utils.GenerationType;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * Represents a GraphQL project in source file.
@@ -58,8 +59,7 @@ public abstract class GraphqlProject {
     }
 
     public String getFileName() {
-        String[] splits = schema.split("\\\\|/");
-        return splits[splits.length - 1].split("\\.")[0];
+        return FilenameUtils.getBaseName(schema);
     }
 
     public void setGraphQLSchema(GraphQLSchema graphQLSchema) {
