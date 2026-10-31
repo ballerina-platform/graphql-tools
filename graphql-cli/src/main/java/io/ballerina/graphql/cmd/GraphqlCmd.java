@@ -62,6 +62,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
                 "              [--mode <client|service>]",
                 "              [--module <module-name>]",
                 "              [--object-type <service|record>]",
+                "              [--service-name <service-name>]",
                 "              [-f | --force]",
                 "              [-d | --dry-run]"},
         descriptionHeading = "%nDESCRIPTION%n",
@@ -82,6 +83,8 @@ public class GraphqlCmd implements BLauncherCmd {
             "\"%s\" is not a supported value for --object-type. It should be either \"service\" or \"record\".";
     private static final String ERROR_OBJECT_TYPE_NOT_SUPPORTED =
             "The --object-type flag only applies to service generation. It cannot be used with \"%s\".";
+    private static final String ERROR_SERVICE_NAME_NOT_SUPPORTED =
+            "The --service-name flag only applies to service generation. It cannot be used with \"%s\".";
     private static final String ERROR_MODULE_NOT_SUPPORTED =
             "The --module flag only applies to client and service generation. It cannot be used with \"%s\".";
     private static final String ERROR_UNKNOWN_OPTION =
@@ -103,6 +106,8 @@ public class GraphqlCmd implements BLauncherCmd {
                     "    $ bal graphql balGraphQL.toml%n%n" +
                     "  Generate a Ballerina GraphQL service, using record types for object types:%n" +
                     "    $ bal graphql balGraphQL.toml --mode service --object-type record%n%n" +
+                    "  Generate a Ballerina GraphQL service named \"OrdersService\":%n" +
+                    "    $ bal graphql balGraphQL.toml --mode service --service-name orders%n%n" +
                     "  Generate a Ballerina GraphQL client into the \"countries\" module of the package:%n" +
                     "    $ bal graphql balGraphQL.toml --mode client --module countries%n%n" +
                     "  Preview the files without writing them, then overwrite existing files:%n" +
@@ -124,6 +129,9 @@ public class GraphqlCmd implements BLauncherCmd {
                     + "The module is created if it does not exist.";
     private static final String OBJECT_TYPE_DESCRIPTION =
             "How GraphQL object types are generated in service generation: service (default) or record.";
+    private static final String SERVICE_NAME_DESCRIPTION =
+            "Base name for the generated service, e.g. orders gives OrdersService. Defaults to the schema file "
+                    + "name, or for a url or introspection schema, the module or package name.";
     private static final String FORCE_DESCRIPTION =
             "Overwrite output files that already exist. Without it, existing files are skipped with a warning.";
     private static final String DRY_RUN_DESCRIPTION =
@@ -160,6 +168,10 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = "--object-type", paramLabel = "<service|record>",
             description = OBJECT_TYPE_DESCRIPTION)
     private String objectType;
+
+    @CommandLine.Option(names = "--service-name", paramLabel = "<service-name>",
+            description = SERVICE_NAME_DESCRIPTION)
+    private String serviceName;
 
     @CommandLine.Option(names = {"-f", "--force"}, description = FORCE_DESCRIPTION)
     private boolean force;
@@ -270,6 +282,10 @@ public class GraphqlCmd implements BLauncherCmd {
             }
         }
 
+        if (serviceName != null && !inputPath.endsWith(GRAPHQL_EXTENSION) && !isConfigFileInput(inputPath)) {
+            throw new CmdException(String.format(ERROR_SERVICE_NAME_NOT_SUPPORTED, inputPath));
+        }
+
         if (moduleName != null && OperationMode.fromInputPath(inputPath).orElse(null) == OperationMode.SCHEMA) {
             throw new CmdException(String.format(ERROR_MODULE_NOT_SUPPORTED, inputPath));
         }
@@ -307,7 +323,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private void executeOperation() throws GenerationException {
         GenerationContext context = new GenerationContext(inputPath,
                 OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
-                ObjectType.fromValue(objectType).orElse(null), moduleName, force, dryRun, outStream);
+                ObjectType.fromValue(objectType).orElse(null), moduleName, serviceName, force, dryRun, outStream);
         GenerationEngine.run(context);
         if (dryRun) {
             context.getDryRunReport().print(outStream);

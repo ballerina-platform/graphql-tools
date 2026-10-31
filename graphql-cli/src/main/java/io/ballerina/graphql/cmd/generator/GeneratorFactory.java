@@ -37,6 +37,8 @@ public class GeneratorFactory {
             "The operation to perform could not be resolved from the input \"%s\".";
     private static final String ERROR_OBJECT_TYPE_FOR_CLIENT =
             "The --object-type flag only applies to service generation. \"%s\" resolves to client generation.";
+    private static final String ERROR_SERVICE_NAME_FOR_CLIENT =
+            "The --service-name flag only applies to service generation. \"%s\" resolves to client generation.";
 
     private GeneratorFactory() {}
 
@@ -47,6 +49,9 @@ public class GeneratorFactory {
             OperationMode operationMode = resolveOperationMode(context, config);
             if (operationMode == OperationMode.CLIENT && context.isObjectTypeDeclared()) {
                 throw new GenerationException(String.format(ERROR_OBJECT_TYPE_FOR_CLIENT, inputPath));
+            }
+            if (operationMode == OperationMode.CLIENT && context.getServiceName() != null) {
+                throw new GenerationException(String.format(ERROR_SERVICE_NAME_FOR_CLIENT, inputPath));
             }
             return createGenerator(operationMode, context, config);
         }

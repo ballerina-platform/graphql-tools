@@ -49,8 +49,13 @@ public class GeneratorFactoryTest {
 
     private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode,
                                             ObjectType declaredObjectType) {
+        return createContext(inputPath, declaredOperationMode, declaredObjectType, null);
+    }
+
+    private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode,
+                                            ObjectType declaredObjectType, String serviceName) {
         return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, null, declaredObjectType, null,
-                NO_FORCE, NO_DRY_RUN, System.out);
+                serviceName, NO_FORCE, NO_DRY_RUN, System.out);
     }
 
     private Generator getGeneratorForConfig(String fileName) throws GenerationException {
@@ -71,6 +76,16 @@ public class GeneratorFactoryTest {
             Assert.assertTrue(e.getMessage().contains("only applies to service generation"),
                     "Unexpected message: " + e.getMessage());
         }
+    }
+
+    @Test(description = "Test that a service name is rejected for a client configuration file")
+    public void testGetGeneratorForClientConfigWithServiceName() {
+        String configPath = CONFIG_DIR.resolve("client-config.toml").toString();
+        GenerationException error = Assert.expectThrows(GenerationException.class,
+                () -> GeneratorFactory.getGenerator(createContext(configPath, null, null, "orders")));
+
+        Assert.assertTrue(error.getMessage().contains(String.format("The --service-name flag only applies to service "
+                + "generation. \"%s\" resolves to client generation.", configPath)), error.getMessage());
     }
 
     @Test(description = "Test that the object type defaults to service when the flag is not given")

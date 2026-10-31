@@ -49,6 +49,7 @@ import io.ballerina.graphql.generator.common.model.EnumModel;
 import io.ballerina.graphql.generator.common.model.EnumValueModel;
 import io.ballerina.graphql.generator.common.model.FieldModel;
 import io.ballerina.graphql.generator.common.model.InputTypeModel;
+import io.ballerina.graphql.generator.service.ServiceBaseName;
 import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.model.DataLoaderModel;
@@ -115,10 +116,12 @@ public final class ServiceModelMapper {
     private static final Pattern DATALOADER_NAME = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
     private static final String PREFETCH_METHOD_FORMAT = "pre%s%s";
     private static final String ERROR_INVALID_SERVICE_NAME =
-            "Cannot name the service from \"%s\". The name must start with a letter. Rename the schema file.";
+            "Cannot name the service from the %s \"%s\". The name must start with a letter. %s";
     private static final String ERROR_SERVICE_NAME_CLASH =
-            "Service name \"%s\" is already used by a type in the schema.";
-    private static final Pattern SERVICE_NAME_SEPARATOR = Pattern.compile("[^A-Za-z0-9]+");
+            "Service name \"%s\", made from the %s \"%s\", is already used by a type in the schema. %s";
+    private static final String ERROR_SERVICE_NAME_DEFINED =
+            "Service name \"%s\", made from the %s \"%s\", is already defined in \"%s\". %s";
+    private static final Pattern SERVICE_NAME_SEPARATOR = Pattern.compile("[^\\p{L}\\p{M}\\p{N}]+");
     private static final String SERVICE_NAME_SUFFIX = "Service";
     private static final String PATH_SEPARATOR = ".";
     private static final int TYPE_PART = 0;
@@ -159,18 +162,26 @@ public final class ServiceModelMapper {
 
     /**
      * Builds the service model for the schema.
+     * <p>
+     * The service name is the base name split on every character that is not a letter or digit, with each part
+     * capitalised and joined, and {@code Service} added unless the result already ends with it. The check is
+     * case-sensitive and runs after capitalising, so {@code book-service} gives {@code BookService},
+     * {@code bookservice} gives {@code BookserviceService}, and {@code service} gives {@code Service}.
      *
-     * @param baseName the name the service is named after, e.g. the schema file name; {@code book-api} gives
-     *                 {@code BookApiService}
+     * @param baseName         the name the service is named after and where it came from; {@code book-api} gives
+     *                          {@code BookApiService}
+     * @param moduleDefinitions the top-level names the target module already defines outside the generated files,
+     *                          each mapped to the file that defines it
      * @return the service model
      * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, an
      *                                    ID type or DataLoader mapping is invalid, or no valid service name can be
      *                                    made from the base name
      */
-    public ServiceModel map(String baseName) throws ServiceGenerationException {
+    public ServiceModel map(ServiceBaseName baseName, Map<String, String> moduleDefinitions)
+            throws ServiceGenerationException {
         try {
             validate();
-            return buildModel(serviceName(baseName));
+            return buildModel(serviceName(baseName, moduleDefinitions));
         } catch (IllegalArgumentException e) {
             throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102,
                     NullLocation.getInstance(), e.getMessage());
@@ -189,21 +200,33 @@ public final class ServiceModelMapper {
                 typeDefinitions(types), inputTypes(types), enums(types));
     }
 
-    private String serviceName(String baseName) {
-        String name = SERVICE_NAME_SEPARATOR.splitAsStream(baseName)
+    private String serviceName(ServiceBaseName baseName, Map<String, String> moduleDefinitions) {
+        ServiceBaseName.Source source = baseName.source();
+        String name = SERVICE_NAME_SEPARATOR.splitAsStream(baseName.name())
                 .filter(part -> !part.isEmpty())
-                .map(part -> Character.toUpperCase(part.charAt(0)) + part.substring(1))
+                .map(ServiceModelMapper::capitalize)
                 .collect(Collectors.joining());
-        if (name.isEmpty() || !Character.isLetter(name.charAt(0))) {
-            throw new IllegalArgumentException(String.format(ERROR_INVALID_SERVICE_NAME, baseName));
+        if (name.isEmpty() || !Character.isLetter(name.codePointAt(0))) {
+            throw new IllegalArgumentException(String.format(ERROR_INVALID_SERVICE_NAME, source.label(),
+                    baseName.name(), source.advice()));
         }
         if (!name.endsWith(SERVICE_NAME_SUFFIX)) {
             name += SERVICE_NAME_SUFFIX;
         }
         if (schema.getType(name) != null) {
-            throw new IllegalArgumentException(String.format(ERROR_SERVICE_NAME_CLASH, name));
+            throw new IllegalArgumentException(String.format(ERROR_SERVICE_NAME_CLASH, name, source.label(),
+                    baseName.name(), source.advice()));
+        }
+        if (moduleDefinitions.containsKey(name)) {
+            throw new IllegalArgumentException(String.format(ERROR_SERVICE_NAME_DEFINED, name, source.label(),
+                    baseName.name(), moduleDefinitions.get(name), source.advice()));
         }
         return name;
+    }
+
+    private static String capitalize(String part) {
+        int first = part.codePointAt(0);
+        return Character.toString(Character.toUpperCase(first)) + part.substring(Character.charCount(first));
     }
 
     private boolean isRootType(GraphQLNamedType type) {

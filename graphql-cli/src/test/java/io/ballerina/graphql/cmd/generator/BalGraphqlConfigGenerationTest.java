@@ -36,6 +36,7 @@ import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -231,6 +232,93 @@ public class BalGraphqlConfigGenerationTest {
         Assert.assertTrue(types.contains("type MyShopService service object {"), types);
     }
 
+    @Test(description = "Test that a given service name is used instead of the module or package name")
+    public void testUrlSchemaServiceNamedAfterGivenName() throws IOException, ParseException, GenerationException {
+        Path packagePath = createBallerinaPackage(Files.createTempDirectory("given-service-name"));
+        generateService(writeConfig(urlConfig("/schema.graphql")), packagePath, "orders", "shop-api");
+
+        String types = Files.readString(packagePath.resolve("modules").resolve("orders").resolve("types.bal"));
+        Assert.assertTrue(types.contains("type ShopApiService service object {"), types);
+    }
+
+    @Test(description = "Test that a given service name that does not start with a letter is rejected")
+    public void testInvalidGivenServiceName() throws IOException, ParseException {
+        Path packagePath = createBallerinaPackage(Files.createTempDirectory("invalid-service-name"));
+        Path configPath = writeConfig(urlConfig("/schema.graphql"));
+
+        GenerationException error = Assert.expectThrows(GenerationException.class,
+                () -> generateService(configPath, packagePath, null, "1shop"));
+        Assert.assertTrue(error.getMessage().contains("Cannot name the service from the given name \"1shop\". "
+                + "The name must start with a letter. Choose another name."), error.getMessage());
+    }
+
+    @DataProvider
+    public Object[][] packageServiceNames() {
+        return new Object[][]{
+                {"shop", "name = \"shop.api\"", "ShopApiService"},
+                {"shop", "name = \"my_shop\"", "MyShopService"},
+                {"my-shop", "", "MyShopService"},
+                {"123shop", "", "App123shopService"}
+        };
+    }
+
+    @Test(description = "Test that a service from a url schema is named after the package name, or the folder when "
+            + "the package has no name", dataProvider = "packageServiceNames")
+    public void testUrlSchemaServiceNamedAfterPackageOrFolder(String folder, String nameEntry, String serviceName)
+            throws IOException, ParseException, GenerationException {
+        Path packagePath = createPackage(folder, nameEntry);
+        generateService(writeConfig(urlConfig("/schema.graphql")), packagePath);
+
+        String types = Files.readString(packagePath.resolve("types.bal"));
+        Assert.assertTrue(types.contains("type " + serviceName + " service object {"), types);
+    }
+
+    @Test(description = "Test that a package name that does not start with a letter is rejected")
+    public void testInvalidPackageServiceName() throws IOException, ParseException {
+        Path packagePath = createPackage("shop", "name = \"123shop\"");
+        Path configPath = writeConfig(urlConfig("/schema.graphql"));
+
+        GenerationException error = Assert.expectThrows(GenerationException.class,
+                () -> generateService(configPath, packagePath));
+        Assert.assertTrue(error.getMessage().contains("Cannot name the service from the package \"123shop\". "
+                + "The name must start with a letter. Rename the package in Ballerina.toml, or set a name with "
+                + "--service-name."), error.getMessage());
+    }
+
+    @Test(description = "Test that a service name already defined in the target module is rejected")
+    public void testServiceNameDefinedInModule() throws IOException, ParseException {
+        Path packagePath = createBallerinaPackage(Files.createTempDirectory("defined-service-name"));
+        Path modulePath = Files.createDirectories(packagePath.resolve("modules").resolve("orders"));
+        Files.writeString(modulePath.resolve("main.bal"), "public type OrdersService record {};\n");
+        Path configPath = writeConfig(urlConfig("/schema.graphql"));
+
+        GenerationException error = Assert.expectThrows(GenerationException.class,
+                () -> generateService(configPath, packagePath, "orders"));
+        Assert.assertTrue(error.getMessage().contains("Service name \"OrdersService\", made from the module "
+                + "\"orders\", is already defined in \"main.bal\". Rename the module, or set a name with "
+                + "--service-name."), error.getMessage());
+        Assert.assertFalse(Files.exists(modulePath.resolve("types.bal")));
+    }
+
+    @Test(description = "Test that generating again does not clash with the service name from the previous run")
+    public void testRegenerateKeepsServiceName() throws IOException, ParseException, GenerationException {
+        Path packagePath = createBallerinaPackage(Files.createTempDirectory("regenerate-service-name"));
+        Path configPath = writeConfig(urlConfig("/schema.graphql"));
+        generateService(configPath, packagePath);
+
+        generateService(configPath, packagePath);
+
+        String types = Files.readString(packagePath.resolve("types.bal"));
+        Assert.assertTrue(types.contains("type GraphqlTestService service object {"), types);
+    }
+
+    private static Path createPackage(String folder, String nameEntry) throws IOException {
+        Path packagePath = Files.createDirectories(Files.createTempDirectory("package-name").resolve(folder));
+        Files.writeString(packagePath.resolve("Ballerina.toml"),
+                "[package]\norg = \"test\"\n" + nameEntry + "\nversion = \"0.1.0\"\n");
+        return packagePath;
+    }
+
     private void generateService(Path configPath, Path packagePath)
             throws IOException, ParseException, GenerationException {
         generateService(configPath, packagePath, null);
@@ -238,8 +326,13 @@ public class BalGraphqlConfigGenerationTest {
 
     private void generateService(Path configPath, Path packagePath, String moduleName)
             throws IOException, ParseException, GenerationException {
+        generateService(configPath, packagePath, moduleName, null);
+    }
+
+    private void generateService(Path configPath, Path packagePath, String moduleName, String serviceName)
+            throws IOException, ParseException, GenerationException {
         GenerationContext context = new GenerationContext(configPath.toString(), null, packagePath, null, null,
-                moduleName, NO_FORCE, NO_DRY_RUN, System.out);
+                moduleName, serviceName, NO_FORCE, NO_DRY_RUN, System.out);
         Generator generator = new ServiceGeneration(context, readConfig(configPath));
         generator.validate();
         generator.generate();
@@ -260,7 +353,7 @@ public class BalGraphqlConfigGenerationTest {
 
     private GenerationContext createContext(Path configPath, Path targetOutputPath, ObjectType declaredObjectType) {
         return new GenerationContext(configPath.toString(), null, targetOutputPath, null, declaredObjectType, null,
-                NO_FORCE, NO_DRY_RUN, System.out);
+                null, NO_FORCE, NO_DRY_RUN, System.out);
     }
 
     private BalGraphqlConfig readConfig(Path configPath) throws IOException, ParseException {

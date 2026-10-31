@@ -26,6 +26,7 @@ import io.ballerina.graphql.generator.common.model.EnumValueModel;
 import io.ballerina.graphql.generator.common.model.FieldModel;
 import io.ballerina.graphql.generator.common.model.InputTypeModel;
 import io.ballerina.graphql.generator.common.model.TypeModel;
+import io.ballerina.graphql.generator.service.ServiceBaseName;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.model.DataLoaderModel;
 import io.ballerina.graphql.generator.service.model.ParameterModel;
@@ -47,7 +48,8 @@ import java.util.Map;
  */
 public class ServiceModelMapperTest {
 
-    private static final String BASE_NAME = "BookApi";
+    private static final ServiceBaseName BASE_NAME =
+            new ServiceBaseName("BookApi", ServiceBaseName.Source.SCHEMA_FILE);
     private static final String SERVICE_NAME = "BookApiService";
     private static final String BOOK_QUERY = "type Query { book: String }";
     private static final boolean SERVICE_CLASSES = false;
@@ -440,57 +442,128 @@ public class ServiceModelMapperTest {
                 {"book api", "BookApiService"},
                 {"bookApi", "BookApiService"},
                 {"book-service", "BookService"},
-                {"books.v2", "BooksV2Service"}
+                {"books.v2", "BooksV2Service"},
+                {"café-api", "CaféApiService"},
+                {"café-api", "CaféApiService"},
+                {"книга", "КнигаService"},
+                {"图书-api", "图书ApiService"},
+                {"𠀀-api", "𠀀ApiService"},
+                {"book٢", "Book٢Service"},
+                {"BookService", "BookService"},
+                {"bookservice", "BookserviceService"},
+                {"book-services", "BookServicesService"},
+                {"service", "Service"}
         };
     }
 
-    @Test(description = "Test that a base name that does not start with a letter is rejected",
-            dataProvider = "invalidServiceNames")
-    public void testInvalidServiceName(String baseName) {
+    @Test(description = "Test that a base name that does not start with a letter is rejected with advice for its "
+            + "source", dataProvider = "invalidServiceNames")
+    public void testInvalidServiceName(String baseName, ServiceBaseName.Source source, String message) {
         ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class,
-                () -> mapWithBaseName(BOOK_QUERY, baseName));
+                () -> mapWithBaseName(BOOK_QUERY, baseName, source));
 
-        Assert.assertTrue(error.getMessage().contains(String.format(
-                "Cannot name the service from \"%s\". The name must start with a letter. Rename the schema file.",
-                baseName)), error.getMessage());
+        Assert.assertTrue(error.getMessage().contains(message), error.getMessage());
     }
 
     @DataProvider
     public Object[][] invalidServiceNames() {
-        return new Object[][]{{"1books"}, {"---"}};
+        return new Object[][]{
+                {"1books", ServiceBaseName.Source.SCHEMA_FILE, "Cannot name the service from the schema file "
+                        + "\"1books\". The name must start with a letter. Rename the schema file, or set a name "
+                        + "with --service-name."},
+                {"---", ServiceBaseName.Source.SCHEMA_FILE, "Cannot name the service from the schema file "
+                        + "\"---\". The name must start with a letter. Rename the schema file, or set a name "
+                        + "with --service-name."},
+                {"123shop", ServiceBaseName.Source.PACKAGE, "Cannot name the service from the package "
+                        + "\"123shop\". The name must start with a letter. Rename the package in Ballerina.toml, "
+                        + "or set a name with --service-name."},
+                {"1shop", ServiceBaseName.Source.GIVEN, "Cannot name the service from the given name "
+                        + "\"1shop\". The name must start with a letter. Choose another name."},
+                {"٢books", ServiceBaseName.Source.SCHEMA_FILE, "Cannot name the service from the schema file "
+                        + "\"٢books\". The name must start with a letter. Rename the schema file, or set a name "
+                        + "with --service-name."}
+        };
     }
 
-    @Test(description = "Test that a service name used by a schema type is rejected")
-    public void testServiceNameClash() {
+    @Test(description = "Test that a service name used by a schema type is rejected with advice for its source",
+            dataProvider = "clashingServiceNames")
+    public void testServiceNameClash(String baseName, ServiceBaseName.Source source, String message) {
         ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class,
                 () -> mapWithBaseName("""
                         type Query { book: SchemaService }
                         type SchemaService { name: String! }
-                        """, "schema"));
+                        """, baseName, source));
 
-        Assert.assertTrue(error.getMessage().contains(
-                "Service name \"SchemaService\" is already used by a type in the schema."), error.getMessage());
+        Assert.assertTrue(error.getMessage().contains(message), error.getMessage());
+    }
+
+    @DataProvider
+    public Object[][] clashingServiceNames() {
+        return new Object[][]{
+                {"schema", ServiceBaseName.Source.SCHEMA_FILE, "Service name \"SchemaService\", made from the "
+                        + "schema file \"schema\", is already used by a type in the schema. Rename the schema file, "
+                        + "or set a name with --service-name."},
+                {"schema", ServiceBaseName.Source.MODULE, "Service name \"SchemaService\", made from the module "
+                        + "\"schema\", is already used by a type in the schema. Rename the module, or set a name "
+                        + "with --service-name."},
+                {"schema", ServiceBaseName.Source.PACKAGE, "Service name \"SchemaService\", made from the package "
+                        + "\"schema\", is already used by a type in the schema. Rename the package in Ballerina.toml, "
+                        + "or set a name with --service-name."},
+                {"schema", ServiceBaseName.Source.DIRECTORY, "Service name \"SchemaService\", made from the "
+                        + "directory \"schema\", is already used by a type in the schema. Rename the directory, or "
+                        + "set a name with --service-name."},
+                {"schema", ServiceBaseName.Source.GIVEN, "Service name \"SchemaService\", made from the given "
+                        + "name \"schema\", is already used by a type in the schema. Choose another name."}
+        };
+    }
+
+    @Test(description = "Test that a service name the target module already defines is rejected")
+    public void testServiceNameDefinedInModule() {
+        GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(BOOK_QUERY));
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class,
+                () -> new ServiceModelMapper(schema, SERVICE_CLASSES, Map.of(), Map.of()).map(
+                        new ServiceBaseName("orders", ServiceBaseName.Source.MODULE),
+                        Map.of("OrdersService", "main.bal")));
+
+        Assert.assertTrue(error.getMessage().contains("Service name \"OrdersService\", made from the module "
+                + "\"orders\", is already defined in \"main.bal\". Rename the module, or set a name with "
+                + "--service-name."), error.getMessage());
+    }
+
+    @Test(description = "Test that other names the target module defines do not block the service name")
+    public void testServiceNameNotDefinedInModule() throws ServiceGenerationException {
+        GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(BOOK_QUERY));
+        ServiceModel model = new ServiceModelMapper(schema, SERVICE_CLASSES, Map.of(), Map.of()).map(
+                new ServiceBaseName("orders", ServiceBaseName.Source.MODULE), Map.of("Orders", "main.bal"));
+
+        Assert.assertEquals(model.serviceName(), "OrdersService");
     }
 
     private static ServiceModel mapWithBaseName(String sdl, String baseName) throws ServiceGenerationException {
+        return mapWithBaseName(sdl, baseName, ServiceBaseName.Source.SCHEMA_FILE);
+    }
+
+    private static ServiceModel mapWithBaseName(String sdl, String baseName, ServiceBaseName.Source source)
+            throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return new ServiceModelMapper(schema, SERVICE_CLASSES, Map.of(), Map.of()).map(baseName);
+        return new ServiceModelMapper(schema, SERVICE_CLASSES, Map.of(), Map.of())
+                .map(new ServiceBaseName(baseName, source), Map.of());
     }
 
     private static ServiceModel map(String sdl, boolean useRecordsForObjects) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), Map.of()).map(BASE_NAME);
+        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), Map.of()).map(BASE_NAME, Map.of());
     }
 
     private static ServiceModel map(String sdl, Map<String, String> idTypes) throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return new ServiceModelMapper(schema, SERVICE_CLASSES, idTypes, Map.of()).map(BASE_NAME);
+        return new ServiceModelMapper(schema, SERVICE_CLASSES, idTypes, Map.of()).map(BASE_NAME, Map.of());
     }
 
     private static ServiceModel map(String sdl, boolean useRecordsForObjects, Map<String, String> dataLoaders)
             throws ServiceGenerationException {
         GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(new SchemaParser().parse(sdl));
-        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), dataLoaders).map(BASE_NAME);
+        return new ServiceModelMapper(schema, useRecordsForObjects, Map.of(), dataLoaders).map(BASE_NAME, Map.of());
     }
 
     private static ResolverModel resolver(List<ResolverModel> resolvers, String name) {

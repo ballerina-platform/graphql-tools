@@ -29,6 +29,7 @@ import io.ballerina.graphql.exception.SDLValidationException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
+import io.ballerina.graphql.generator.service.ServiceBaseName;
 import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
@@ -41,6 +42,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
@@ -52,10 +54,13 @@ public class ServiceGeneration implements Generator {
     private static final String SUCCESS_MESSAGE =
             "The service generation process is complete. The following files were written.";
     private static final String CREATED_FILE_FORMAT = "-- %s";
+    private static final Set<String> GENERATED_FILES =
+            Set.of(ServiceCodeGenerator.TYPES_FILE_NAME, ServiceCodeGenerator.SERVICE_FILE_NAME);
 
     private final GenerationContext context;
     private final BalGraphqlConfig balGraphqlConfig;
     private final ServiceCodeGenerator serviceCodeGenerator;
+    private PackageOutput packageOutput;
     private Path outputPath;
     private GraphqlServiceProject project;
     private List<SrcFilePojo> sources;
@@ -83,7 +88,8 @@ public class ServiceGeneration implements Generator {
 
     @Override
     public void validate() throws GenerationException {
-        this.outputPath = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName());
+        this.packageOutput = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName());
+        this.outputPath = this.packageOutput.outputPath();
         if (this.balGraphqlConfig != null
                 && this.balGraphqlConfig.schema().source() != SchemaSource.FILE) {
             validateFromRemoteSchema(this.balGraphqlConfig.schema());
@@ -138,20 +144,27 @@ public class ServiceGeneration implements Generator {
     @Override
     public void generate() throws GenerationException {
         try {
-            this.sources = this.serviceCodeGenerator.generateBalSources(this.project, serviceBaseName());
+            this.sources = this.serviceCodeGenerator.generateBalSources(this.project, serviceBaseName(),
+                    ModuleDefinitions.read(this.outputPath, GENERATED_FILES));
         } catch (ServiceGenerationException e) {
             throw new GenerationException(e);
         }
     }
 
-    private String serviceBaseName() throws GenerationException {
+    private ServiceBaseName serviceBaseName() {
+        if (context.getServiceName() != null) {
+            return new ServiceBaseName(context.getServiceName(), ServiceBaseName.Source.GIVEN);
+        }
         if (this.balGraphqlConfig == null || this.balGraphqlConfig.schema().source() == SchemaSource.FILE) {
-            return this.project.getFileName();
+            return new ServiceBaseName(this.project.getFileName(), ServiceBaseName.Source.SCHEMA_FILE);
         }
         if (context.getModuleName() != null) {
-            return context.getModuleName();
+            return new ServiceBaseName(context.getModuleName(), ServiceBaseName.Source.MODULE);
         }
-        return PackageOutput.packageName(context.getTargetOutputPath());
+        return this.packageOutput.packageName()
+                .map(packageName -> new ServiceBaseName(packageName, ServiceBaseName.Source.PACKAGE))
+                .orElseGet(() -> new ServiceBaseName(this.packageOutput.directoryName(),
+                        ServiceBaseName.Source.DIRECTORY));
     }
 
     @Override

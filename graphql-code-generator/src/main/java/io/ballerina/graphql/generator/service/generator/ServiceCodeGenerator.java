@@ -21,6 +21,7 @@ package io.ballerina.graphql.generator.service.generator;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.GraphqlProject;
+import io.ballerina.graphql.generator.service.ServiceBaseName;
 import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.emitter.ServiceEmitter;
 import io.ballerina.graphql.generator.service.emitter.TypesEmitter;
@@ -42,8 +43,8 @@ import java.util.Map;
  */
 public class ServiceCodeGenerator extends CodeGenerator {
 
-    private static final String TYPES_FILE_NAME = "types.bal";
-    private static final String SERVICE_FILE_NAME = "service.bal";
+    public static final String TYPES_FILE_NAME = "types.bal";
+    public static final String SERVICE_FILE_NAME = "service.bal";
     private static final boolean SERVICE_CLASSES_FOR_OBJECTS = false;
 
     private final boolean useRecordsForObjects;
@@ -93,6 +94,18 @@ public class ServiceCodeGenerator extends CodeGenerator {
         this.dataLoaders = dataLoaders;
     }
 
+    /**
+     * Generates the service sources for a project and writes them to its output path. The service object type is
+     * named after the schema file.
+     *
+     * @param project the project with a validated GraphQL schema
+     * @throws ServiceGenerationException if the sources cannot be generated or written
+     * @deprecated Use only for file schemas. For a URL or introspection schema the name would be made from the URL,
+     *             which can include an API key. Use
+     *             {@link #generateBalSources(GraphqlProject, ServiceBaseName, Map)} instead.
+     */
+    // TODO: Remove once nothing uses it.
+    @Deprecated
     @Override
     public void generate(GraphqlProject project) throws ServiceGenerationException {
         try {
@@ -110,26 +123,35 @@ public class ServiceCodeGenerator extends CodeGenerator {
      * @return the {@code types.bal} source followed by the {@code service.bal} source
      * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, or the
      *                                    generated code cannot be formatted
+     * @deprecated Use only for file schemas. For a URL or introspection schema the name would be made from the URL,
+     *             which can include an API key. Use
+     *             {@link #generateBalSources(GraphqlProject, ServiceBaseName, Map)} instead.
      */
+    // TODO: Remove once nothing uses it.
+    @Deprecated
     public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ServiceGenerationException {
-        return generateBalSources(project, project.getFileName());
+        return generateBalSources(project,
+                new ServiceBaseName(project.getFileName(), ServiceBaseName.Source.SCHEMA_FILE), Map.of());
     }
 
     /**
      * Generates the service sources for a project.
      *
-     * @param project  the project with a validated GraphQL schema
-     * @param baseName the name the service object type is named after, e.g. {@code book-api} gives
-     *                 {@code BookApiService}
+     * @param project           the project with a validated GraphQL schema
+     * @param baseName          the name the service object type is named after and where it came from, e.g.
+     *                          {@code book-api} gives {@code BookApiService}
+     * @param moduleDefinitions the top-level names the target module already defines outside the generated files,
+     *                          each mapped to the file that defines it
      * @return the {@code types.bal} source followed by the {@code service.bal} source
      * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, no valid
-     *                                    service name can be made from the base name, or the generated code
-     *                                    cannot be formatted
+     *                                    service name can be made from the base name, the service name is already
+     *                                    defined in the module, or the generated code cannot be formatted
      */
-    public List<SrcFilePojo> generateBalSources(GraphqlProject project, String baseName)
+    public List<SrcFilePojo> generateBalSources(GraphqlProject project, ServiceBaseName baseName,
+                                                Map<String, String> moduleDefinitions)
             throws ServiceGenerationException {
         ServiceModel model = new ServiceModelMapper(project.getGraphQLSchema(), this.useRecordsForObjects,
-                this.idTypes, this.dataLoaders).map(baseName);
+                this.idTypes, this.dataLoaders).map(baseName, moduleDefinitions);
         return List.of(typesSource(project.getName(), model),
                 new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, project.getName(), SERVICE_FILE_NAME,
                         format(ServiceEmitter.emit(model), ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_101)));
@@ -139,21 +161,21 @@ public class ServiceCodeGenerator extends CodeGenerator {
      * Generates the types file only.
      *
      * @param projectName   the project name
-     * @param fileName      the schema file name the service object type is named after, e.g. {@code book-api} gives
-     *                      {@code BookApiService}
+     * @param baseName      the name the service object type is named after, usually the schema file name, e.g.
+     *                      {@code book-api} gives {@code BookApiService}
      * @param graphQLSchema the GraphQL schema
      * @return the {@code types.bal} source
      * @throws ServiceGenerationException if the schema uses a type or value the service cannot represent, no valid
-     *                                    service name can be made from the file name, or the generated code
+     *                                    service name can be made from the base name, or the generated code
      *                                    cannot be formatted
      *
      * @since 0.14.0
      */
-    public SrcFilePojo generateServiceTypes(String projectName, String fileName, GraphQLSchema graphQLSchema)
+    public SrcFilePojo generateServiceTypes(String projectName, String baseName, GraphQLSchema graphQLSchema)
             throws ServiceGenerationException {
         return typesSource(projectName,
                 new ServiceModelMapper(graphQLSchema, this.useRecordsForObjects, this.idTypes, this.dataLoaders)
-                        .map(fileName));
+                        .map(new ServiceBaseName(baseName, ServiceBaseName.Source.SCHEMA_FILE), Map.of()));
     }
 
     private static SrcFilePojo typesSource(String projectName, ServiceModel model)

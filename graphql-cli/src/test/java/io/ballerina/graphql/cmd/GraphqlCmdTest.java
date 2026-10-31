@@ -216,7 +216,8 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains("GraphQL service types file generation failed: "
-                    + "Cannot name the service from \"\". The name must start with a letter. Rename the schema file."),
+                    + "Cannot name the service from the schema file \"\". The name must start with a letter. "
+                    + "Rename the schema file, or set a name with --service-name."),
                     output);
             Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
         } catch (BLauncherException | IOException e) {
@@ -505,6 +506,19 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test that a service name is rejected for an input that is not a service",
+            dataProvider = "objectTypeWithNonServiceInput")
+    public void testExecuteWithServiceNameForNonServiceInput(String fileName) throws IOException {
+        Path filePath = resourceDir.resolve(Paths.get("specs", fileName));
+        String[] args = {filePath.toString(), "-o", this.tmpDir.toString(), "--service-name", "orders"};
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, new ExitCodeCaptor());
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        String output = readOutput(true);
+        Assert.assertTrue(output.contains(String.format("The --service-name flag only applies to service generation. "
+                + "It cannot be used with \"%s\".", filePath)), output);
+    }
+
     @Test(description = "Test graphql command execution with an unsupported object type value")
     public void testExecuteWithInvalidObjectType() {
         Path filePath = resourceDir.resolve(
@@ -723,6 +737,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.assertTrue(output.contains("-d, --dry-run"), output);
             Assert.assertTrue(output.contains("--module"), output);
             Assert.assertTrue(output.contains("--object-type"));
+            Assert.assertTrue(output.contains("--service-name"), output);
             Assert.assertFalse(output.contains("--input"));
             Assert.assertEquals(exitCaptor.getExitCode(), 0, "Help flag should exit with code 0");
         } catch (BLauncherException | IOException e) {

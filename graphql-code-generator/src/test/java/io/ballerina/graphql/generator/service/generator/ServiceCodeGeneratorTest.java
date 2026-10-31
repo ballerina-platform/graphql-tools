@@ -141,6 +141,21 @@ public class ServiceCodeGeneratorTest {
         Assert.assertTrue(types.contains("type BooksV2Service service object {"), types);
     }
 
+    @Test(description = "Test that non-ASCII letters in a schema file name are kept in the service name")
+    public void testGenerateWithUnicodeFileName() throws ServiceGenerationException {
+        GraphqlServiceProject project = new GraphqlServiceProject(ROOT_PROJECT_NAME,
+                Paths.get("schemas", "café-api.graphql").toString(), OUTPUT_PATH);
+        project.setGraphQLSchema(UnExecutableSchemaGenerator.makeUnExecutableSchema(
+                new SchemaParser().parse("type Query { book: String }")));
+
+        List<SrcFilePojo> sources = new ServiceCodeGenerator().generateBalSources(project);
+
+        Assert.assertTrue(content(sources, TYPES_FILE).contains("type CaféApiService service object {"),
+                content(sources, TYPES_FILE));
+        Assert.assertTrue(content(sources, SERVICE_FILE).contains(
+                "service CaféApiService on new graphql:Listener(port) {"), content(sources, SERVICE_FILE));
+    }
+
     private String generate(String schemaName, boolean useRecordsForObjects, String fileName)
             throws IOException, ServiceGenerationException {
         return content(new ServiceCodeGenerator(useRecordsForObjects).generateBalSources(project(schemaName)),
