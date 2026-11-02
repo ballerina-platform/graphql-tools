@@ -136,6 +136,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final String DRY_RUN_DESCRIPTION =
             "Show the files that would be created, overwritten or skipped, without writing them.";
 
+    private final PrintStream helpStream;
     private final PrintStream outStream;
     private final Path executionPath;
     private final ExitHandler exitHandler;
@@ -187,10 +188,11 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     /**
-     * Constructor that initialize with the default values.
+     * Constructor that initialize with the default values: the help goes to standard output, and everything else to
+     * standard error.
      */
     public GraphqlCmd() {
-        this(System.err, Paths.get(System.getProperty("user.dir")));
+        this(System.out, System.err, Paths.get(System.getProperty("user.dir")), DEFAULT_EXIT_HANDLER);
     }
 
     /**
@@ -213,6 +215,19 @@ public class GraphqlCmd implements BLauncherCmd {
      * @param exitHandler  custom exit handler (for testing)
      */
     public GraphqlCmd(PrintStream outStream, Path executionDir, ExitHandler exitHandler) {
+        this(outStream, outStream, executionDir, exitHandler);
+    }
+
+    /**
+     * Constructor that writes the help to its own stream, separate from the other output.
+     *
+     * @param helpStream   stream the help is written to
+     * @param outStream    stream errors, warnings and generation messages are written to
+     * @param executionDir defines the directory location of execution of ballerina command
+     * @param exitHandler  custom exit handler (for testing)
+     */
+    public GraphqlCmd(PrintStream helpStream, PrintStream outStream, Path executionDir, ExitHandler exitHandler) {
+        this.helpStream = helpStream;
         this.outStream = outStream;
         this.executionPath = executionDir;
         this.exitHandler = exitHandler;
@@ -226,8 +241,8 @@ public class GraphqlCmd implements BLauncherCmd {
     public void execute() {
         try {
             if (helpFlag) {
-                printLongDesc(new StringBuilder());
-                outStream.flush();
+                helpStream.print(usage());
+                helpStream.flush();
                 exit(EXIT_CODE_0);
                 return;
             }
@@ -235,7 +250,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 throw new CmdException(String.format(ERROR_UNKNOWN_OPTION, unknownOptions.get(0)));
             }
             if (inputs == null || inputs.isEmpty() || inputs.get(0).isEmpty()) {
-                printLongDesc(new StringBuilder());
+                outStream.print(usage());
                 outStream.flush();
                 exit(EXIT_CODE_2);
                 return;
@@ -345,13 +360,19 @@ public class GraphqlCmd implements BLauncherCmd {
         return CMD_NAME;
     }
 
+    private String usage() {
+        StringBuilder usage = new StringBuilder();
+        printLongDesc(usage);
+        return usage.toString();
+    }
+
     @Override
     public void printLongDesc(StringBuilder stringBuilder) {
         CommandLine commandLine = new CommandLine(this);
         commandLine.getHelpSectionMap().put(CommandLine.Model.UsageMessageSpec.SECTION_KEY_DESCRIPTION,
                 help -> help.description().indent(2));
         // ANSI is off because ANSI codes print as raw characters when the help goes to a file, pipe or test output.
-        commandLine.usage(outStream, CommandLine.Help.Ansi.OFF);
+        stringBuilder.append(commandLine.getUsageMessage(CommandLine.Help.Ansi.OFF));
     }
 
     @Override

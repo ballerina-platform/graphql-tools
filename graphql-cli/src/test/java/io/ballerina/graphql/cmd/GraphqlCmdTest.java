@@ -29,8 +29,11 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -764,6 +767,28 @@ public class GraphqlCmdTest extends GraphqlTest {
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
+    }
+
+    @Test(description = "Test that the help goes to the help stream and errors go to the other output stream")
+    public void testHelpAndErrorStreams() {
+        ByteArrayOutputStream help = new ByteArrayOutputStream();
+        ByteArrayOutputStream errors = new ByteArrayOutputStream();
+
+        GraphqlCmd helpCmd = new GraphqlCmd(new PrintStream(help, true, StandardCharsets.UTF_8),
+                new PrintStream(errors, true, StandardCharsets.UTF_8), tmpDir, new ExitCodeCaptor());
+        new CommandLine(helpCmd).parseArgs("--help");
+        helpCmd.execute();
+        Assert.assertTrue(help.toString(StandardCharsets.UTF_8).contains("SYNOPSIS"), help.toString());
+        Assert.assertEquals(errors.toString(StandardCharsets.UTF_8), "");
+
+        help.reset();
+        GraphqlCmd errorCmd = new GraphqlCmd(new PrintStream(help, true, StandardCharsets.UTF_8),
+                new PrintStream(errors, true, StandardCharsets.UTF_8), tmpDir, new ExitCodeCaptor());
+        new CommandLine(errorCmd).parseArgs("schema.graphql", "-x");
+        errorCmd.execute();
+        Assert.assertEquals(help.toString(StandardCharsets.UTF_8), "");
+        Assert.assertTrue(errors.toString(StandardCharsets.UTF_8).contains("Unknown option \"-x\""),
+                errors.toString());
     }
 
     @Test(description = "Test that service generation outside a Ballerina package is rejected")
