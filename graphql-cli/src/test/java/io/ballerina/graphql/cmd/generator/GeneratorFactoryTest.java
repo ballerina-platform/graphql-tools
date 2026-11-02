@@ -19,6 +19,7 @@
 package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.exception.ToolException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -69,21 +70,20 @@ public class GeneratorFactoryTest {
 
     @Test(description = "Test that an object type is rejected for a client configuration file")
     public void testGetGeneratorForClientConfigWithObjectType() {
-        try {
-            getGeneratorForConfigWithRecords("client-config.toml");
-            Assert.fail("Expected a GenerationException for --object-type with a client configuration");
-        } catch (GenerationException e) {
-            Assert.assertTrue(e.getMessage().contains("only applies to service generation"),
-                    "Unexpected message: " + e.getMessage());
-        }
+        ToolException error = Assert.expectThrows(ToolException.class,
+                () -> getGeneratorForConfigWithRecords("client-config.toml"));
+
+        Assert.assertEquals(error.exitCode(), ToolException.USAGE);
+        Assert.assertTrue(error.getMessage().contains("only applies to service generation"), error.getMessage());
     }
 
     @Test(description = "Test that a service name is rejected for a client configuration file")
     public void testGetGeneratorForClientConfigWithServiceName() {
         String configPath = CONFIG_DIR.resolve("client-config.toml").toString();
-        GenerationException error = Assert.expectThrows(GenerationException.class,
+        ToolException error = Assert.expectThrows(ToolException.class,
                 () -> GeneratorFactory.getGenerator(createContext(configPath, null, null, "orders")));
 
+        Assert.assertEquals(error.exitCode(), ToolException.USAGE);
         Assert.assertTrue(error.getMessage().contains(String.format("The --service-name flag only applies to service "
                 + "generation. \"%s\" resolves to client generation.", configPath)), error.getMessage());
     }

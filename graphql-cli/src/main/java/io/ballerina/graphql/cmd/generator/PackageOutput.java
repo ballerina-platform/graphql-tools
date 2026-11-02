@@ -18,7 +18,7 @@
 
 package io.ballerina.graphql.cmd.generator;
 
-import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.exception.ToolException;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.projects.util.ProjectPaths;
@@ -53,17 +53,18 @@ record PackageOutput(Path packageRoot, Path outputPath, Optional<String> package
     private static final String PACKAGE_KEY = "package";
     private static final String NAME_KEY = "name";
 
-    static PackageOutput resolve(Path outputPath, String moduleName) throws GenerationException {
+    static PackageOutput resolve(Path outputPath, String moduleName) {
         Path packageRoot = outputPath.toAbsolutePath().normalize();
         Path ballerinaToml = packageRoot.resolve(ProjectConstants.BALLERINA_TOML);
         boolean isPackageRoot;
         try {
             isPackageRoot = ProjectPaths.isBuildProjectRoot(packageRoot);
         } catch (ProjectException e) {
-            throw new GenerationException(String.format(ERROR_UNREADABLE_BALLERINA_TOML, ballerinaToml));
+            throw new ToolException(ToolException.INVALID_TARGET,
+                    String.format(ERROR_UNREADABLE_BALLERINA_TOML, ballerinaToml));
         }
         if (!isPackageRoot) {
-            throw new GenerationException(String.format(ERROR_NOT_A_PACKAGE, packageRoot));
+            throw new ToolException(ToolException.INVALID_TARGET, String.format(ERROR_NOT_A_PACKAGE, packageRoot));
         }
         Optional<String> packageName = read(ballerinaToml).get(PACKAGE_KEY) instanceof Map<?, ?> table
                 && table.get(NAME_KEY) instanceof String name ? Optional.of(name) : Optional.empty();
@@ -71,7 +72,7 @@ record PackageOutput(Path packageRoot, Path outputPath, Optional<String> package
             return new PackageOutput(packageRoot, packageRoot, packageName);
         }
         if (!MODULE_NAME.matcher(moduleName).matches()) {
-            throw new GenerationException(String.format(ERROR_INVALID_MODULE_NAME, moduleName));
+            throw new ToolException(ToolException.USAGE, String.format(ERROR_INVALID_MODULE_NAME, moduleName));
         }
         return new PackageOutput(packageRoot,
                 packageRoot.resolve(ProjectConstants.MODULES_ROOT).resolve(moduleName), packageName);
@@ -84,19 +85,20 @@ record PackageOutput(Path packageRoot, Path outputPath, Optional<String> package
         return ProjectUtils.defaultName(packageRoot).value();
     }
 
-    private static Map<String, Object> read(Path ballerinaToml) throws GenerationException {
+    private static Map<String, Object> read(Path ballerinaToml) {
         Toml toml;
         try {
             toml = Toml.read(ballerinaToml);
         } catch (IOException e) {
-            throw new GenerationException(String.format(ERROR_UNREADABLE_BALLERINA_TOML, ballerinaToml));
+            throw new ToolException(ToolException.INVALID_TARGET,
+                    String.format(ERROR_UNREADABLE_BALLERINA_TOML, ballerinaToml));
         }
         Optional<Diagnostic> syntaxError = toml.diagnostics().stream()
                 .filter(diagnostic -> diagnostic.diagnosticInfo().severity() == DiagnosticSeverity.ERROR)
                 .findFirst();
         if (syntaxError.isPresent()) {
-            throw new GenerationException(String.format(ERROR_INVALID_BALLERINA_TOML, ballerinaToml,
-                    syntaxError.get().message()));
+            throw new ToolException(ToolException.INVALID_TARGET,
+                    String.format(ERROR_INVALID_BALLERINA_TOML, ballerinaToml, syntaxError.get().message()));
         }
         return toml.toMap();
     }

@@ -369,7 +369,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         String output = run(exitCaptor, "-i", "schema.graphql");
         Assert.assertTrue(output.contains(
                 "Unknown option \"-i\". Run \"bal graphql --help\" to see the available options."), output);
-        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        assertUsageError(output, exitCaptor);
     }
 
     @Test(description = "Test graphql command execution with more than one input argument")
@@ -378,7 +378,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         String output = run(exitCaptor, "schema.graphql", "extra.graphql");
         Assert.assertTrue(output.contains("Only one input file can be given. Found: schema.graphql, extra.graphql."),
                 output);
-        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        assertUsageError(output, exitCaptor);
     }
 
     @Test(description = "Test graphql command execution with invalid mode argument")
@@ -541,7 +541,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         String output = run(exitCaptor, "schema.graphql", "-r");
         Assert.assertTrue(output.contains(
                 "Unknown option \"-r\". Run \"bal graphql --help\" to see the available options."), output);
-        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        assertUsageError(output, exitCaptor);
     }
 
     @Test(description = "Test that option values can be given after an equals sign")
@@ -565,7 +565,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         String output = run(exitCaptor, "schema.graphql", flag);
         Assert.assertTrue(output.contains(String.format(
                 "Unknown option \"%s\". Run \"bal graphql --help\" to see the available options.", flag)), output);
-        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        assertUsageError(output, exitCaptor);
     }
 
     @Test(description = "Test graphql command execution with invalid schema file path")
@@ -725,24 +725,26 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test graphql command with no args")
-    public void testExecuteWithNoArgs() {
-        String[] args = {};
+    @Test(description = "Test that no input gives a usage error with the synopsis instead of the full help")
+    public void testExecuteWithNoArgs() throws IOException {
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
-        new CommandLine(graphqlCmd).parseArgs(args);
-        try {
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            Assert.assertTrue(output.contains("SYNOPSIS"));
-            Assert.assertTrue(output.contains("--force"));
-            Assert.assertTrue(output.contains("--dry-run"));
-            Assert.assertTrue(output.contains("--object-type"));
-            Assert.assertFalse(output.contains("--input"));
-            Assert.assertEquals(exitCaptor.getExitCode(), 2, "No arguments should exit with code 2");
-        } catch (BLauncherException | IOException e) {
-            Assert.fail(e.getMessage());
-        }
+        String output = run(exitCaptor);
+        Assert.assertTrue(output.contains("Missing required argument <input>."), output);
+        assertUsageError(output, exitCaptor);
+        Assert.assertFalse(output.contains("SYNOPSIS"), output);
+        Assert.assertFalse(output.contains("DESCRIPTION"), output);
+        Assert.assertFalse(output.contains("--object-type"), output);
+    }
+
+    @Test(description = "Test that an error that is not a usage error does not point to the help")
+    public void testRuntimeErrorWithoutUsage() throws IOException {
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = run(exitCaptor, resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "missing.graphql")).toString(),
+                "-o", this.tmpDir.toString(), "--mode", "service");
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertFalse(output.contains("Usage: bal graphql"), output);
+        Assert.assertFalse(output.contains("Try 'bal graphql --help'"), output);
     }
 
     @Test(description = "Test graphql command with help flag")
@@ -798,7 +800,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             String output = run(exitCaptor, singleObjectSchema(), "-o", outputPath.toString(), "--mode", "service");
             Assert.assertTrue(output.contains(notAPackage(outputPath)), output);
-            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+            assertInvalidTarget(output, exitCaptor);
             Assert.assertFalse(Files.exists(outputPath.resolve("types.bal")), output);
         } finally {
             FileUtils.deleteDirectory(outputPath.toFile());
@@ -813,7 +815,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             String output = run(exitCaptor, graphqlConfigYaml.toString(), "-o", outputPath.toString());
             Assert.assertTrue(output.contains(notAPackage(outputPath)), output);
-            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+            assertInvalidTarget(output, exitCaptor);
             Assert.assertFalse(Files.exists(outputPath.resolve("client.bal")), output);
         } finally {
             FileUtils.deleteDirectory(outputPath.toFile());
@@ -827,7 +829,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             String output = run(exitCaptor, singleObjectSchema(), "-o", subfolder.toString(), "--mode", "service");
             Assert.assertTrue(output.contains(notAPackage(subfolder)), output);
-            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+            assertInvalidTarget(output, exitCaptor);
             Assert.assertFalse(Files.exists(subfolder.resolve("types.bal")), output);
         } finally {
             FileUtils.deleteDirectory(subfolder.toFile());
@@ -870,7 +872,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         String output = run(exitCaptor, singleObjectSchema(), "-o", this.tmpDir.toString(), "--mode", "service",
                 "--module", "my-module");
         Assert.assertTrue(output.contains("\"my-module\" is not a valid module name."), output);
-        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        assertUsageError(output, exitCaptor);
         Assert.assertFalse(Files.exists(this.tmpDir.resolve("modules")), output);
     }
 
@@ -880,7 +882,7 @@ public class GraphqlCmdTest extends GraphqlTest {
         String output = run(exitCaptor, singleObjectSchema(), "-o", this.tmpDir.toString(), "-m", "service");
         Assert.assertTrue(output.contains(
                 "Unknown option \"-m\". Run \"bal graphql --help\" to see the available options."), output);
-        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        assertUsageError(output, exitCaptor);
         Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
     }
 
@@ -891,7 +893,18 @@ public class GraphqlCmdTest extends GraphqlTest {
         String output = run(exitCaptor, service, "-o", this.tmpDir.toString(), "--module", "books");
         Assert.assertTrue(output.contains("The --module flag only applies to client and service generation. "
                 + "It cannot be used with \"" + service + "\"."), output);
-        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        assertUsageError(output, exitCaptor);
+    }
+
+    private static void assertUsageError(String output, ExitCodeCaptor exitCaptor) {
+        Assert.assertEquals(exitCaptor.getExitCode(), 2, output);
+        Assert.assertTrue(output.contains("Usage: bal graphql [OPTIONS] <input>" + System.lineSeparator()
+                + "Try 'bal graphql --help' for more information."), output);
+    }
+
+    private static void assertInvalidTarget(String output, ExitCodeCaptor exitCaptor) {
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
+        Assert.assertFalse(output.contains("Usage: bal graphql"), output);
     }
 
     private String run(ExitCodeCaptor exitCaptor, String... args) throws IOException {

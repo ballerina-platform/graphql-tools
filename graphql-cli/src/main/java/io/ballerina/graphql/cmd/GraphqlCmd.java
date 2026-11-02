@@ -24,8 +24,9 @@ import io.ballerina.graphql.cmd.generator.GenerationContext;
 import io.ballerina.graphql.cmd.generator.GenerationEngine;
 import io.ballerina.graphql.cmd.generator.ObjectType;
 import io.ballerina.graphql.cmd.generator.OperationMode;
-import io.ballerina.graphql.exception.CmdException;
 import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.exception.ToolException;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import picocli.CommandLine;
 
 import java.io.PrintStream;
@@ -71,10 +72,11 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
         footerHeading = "%nEXAMPLES%n",
         footer = GraphqlCmd.EXAMPLES)
 public class GraphqlCmd implements BLauncherCmd {
-    private static final int EXIT_CODE_0 = 0;
-    private static final int EXIT_CODE_1 = 1;
-    private static final int EXIT_CODE_2 = 2;
+    private static final int EXIT_CODE_SUCCESS = 0;
     private static final String CMD_NAME = "graphql";
+    private static final String USAGE_SYNOPSIS = "Usage: bal graphql [OPTIONS] <input>";
+    private static final String USAGE_HELP_POINTER = "Try 'bal graphql --help' for more information.";
+    private static final String ERROR_MISSING_INPUT = "Missing required argument <input>.";
     private static final ExitHandler DEFAULT_EXIT_HANDLER = code -> Runtime.getRuntime().exit(code);
     private static final String ERROR_INVALID_CONFIG_FILE_NAME =
             "The GraphQL configuration file should be named \"" + BalGraphqlConfig.FILE_NAME + "\". Found \"%s\".";
@@ -243,64 +245,70 @@ public class GraphqlCmd implements BLauncherCmd {
             if (helpFlag) {
                 helpStream.print(usage());
                 helpStream.flush();
-                exit(EXIT_CODE_0);
+                exit(EXIT_CODE_SUCCESS);
                 return;
             }
             if (unknownOptions != null && !unknownOptions.isEmpty()) {
-                throw new CmdException(String.format(ERROR_UNKNOWN_OPTION, unknownOptions.get(0)));
+                throw usageError(String.format(ERROR_UNKNOWN_OPTION, unknownOptions.get(0)));
             }
             if (inputs == null || inputs.isEmpty() || inputs.get(0).isEmpty()) {
-                outStream.print(usage());
-                outStream.flush();
-                exit(EXIT_CODE_2);
-                return;
+                throw usageError(ERROR_MISSING_INPUT);
             }
             validateInputs();
             inputPath = inputs.get(0);
             validateInputFlags();
             executeOperation();
-        } catch (CmdException | GenerationException e) {
+        } catch (ToolException e) {
             outStream.println(e.getMessage());
-            exit(EXIT_CODE_1);
+            // Only a usage error points to the help (ERR-8); other errors print just the error (EXIT-2).
+            if (e.exitCode() == ToolException.USAGE) {
+                outStream.println(USAGE_SYNOPSIS);
+                outStream.println(USAGE_HELP_POINTER);
+            }
+            exit(e.exitCode());
+            return;
+        } catch (GenerationException e) {
+            outStream.println(e.getMessage());
+            exit(ToolException.RUNTIME);
             return;
         }
-        exit(EXIT_CODE_0);
+        exit(EXIT_CODE_SUCCESS);
     }
 
-    private void validateInputs() throws CmdException {
+    private void validateInputs() {
         if (inputs.size() > 1) {
-            throw new CmdException(String.format(ERROR_MULTIPLE_INPUTS, String.join(", ", inputs)));
+            throw usageError(String.format(ERROR_MULTIPLE_INPUTS, String.join(", ", inputs)));
         }
     }
 
-    private void validateInputFlags() throws CmdException {
+    private void validateInputFlags() {
         if (!validInputFileExtension(inputPath)) {
-            throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
+            throw usageError(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
         }
 
         if (isConfigFileInput(inputPath) && !isBalGraphqlConfigFile(inputPath)) {
-            throw new CmdException(String.format(ERROR_INVALID_CONFIG_FILE_NAME, inputPath));
+            throw usageError(String.format(ERROR_INVALID_CONFIG_FILE_NAME, inputPath));
         }
 
         if (!isModeCompatible()) {
-            throw new CmdException(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, inputPath));
+            throw usageError(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, inputPath));
         }
 
         if (objectType != null) {
             if (ObjectType.fromValue(objectType).isEmpty()) {
-                throw new CmdException(String.format(ERROR_INVALID_OBJECT_TYPE, objectType));
+                throw usageError(String.format(ERROR_INVALID_OBJECT_TYPE, objectType));
             }
             if (!inputPath.endsWith(GRAPHQL_EXTENSION) && !isConfigFileInput(inputPath)) {
-                throw new CmdException(String.format(ERROR_OBJECT_TYPE_NOT_SUPPORTED, inputPath));
+                throw usageError(String.format(ERROR_OBJECT_TYPE_NOT_SUPPORTED, inputPath));
             }
         }
 
         if (serviceName != null && !inputPath.endsWith(GRAPHQL_EXTENSION) && !isConfigFileInput(inputPath)) {
-            throw new CmdException(String.format(ERROR_SERVICE_NAME_NOT_SUPPORTED, inputPath));
+            throw usageError(String.format(ERROR_SERVICE_NAME_NOT_SUPPORTED, inputPath));
         }
 
         if (moduleName != null && OperationMode.fromInputPath(inputPath).orElse(null) == OperationMode.SCHEMA) {
-            throw new CmdException(String.format(ERROR_MODULE_NOT_SUPPORTED, inputPath));
+            throw usageError(String.format(ERROR_MODULE_NOT_SUPPORTED, inputPath));
         }
     }
 
@@ -317,13 +325,13 @@ public class GraphqlCmd implements BLauncherCmd {
         return fileName != null && BalGraphqlConfig.FILE_NAME.equals(fileName.toString());
     }
 
-    private boolean isModeCompatible() throws CmdException {
+    private boolean isModeCompatible() {
         if (mode == null) {
             return true;
         }
         Optional<OperationMode> modeFromFlag = OperationMode.fromModeFlag(mode);
         if (modeFromFlag.isEmpty()) {
-            throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
+            throw usageError(String.format(MESSAGE_FOR_INVALID_MODE, mode));
         }
         if (isConfigFileInput(inputPath)) {
             // A configuration file drives client or service generation only; either declared mode overrides what
@@ -358,6 +366,11 @@ public class GraphqlCmd implements BLauncherCmd {
     @Override
     public String getName() {
         return CMD_NAME;
+    }
+
+    private static ToolException usageError(String message) {
+        return new ToolException(ToolException.USAGE, Utils.constructGraphqlDiagnostic(
+                DiagnosticMessages.GRAPHQL_CLI_100.getCode(), message, DiagnosticSeverity.ERROR, null).toString());
     }
 
     private String usage() {
