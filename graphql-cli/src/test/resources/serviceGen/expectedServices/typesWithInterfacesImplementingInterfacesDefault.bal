@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaWithInterfacesImplementingInterfacesApi service object {
+type SchemaWithInterfacesImplementingInterfacesApiService service object {
     *graphql:Service;
     resource function get student(int id) returns Student?|error;
 };

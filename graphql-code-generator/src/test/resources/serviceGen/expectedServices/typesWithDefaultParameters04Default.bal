@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaWithDefaultParameters04Api service object {
+type SchemaWithDefaultParameters04ApiService service object {
     *graphql:Service;
     resource function get book(int id) returns Book?|error;
     remote function createBookWithAuthor(CreateBookInput input = {id: 1, title: "no title", author: {id: 1, name: "no name"}}) returns Book?|error;

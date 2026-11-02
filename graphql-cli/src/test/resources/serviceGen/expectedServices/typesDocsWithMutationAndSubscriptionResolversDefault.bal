@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaDocsWithMutationAndSubscriptionResolversApi service object {
+type SchemaDocsWithMutationAndSubscriptionResolversApiService service object {
     *graphql:Service;
     # Fetch a book by its id
     resource function get book(int id) returns Book?|error;

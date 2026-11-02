@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaWithIDTypeApi service object {
+type SchemaWithIDTypeApiService service object {
     *graphql:Service;
     # Fetch a book by its id
     # + id - The id of the book to fetch

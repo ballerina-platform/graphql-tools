@@ -33,20 +33,22 @@ public class GenerationContext {
     private final String serviceBasePath;
     private final ObjectType declaredObjectType;
     private final String moduleName;
+    private final String serviceName;
     private final boolean force;
     private final boolean dryRun;
     private final PrintStream outStream;
     private final DryRunReport dryRunReport = new DryRunReport();
 
     public GenerationContext(String inputPath, OperationMode declaredOperationMode, Path targetOutputPath,
-                             String serviceBasePath, ObjectType declaredObjectType, String moduleName, boolean force,
-                             boolean dryRun, PrintStream outStream) {
+                             String serviceBasePath, ObjectType declaredObjectType, String moduleName,
+                             String serviceName, boolean force, boolean dryRun, PrintStream outStream) {
         this.inputPath = inputPath;
         this.declaredOperationMode = declaredOperationMode;
         this.targetOutputPath = targetOutputPath;
         this.serviceBasePath = serviceBasePath;
         this.declaredObjectType = declaredObjectType;
         this.moduleName = moduleName;
+        this.serviceName = serviceName;
         this.force = force;
         this.dryRun = dryRun;
         this.outStream = outStream;
@@ -86,6 +88,13 @@ public class GenerationContext {
 
     public String getModuleName() {
         return moduleName;
+    }
+
+    /**
+     * Returns the name the user gave to name the generated service after, or {@code null} if none was given.
+     */
+    public String getServiceName() {
+        return serviceName;
     }
 
     public boolean isForce() {

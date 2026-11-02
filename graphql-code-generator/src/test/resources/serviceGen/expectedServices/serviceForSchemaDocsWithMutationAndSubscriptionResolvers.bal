@@ -2,7 +2,7 @@ import ballerina/graphql;
 
 configurable int port = 9090;
 
-service SchemaDocsWithMutationAndSubscriptionResolversApi on new graphql:Listener(port) {
+service SchemaDocsWithMutationAndSubscriptionResolversApiService on new graphql:Listener(port) {
     # Fetch a book by its id
     resource function get book(int id) returns Book?|error {
         return error("Not implemented");

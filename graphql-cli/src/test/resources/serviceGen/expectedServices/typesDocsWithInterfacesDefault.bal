@@ -1,6 +1,6 @@
 import ballerina/graphql;
 
-type SchemaDocsWithInterfacesApi service object {
+type SchemaDocsWithInterfacesApiService service object {
     *graphql:Service;
     # Fetch all the books from database
     resource function get books() returns Book?[]?|error;

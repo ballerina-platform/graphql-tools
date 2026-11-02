@@ -82,7 +82,7 @@ public class ClientGeneration implements Generator {
 
     @Override
     public void validate() throws GenerationException {
-        this.outputPath = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName());
+        this.outputPath = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName()).outputPath();
         this.projects = this.balGraphqlConfig == null ? populateProjectsFromYamlConfig()
                 : populateProjectsFromBalGraphqlConfig();
         try {
