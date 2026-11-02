@@ -222,8 +222,9 @@ public class BalGraphqlConfigGenerationTest {
         Assert.assertTrue(types.contains("type OrdersService service object {"), types);
     }
 
-    @Test(description = "Test that a service from a url schema is named after the folder when the package has no name")
-    public void testUrlSchemaServiceNamedAfterFolder() throws IOException, ParseException, GenerationException {
+    @Test(description = "Test that a service from a url schema is named after the directory when the package has no "
+            + "name")
+    public void testUrlSchemaServiceNamedAfterDirectory() throws IOException, ParseException, GenerationException {
         Path packagePath = Files.createDirectories(Files.createTempDirectory("unnamed-package").resolve("my_shop"));
         Files.writeString(packagePath.resolve("Ballerina.toml"), "[package]\norg = \"test\"\nversion = \"0.1.0\"\n");
         generateService(writeConfig(urlConfig("/schema.graphql")), packagePath);
@@ -262,11 +263,12 @@ public class BalGraphqlConfigGenerationTest {
         };
     }
 
-    @Test(description = "Test that a service from a url schema is named after the package name, or the folder when "
-            + "the package has no name", dataProvider = "packageServiceNames")
-    public void testUrlSchemaServiceNamedAfterPackageOrFolder(String folder, String nameEntry, String serviceName)
+    @Test(description = "Test that a service from a url schema is named after the package name, or the directory "
+            + "when the package has no name", dataProvider = "packageServiceNames")
+    public void testUrlSchemaServiceNamedAfterPackageOrDirectory(String directory, String nameEntry,
+                                                                 String serviceName)
             throws IOException, ParseException, GenerationException {
-        Path packagePath = createPackage(folder, nameEntry);
+        Path packagePath = createPackage(directory, nameEntry);
         generateService(writeConfig(urlConfig("/schema.graphql")), packagePath);
 
         String types = Files.readString(packagePath.resolve("types.bal"));
@@ -312,8 +314,8 @@ public class BalGraphqlConfigGenerationTest {
         Assert.assertTrue(types.contains("type GraphqlTestService service object {"), types);
     }
 
-    private static Path createPackage(String folder, String nameEntry) throws IOException {
-        Path packagePath = Files.createDirectories(Files.createTempDirectory("package-name").resolve(folder));
+    private static Path createPackage(String directory, String nameEntry) throws IOException {
+        Path packagePath = Files.createDirectories(Files.createTempDirectory("package-name").resolve(directory));
         Files.writeString(packagePath.resolve("Ballerina.toml"),
                 "[package]\norg = \"test\"\n" + nameEntry + "\nversion = \"0.1.0\"\n");
         return packagePath;

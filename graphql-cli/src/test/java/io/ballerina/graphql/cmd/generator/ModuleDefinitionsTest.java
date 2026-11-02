@@ -84,7 +84,7 @@ public class ModuleDefinitionsTest {
         Assert.assertEquals(ModuleDefinitions.read(tmpDir, GENERATED_FILES), Map.of());
     }
 
-    @Test(description = "Test that a module folder that does not exist yet has no definitions")
+    @Test(description = "Test that a module directory that does not exist yet has no definitions")
     public void testMissingModule() throws GenerationException {
         Assert.assertEquals(ModuleDefinitions.read(tmpDir.resolve("modules").resolve("orders"), GENERATED_FILES),
                 Map.of());

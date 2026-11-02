@@ -36,7 +36,7 @@ import java.util.Optional;
 import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
 
 /**
- * Tests resolving the output folder of client and service generation inside a Ballerina package.
+ * Tests resolving the output directory of client and service generation inside a Ballerina package.
  */
 public class PackageOutputTest {
 
@@ -53,14 +53,14 @@ public class PackageOutputTest {
         FileUtils.deleteDirectory(tmpDir.toFile());
     }
 
-    @Test(description = "Test that the package root is the output folder when no module is given")
+    @Test(description = "Test that the package root is the output directory when no module is given")
     public void testPackageRoot() throws IOException, GenerationException {
         Path packageRoot = createBallerinaPackage(tmpDir);
 
         Assert.assertEquals(resolve(packageRoot), packageRoot.toAbsolutePath().normalize());
     }
 
-    @Test(description = "Test that a module resolves to the modules folder of the package")
+    @Test(description = "Test that a module resolves to the modules directory of the package")
     public void testModule() throws IOException, GenerationException {
         Path packageRoot = createBallerinaPackage(tmpDir);
 
@@ -68,17 +68,17 @@ public class PackageOutputTest {
                 packageRoot.toAbsolutePath().normalize().resolve("modules").resolve("books"));
     }
 
-    @Test(description = "Test that a folder inside a package is rejected")
-    public void testSubfolderRejected() throws IOException {
-        Path subfolder = Files.createDirectory(createBallerinaPackage(tmpDir).resolve("sub"));
+    @Test(description = "Test that a directory inside a package is rejected")
+    public void testSubdirectoryRejected() throws IOException {
+        Path subdirectory = Files.createDirectory(createBallerinaPackage(tmpDir).resolve("sub"));
 
         GenerationException error = Assert.expectThrows(GenerationException.class,
-                () -> resolve(subfolder));
-        Assert.assertEquals(error.getMessage(), "\"" + subfolder.toAbsolutePath().normalize()
+                () -> resolve(subdirectory));
+        Assert.assertEquals(error.getMessage(), "\"" + subdirectory.toAbsolutePath().normalize()
                 + "\" is not a Ballerina package. Run the command from the package root, or use -o to point to it.");
     }
 
-    @Test(description = "Test that a folder outside any package is rejected")
+    @Test(description = "Test that a directory outside any package is rejected")
     public void testOutsidePackageRejected() {
         GenerationException error = Assert.expectThrows(GenerationException.class,
                 () -> resolve(tmpDir));
@@ -86,7 +86,7 @@ public class PackageOutputTest {
                 + "\" is not a Ballerina package. Run the command from the package root, or use -o to point to it.");
     }
 
-    @Test(description = "Test that a nested module name resolves to its own folder")
+    @Test(description = "Test that a nested module name resolves to its own directory")
     public void testNestedModule() throws IOException, GenerationException {
         Path packageRoot = createBallerinaPackage(tmpDir);
 
@@ -145,6 +145,16 @@ public class PackageOutputTest {
                 + "\" is not a Ballerina package. Run the command from the package root, or use -o to point to it.");
     }
 
+    @Test(description = "Test that a Ballerina.toml with both a package and a workspace is a package")
+    public void testPackageWithWorkspace() throws IOException, GenerationException {
+        Files.writeString(tmpDir.resolve("Ballerina.toml"),
+                "[package]\norg = \"test\"\nname = \"shop\"\n\n[workspace]\npackages = [\"shop\"]\n");
+
+        PackageOutput packageOutput = PackageOutput.resolve(tmpDir, null);
+        Assert.assertEquals(packageOutput.outputPath(), tmpDir.toAbsolutePath().normalize());
+        Assert.assertEquals(packageOutput.packageName(), Optional.of("shop"));
+    }
+
     @Test(description = "Test that the package name is read from Ballerina.toml")
     public void testPackageName() throws IOException, GenerationException {
         Path packageRoot = createBallerinaPackage(tmpDir);
@@ -152,7 +162,7 @@ public class PackageOutputTest {
         Assert.assertEquals(PackageOutput.resolve(packageRoot, null).packageName(), Optional.of("graphql_test"));
     }
 
-    @Test(description = "Test that a package with no name falls back to a name made from its folder")
+    @Test(description = "Test that a package with no name falls back to a name made from its directory")
     public void testPackageWithoutName() throws IOException, GenerationException {
         Path packageRoot = Files.createDirectory(tmpDir.resolve("my-shop"));
         Files.writeString(packageRoot.resolve("Ballerina.toml"), "[package]\norg = \"test\"\n");
