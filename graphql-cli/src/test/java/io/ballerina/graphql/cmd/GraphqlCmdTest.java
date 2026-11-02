@@ -540,6 +540,16 @@ public class GraphqlCmdTest extends GraphqlTest {
         Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
     }
 
+    @Test(description = "Test that option values can be given after an equals sign")
+    public void testExecuteWithEqualsSeparatedValues() throws IOException {
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = run(exitCaptor, singleObjectSchema(), "--output=" + this.tmpDir, "--mode=service",
+                "--object-type=service", "--service-name=orders");
+
+        String types = Files.readString(this.tmpDir.resolve("types.bal"));
+        Assert.assertTrue(types.contains("type OrdersService service object {"), output + types);
+    }
+
     @DataProvider
     public Object[][] removedShortFlags() {
         return new Object[][]{{"-f"}, {"-d"}, {"-s"}};

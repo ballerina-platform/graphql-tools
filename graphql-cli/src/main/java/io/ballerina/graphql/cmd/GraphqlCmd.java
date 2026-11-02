@@ -45,7 +45,6 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
  */
 @CommandLine.Command(name = "graphql",
         usageHelpWidth = 100,
-        separator = " ",
         sortOptions = false,
         headerHeading = "NAME%n",
         header = GraphqlCmd.HEADER,
