@@ -53,9 +53,9 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
         customSynopsis = {
                 "  bal graphql <service.bal>",
                 "              [-o | --output <output>]",
-                "              [-s | --service <service-base-path>]",
-                "              [-f | --force]",
-                "              [-d | --dry-run]",
+                "              [--service <service-base-path>]",
+                "              [--force]",
+                "              [-n | --dry-run]",
                 "",
                 "  bal graphql <balGraphQL.toml>",
                 "              [-o | --output <output>]",
@@ -63,8 +63,8 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
                 "              [--module <module-name>]",
                 "              [--object-type <service|record>]",
                 "              [--service-name <service-name>]",
-                "              [-f | --force]",
-                "              [-d | --dry-run]"},
+                "              [--force]",
+                "              [-n | --dry-run]"},
         descriptionHeading = "%nDESCRIPTION%n",
         description = {GraphqlCmd.DESCRIPTION_SUMMARY, GraphqlCmd.DESCRIPTION_DETAILS},
         parameterListHeading = "%nARGUMENTS%n",
@@ -100,7 +100,7 @@ public class GraphqlCmd implements BLauncherCmd {
                     "from a Ballerina GraphQL service.";
     static final String EXAMPLES =
             "  Generate a GraphQL schema for a Ballerina GraphQL service:%n" +
-                    "    $ bal graphql service.bal -o ./output -s /graphql%n%n" +
+                    "    $ bal graphql service.bal -o ./output --service /graphql%n%n" +
                     "  Generate into the current Ballerina package from a balGraphQL.toml file (client if " +
                     "documents are configured, otherwise service):%n" +
                     "    $ bal graphql balGraphQL.toml%n%n" +
@@ -155,8 +155,7 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = {"-o", "--output"}, paramLabel = "<output>", description = OUTPUT_DESCRIPTION)
     private String outputPath;
 
-    @CommandLine.Option(names = {"-s", "--service"}, paramLabel = "<service-base-path>",
-            description = SERVICE_DESCRIPTION)
+    @CommandLine.Option(names = "--service", paramLabel = "<service-base-path>", description = SERVICE_DESCRIPTION)
     private String serviceBasePath;
 
     @CommandLine.Option(names = "--mode", paramLabel = "<client|service>", description = MODE_DESCRIPTION)
@@ -173,10 +172,10 @@ public class GraphqlCmd implements BLauncherCmd {
             description = SERVICE_NAME_DESCRIPTION)
     private String serviceName;
 
-    @CommandLine.Option(names = {"-f", "--force"}, description = FORCE_DESCRIPTION)
+    @CommandLine.Option(names = "--force", description = FORCE_DESCRIPTION)
     private boolean force;
 
-    @CommandLine.Option(names = {"-d", "--dry-run"}, description = DRY_RUN_DESCRIPTION)
+    @CommandLine.Option(names = {"-n", "--dry-run"}, description = DRY_RUN_DESCRIPTION)
     private boolean dryRun;
 
     /**

@@ -249,17 +249,11 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @DataProvider(name = "forceFlags")
-    public Object[][] forceFlags() {
-        return new Object[][]{{"--force"}, {"-f"}};
-    }
-
-    @Test(description = "Test that an existing output file is overwritten with the force flag",
-            dataProvider = "forceFlags")
-    public void testExecuteOverwritesExistingFileWithForce(String forceFlag) {
+    @Test(description = "Test that an existing output file is overwritten with the force flag")
+    public void testExecuteOverwritesExistingFileWithForce() {
         Path graphql = resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", forceFlag};
+        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--force"};
         try {
             Path typesFile = this.tmpDir.resolve("types.bal");
             Files.writeString(typesFile, "// existing");
@@ -279,7 +273,7 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @DataProvider(name = "dryRunFlags")
     public Object[][] dryRunFlags() {
-        return new Object[][]{{"--dry-run"}, {"-d"}};
+        return new Object[][]{{"--dry-run"}, {"-n"}};
     }
 
     @Test(description = "Test that a dry run lists the files it would create without writing them",
@@ -546,6 +540,20 @@ public class GraphqlCmdTest extends GraphqlTest {
         Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
     }
 
+    @DataProvider
+    public Object[][] removedShortFlags() {
+        return new Object[][]{{"-f"}, {"-d"}, {"-s"}};
+    }
+
+    @Test(description = "Test that the removed short flags are rejected", dataProvider = "removedShortFlags")
+    public void testExecuteWithRemovedShortFlag(String flag) throws IOException {
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = run(exitCaptor, "schema.graphql", flag);
+        Assert.assertTrue(output.contains(String.format(
+                "Unknown option \"%s\". Run \"bal graphql --help\" to see the available options.", flag)), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+    }
+
     @Test(description = "Test graphql command execution with invalid schema file path")
     public void testExecuteWithInvalidSchemaFilePath() {
         Path filePath = resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "schema.graphql"));
@@ -733,8 +741,10 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains("SYNOPSIS"));
-            Assert.assertTrue(output.contains("-f, --force"), output);
-            Assert.assertTrue(output.contains("-d, --dry-run"), output);
+            Assert.assertTrue(output.contains("--force"), output);
+            Assert.assertFalse(output.contains("-f, --force"), output);
+            Assert.assertTrue(output.contains("-n, --dry-run"), output);
+            Assert.assertFalse(output.contains("-s, --service"), output);
             Assert.assertTrue(output.contains("--module"), output);
             Assert.assertTrue(output.contains("--object-type"));
             Assert.assertTrue(output.contains("--service-name"), output);

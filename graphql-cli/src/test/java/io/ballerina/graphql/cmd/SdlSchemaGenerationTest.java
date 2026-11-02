@@ -116,7 +116,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     @Test(description = "Test GraphQL command execution with invalid service base path")
     public void testExecuteWithInvalidServiceName() {
         String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "invalid", "service_2.bal")).toString();
-        String[] args = {servicePath, "-o", this.tmpDir.toString(), "-s", "/service/gql"};
+        String[] args = {servicePath, "-o", this.tmpDir.toString(), "--service", "/service/gql"};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
