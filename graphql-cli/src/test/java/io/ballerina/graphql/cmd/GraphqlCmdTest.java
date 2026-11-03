@@ -876,6 +876,21 @@ public class GraphqlCmdTest extends GraphqlTest {
         Assert.assertFalse(Files.exists(this.tmpDir.resolve("modules")), output);
     }
 
+    @Test(description = "Test that an invalid module name is reported before the output directory is checked")
+    public void testInvalidModuleNameOutsidePackage() throws IOException {
+        Path outputPath = Files.createTempDirectory("no-package");
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            String output = run(exitCaptor, singleObjectSchema(), "-o", outputPath.toString(), "--mode", "service",
+                    "--module", "2x");
+            Assert.assertTrue(output.contains("\"2x\" is not a valid module name."), output);
+            Assert.assertFalse(output.contains(notAPackage(outputPath)), output);
+            assertUsageError(output, exitCaptor);
+        } finally {
+            FileUtils.deleteDirectory(outputPath.toFile());
+        }
+    }
+
     @Test(description = "Test that an unknown option gives a clear error")
     public void testUnknownOption() throws IOException {
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();

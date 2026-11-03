@@ -131,6 +131,13 @@ public class PackageOutputTest {
                 + "(e.g. books or books.v2).");
     }
 
+    @Test(description = "Test that an invalid module name is rejected before the package is checked")
+    public void testInvalidModuleNameOutsidePackage() {
+        ToolException error = Assert.expectThrows(ToolException.class, () -> PackageOutput.resolve(tmpDir, "2x"));
+        Assert.assertEquals(error.exitCode(), ToolException.USAGE);
+        Assert.assertTrue(error.getMessage().startsWith("\"2x\" is not a valid module name."), error.getMessage());
+    }
+
     @Test(description = "Test that a Ballerina.toml with a syntax error is rejected instead of being read in part")
     public void testInvalidBallerinaTomlRejected() throws IOException {
         Path ballerinaToml = Files.writeString(tmpDir.resolve("Ballerina.toml"), "[package\nname = \"shop\"\n");

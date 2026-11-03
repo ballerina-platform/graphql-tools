@@ -56,6 +56,10 @@ record PackageOutput(Path packageRoot, Path outputPath, Optional<String> package
     static PackageOutput resolve(Path outputPath, String moduleName) {
         Path packageRoot = outputPath.toAbsolutePath().normalize();
         Path ballerinaToml = packageRoot.resolve(ProjectConstants.BALLERINA_TOML);
+        // A bad module name is a usage error, so it is reported before the output directory is checked.
+        if (moduleName != null && !MODULE_NAME.matcher(moduleName).matches()) {
+            throw new ToolException(ToolException.USAGE, String.format(ERROR_INVALID_MODULE_NAME, moduleName));
+        }
         boolean isPackageRoot;
         try {
             isPackageRoot = ProjectPaths.isBuildProjectRoot(packageRoot);
@@ -70,9 +74,6 @@ record PackageOutput(Path packageRoot, Path outputPath, Optional<String> package
                 && table.get(NAME_KEY) instanceof String name ? Optional.of(name) : Optional.empty();
         if (moduleName == null) {
             return new PackageOutput(packageRoot, packageRoot, packageName);
-        }
-        if (!MODULE_NAME.matcher(moduleName).matches()) {
-            throw new ToolException(ToolException.USAGE, String.format(ERROR_INVALID_MODULE_NAME, moduleName));
         }
         return new PackageOutput(packageRoot,
                 packageRoot.resolve(ProjectConstants.MODULES_ROOT).resolve(moduleName), packageName);
