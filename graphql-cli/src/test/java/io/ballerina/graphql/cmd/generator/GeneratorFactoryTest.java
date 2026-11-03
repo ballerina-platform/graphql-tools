@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.ToolException;
 import org.testng.Assert;
@@ -73,7 +74,7 @@ public class GeneratorFactoryTest {
         ToolException error = Assert.expectThrows(ToolException.class,
                 () -> getGeneratorForConfigWithRecords("client-config.toml"));
 
-        Assert.assertEquals(error.exitCode(), ToolException.USAGE);
+        Assert.assertEquals(error.exitCode(), ExitCodes.USAGE);
         Assert.assertTrue(error.getMessage().contains("only applies to service generation"), error.getMessage());
     }
 
@@ -83,7 +84,7 @@ public class GeneratorFactoryTest {
         ToolException error = Assert.expectThrows(ToolException.class,
                 () -> GeneratorFactory.getGenerator(createContext(configPath, null, null, "orders")));
 
-        Assert.assertEquals(error.exitCode(), ToolException.USAGE);
+        Assert.assertEquals(error.exitCode(), ExitCodes.USAGE);
         Assert.assertTrue(error.getMessage().contains(String.format("The --service-name flag only applies to service "
                 + "generation. \"%s\" resolves to client generation.", configPath)), error.getMessage());
     }

@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.ToolException;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
@@ -74,7 +75,7 @@ public class PackageOutputTest {
 
         ToolException error = Assert.expectThrows(ToolException.class,
                 () -> resolve(subdirectory));
-        Assert.assertEquals(error.exitCode(), ToolException.INVALID_TARGET);
+        Assert.assertEquals(error.exitCode(), ExitCodes.INVALID_TARGET);
         Assert.assertEquals(error.getMessage(), "\"" + subdirectory.toAbsolutePath().normalize()
                 + "\" is not a Ballerina package. Run the command from the package root, or use -o to point to it.");
     }
@@ -83,7 +84,7 @@ public class PackageOutputTest {
     public void testOutsidePackageRejected() {
         ToolException error = Assert.expectThrows(ToolException.class,
                 () -> resolve(tmpDir));
-        Assert.assertEquals(error.exitCode(), ToolException.INVALID_TARGET);
+        Assert.assertEquals(error.exitCode(), ExitCodes.INVALID_TARGET);
         Assert.assertEquals(error.getMessage(), "\"" + tmpDir.toAbsolutePath().normalize()
                 + "\" is not a Ballerina package. Run the command from the package root, or use -o to point to it.");
     }
@@ -111,7 +112,7 @@ public class PackageOutputTest {
         try {
             ToolException error = Assert.expectThrows(ToolException.class,
                     () -> resolve(tmpDir));
-            Assert.assertEquals(error.exitCode(), ToolException.INVALID_TARGET);
+            Assert.assertEquals(error.exitCode(), ExitCodes.INVALID_TARGET);
             Assert.assertEquals(error.getMessage(), "Could not read \""
                     + tmpDir.toAbsolutePath().normalize().resolve("Ballerina.toml") + "\".");
         } finally {
@@ -125,7 +126,7 @@ public class PackageOutputTest {
 
         ToolException error = Assert.expectThrows(ToolException.class,
                 () -> PackageOutput.resolve(packageRoot, moduleName));
-        Assert.assertEquals(error.exitCode(), ToolException.USAGE);
+        Assert.assertEquals(error.exitCode(), ExitCodes.USAGE);
         Assert.assertEquals(error.getMessage(), "\"" + moduleName + "\" is not a valid module name. Use letters, "
                 + "digits and underscores, start with a letter, and separate parts with single periods "
                 + "(e.g. books or books.v2).");
@@ -134,7 +135,7 @@ public class PackageOutputTest {
     @Test(description = "Test that an invalid module name is rejected before the package is checked")
     public void testInvalidModuleNameOutsidePackage() {
         ToolException error = Assert.expectThrows(ToolException.class, () -> PackageOutput.resolve(tmpDir, "2x"));
-        Assert.assertEquals(error.exitCode(), ToolException.USAGE);
+        Assert.assertEquals(error.exitCode(), ExitCodes.USAGE);
         Assert.assertTrue(error.getMessage().startsWith("\"2x\" is not a valid module name."), error.getMessage());
     }
 
@@ -143,7 +144,7 @@ public class PackageOutputTest {
         Path ballerinaToml = Files.writeString(tmpDir.resolve("Ballerina.toml"), "[package\nname = \"shop\"\n");
 
         ToolException error = Assert.expectThrows(ToolException.class, () -> resolve(tmpDir));
-        Assert.assertEquals(error.exitCode(), ToolException.INVALID_TARGET);
+        Assert.assertEquals(error.exitCode(), ExitCodes.INVALID_TARGET);
         Assert.assertTrue(error.getMessage().startsWith("\"" + ballerinaToml.toAbsolutePath().normalize()
                 + "\" is not valid TOML: "), error.getMessage());
     }
@@ -153,7 +154,7 @@ public class PackageOutputTest {
         Files.writeString(tmpDir.resolve("Ballerina.toml"), "[workspace]\npackages = [\"shop\"]\n");
 
         ToolException error = Assert.expectThrows(ToolException.class, () -> resolve(tmpDir));
-        Assert.assertEquals(error.exitCode(), ToolException.INVALID_TARGET);
+        Assert.assertEquals(error.exitCode(), ExitCodes.INVALID_TARGET);
         Assert.assertEquals(error.getMessage(), "\"" + tmpDir.toAbsolutePath().normalize()
                 + "\" is not a Ballerina package. Run the command from the package root, or use -o to point to it.");
     }

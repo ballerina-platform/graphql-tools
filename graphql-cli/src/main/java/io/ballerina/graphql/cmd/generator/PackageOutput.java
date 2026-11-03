@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.ToolException;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.util.ProjectConstants;
@@ -58,17 +59,17 @@ record PackageOutput(Path packageRoot, Path outputPath, Optional<String> package
         Path ballerinaToml = packageRoot.resolve(ProjectConstants.BALLERINA_TOML);
         // A bad module name is a usage error, so it is reported before the output directory is checked.
         if (moduleName != null && !MODULE_NAME.matcher(moduleName).matches()) {
-            throw new ToolException(ToolException.USAGE, String.format(ERROR_INVALID_MODULE_NAME, moduleName));
+            throw new ToolException(ExitCodes.USAGE, String.format(ERROR_INVALID_MODULE_NAME, moduleName));
         }
         boolean isPackageRoot;
         try {
             isPackageRoot = ProjectPaths.isBuildProjectRoot(packageRoot);
         } catch (ProjectException e) {
-            throw new ToolException(ToolException.INVALID_TARGET,
+            throw new ToolException(ExitCodes.INVALID_TARGET,
                     String.format(ERROR_UNREADABLE_BALLERINA_TOML, ballerinaToml));
         }
         if (!isPackageRoot) {
-            throw new ToolException(ToolException.INVALID_TARGET, String.format(ERROR_NOT_A_PACKAGE, packageRoot));
+            throw new ToolException(ExitCodes.INVALID_TARGET, String.format(ERROR_NOT_A_PACKAGE, packageRoot));
         }
         Optional<String> packageName = read(ballerinaToml).get(PACKAGE_KEY) instanceof Map<?, ?> table
                 && table.get(NAME_KEY) instanceof String name ? Optional.of(name) : Optional.empty();
@@ -91,14 +92,14 @@ record PackageOutput(Path packageRoot, Path outputPath, Optional<String> package
         try {
             toml = Toml.read(ballerinaToml);
         } catch (IOException e) {
-            throw new ToolException(ToolException.INVALID_TARGET,
+            throw new ToolException(ExitCodes.INVALID_TARGET,
                     String.format(ERROR_UNREADABLE_BALLERINA_TOML, ballerinaToml));
         }
         Optional<Diagnostic> syntaxError = toml.diagnostics().stream()
                 .filter(diagnostic -> diagnostic.diagnosticInfo().severity() == DiagnosticSeverity.ERROR)
                 .findFirst();
         if (syntaxError.isPresent()) {
-            throw new ToolException(ToolException.INVALID_TARGET,
+            throw new ToolException(ExitCodes.INVALID_TARGET,
                     String.format(ERROR_INVALID_BALLERINA_TOML, ballerinaToml, syntaxError.get().message()));
         }
         return toml.toMap();

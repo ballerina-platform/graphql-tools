@@ -24,6 +24,7 @@ import io.ballerina.graphql.cmd.generator.GenerationContext;
 import io.ballerina.graphql.cmd.generator.GenerationEngine;
 import io.ballerina.graphql.cmd.generator.ObjectType;
 import io.ballerina.graphql.cmd.generator.OperationMode;
+import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.ToolException;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
@@ -72,7 +73,6 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
         footerHeading = "%nEXAMPLES%n",
         footer = GraphqlCmd.EXAMPLES)
 public class GraphqlCmd implements BLauncherCmd {
-    private static final int EXIT_CODE_SUCCESS = 0;
     private static final String CMD_NAME = "graphql";
     private static final String USAGE_SYNOPSIS = "Usage: bal graphql [OPTIONS] <input>";
     private static final String USAGE_HELP_POINTER = "Try 'bal graphql --help' for more information.";
@@ -245,7 +245,7 @@ public class GraphqlCmd implements BLauncherCmd {
             if (helpFlag) {
                 helpStream.print(usage());
                 helpStream.flush();
-                exit(EXIT_CODE_SUCCESS);
+                exit(ExitCodes.SUCCESS);
                 return;
             }
             if (unknownOptions != null && !unknownOptions.isEmpty()) {
@@ -261,7 +261,7 @@ public class GraphqlCmd implements BLauncherCmd {
         } catch (ToolException e) {
             outStream.println(e.getMessage());
             // Only a usage error points to the help (ERR-8); other errors print just the error (EXIT-2).
-            if (e.exitCode() == ToolException.USAGE) {
+            if (e.exitCode() == ExitCodes.USAGE) {
                 outStream.println(USAGE_SYNOPSIS);
                 outStream.println(USAGE_HELP_POINTER);
             }
@@ -269,10 +269,10 @@ public class GraphqlCmd implements BLauncherCmd {
             return;
         } catch (GenerationException e) {
             outStream.println(e.getMessage());
-            exit(ToolException.RUNTIME);
+            exit(ExitCodes.RUNTIME);
             return;
         }
-        exit(EXIT_CODE_SUCCESS);
+        exit(ExitCodes.SUCCESS);
     }
 
     private void validateInputs() {
@@ -369,7 +369,7 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private static ToolException usageError(String message) {
-        return new ToolException(ToolException.USAGE, Utils.constructGraphqlDiagnostic(
+        return new ToolException(ExitCodes.USAGE, Utils.constructGraphqlDiagnostic(
                 DiagnosticMessages.GRAPHQL_CLI_100.getCode(), message, DiagnosticSeverity.ERROR, null).toString());
     }
 

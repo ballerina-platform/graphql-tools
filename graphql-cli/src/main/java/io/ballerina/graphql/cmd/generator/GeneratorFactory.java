@@ -20,6 +20,7 @@ package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
 import io.ballerina.graphql.cmd.config.BalGraphqlConfigReader;
+import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ToolException;
@@ -49,10 +50,10 @@ public class GeneratorFactory {
             BalGraphqlConfig config = readConfig(inputPath, context.getOutStream());
             OperationMode operationMode = resolveOperationMode(context, config);
             if (operationMode == OperationMode.CLIENT && context.isObjectTypeDeclared()) {
-                throw new ToolException(ToolException.USAGE, String.format(ERROR_OBJECT_TYPE_FOR_CLIENT, inputPath));
+                throw new ToolException(ExitCodes.USAGE, String.format(ERROR_OBJECT_TYPE_FOR_CLIENT, inputPath));
             }
             if (operationMode == OperationMode.CLIENT && context.getServiceName() != null) {
-                throw new ToolException(ToolException.USAGE, String.format(ERROR_SERVICE_NAME_FOR_CLIENT, inputPath));
+                throw new ToolException(ExitCodes.USAGE, String.format(ERROR_SERVICE_NAME_FOR_CLIENT, inputPath));
             }
             return createGenerator(operationMode, context, config);
         }

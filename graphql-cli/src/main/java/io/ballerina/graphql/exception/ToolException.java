@@ -19,25 +19,9 @@
 package io.ballerina.graphql.exception;
 
 /**
- * An error that ends the command with a given exit code, following the exit codes of the Ballerina CLI Tool Design
- * Guide.
+ * An error that ends the command with one of the {@link ExitCodes}.
  */
 public final class ToolException extends RuntimeException {
-
-    /**
-     * Any failure that is not a usage error or an invalid target.
-     */
-    public static final int RUNTIME = 1;
-
-    /**
-     * An invalid invocation, such as an unknown flag, a missing input or an invalid value.
-     */
-    public static final int USAGE = 2;
-
-    /**
-     * The target is not a valid Ballerina package.
-     */
-    public static final int INVALID_TARGET = 3;
 
     private final int exitCode;
 
