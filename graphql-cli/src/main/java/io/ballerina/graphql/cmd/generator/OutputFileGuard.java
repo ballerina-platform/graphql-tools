@@ -20,6 +20,7 @@ package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.ToolException;
+import io.ballerina.projects.util.ProjectConstants;
 
 import java.io.PrintStream;
 import java.nio.file.Files;
@@ -37,22 +38,29 @@ final class OutputFileGuard {
     private static final String ERROR_OVERWRITE_REFUSED = "No files were written.";
     private static final String ERROR_NOT_INTERACTIVE =
             "Cannot ask to overwrite these files in a non-interactive run. Use --force to overwrite them.";
+    private static final String ERROR_NOT_WRITABLE = "Cannot write to \"%s\". Check its permissions.";
+    private static final String ERROR_NOT_A_DIRECTORY = "Cannot create \"%s\": \"%s\" is not a directory.";
     private static final Set<String> YES_ANSWERS = Set.of("y", "yes");
 
     private OutputFileGuard() {
     }
 
     /**
-     * Checks the files a run writes, before any of them is written. A dry run adds each file to the report and
-     * writes nothing. Otherwise, existing files are overwritten only with --force or when the user agrees.
+     * Checks the files a run writes, before any of them is written. Every destination must be writable. A dry run
+     * then adds each file to the report and writes nothing. Otherwise, existing files are overwritten only with
+     * --force or when the user agrees.
      *
      * @param filePaths the files the run writes
      * @param context   the context of the run
      * @return true if the files can be written, false for a dry run
-     * @throws ToolException with exit code 4 if the user refuses, or if the run cannot ask
+     * @throws ToolException with exit code 1 if a destination is not writable, or 4 if the user refuses or the run
+     *                       cannot ask
      */
     static boolean canWrite(List<Path> filePaths, GenerationContext context) {
+        filePaths.forEach(OutputFileGuard::checkWritable);
         if (context.isDryRun()) {
+            moduleToCreate(context).ifPresent(moduleRoot -> context.getDryRunReport().addModule(
+                    displayPath(moduleRoot)));
             filePaths.forEach(filePath -> context.getDryRunReport().add(Files.exists(filePath) ?
                     DryRunReport.Action.OVERWRITE : DryRunReport.Action.CREATE, displayPath(filePath)));
             return false;
@@ -73,6 +81,40 @@ final class OutputFileGuard {
             throw new ToolException(ExitCodes.OVERWRITE_REFUSED, ERROR_OVERWRITE_REFUSED);
         }
         return true;
+    }
+
+    // A file that doesn't exist yet is created in its nearest existing directory, so that directory must be writable
+    // (FF-4, phase 5).
+    private static void checkWritable(Path filePath) {
+        if (Files.exists(filePath)) {
+            if (!Files.isWritable(filePath)) {
+                throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_NOT_WRITABLE, displayPath(filePath)));
+            }
+            return;
+        }
+        Path parent = filePath.toAbsolutePath().getParent();
+        while (parent != null && !Files.exists(parent)) {
+            parent = parent.getParent();
+        }
+        if (parent == null) {
+            return;
+        }
+        if (!Files.isDirectory(parent)) {
+            throw new ToolException(ExitCodes.RUNTIME,
+                    String.format(ERROR_NOT_A_DIRECTORY, displayPath(filePath), displayPath(parent)));
+        }
+        if (!Files.isWritable(parent)) {
+            throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_NOT_WRITABLE, displayPath(parent)));
+        }
+    }
+
+    private static Optional<Path> moduleToCreate(GenerationContext context) {
+        if (context.getModuleName() == null) {
+            return Optional.empty();
+        }
+        Path moduleRoot = context.getTargetOutputPath().toAbsolutePath().normalize()
+                .resolve(ProjectConstants.MODULES_ROOT).resolve(context.getModuleName());
+        return Files.exists(moduleRoot) ? Optional.empty() : Optional.of(moduleRoot);
     }
 
     // A path can only be shown relative to the current directory when both are on the same drive (Windows).

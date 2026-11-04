@@ -25,6 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -307,6 +308,79 @@ public class GraphqlCmdTest extends GraphqlTest {
         Assert.assertFalse(output.contains("already exist"), output);
         Assert.assertEquals(readContent(typesFile), readContent(resourceDir.resolve(
                 Paths.get("serviceGen", "expectedServices", "typesWithSingleObjectDefault.bal"))));
+    }
+
+    @Test(description = "Test that a destination that is not writable fails before the prompt, also in a dry run")
+    public void testNotWritableDirectoryRejected() throws IOException {
+        Path packageRoot = createBallerinaPackage(this.tmpDir.resolve("not-writable"));
+        Path moduleRoot = Files.createDirectories(packageRoot.resolve("modules").resolve("books"));
+        File moduleDirectory = moduleRoot.toFile();
+        try {
+            if (!moduleDirectory.setWritable(false) || Files.isWritable(moduleRoot)) {
+                throw new SkipException("Cannot make a directory read-only on this system");
+            }
+            for (String[] extraArgs : new String[][]{{}, {"--dry-run"}}) {
+                List<String> questions = new ArrayList<>();
+                ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+                List<String> args = new ArrayList<>(List.of(singleObjectSchema(), "-o", packageRoot.toString(),
+                        "--mode", "service", "--module", "books"));
+                args.addAll(List.of(extraArgs));
+
+                String output = run(exitCaptor, recordingPrompt(questions), args.toArray(String[]::new));
+
+                Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+                Assert.assertTrue(output.contains("Cannot write to \"" + displayPath(moduleRoot)
+                        + "\". Check its permissions."), output);
+                Assert.assertTrue(questions.isEmpty(), output);
+                Assert.assertFalse(output.contains("Dry run:"), output);
+            }
+        } finally {
+            moduleDirectory.setWritable(true);
+            FileUtils.deleteDirectory(packageRoot.toFile());
+        }
+    }
+
+    @Test(description = "Test that a file in place of a needed directory fails before the prompt")
+    public void testFileInPlaceOfDirectoryRejected() throws IOException {
+        Path packageRoot = createBallerinaPackage(this.tmpDir.resolve("file-in-place"));
+        Path modulesFile = Files.writeString(packageRoot.resolve("modules"), "");
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+            String output = run(exitCaptor, recordingPrompt(new ArrayList<>()),
+                    singleObjectSchema(), "-o", packageRoot.toString(), "--mode", "service", "--module", "books");
+
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+            Assert.assertTrue(output.contains("\"" + displayPath(modulesFile) + "\" is not a directory."), output);
+        } finally {
+            FileUtils.deleteDirectory(packageRoot.toFile());
+        }
+    }
+
+    @Test(description = "Test that a dry run lists the module it would create, but not one that already exists")
+    public void testDryRunReportsModuleToCreate() throws IOException {
+        Path packageRoot = createBallerinaPackage(this.tmpDir.resolve("module-to-create"));
+        Path moduleRoot = packageRoot.resolve("modules").resolve("books");
+        try {
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+            String output = run(exitCaptor, recordingPrompt(new ArrayList<>()), singleObjectSchema(),
+                    "-o", packageRoot.toString(), "--mode", "service", "--module", "books", "--dry-run");
+
+            Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+            Assert.assertTrue(output.contains("  create     " + displayPath(moduleRoot) + " (module)"), output);
+            Assert.assertTrue(output.contains("2 to create, 0 to overwrite."), output);
+            Assert.assertFalse(Files.exists(moduleRoot), output);
+
+            Files.createDirectories(moduleRoot);
+            exitCaptor = new ExitCodeCaptor();
+            output = run(exitCaptor, recordingPrompt(new ArrayList<>()), singleObjectSchema(),
+                    "-o", packageRoot.toString(), "--mode", "service", "--module", "books", "--dry-run");
+
+            Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+            Assert.assertFalse(output.contains("(module)"), output);
+        } finally {
+            FileUtils.deleteDirectory(packageRoot.toFile());
+        }
     }
 
     @DataProvider(name = "dryRunFlags")

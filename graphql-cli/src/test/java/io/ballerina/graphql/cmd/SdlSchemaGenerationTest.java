@@ -148,11 +148,12 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
-            String message = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " + outPath +
-                    "/schema_graphql_new.graphql (Permission denied)";
+            String message = String.format("Cannot write to \"%s\". Check its permissions.",
+                    Path.of("").toAbsolutePath().relativize(outPath.toAbsolutePath()));
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains(message));
+            Assert.assertTrue(output.contains(message), output);
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         } catch (IOException e) {
             Assert.fail(e.toString());
         }

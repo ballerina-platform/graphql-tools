@@ -31,22 +31,32 @@ public final class DryRunReport {
 
     private static final String HEADER = "Dry run: no files were written.";
     private static final String LINE_FORMAT = "  %-10s %s";
+    private static final String MODULE_SUFFIX = " (module)";
     private static final String SUMMARY = "%d to create, %d to overwrite.";
 
     private final List<PlannedFile> files = new ArrayList<>();
+    private Path moduleToCreate;
 
     void add(Action action, Path path) {
         files.add(new PlannedFile(action, path));
     }
 
+    void addModule(Path moduleRoot) {
+        this.moduleToCreate = moduleRoot;
+    }
+
     /**
-     * Prints each planned file with its action, followed by a count of each action.
+     * Prints the module to create, if any, and each planned file with its action, followed by a count of the files
+     * for each action.
      *
      * @param outStream the stream to print the report to
      */
     public void print(PrintStream outStream) {
         outStream.println(HEADER);
         outStream.println();
+        if (moduleToCreate != null) {
+            outStream.println(String.format(LINE_FORMAT, Action.CREATE.label(), moduleToCreate + MODULE_SUFFIX));
+        }
         for (PlannedFile file : files) {
             outStream.println(String.format(LINE_FORMAT, file.action().label(), file.path()));
         }
