@@ -24,16 +24,19 @@ import io.ballerina.graphql.cmd.generator.GenerationContext;
 import io.ballerina.graphql.cmd.generator.GenerationEngine;
 import io.ballerina.graphql.cmd.generator.ObjectType;
 import io.ballerina.graphql.cmd.generator.OperationMode;
+import io.ballerina.graphql.cmd.generator.OverwritePrompt;
 import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.GenerationException;
 import io.ballerina.graphql.exception.ToolException;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import picocli.CommandLine;
 
+import java.io.Console;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
@@ -134,14 +137,15 @@ public class GraphqlCmd implements BLauncherCmd {
             "Base name for the generated service, e.g. orders gives OrdersService. Defaults to the schema file "
                     + "name, or for a url or introspection schema, the module or package name.";
     private static final String FORCE_DESCRIPTION =
-            "Overwrite output files that already exist. Without it, existing files are skipped with a warning.";
+            "Overwrite output files that already exist without asking.";
     private static final String DRY_RUN_DESCRIPTION =
-            "Show the files that would be created, overwritten or skipped, without writing them.";
+            "Show the files that would be created or overwritten, without writing them.";
 
     private final PrintStream helpStream;
     private final PrintStream outStream;
     private final Path executionPath;
     private final ExitHandler exitHandler;
+    private final OverwritePrompt overwritePrompt;
 
     @CommandLine.Option(names = {"-h", "--help"}, hidden = true)
     private boolean helpFlag;
@@ -229,10 +233,38 @@ public class GraphqlCmd implements BLauncherCmd {
      * @param exitHandler  custom exit handler (for testing)
      */
     public GraphqlCmd(PrintStream helpStream, PrintStream outStream, Path executionDir, ExitHandler exitHandler) {
+        this(helpStream, outStream, executionDir, exitHandler, consolePrompt(outStream));
+    }
+
+    /**
+     * Constructor that takes the prompt used to ask before overwriting existing files.
+     *
+     * @param helpStream      stream the help is written to
+     * @param outStream       stream errors, warnings and generation messages are written to
+     * @param executionDir    defines the directory location of execution of ballerina command
+     * @param exitHandler     custom exit handler (for testing)
+     * @param overwritePrompt asks before existing files are overwritten (for testing)
+     */
+    public GraphqlCmd(PrintStream helpStream, PrintStream outStream, Path executionDir, ExitHandler exitHandler,
+                      OverwritePrompt overwritePrompt) {
         this.helpStream = helpStream;
         this.outStream = outStream;
         this.executionPath = executionDir;
         this.exitHandler = exitHandler;
+        this.overwritePrompt = overwritePrompt;
+    }
+
+    // Asks only when there is a terminal to answer from (FF-6). The question goes to the error stream (FF-5).
+    private static OverwritePrompt consolePrompt(PrintStream outStream) {
+        return question -> {
+            Console console = System.console();
+            if (console == null) {
+                return Optional.empty();
+            }
+            outStream.print(question);
+            outStream.flush();
+            return Optional.of(Objects.requireNonNullElse(console.readLine(), ""));
+        };
     }
 
     private void exit(int code) {
@@ -344,7 +376,8 @@ public class GraphqlCmd implements BLauncherCmd {
     private void executeOperation() throws GenerationException {
         GenerationContext context = new GenerationContext(inputPath,
                 OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
-                ObjectType.fromValue(objectType).orElse(null), moduleName, serviceName, force, dryRun, outStream);
+                ObjectType.fromValue(objectType).orElse(null), moduleName, serviceName, force, dryRun,
+                overwritePrompt, outStream);
         GenerationEngine.run(context);
         if (dryRun) {
             context.getDryRunReport().print(outStream);

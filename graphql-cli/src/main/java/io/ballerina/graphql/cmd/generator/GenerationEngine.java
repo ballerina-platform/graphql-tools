@@ -31,6 +31,9 @@ public class GenerationEngine {
         Generator generator = GeneratorFactory.getGenerator(context);
         generator.validate();
         generator.generate();
-        generator.write();
+        // Existing files are checked once every output file is known and before any is written (FF-4).
+        if (OutputFileGuard.canWrite(generator.outputFiles(), context)) {
+            generator.write();
+        }
     }
 }

@@ -18,31 +18,61 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import io.ballerina.graphql.exception.ExitCodes;
+import io.ballerina.graphql.exception.ToolException;
+
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
 
 final class OutputFileGuard {
 
-    private static final String WARNING_FILE_EXISTS =
-            "WARNING: Skipped \"%s\": the file already exists. Use --force to overwrite it.";
+    private static final String EXISTING_FILES_HEADER = "The following files already exist.";
+    private static final String EXISTING_FILE_FORMAT = "  %s";
+    private static final String OVERWRITE_QUESTION = "Overwrite these files? [y/N] ";
+    private static final String ERROR_OVERWRITE_REFUSED = "No files were written.";
+    private static final String ERROR_NOT_INTERACTIVE =
+            "Cannot ask to overwrite these files in a non-interactive run. Use --force to overwrite them.";
+    private static final Set<String> YES_ANSWERS = Set.of("y", "yes");
 
     private OutputFileGuard() {
     }
 
-    static boolean canWrite(Path filePath, GenerationContext context) {
-        Path displayPath = displayPath(filePath);
-        boolean exists = Files.exists(filePath);
+    /**
+     * Checks the files a run writes, before any of them is written. A dry run adds each file to the report and
+     * writes nothing. Otherwise, existing files are overwritten only with --force or when the user agrees.
+     *
+     * @param filePaths the files the run writes
+     * @param context   the context of the run
+     * @return true if the files can be written, false for a dry run
+     * @throws ToolException with exit code 4 if the user refuses, or if the run cannot ask
+     */
+    static boolean canWrite(List<Path> filePaths, GenerationContext context) {
         if (context.isDryRun()) {
-            DryRunReport.Action action = !exists ? DryRunReport.Action.CREATE
-                    : context.isForce() ? DryRunReport.Action.OVERWRITE : DryRunReport.Action.SKIP;
-            context.getDryRunReport().add(action, displayPath);
+            filePaths.forEach(filePath -> context.getDryRunReport().add(Files.exists(filePath) ?
+                    DryRunReport.Action.OVERWRITE : DryRunReport.Action.CREATE, displayPath(filePath)));
             return false;
         }
-        if (!exists || context.isForce()) {
+        List<Path> existingFiles = filePaths.stream().filter(Files::exists).toList();
+        if (existingFiles.isEmpty() || context.isForce()) {
             return true;
         }
-        context.getOutStream().println(String.format(WARNING_FILE_EXISTS, displayPath));
-        return false;
+        PrintStream outStream = context.getOutStream();
+        outStream.println(EXISTING_FILES_HEADER);
+        existingFiles.forEach(filePath -> outStream.println(String.format(EXISTING_FILE_FORMAT,
+                displayPath(filePath))));
+        Optional<String> answer = context.getOverwritePrompt().ask(OVERWRITE_QUESTION);
+        if (answer.isEmpty()) {
+            throw new ToolException(ExitCodes.OVERWRITE_REFUSED, ERROR_NOT_INTERACTIVE);
+        }
+        if (!YES_ANSWERS.contains(answer.get().trim().toLowerCase(Locale.ROOT))) {
+            throw new ToolException(ExitCodes.OVERWRITE_REFUSED, ERROR_OVERWRITE_REFUSED);
+        }
+        return true;
     }
 
     // A path can only be shown relative to the current directory when both are on the same drive (Windows).
@@ -53,3 +83,4 @@ final class OutputFileGuard {
                 currentDir.relativize(absolutePath) : absolutePath;
     }
 }
+

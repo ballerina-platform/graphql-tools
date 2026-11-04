@@ -36,12 +36,14 @@ public class GenerationContext {
     private final String serviceName;
     private final boolean force;
     private final boolean dryRun;
+    private final OverwritePrompt overwritePrompt;
     private final PrintStream outStream;
     private final DryRunReport dryRunReport = new DryRunReport();
 
     public GenerationContext(String inputPath, OperationMode declaredOperationMode, Path targetOutputPath,
                              String serviceBasePath, ObjectType declaredObjectType, String moduleName,
-                             String serviceName, boolean force, boolean dryRun, PrintStream outStream) {
+                             String serviceName, boolean force, boolean dryRun, OverwritePrompt overwritePrompt,
+                             PrintStream outStream) {
         this.inputPath = inputPath;
         this.declaredOperationMode = declaredOperationMode;
         this.targetOutputPath = targetOutputPath;
@@ -51,6 +53,7 @@ public class GenerationContext {
         this.serviceName = serviceName;
         this.force = force;
         this.dryRun = dryRun;
+        this.overwritePrompt = overwritePrompt;
         this.outStream = outStream;
     }
 
@@ -103,6 +106,10 @@ public class GenerationContext {
 
     public boolean isDryRun() {
         return dryRun;
+    }
+
+    public OverwritePrompt getOverwritePrompt() {
+        return overwritePrompt;
     }
 
     public DryRunReport getDryRunReport() {

@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
@@ -59,6 +60,7 @@ public class BalGraphqlConfigGenerationTest {
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
     private static final boolean NO_FORCE = false;
     private static final boolean NO_DRY_RUN = false;
+    private static final OverwritePrompt NOT_INTERACTIVE = question -> Optional.empty();
     private static final String INVALID_SDL = "type Query {\n  broken(: String\n}\n";
 
     private Path outputPath;
@@ -334,7 +336,7 @@ public class BalGraphqlConfigGenerationTest {
     private void generateService(Path configPath, Path packagePath, String moduleName, String serviceName)
             throws IOException, ParseException, GenerationException {
         GenerationContext context = new GenerationContext(configPath.toString(), null, packagePath, null, null,
-                moduleName, serviceName, NO_FORCE, NO_DRY_RUN, System.out);
+                moduleName, serviceName, NO_FORCE, NO_DRY_RUN, NOT_INTERACTIVE, System.out);
         Generator generator = new ServiceGeneration(context, readConfig(configPath));
         generator.validate();
         generator.generate();
@@ -355,7 +357,7 @@ public class BalGraphqlConfigGenerationTest {
 
     private GenerationContext createContext(Path configPath, Path targetOutputPath, ObjectType declaredObjectType) {
         return new GenerationContext(configPath.toString(), null, targetOutputPath, null, declaredObjectType, null,
-                null, NO_FORCE, NO_DRY_RUN, System.out);
+                null, NO_FORCE, NO_DRY_RUN, NOT_INTERACTIVE, System.out);
     }
 
     private BalGraphqlConfig readConfig(Path configPath) throws IOException, ParseException {

@@ -19,6 +19,7 @@
 package io.ballerina.graphql.cmd;
 
 import io.ballerina.cli.launcher.BLauncherException;
+import io.ballerina.graphql.cmd.generator.OverwritePrompt;
 import io.ballerina.graphql.common.GraphqlTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -37,7 +38,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
@@ -228,50 +231,82 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test that an existing output file is skipped without the force flag")
-    public void testExecuteSkipsExistingFileWithoutForce() {
-        Path graphql = resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
-        try {
-            Path typesFile = this.tmpDir.resolve("types.bal");
-            Files.writeString(typesFile, "// existing");
-            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
-            new CommandLine(graphqlCmd).parseArgs(args);
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            Assert.assertTrue(output.contains("the file already exists. Use --force to overwrite it."), output);
+    @Test(description = "Test that existing output files are not overwritten when the run cannot ask")
+    public void testExistingFileRefusedWhenNotInteractive() throws IOException {
+        Path typesFile = Files.writeString(this.tmpDir.resolve("types.bal"), "// existing");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, question -> Optional.empty(),
+                singleObjectSchema(), "-o", this.tmpDir.toString(), "--mode", "service");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 4, output);
+        Assert.assertTrue(output.contains("The following files already exist." + System.lineSeparator()
+                + "  " + displayPath(typesFile)), output);
+        Assert.assertTrue(output.contains("Cannot ask to overwrite these files in a non-interactive run. "
+                + "Use --force to overwrite them."), output);
+        Assert.assertEquals(Files.readString(typesFile), "// existing");
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("service.bal")), output);
+    }
+
+    @DataProvider(name = "overwriteAnswers")
+    public Object[][] overwriteAnswers() {
+        return new Object[][]{{"y", true}, {"Y", true}, {"yes", true}, {" y ", true}, {"n", false}, {"no", false},
+                {"", false}, {"x", false}};
+    }
+
+    @Test(description = "Test that existing output files are overwritten only when the user agrees",
+            dataProvider = "overwriteAnswers")
+    public void testOverwritePromptAnswer(String answer, boolean overwritten) throws IOException {
+        Path typesFile = Files.writeString(this.tmpDir.resolve("types.bal"), "// existing");
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, question -> {
+            questions.add(question);
+            return Optional.of(answer);
+        }, singleObjectSchema(), "-o", this.tmpDir.toString(), "--mode", "service");
+
+        Assert.assertEquals(questions, List.of("Overwrite these files? [y/N] "), output);
+        if (overwritten) {
+            Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+            Assert.assertEquals(readContent(typesFile), readContent(resourceDir.resolve(
+                    Paths.get("serviceGen", "expectedServices", "typesWithSingleObjectDefault.bal"))));
+            Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")), output);
+        } else {
+            Assert.assertEquals(exitCaptor.getExitCode(), 4, output);
+            Assert.assertTrue(output.contains("No files were written."), output);
             Assert.assertEquals(Files.readString(typesFile), "// existing");
-            Assert.assertTrue(Files.exists(this.tmpDir.resolve("service.bal")));
-            List<String> createdFiles = createdFiles(output);
-            Assert.assertEquals(createdFiles.size(), 1, output);
-            Assert.assertTrue(createdFiles.get(0).endsWith("service.bal"), output);
-        } catch (BLauncherException | IOException e) {
-            Assert.fail(e.getMessage());
+            Assert.assertFalse(Files.exists(this.tmpDir.resolve("service.bal")), output);
         }
     }
 
-    @Test(description = "Test that an existing output file is overwritten with the force flag")
-    public void testExecuteOverwritesExistingFileWithForce() {
-        Path graphql = resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--force"};
-        try {
-            Path typesFile = this.tmpDir.resolve("types.bal");
-            Files.writeString(typesFile, "// existing");
-            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
-            new CommandLine(graphqlCmd).parseArgs(args);
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            Assert.assertFalse(output.contains("the file already exists"));
-            Path expectedTypesFile = resourceDir.resolve(
-                    Paths.get("serviceGen", "expectedServices", "typesWithSingleObjectDefault.bal"));
-            Assert.assertEquals(readContent(typesFile), readContent(expectedTypesFile));
-        } catch (BLauncherException | IOException e) {
-            Assert.fail(e.getMessage());
-        }
+    @Test(description = "Test that the user is not asked when no output file exists")
+    public void testNoPromptWithoutExistingFiles() throws IOException {
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(questions),
+                singleObjectSchema(), "-o", this.tmpDir.toString(), "--mode", "service");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(questions.isEmpty(), output);
+        Assert.assertFalse(output.contains("already exist"), output);
+    }
+
+    @Test(description = "Test that an existing output file is overwritten with the force flag without asking")
+    public void testExecuteOverwritesExistingFileWithForce() throws IOException {
+        Path typesFile = Files.writeString(this.tmpDir.resolve("types.bal"), "// existing");
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(questions),
+                singleObjectSchema(), "-o", this.tmpDir.toString(), "--mode", "service", "--force");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(questions.isEmpty(), output);
+        Assert.assertFalse(output.contains("already exist"), output);
+        Assert.assertEquals(readContent(typesFile), readContent(resourceDir.resolve(
+                Paths.get("serviceGen", "expectedServices", "typesWithSingleObjectDefault.bal"))));
     }
 
     @DataProvider(name = "dryRunFlags")
@@ -294,7 +329,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains("Dry run: no files were written."));
-            Assert.assertTrue(output.contains("2 to create, 0 to overwrite, 0 to skip."));
+            Assert.assertTrue(output.contains("2 to create, 0 to overwrite."));
             Assert.assertFalse(output.contains(SUCCESS_MESSAGE), output);
             Assert.assertFalse(Files.exists(outputPath.resolve("types.bal")));
             Assert.assertFalse(Files.exists(outputPath.resolve("service.bal")));
@@ -303,26 +338,21 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test that a dry run reports an existing file as skipped and leaves it unchanged")
-    public void testDryRunReportsExistingFileAsSkipped() {
-        Path graphql = resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {graphql.toString(), "-o", this.tmpDir.toString(), "--mode", "service", "--dry-run"};
-        try {
-            Path typesFile = this.tmpDir.resolve("types.bal");
-            Files.writeString(typesFile, "// existing");
-            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-            GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
-            new CommandLine(graphqlCmd).parseArgs(args);
-            graphqlCmd.execute();
-            String output = readOutput(true);
-            Assert.assertTrue(output.contains("1 to create, 0 to overwrite, 1 to skip."));
-            Assert.assertTrue(output.contains("types.bal  (already exists, use --force to overwrite)"), output);
-            Assert.assertEquals(Files.readString(typesFile), "// existing");
-            Assert.assertFalse(Files.exists(this.tmpDir.resolve("service.bal")));
-        } catch (BLauncherException | IOException e) {
-            Assert.fail(e.getMessage());
-        }
+    @Test(description = "Test that a dry run reports an existing file as overwritten without asking")
+    public void testDryRunReportsExistingFileAsOverwritten() throws IOException {
+        Path typesFile = Files.writeString(this.tmpDir.resolve("types.bal"), "// existing");
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(questions),
+                singleObjectSchema(), "-o", this.tmpDir.toString(), "--mode", "service", "--dry-run");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(questions.isEmpty(), output);
+        Assert.assertTrue(output.contains("1 to create, 1 to overwrite."), output);
+        Assert.assertTrue(output.contains("overwrite  " + displayPath(typesFile)), output);
+        Assert.assertEquals(Files.readString(typesFile), "// existing");
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("service.bal")));
     }
 
     @Test(description = "Test that a dry run with the force flag reports an existing file as overwritten")
@@ -338,7 +368,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             new CommandLine(graphqlCmd).parseArgs(args);
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains("1 to create, 1 to overwrite, 0 to skip."));
+            Assert.assertTrue(output.contains("1 to create, 1 to overwrite."));
             Assert.assertEquals(Files.readString(typesFile), "// existing");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
@@ -929,6 +959,21 @@ public class GraphqlCmdTest extends GraphqlTest {
         return readOutput(true);
     }
 
+    private String run(ExitCodeCaptor exitCaptor, OverwritePrompt overwritePrompt, String... args)
+            throws IOException {
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, printStream, tmpDir, exitCaptor, overwritePrompt);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        return readOutput(true);
+    }
+
+    private static OverwritePrompt recordingPrompt(List<String> questions) {
+        return question -> {
+            questions.add(question);
+            return Optional.of("y");
+        };
+    }
+
     private String singleObjectSchema() {
         return resourceDir.resolve(
                 Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql")).toString();
@@ -937,6 +982,10 @@ public class GraphqlCmdTest extends GraphqlTest {
     private static String notAPackage(Path outputPath) {
         return "\"" + outputPath.toAbsolutePath().normalize() + "\" is not a Ballerina package. "
                 + "Run the command from the package root, or use -o to point to it.";
+    }
+
+    private static Path displayPath(Path filePath) {
+        return Path.of("").toAbsolutePath().relativize(filePath.toAbsolutePath());
     }
 
     private static List<String> createdFiles(String output) {

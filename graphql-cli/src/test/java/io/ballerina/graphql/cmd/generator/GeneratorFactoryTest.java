@@ -26,6 +26,7 @@ import org.testng.annotations.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * This class is used to test the functionality of the GeneratorFactory.
@@ -36,6 +37,7 @@ public class GeneratorFactoryTest {
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
     private static final boolean NO_FORCE = false;
     private static final boolean NO_DRY_RUN = false;
+    private static final OverwritePrompt NOT_INTERACTIVE = question -> Optional.empty();
 
     private GenerationContext createContext(String inputPath) {
         return createContext(inputPath, null, null);
@@ -57,7 +59,7 @@ public class GeneratorFactoryTest {
     private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode,
                                             ObjectType declaredObjectType, String serviceName) {
         return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, null, declaredObjectType, null,
-                serviceName, NO_FORCE, NO_DRY_RUN, System.out);
+                serviceName, NO_FORCE, NO_DRY_RUN, NOT_INTERACTIVE, System.out);
     }
 
     private Generator getGeneratorForConfig(String fileName) throws GenerationException {
