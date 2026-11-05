@@ -46,28 +46,39 @@ final class OutputFileGuard {
     }
 
     /**
-     * Checks the files a run writes, before any of them is written. Every destination must be writable. A dry run
-     * then adds each file to the report and writes nothing. Otherwise, existing files are overwritten only with
-     * --force or when the user agrees.
+     * Checks that every file a run writes can be written (FF-4, phase 5).
+     *
+     * @param filePaths the files the run writes
+     * @throws ToolException with exit code 1 if a destination is not writable
+     */
+    static void checkWritable(List<Path> filePaths) {
+        filePaths.forEach(OutputFileGuard::checkWritable);
+    }
+
+    /**
+     * Adds the module the run creates, if any, and each file to the dry-run report, as created or overwritten.
      *
      * @param filePaths the files the run writes
      * @param context   the context of the run
-     * @return true if the files can be written, false for a dry run
-     * @throws ToolException with exit code 1 if a destination is not writable, or 4 if the user refuses or the run
-     *                       cannot ask
      */
-    static boolean canWrite(List<Path> filePaths, GenerationContext context) {
-        filePaths.forEach(OutputFileGuard::checkWritable);
-        if (context.isDryRun()) {
-            moduleToCreate(context).ifPresent(moduleRoot -> context.getDryRunReport().addModule(
-                    displayPath(moduleRoot)));
-            filePaths.forEach(filePath -> context.getDryRunReport().add(Files.exists(filePath) ?
-                    DryRunReport.Action.OVERWRITE : DryRunReport.Action.CREATE, displayPath(filePath)));
-            return false;
-        }
+    static void addToDryRunReport(List<Path> filePaths, GenerationContext context) {
+        moduleToCreate(context).ifPresent(moduleRoot -> context.getDryRunReport().addModule(displayPath(moduleRoot)));
+        filePaths.forEach(filePath -> context.getDryRunReport().add(Files.exists(filePath) ?
+                DryRunReport.Action.OVERWRITE : DryRunReport.Action.CREATE, displayPath(filePath)));
+    }
+
+    /**
+     * Asks the user before existing files are overwritten (FF-5, FF-6). It does not ask when no file exists yet or
+     * with --force.
+     *
+     * @param filePaths the files the run writes
+     * @param context   the context of the run
+     * @throws ToolException with exit code 4 if the user refuses or the run cannot ask
+     */
+    static void confirmOverwrite(List<Path> filePaths, GenerationContext context) {
         List<Path> existingFiles = filePaths.stream().filter(Files::exists).toList();
         if (existingFiles.isEmpty() || context.isForce()) {
-            return true;
+            return;
         }
         PrintStream outStream = context.getOutStream();
         outStream.println(EXISTING_FILES_HEADER);
@@ -80,7 +91,6 @@ final class OutputFileGuard {
         if (!YES_ANSWERS.contains(answer.get().trim().toLowerCase(Locale.ROOT))) {
             throw new ToolException(ExitCodes.OVERWRITE_REFUSED, ERROR_OVERWRITE_REFUSED);
         }
-        return true;
     }
 
     // A file that doesn't exist yet is created in its nearest existing directory, so that directory must be writable

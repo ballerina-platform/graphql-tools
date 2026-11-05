@@ -258,13 +258,23 @@ public class GraphqlCmd implements BLauncherCmd {
     private static OverwritePrompt consolePrompt(PrintStream outStream) {
         return question -> {
             Console console = System.console();
-            if (console == null) {
+            if (console == null || !isTerminal(console)) {
                 return Optional.empty();
             }
             outStream.print(question);
             outStream.flush();
             return Optional.of(Objects.requireNonNullElse(console.readLine(), ""));
         };
+    }
+
+    // From JDK 22, System.console() is not null even when input or output is redirected, so the console itself is
+    // asked. JDK 21 has no isTerminal(), and there a console that is not null is already a terminal.
+    private static boolean isTerminal(Console console) {
+        try {
+            return (boolean) Console.class.getMethod("isTerminal").invoke(console);
+        } catch (ReflectiveOperationException e) {
+            return true;
+        }
     }
 
     private void exit(int code) {
