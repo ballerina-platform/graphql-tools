@@ -31,29 +31,37 @@ public final class DryRunReport {
 
     private static final String HEADER = "Dry run: no files were written.";
     private static final String LINE_FORMAT = "  %-10s %s";
-    private static final String SKIP_NOTE = "  (already exists, use -f or --force to overwrite)";
-    private static final String SUMMARY = "%d to create, %d to overwrite, %d to skip.";
+    private static final String MODULE_SUFFIX = " (module)";
+    private static final String SUMMARY = "%d to create, %d to overwrite.";
 
     private final List<PlannedFile> files = new ArrayList<>();
+    private Path moduleToCreate;
 
     void add(Action action, Path path) {
         files.add(new PlannedFile(action, path));
     }
 
+    void addModule(Path moduleRoot) {
+        this.moduleToCreate = moduleRoot;
+    }
+
     /**
-     * Prints each planned file with its action, followed by a count of each action.
+     * Prints the module to create, if any, and each planned file with its action, followed by a count of the files
+     * for each action.
      *
      * @param outStream the stream to print the report to
      */
     public void print(PrintStream outStream) {
         outStream.println(HEADER);
         outStream.println();
+        if (moduleToCreate != null) {
+            outStream.println(String.format(LINE_FORMAT, Action.CREATE.label(), moduleToCreate + MODULE_SUFFIX));
+        }
         for (PlannedFile file : files) {
-            String line = String.format(LINE_FORMAT, file.action().label(), file.path());
-            outStream.println(file.action() == Action.SKIP ? line + SKIP_NOTE : line);
+            outStream.println(String.format(LINE_FORMAT, file.action().label(), file.path()));
         }
         outStream.println();
-        outStream.println(String.format(SUMMARY, count(Action.CREATE), count(Action.OVERWRITE), count(Action.SKIP)));
+        outStream.println(String.format(SUMMARY, count(Action.CREATE), count(Action.OVERWRITE)));
     }
 
     private long count(Action action) {
@@ -61,7 +69,7 @@ public final class DryRunReport {
     }
 
     enum Action {
-        CREATE, OVERWRITE, SKIP;
+        CREATE, OVERWRITE;
 
         String label() {
             return name().toLowerCase(Locale.ROOT);

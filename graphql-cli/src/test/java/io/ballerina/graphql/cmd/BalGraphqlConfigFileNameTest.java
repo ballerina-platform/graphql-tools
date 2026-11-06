@@ -65,7 +65,7 @@ public class BalGraphqlConfigFileNameTest extends GraphqlTest {
             Assert.assertTrue(output.contains("should be named \"balGraphQL.toml\""),
                     "Unexpected output: " + output);
             Assert.assertTrue(output.contains("myconfig.toml"), "Unexpected output: " + output);
-            Assert.assertEquals(exitCaptor.getExitCode(), 1,
+            Assert.assertEquals(exitCaptor.getExitCode(), 2,
                     "An incorrectly named configuration file should fail the command");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
@@ -101,7 +101,7 @@ public class BalGraphqlConfigFileNameTest extends GraphqlTest {
             String output = readOutput(true);
             Assert.assertTrue(output.contains("\"schema\" is not a supported argument for mode flag"), 
                     "Unexpected output: " + output);
-            Assert.assertEquals(exitCaptor.getExitCode(), 1, "The schema mode should fail the command");
+            Assert.assertEquals(exitCaptor.getExitCode(), 2, "The schema mode should fail the command");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
