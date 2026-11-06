@@ -35,6 +35,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -279,6 +280,49 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.assertEquals(Files.readString(typesFile), "// existing");
             Assert.assertFalse(Files.exists(this.tmpDir.resolve("service.bal")), output);
         }
+    }
+
+    @Test(description = "Test that no output file is written yet when the user is asked")
+    public void testNothingWrittenWhenAsked() throws IOException {
+        Path typesFile = Files.writeString(this.tmpDir.resolve("types.bal"), "// existing");
+        Path serviceFile = this.tmpDir.resolve("service.bal");
+        List<String> typesWhenAsked = new ArrayList<>();
+        List<Boolean> serviceExistsWhenAsked = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, question -> {
+            try {
+                typesWhenAsked.add(Files.readString(typesFile));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            serviceExistsWhenAsked.add(Files.exists(serviceFile));
+            return Optional.of("y");
+        }, singleObjectSchema(), "-o", this.tmpDir.toString(), "--mode", "service");
+
+        Assert.assertEquals(typesWhenAsked, List.of("// existing"), output);
+        Assert.assertEquals(serviceExistsWhenAsked, List.of(false), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(Files.exists(serviceFile), output);
+    }
+
+    @Test(description = "Test that an invalid schema fails without asking and leaves existing files untouched")
+    public void testInvalidSchemaFailsBeforeAsking() throws IOException {
+        Path typesFile = Files.writeString(this.tmpDir.resolve("types.bal"), "// existing");
+        String schema = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql")).toString();
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(questions),
+                schema, "-o", this.tmpDir.toString(), "--mode", "service");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertTrue(output.contains("GraphQL SDL validation failed."), output);
+        Assert.assertTrue(questions.isEmpty(), output);
+        Assert.assertFalse(output.contains("already exist"), output);
+        Assert.assertEquals(Files.readString(typesFile), "// existing");
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("service.bal")), output);
     }
 
     @Test(description = "Test that the user is not asked when no output file exists")
