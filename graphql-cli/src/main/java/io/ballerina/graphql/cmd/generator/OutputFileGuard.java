@@ -32,12 +32,12 @@ import java.util.Set;
 
 final class OutputFileGuard {
 
-    private static final String EXISTING_FILES_HEADER = "The following files already exist.";
+    private static final String EXISTING_FILES_HEADER = "The following file(s) already exist.";
     private static final String EXISTING_FILE_FORMAT = "  %s";
-    private static final String OVERWRITE_QUESTION = "Overwrite these files? [y/N] ";
+    private static final String OVERWRITE_QUESTION = "Overwrite these file(s)? [y/N] ";
     private static final String ERROR_OVERWRITE_REFUSED = "No files were written.";
     private static final String ERROR_NOT_INTERACTIVE =
-            "Cannot ask to overwrite these files in a non-interactive run. Use --force to overwrite them.";
+            "Cannot ask to overwrite these file(s) in a non-interactive run. Use --force to overwrite them.";
     private static final String ERROR_NOT_WRITABLE = "Cannot write to \"%s\". Check its permissions.";
     private static final String ERROR_NOT_A_DIRECTORY = "Cannot create \"%s\": \"%s\" is not a directory.";
     private static final Set<String> YES_ANSWERS = Set.of("y", "yes");

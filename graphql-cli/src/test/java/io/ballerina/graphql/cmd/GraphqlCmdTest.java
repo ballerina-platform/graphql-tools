@@ -242,9 +242,9 @@ public class GraphqlCmdTest extends GraphqlTest {
                 singleObjectSchema(), "-o", this.tmpDir.toString(), "--mode", "service");
 
         Assert.assertEquals(exitCaptor.getExitCode(), 4, output);
-        Assert.assertTrue(output.contains("The following files already exist." + System.lineSeparator()
+        Assert.assertTrue(output.contains("The following file(s) already exist." + System.lineSeparator()
                 + "  " + displayPath(typesFile)), output);
-        Assert.assertTrue(output.contains("Cannot ask to overwrite these files in a non-interactive run. "
+        Assert.assertTrue(output.contains("Cannot ask to overwrite these file(s) in a non-interactive run. "
                 + "Use --force to overwrite them."), output);
         Assert.assertEquals(Files.readString(typesFile), "// existing");
         Assert.assertFalse(Files.exists(this.tmpDir.resolve("service.bal")), output);
@@ -268,7 +268,7 @@ public class GraphqlCmdTest extends GraphqlTest {
             return Optional.of(answer);
         }, singleObjectSchema(), "-o", this.tmpDir.toString(), "--mode", "service");
 
-        Assert.assertEquals(questions, List.of("Overwrite these files? [y/N] "), output);
+        Assert.assertEquals(questions, List.of("Overwrite these file(s)? [y/N] "), output);
         if (overwritten) {
             Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
             Assert.assertEquals(readContent(typesFile), readContent(resourceDir.resolve(
