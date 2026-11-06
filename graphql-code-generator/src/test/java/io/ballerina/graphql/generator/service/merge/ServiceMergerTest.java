@@ -264,6 +264,149 @@ public class ServiceMergerTest {
                 error.getMessage());
     }
 
+    @Test(description = "Test that the developer's imports are kept and the imports the schema needs are added")
+    public void testMergesImports() throws ServiceGenerationException {
+        MergeResult result = ServiceMerger.merge("""
+                import ballerina/graphql;
+                import ballerina/sql;
+
+                service BookApiService on new graphql:Listener(9090) {
+                }
+                """, """
+                import ballerina/graphql;
+                import ballerina/graphql.dataloader;
+                import ballerina/http;
+
+                service BookApiService on new graphql:Listener(9090) {
+                }
+                """);
+
+        // The formatter sorts the imports.
+        Assert.assertTrue(result.source().startsWith("""
+                import ballerina/graphql;
+                import ballerina/graphql.dataloader;
+                import ballerina/http;
+                import ballerina/sql;
+                """), result.source());
+    }
+
+    @Test(description = "Test that the developer's port, listener and service annotation are kept")
+    public void testKeepsPortListenerAndAnnotation() throws ServiceGenerationException {
+        MergeResult result = ServiceMerger.merge("""
+                import ballerina/graphql;
+
+                configurable int port = 8080;
+
+                @graphql:ServiceConfig {maxQueryDepth: 5}
+                service BookApiService on new graphql:Listener(port, host = "0.0.0.0") {
+                }
+                """, service(""));
+
+        Assert.assertTrue(result.source().contains("configurable int port = 8080;"), result.source());
+        Assert.assertFalse(result.source().contains("9090"), result.source());
+        Assert.assertTrue(result.source().contains("""
+                @graphql:ServiceConfig {maxQueryDepth: 5}
+                service BookApiService on new graphql:Listener(port, host = "0.0.0.0") {"""), result.source());
+    }
+
+    @Test(description = "Test that the generated service annotation is added when the service has none")
+    public void testAddsServiceAnnotation() throws ServiceGenerationException {
+        MergeResult result = ServiceMerger.merge(service(""), dataLoaderService("profileLoader"));
+
+        Assert.assertTrue(result.source().contains("""
+                @graphql:ServiceConfig {contextInit: initContext}
+                service BookApiService on new graphql:Listener(port) {"""), result.source());
+        Assert.assertTrue(result.source().contains("isolated function initContext("), result.source());
+        Assert.assertTrue(result.source().indexOf("function initContext(")
+                < result.source().indexOf("service BookApiService"), result.source());
+        Assert.assertTrue(result.source().contains("isolated function profileLoader("), result.source());
+    }
+
+    @Test(description = "Test that the developer's context init code is kept and new DataLoaders are registered")
+    public void testAddsDataLoaderRegistration() throws ServiceGenerationException {
+        String existing = dataLoaderService("profileLoader").replace("graphql:Context context = new;",
+                "graphql:Context context = new;\n    context.set(\"token\", request.getHeader(\"Authorization\"));");
+
+        MergeResult result = ServiceMerger.merge(existing, dataLoaderService("profileLoader", "authorLoader"));
+
+        Assert.assertTrue(result.source().contains("""
+                    graphql:Context context = new;
+                    context.set("token", request.getHeader("Authorization"));
+                    context.registerDataLoader("profileLoader", new dataloader:DefaultDataLoader(profileLoader));
+                    context.registerDataLoader("authorLoader", new dataloader:DefaultDataLoader(authorLoader));
+                    return context;
+                """), result.source());
+        Assert.assertEquals(result.source().split("registerDataLoader\\(\"profileLoader\"").length, 2,
+                result.source());
+    }
+
+    @Test(description = "Test that the developer's batch function is kept and a new one is added")
+    public void testMergesBatchFunctions() throws ServiceGenerationException {
+        String existing = dataLoaderService("profileLoader").replace("return error(\"Not implemented\");",
+                "return getProfiles(keys);");
+
+        MergeResult result = ServiceMerger.merge(existing, dataLoaderService("profileLoader", "authorLoader"));
+
+        Assert.assertTrue(result.source().contains("return getProfiles(keys);"), result.source());
+        Assert.assertTrue(result.source().contains("isolated function authorLoader("), result.source());
+        Assert.assertTrue(result.source().indexOf("function authorLoader(")
+                > result.source().indexOf("service BookApiService"), result.source());
+    }
+
+    @Test(description = "Test that the developer's module-level code is kept in place")
+    public void testKeepsModuleLevelCode() throws ServiceGenerationException {
+        String existing = service("").replace("configurable int port = 9090;",
+                "configurable int port = 9090;\n\nfinal string dbUrl = \"jdbc:books\";") + """
+
+                function getDb() returns string {
+                    return dbUrl;
+                }
+                """;
+
+        MergeResult result = ServiceMerger.merge(existing, service(""));
+
+        Assert.assertTrue(result.source().contains("final string dbUrl = \"jdbc:books\";"), result.source());
+        Assert.assertTrue(result.source().contains("function getDb() returns string {"), result.source());
+        Assert.assertTrue(result.source().indexOf("dbUrl =") < result.source().indexOf("service BookApiService"),
+                result.source());
+    }
+
+    // A generated service file whose resolver uses the given DataLoaders, as the service emitter writes it.
+    private static String dataLoaderService(String... dataLoaderNames) {
+        StringBuilder source = new StringBuilder("""
+                import ballerina/graphql;
+                import ballerina/graphql.dataloader;
+                import ballerina/http;
+
+                configurable int port = 9090;
+
+                isolated function initContext(http:RequestContext requestContext, http:Request request) \
+                returns graphql:Context|error {
+                    graphql:Context context = new;
+                """);
+        for (String name : dataLoaderNames) {
+            source.append(String.format(
+                    "    context.registerDataLoader(\"%s\", new dataloader:DefaultDataLoader(%s));%n", name, name));
+        }
+        source.append("""
+                    return context;
+                }
+
+                @graphql:ServiceConfig {contextInit: initContext}
+                service BookApiService on new graphql:Listener(port) {
+                }
+                """);
+        for (String name : dataLoaderNames) {
+            source.append(String.format("""
+
+                    isolated function %s(readonly & anydata[] keys) returns anydata[]|error {
+                        return error("Not implemented");
+                    }
+                    """, name));
+        }
+        return source.toString();
+    }
+
     private static String service(String members) {
         return """
                 import ballerina/graphql;
