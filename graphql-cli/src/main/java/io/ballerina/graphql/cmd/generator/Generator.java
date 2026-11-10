@@ -20,6 +20,9 @@ package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.exception.GenerationException;
 
+import java.nio.file.Path;
+import java.util.List;
+
 /**
  * Represents a single GraphQL generation operation.
  */
@@ -28,6 +31,11 @@ public interface Generator {
     void validate() throws GenerationException;
 
     void generate() throws GenerationException;
+
+    /**
+     * Returns the files {@link #write()} writes. It is called after {@link #generate()}.
+     */
+    List<Path> outputFiles();
 
     void write() throws GenerationException;
 }

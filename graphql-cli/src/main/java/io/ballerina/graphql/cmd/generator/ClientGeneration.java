@@ -165,16 +165,23 @@ public class ClientGeneration implements Generator {
     }
 
     @Override
+    public List<Path> outputFiles() {
+        // Only the sources writeGeneratedSources writes are listed.
+        List<Path> outputFiles = new ArrayList<>();
+        this.generatedSources.forEach((project, sources) -> sources.stream()
+                .filter(source -> source.getType().isOverwritable())
+                .forEach(source -> outputFiles.add(
+                        CodeGeneratorUtils.resolveFilePath(source, Path.of(project.getOutputPath())))));
+        return outputFiles;
+    }
+
+    @Override
     public void write() throws GenerationException {
         for (Map.Entry<GraphqlClientProject, List<SrcFilePojo>> entry : this.generatedSources.entrySet()) {
             GraphqlClientProject project = entry.getKey();
             Path projectOutputPath = Path.of(project.getOutputPath());
-            List<SrcFilePojo> writableSources = entry.getValue().stream()
-                    .filter(source -> OutputFileGuard.canWrite(
-                            CodeGeneratorUtils.resolveFilePath(source, projectOutputPath), context))
-                    .toList();
             try {
-                this.clientCodeGenerator.writeGeneratedSources(writableSources, projectOutputPath);
+                this.clientCodeGenerator.writeGeneratedSources(entry.getValue(), projectOutputPath);
             } catch (IOException e) {
                 throw new GenerationException(new ClientCodeGenerationException(e.getMessage(), project.getName()));
             }

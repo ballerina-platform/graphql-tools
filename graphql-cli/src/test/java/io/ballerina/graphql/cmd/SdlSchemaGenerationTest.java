@@ -116,7 +116,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     @Test(description = "Test GraphQL command execution with invalid service base path")
     public void testExecuteWithInvalidServiceName() {
         String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "invalid", "service_2.bal")).toString();
-        String[] args = {servicePath, "-o", this.tmpDir.toString(), "-s", "/service/gql"};
+        String[] args = {servicePath, "-o", this.tmpDir.toString(), "--service", "/service/gql"};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, resourceDir.resolve("graphqlServices"), exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
@@ -148,11 +148,12 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
-            String message = "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " + outPath +
-                    "/schema_graphql_new.graphql (Permission denied)";
+            String message = String.format("Cannot write to \"%s\". Check its permissions.",
+                    Path.of("").toAbsolutePath().relativize(outPath.toAbsolutePath()));
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains(message));
+            Assert.assertTrue(output.contains(message), output);
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         } catch (IOException e) {
             Assert.fail(e.toString());
         }

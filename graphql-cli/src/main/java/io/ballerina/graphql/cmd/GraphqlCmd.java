@@ -24,14 +24,19 @@ import io.ballerina.graphql.cmd.generator.GenerationContext;
 import io.ballerina.graphql.cmd.generator.GenerationEngine;
 import io.ballerina.graphql.cmd.generator.ObjectType;
 import io.ballerina.graphql.cmd.generator.OperationMode;
-import io.ballerina.graphql.exception.CmdException;
+import io.ballerina.graphql.cmd.generator.OverwritePrompt;
+import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.exception.ToolException;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import picocli.CommandLine;
 
+import java.io.Console;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
@@ -45,7 +50,6 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
  */
 @CommandLine.Command(name = "graphql",
         usageHelpWidth = 100,
-        separator = " ",
         sortOptions = false,
         headerHeading = "NAME%n",
         header = GraphqlCmd.HEADER,
@@ -53,9 +57,9 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
         customSynopsis = {
                 "  bal graphql <service.bal>",
                 "              [-o | --output <output>]",
-                "              [-s | --service <service-base-path>]",
-                "              [-f | --force]",
-                "              [-d | --dry-run]",
+                "              [--service <service-base-path>]",
+                "              [--force]",
+                "              [-n | --dry-run]",
                 "",
                 "  bal graphql <balGraphQL.toml>",
                 "              [-o | --output <output>]",
@@ -63,8 +67,8 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
                 "              [--module <module-name>]",
                 "              [--object-type <service|record>]",
                 "              [--service-name <service-name>]",
-                "              [-f | --force]",
-                "              [-d | --dry-run]"},
+                "              [--force]",
+                "              [-n | --dry-run]"},
         descriptionHeading = "%nDESCRIPTION%n",
         description = {GraphqlCmd.DESCRIPTION_SUMMARY, GraphqlCmd.DESCRIPTION_DETAILS},
         parameterListHeading = "%nARGUMENTS%n",
@@ -72,10 +76,10 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
         footerHeading = "%nEXAMPLES%n",
         footer = GraphqlCmd.EXAMPLES)
 public class GraphqlCmd implements BLauncherCmd {
-    private static final int EXIT_CODE_0 = 0;
-    private static final int EXIT_CODE_1 = 1;
-    private static final int EXIT_CODE_2 = 2;
     private static final String CMD_NAME = "graphql";
+    private static final String USAGE_SYNOPSIS = "Usage: bal graphql [OPTIONS] <input>";
+    private static final String USAGE_HELP_POINTER = "Try 'bal graphql --help' for more information.";
+    private static final String ERROR_MISSING_INPUT = "Missing required argument <input>.";
     private static final ExitHandler DEFAULT_EXIT_HANDLER = code -> Runtime.getRuntime().exit(code);
     private static final String ERROR_INVALID_CONFIG_FILE_NAME =
             "The GraphQL configuration file should be named \"" + BalGraphqlConfig.FILE_NAME + "\". Found \"%s\".";
@@ -100,7 +104,7 @@ public class GraphqlCmd implements BLauncherCmd {
                     "from a Ballerina GraphQL service.";
     static final String EXAMPLES =
             "  Generate a GraphQL schema for a Ballerina GraphQL service:%n" +
-                    "    $ bal graphql service.bal -o ./output -s /graphql%n%n" +
+                    "    $ bal graphql service.bal -o ./output --service /graphql%n%n" +
                     "  Generate into the current Ballerina package from a balGraphQL.toml file (client if " +
                     "documents are configured, otherwise service):%n" +
                     "    $ bal graphql balGraphQL.toml%n%n" +
@@ -133,13 +137,15 @@ public class GraphqlCmd implements BLauncherCmd {
             "Base name for the generated service, e.g. orders gives OrdersService. Defaults to the schema file "
                     + "name, or for a url or introspection schema, the module or package name.";
     private static final String FORCE_DESCRIPTION =
-            "Overwrite output files that already exist. Without it, existing files are skipped with a warning.";
+            "Overwrite output files that already exist without asking.";
     private static final String DRY_RUN_DESCRIPTION =
-            "Show the files that would be created, overwritten or skipped, without writing them.";
+            "Show the files that would be created or overwritten, without writing them.";
 
+    private final PrintStream helpStream;
     private final PrintStream outStream;
     private final Path executionPath;
     private final ExitHandler exitHandler;
+    private final OverwritePrompt overwritePrompt;
 
     @CommandLine.Option(names = {"-h", "--help"}, hidden = true)
     private boolean helpFlag;
@@ -155,8 +161,7 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = {"-o", "--output"}, paramLabel = "<output>", description = OUTPUT_DESCRIPTION)
     private String outputPath;
 
-    @CommandLine.Option(names = {"-s", "--service"}, paramLabel = "<service-base-path>",
-            description = SERVICE_DESCRIPTION)
+    @CommandLine.Option(names = "--service", paramLabel = "<service-base-path>", description = SERVICE_DESCRIPTION)
     private String serviceBasePath;
 
     @CommandLine.Option(names = "--mode", paramLabel = "<client|service>", description = MODE_DESCRIPTION)
@@ -173,10 +178,10 @@ public class GraphqlCmd implements BLauncherCmd {
             description = SERVICE_NAME_DESCRIPTION)
     private String serviceName;
 
-    @CommandLine.Option(names = {"-f", "--force"}, description = FORCE_DESCRIPTION)
+    @CommandLine.Option(names = "--force", description = FORCE_DESCRIPTION)
     private boolean force;
 
-    @CommandLine.Option(names = {"-d", "--dry-run"}, description = DRY_RUN_DESCRIPTION)
+    @CommandLine.Option(names = {"-n", "--dry-run"}, description = DRY_RUN_DESCRIPTION)
     private boolean dryRun;
 
     /**
@@ -189,10 +194,11 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     /**
-     * Constructor that initialize with the default values.
+     * Constructor that initialize with the default values: the help goes to standard output, and everything else to
+     * standard error.
      */
     public GraphqlCmd() {
-        this(System.err, Paths.get(System.getProperty("user.dir")));
+        this(System.out, System.err, Paths.get(System.getProperty("user.dir")), DEFAULT_EXIT_HANDLER);
     }
 
     /**
@@ -215,9 +221,60 @@ public class GraphqlCmd implements BLauncherCmd {
      * @param exitHandler  custom exit handler (for testing)
      */
     public GraphqlCmd(PrintStream outStream, Path executionDir, ExitHandler exitHandler) {
+        this(outStream, outStream, executionDir, exitHandler);
+    }
+
+    /**
+     * Constructor that writes the help to its own stream, separate from the other output.
+     *
+     * @param helpStream   stream the help is written to
+     * @param outStream    stream errors, warnings and generation messages are written to
+     * @param executionDir defines the directory location of execution of ballerina command
+     * @param exitHandler  custom exit handler (for testing)
+     */
+    public GraphqlCmd(PrintStream helpStream, PrintStream outStream, Path executionDir, ExitHandler exitHandler) {
+        this(helpStream, outStream, executionDir, exitHandler, consolePrompt(outStream));
+    }
+
+    /**
+     * Constructor that takes the prompt used to ask before overwriting existing files.
+     *
+     * @param helpStream      stream the help is written to
+     * @param outStream       stream errors, warnings and generation messages are written to
+     * @param executionDir    defines the directory location of execution of ballerina command
+     * @param exitHandler     custom exit handler (for testing)
+     * @param overwritePrompt asks before existing files are overwritten (for testing)
+     */
+    public GraphqlCmd(PrintStream helpStream, PrintStream outStream, Path executionDir, ExitHandler exitHandler,
+                      OverwritePrompt overwritePrompt) {
+        this.helpStream = helpStream;
         this.outStream = outStream;
         this.executionPath = executionDir;
         this.exitHandler = exitHandler;
+        this.overwritePrompt = overwritePrompt;
+    }
+
+    // Asks only when there is a terminal to answer from (FF-6). The question goes to the error stream (FF-5).
+    private static OverwritePrompt consolePrompt(PrintStream outStream) {
+        return question -> {
+            Console console = System.console();
+            if (console == null || !isTerminal(console)) {
+                return Optional.empty();
+            }
+            outStream.print(question);
+            outStream.flush();
+            return Optional.of(Objects.requireNonNullElse(console.readLine(), ""));
+        };
+    }
+
+    // From JDK 22, System.console() is not null even when input or output is redirected, so the console itself is
+    // asked. JDK 21 has no isTerminal(), and there a console that is not null is already a terminal.
+    private static boolean isTerminal(Console console) {
+        try {
+            return (boolean) Console.class.getMethod("isTerminal").invoke(console);
+        } catch (ReflectiveOperationException e) {
+            return true;
+        }
     }
 
     private void exit(int code) {
@@ -228,66 +285,72 @@ public class GraphqlCmd implements BLauncherCmd {
     public void execute() {
         try {
             if (helpFlag) {
-                printLongDesc(new StringBuilder());
-                outStream.flush();
-                exit(EXIT_CODE_0);
+                helpStream.print(usage());
+                helpStream.flush();
+                exit(ExitCodes.SUCCESS);
                 return;
             }
             if (unknownOptions != null && !unknownOptions.isEmpty()) {
-                throw new CmdException(String.format(ERROR_UNKNOWN_OPTION, unknownOptions.get(0)));
+                throw usageError(String.format(ERROR_UNKNOWN_OPTION, unknownOptions.get(0)));
             }
             if (inputs == null || inputs.isEmpty() || inputs.get(0).isEmpty()) {
-                printLongDesc(new StringBuilder());
-                outStream.flush();
-                exit(EXIT_CODE_2);
-                return;
+                throw usageError(ERROR_MISSING_INPUT);
             }
             validateInputs();
             inputPath = inputs.get(0);
             validateInputFlags();
             executeOperation();
-        } catch (CmdException | GenerationException e) {
+        } catch (ToolException e) {
             outStream.println(e.getMessage());
-            exit(EXIT_CODE_1);
+            // Only a usage error points to the help (ERR-8); other errors print just the error (EXIT-2).
+            if (e.exitCode() == ExitCodes.USAGE) {
+                outStream.println(USAGE_SYNOPSIS);
+                outStream.println(USAGE_HELP_POINTER);
+            }
+            exit(e.exitCode());
+            return;
+        } catch (GenerationException e) {
+            outStream.println(e.getMessage());
+            exit(ExitCodes.RUNTIME);
             return;
         }
-        exit(EXIT_CODE_0);
+        exit(ExitCodes.SUCCESS);
     }
 
-    private void validateInputs() throws CmdException {
+    private void validateInputs() {
         if (inputs.size() > 1) {
-            throw new CmdException(String.format(ERROR_MULTIPLE_INPUTS, String.join(", ", inputs)));
+            throw usageError(String.format(ERROR_MULTIPLE_INPUTS, String.join(", ", inputs)));
         }
     }
 
-    private void validateInputFlags() throws CmdException {
+    private void validateInputFlags() {
         if (!validInputFileExtension(inputPath)) {
-            throw new CmdException(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
+            throw usageError(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
         }
 
         if (isConfigFileInput(inputPath) && !isBalGraphqlConfigFile(inputPath)) {
-            throw new CmdException(String.format(ERROR_INVALID_CONFIG_FILE_NAME, inputPath));
+            throw usageError(String.format(ERROR_INVALID_CONFIG_FILE_NAME, inputPath));
         }
 
         if (!isModeCompatible()) {
-            throw new CmdException(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, inputPath));
+            throw usageError(String.format(MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION, mode, inputPath));
         }
 
         if (objectType != null) {
             if (ObjectType.fromValue(objectType).isEmpty()) {
-                throw new CmdException(String.format(ERROR_INVALID_OBJECT_TYPE, objectType));
+                throw usageError(String.format(ERROR_INVALID_OBJECT_TYPE, objectType));
             }
             if (!inputPath.endsWith(GRAPHQL_EXTENSION) && !isConfigFileInput(inputPath)) {
-                throw new CmdException(String.format(ERROR_OBJECT_TYPE_NOT_SUPPORTED, inputPath));
+                throw usageError(String.format(ERROR_OBJECT_TYPE_NOT_SUPPORTED, inputPath));
             }
         }
 
         if (serviceName != null && !inputPath.endsWith(GRAPHQL_EXTENSION) && !isConfigFileInput(inputPath)) {
-            throw new CmdException(String.format(ERROR_SERVICE_NAME_NOT_SUPPORTED, inputPath));
+            throw usageError(String.format(ERROR_SERVICE_NAME_NOT_SUPPORTED, inputPath));
         }
 
         if (moduleName != null && OperationMode.fromInputPath(inputPath).orElse(null) == OperationMode.SCHEMA) {
-            throw new CmdException(String.format(ERROR_MODULE_NOT_SUPPORTED, inputPath));
+            throw usageError(String.format(ERROR_MODULE_NOT_SUPPORTED, inputPath));
         }
     }
 
@@ -304,13 +367,13 @@ public class GraphqlCmd implements BLauncherCmd {
         return fileName != null && BalGraphqlConfig.FILE_NAME.equals(fileName.toString());
     }
 
-    private boolean isModeCompatible() throws CmdException {
+    private boolean isModeCompatible() {
         if (mode == null) {
             return true;
         }
         Optional<OperationMode> modeFromFlag = OperationMode.fromModeFlag(mode);
         if (modeFromFlag.isEmpty()) {
-            throw new CmdException(String.format(MESSAGE_FOR_INVALID_MODE, mode));
+            throw usageError(String.format(MESSAGE_FOR_INVALID_MODE, mode));
         }
         if (isConfigFileInput(inputPath)) {
             // A configuration file drives client or service generation only; either declared mode overrides what
@@ -323,7 +386,8 @@ public class GraphqlCmd implements BLauncherCmd {
     private void executeOperation() throws GenerationException {
         GenerationContext context = new GenerationContext(inputPath,
                 OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
-                ObjectType.fromValue(objectType).orElse(null), moduleName, serviceName, force, dryRun, outStream);
+                ObjectType.fromValue(objectType).orElse(null), moduleName, serviceName, force, dryRun,
+                overwritePrompt, outStream);
         GenerationEngine.run(context);
         if (dryRun) {
             context.getDryRunReport().print(outStream);
@@ -347,13 +411,24 @@ public class GraphqlCmd implements BLauncherCmd {
         return CMD_NAME;
     }
 
+    private static ToolException usageError(String message) {
+        return new ToolException(ExitCodes.USAGE, Utils.constructGraphqlDiagnostic(
+                DiagnosticMessages.GRAPHQL_CLI_100.getCode(), message, DiagnosticSeverity.ERROR, null).toString());
+    }
+
+    private String usage() {
+        StringBuilder usage = new StringBuilder();
+        printLongDesc(usage);
+        return usage.toString();
+    }
+
     @Override
     public void printLongDesc(StringBuilder stringBuilder) {
         CommandLine commandLine = new CommandLine(this);
         commandLine.getHelpSectionMap().put(CommandLine.Model.UsageMessageSpec.SECTION_KEY_DESCRIPTION,
                 help -> help.description().indent(2));
         // ANSI is off because ANSI codes print as raw characters when the help goes to a file, pipe or test output.
-        commandLine.usage(outStream, CommandLine.Help.Ansi.OFF);
+        stringBuilder.append(commandLine.getUsageMessage(CommandLine.Help.Ansi.OFF));
     }
 
     @Override

@@ -168,21 +168,24 @@ public class ServiceGeneration implements Generator {
     }
 
     @Override
-    public void write() throws GenerationException {
-        List<SrcFilePojo> writableSources = this.sources.stream()
-                .filter(source -> OutputFileGuard.canWrite(
-                        CodeGeneratorUtils.resolveFilePath(source, outputPath), context))
+    public List<Path> outputFiles() {
+        // Only the sources writeGeneratedSources writes are listed.
+        return this.sources.stream()
+                .filter(source -> source.getType().isOverwritable())
+                .map(source -> CodeGeneratorUtils.resolveFilePath(source, outputPath))
                 .toList();
+    }
+
+    @Override
+    public void write() throws GenerationException {
         try {
-            this.serviceCodeGenerator.writeGeneratedSources(writableSources, outputPath);
+            this.serviceCodeGenerator.writeGeneratedSources(this.sources, outputPath);
         } catch (IOException e) {
             throw new GenerationException(new ServiceGenerationException(
                     ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null, e.getMessage()));
         }
-        if (!writableSources.isEmpty()) {
-            context.getOutStream().println(SUCCESS_MESSAGE);
-            writableSources.forEach(source -> context.getOutStream().println(String.format(CREATED_FILE_FORMAT,
-                    OutputFileGuard.displayPath(CodeGeneratorUtils.resolveFilePath(source, outputPath)))));
-        }
+        context.getOutStream().println(SUCCESS_MESSAGE);
+        outputFiles().forEach(filePath -> context.getOutStream().println(String.format(CREATED_FILE_FORMAT,
+                OutputFileGuard.displayPath(filePath))));
     }
 }

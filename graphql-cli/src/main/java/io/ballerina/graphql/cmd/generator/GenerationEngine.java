@@ -20,6 +20,9 @@ package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.exception.GenerationException;
 
+import java.nio.file.Path;
+import java.util.List;
+
 /**
  * Runs a GraphQL generation operation.
  */
@@ -31,6 +34,14 @@ public class GenerationEngine {
         Generator generator = GeneratorFactory.getGenerator(context);
         generator.validate();
         generator.generate();
+        // The output files are checked once all of them are known and before any is written (FF-4).
+        List<Path> outputFiles = generator.outputFiles();
+        OutputFileGuard.checkWritable(outputFiles);
+        if (context.isDryRun()) {
+            OutputFileGuard.addToDryRunReport(outputFiles, context);
+            return;
+        }
+        OutputFileGuard.confirmOverwrite(outputFiles, context);
         generator.write();
     }
 }

@@ -18,12 +18,15 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.exception.ToolException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * This class is used to test the functionality of the GeneratorFactory.
@@ -34,6 +37,7 @@ public class GeneratorFactoryTest {
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
     private static final boolean NO_FORCE = false;
     private static final boolean NO_DRY_RUN = false;
+    private static final OverwritePrompt NOT_INTERACTIVE = question -> Optional.empty();
 
     private GenerationContext createContext(String inputPath) {
         return createContext(inputPath, null, null);
@@ -55,7 +59,7 @@ public class GeneratorFactoryTest {
     private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode,
                                             ObjectType declaredObjectType, String serviceName) {
         return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, null, declaredObjectType, null,
-                serviceName, NO_FORCE, NO_DRY_RUN, System.out);
+                serviceName, NO_FORCE, NO_DRY_RUN, NOT_INTERACTIVE, System.out);
     }
 
     private Generator getGeneratorForConfig(String fileName) throws GenerationException {
@@ -69,21 +73,20 @@ public class GeneratorFactoryTest {
 
     @Test(description = "Test that an object type is rejected for a client configuration file")
     public void testGetGeneratorForClientConfigWithObjectType() {
-        try {
-            getGeneratorForConfigWithRecords("client-config.toml");
-            Assert.fail("Expected a GenerationException for --object-type with a client configuration");
-        } catch (GenerationException e) {
-            Assert.assertTrue(e.getMessage().contains("only applies to service generation"),
-                    "Unexpected message: " + e.getMessage());
-        }
+        ToolException error = Assert.expectThrows(ToolException.class,
+                () -> getGeneratorForConfigWithRecords("client-config.toml"));
+
+        Assert.assertEquals(error.exitCode(), ExitCodes.USAGE);
+        Assert.assertTrue(error.getMessage().contains("only applies to service generation"), error.getMessage());
     }
 
     @Test(description = "Test that a service name is rejected for a client configuration file")
     public void testGetGeneratorForClientConfigWithServiceName() {
         String configPath = CONFIG_DIR.resolve("client-config.toml").toString();
-        GenerationException error = Assert.expectThrows(GenerationException.class,
+        ToolException error = Assert.expectThrows(ToolException.class,
                 () -> GeneratorFactory.getGenerator(createContext(configPath, null, null, "orders")));
 
+        Assert.assertEquals(error.exitCode(), ExitCodes.USAGE);
         Assert.assertTrue(error.getMessage().contains(String.format("The --service-name flag only applies to service "
                 + "generation. \"%s\" resolves to client generation.", configPath)), error.getMessage());
     }

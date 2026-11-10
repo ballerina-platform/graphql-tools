@@ -120,12 +120,14 @@ public class ServiceGenerationTest extends GraphqlTest {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
-            String message = String.format("%s/types.bal (Permission denied)", outputPath);
+            String message = String.format("Cannot write to \"%s\". Check its permissions.",
+                    Path.of("").toAbsolutePath().relativize(outputPath.toAbsolutePath()));
             createBallerinaPackage(outputPath);
             file.setReadOnly();
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains(message));
+            Assert.assertTrue(output.contains(message), output);
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         } catch (IOException e) {
             Assert.fail(e.toString());
         } finally {
