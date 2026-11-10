@@ -40,6 +40,7 @@ final class OutputFileGuard {
             "Cannot ask to overwrite these file(s) in a non-interactive run. Use --force to overwrite them.";
     private static final String ERROR_NOT_WRITABLE = "Cannot write to \"%s\". Check its permissions.";
     private static final String ERROR_NOT_A_DIRECTORY = "Cannot create \"%s\": \"%s\" is not a directory.";
+    private static final String ERROR_IS_A_DIRECTORY = "Cannot write to \"%s\": it is a directory.";
     private static final Set<String> YES_ANSWERS = Set.of("y", "yes");
 
     private OutputFileGuard() {
@@ -93,10 +94,13 @@ final class OutputFileGuard {
         }
     }
 
-    // A file that doesn't exist yet is created in its nearest existing directory, so that directory must be writable
-    // (FF-4, phase 5).
+    // An existing file must be a writable file, not a directory. A file that doesn't exist yet is created in its
+    // nearest existing directory, so that directory must be writable (FF-4, phase 5).
     private static void checkWritable(Path filePath) {
         if (Files.exists(filePath)) {
+            if (Files.isDirectory(filePath)) {
+                throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_IS_A_DIRECTORY, displayPath(filePath)));
+            }
             if (!Files.isWritable(filePath)) {
                 throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_NOT_WRITABLE, displayPath(filePath)));
             }

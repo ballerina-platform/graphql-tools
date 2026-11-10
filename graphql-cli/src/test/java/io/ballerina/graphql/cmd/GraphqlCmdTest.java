@@ -401,6 +401,32 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test that a directory in place of an output file fails before the prompt, also in a dry run")
+    public void testDirectoryInPlaceOfFileRejected() throws IOException {
+        Path packageRoot = createBallerinaPackage(this.tmpDir.resolve("directory-in-place"));
+        Path serviceDirectory = Files.createDirectories(packageRoot.resolve("service.bal"));
+        try {
+            for (String[] extraArgs : new String[][]{{}, {"--dry-run"}}) {
+                List<String> questions = new ArrayList<>();
+                ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+                List<String> args = new ArrayList<>(List.of(singleObjectSchema(), "-o", packageRoot.toString(),
+                        "--mode", "service"));
+                args.addAll(List.of(extraArgs));
+
+                String output = run(exitCaptor, recordingPrompt(questions), args.toArray(String[]::new));
+
+                Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+                Assert.assertTrue(output.contains("Cannot write to \"" + displayPath(serviceDirectory)
+                        + "\": it is a directory."), output);
+                Assert.assertTrue(questions.isEmpty(), output);
+                Assert.assertFalse(output.contains("Dry run:"), output);
+                Assert.assertTrue(Files.isDirectory(serviceDirectory), output);
+            }
+        } finally {
+            FileUtils.deleteDirectory(packageRoot.toFile());
+        }
+    }
+
     @Test(description = "Test that a dry run lists the module it would create, but not one that already exists")
     public void testDryRunReportsModuleToCreate() throws IOException {
         Path packageRoot = createBallerinaPackage(this.tmpDir.resolve("module-to-create"));
