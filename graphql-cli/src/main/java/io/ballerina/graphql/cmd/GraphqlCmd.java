@@ -67,6 +67,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
                 "              [--module <module-name>]",
                 "              [--object-type <service|record>]",
                 "              [--service-name <service-name>]",
+                "              [--merge]",
                 "              [--force]",
                 "              [-n | --dry-run]"},
         descriptionHeading = "%nDESCRIPTION%n",
@@ -114,6 +115,9 @@ public class GraphqlCmd implements BLauncherCmd {
                     "    $ bal graphql balGraphQL.toml --mode service --service-name orders%n%n" +
                     "  Generate a Ballerina GraphQL client into the \"countries\" module of the package:%n" +
                     "    $ bal graphql balGraphQL.toml --mode client --module countries%n%n" +
+                    "  Regenerate a Ballerina GraphQL service after the schema changed, keeping the resolvers " +
+                    "already implemented:%n" +
+                    "    $ bal graphql balGraphQL.toml --mode service --merge%n%n" +
                     "  Preview the files without writing them, then overwrite existing files:%n" +
                     "    $ bal graphql balGraphQL.toml --dry-run%n" +
                     "    $ bal graphql balGraphQL.toml --force";
@@ -136,8 +140,12 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final String SERVICE_NAME_DESCRIPTION =
             "Base name for the generated service, e.g. orders gives OrdersService. Defaults to the schema file "
                     + "name, or for a url or introspection schema, the module or package name.";
+    private static final String MERGE_DESCRIPTION =
+            "Merge the generated service into the output files that already exist instead of overwriting them. "
+                    + "Resolvers are kept while their signature matches the schema, replaced when it changed, and "
+                    + "added when they are new. Service generation only.";
     private static final String FORCE_DESCRIPTION =
-            "Overwrite output files that already exist without asking.";
+            "Overwrite or merge output files that already exist without asking.";
     private static final String DRY_RUN_DESCRIPTION =
             "Show the files that would be created or overwritten, without writing them.";
 
@@ -177,6 +185,9 @@ public class GraphqlCmd implements BLauncherCmd {
     @CommandLine.Option(names = "--service-name", paramLabel = "<service-name>",
             description = SERVICE_NAME_DESCRIPTION)
     private String serviceName;
+
+    @CommandLine.Option(names = "--merge", description = MERGE_DESCRIPTION)
+    private boolean merge;
 
     @CommandLine.Option(names = "--force", description = FORCE_DESCRIPTION)
     private boolean force;
@@ -386,7 +397,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private void executeOperation() throws GenerationException {
         GenerationContext context = new GenerationContext(inputPath,
                 OperationMode.fromModeFlag(mode).orElse(null), getTargetOutputPath(), serviceBasePath,
-                ObjectType.fromValue(objectType).orElse(null), moduleName, serviceName, force, dryRun,
+                ObjectType.fromValue(objectType).orElse(null), moduleName, serviceName, force, dryRun, merge,
                 overwritePrompt, outStream);
         GenerationEngine.run(context);
         if (dryRun) {

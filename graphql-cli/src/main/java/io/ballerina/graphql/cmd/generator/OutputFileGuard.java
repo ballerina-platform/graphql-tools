@@ -35,9 +35,13 @@ final class OutputFileGuard {
     private static final String EXISTING_FILES_HEADER = "The following file(s) already exist.";
     private static final String EXISTING_FILE_FORMAT = "  %s";
     private static final String OVERWRITE_QUESTION = "Overwrite these file(s)? [y/N] ";
+    private static final String MERGE_QUESTION = "Merge these file(s)? [y/N] ";
+    private static final String MERGE_HINT = "Use --merge to keep the code in these file(s).";
     private static final String ERROR_OVERWRITE_REFUSED = "No files were written.";
     private static final String ERROR_NOT_INTERACTIVE =
             "Cannot ask to overwrite these file(s) in a non-interactive run. Use --force to overwrite them.";
+    private static final String ERROR_NOT_INTERACTIVE_MERGE =
+            "Cannot ask to merge these file(s) in a non-interactive run. Use --force to merge them.";
     private static final String ERROR_NOT_WRITABLE = "Cannot write to \"%s\". Check its permissions.";
     private static final String ERROR_NOT_A_DIRECTORY = "Cannot create \"%s\": \"%s\" is not a directory.";
     private static final String ERROR_IS_A_DIRECTORY = "Cannot write to \"%s\": it is a directory.";
@@ -57,26 +61,35 @@ final class OutputFileGuard {
     }
 
     /**
-     * Adds the module the run creates, if any, and each file to the dry-run report, as created or overwritten.
+     * Adds the module the run creates, if any, and each file to the dry-run report, as created, overwritten or
+     * merged. When existing files would be overwritten and could be merged instead, the report points to --merge.
      *
      * @param filePaths the files the run writes
      * @param context   the context of the run
+     * @param canMerge  whether the generator can merge into existing files
      */
-    static void addToDryRunReport(List<Path> filePaths, GenerationContext context) {
-        moduleToCreate(context).ifPresent(moduleRoot -> context.getDryRunReport().addModule(displayPath(moduleRoot)));
-        filePaths.forEach(filePath -> context.getDryRunReport().add(Files.exists(filePath) ?
-                DryRunReport.Action.OVERWRITE : DryRunReport.Action.CREATE, displayPath(filePath)));
+    static void addToDryRunReport(List<Path> filePaths, GenerationContext context, boolean canMerge) {
+        DryRunReport report = context.getDryRunReport();
+        moduleToCreate(context).ifPresent(moduleRoot -> report.addModule(displayPath(moduleRoot)));
+        DryRunReport.Action existingFileAction = context.isMerge() ?
+                DryRunReport.Action.MERGE : DryRunReport.Action.OVERWRITE;
+        filePaths.forEach(filePath -> report.add(Files.exists(filePath) ?
+                existingFileAction : DryRunReport.Action.CREATE, displayPath(filePath)));
+        if (canMerge && !context.isMerge() && filePaths.stream().anyMatch(Files::exists)) {
+            report.addNote(MERGE_HINT);
+        }
     }
 
     /**
-     * Asks the user before existing files are overwritten (FF-5, FF-6). It does not ask when no file exists yet or
-     * with --force.
+     * Asks the user before existing files are overwritten or merged (FF-5, FF-6). It does not ask when no file
+     * exists yet or with --force. When the files could be merged instead, it points to --merge before asking.
      *
      * @param filePaths the files the run writes
      * @param context   the context of the run
+     * @param canMerge  whether the generator can merge into existing files
      * @throws ToolException with exit code 4 if the user refuses or the run cannot ask
      */
-    static void confirmOverwrite(List<Path> filePaths, GenerationContext context) {
+    static void confirmOverwrite(List<Path> filePaths, GenerationContext context, boolean canMerge) {
         List<Path> existingFiles = filePaths.stream().filter(Files::exists).toList();
         if (existingFiles.isEmpty() || context.isForce()) {
             return;
@@ -85,9 +98,14 @@ final class OutputFileGuard {
         outStream.println(EXISTING_FILES_HEADER);
         existingFiles.forEach(filePath -> outStream.println(String.format(EXISTING_FILE_FORMAT,
                 displayPath(filePath))));
-        Optional<String> answer = context.getOverwritePrompt().ask(OVERWRITE_QUESTION);
+        if (canMerge && !context.isMerge()) {
+            outStream.println(MERGE_HINT);
+        }
+        Optional<String> answer = context.getOverwritePrompt().ask(context.isMerge() ?
+                MERGE_QUESTION : OVERWRITE_QUESTION);
         if (answer.isEmpty()) {
-            throw new ToolException(ExitCodes.OVERWRITE_REFUSED, ERROR_NOT_INTERACTIVE);
+            throw new ToolException(ExitCodes.OVERWRITE_REFUSED, context.isMerge() ?
+                    ERROR_NOT_INTERACTIVE_MERGE : ERROR_NOT_INTERACTIVE);
         }
         if (!YES_ANSWERS.contains(answer.get().trim().toLowerCase(Locale.ROOT))) {
             throw new ToolException(ExitCodes.OVERWRITE_REFUSED, ERROR_OVERWRITE_REFUSED);

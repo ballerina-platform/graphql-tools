@@ -36,6 +36,7 @@ public class GenerationContext {
     private final String serviceName;
     private final boolean force;
     private final boolean dryRun;
+    private final boolean merge;
     private final OverwritePrompt overwritePrompt;
     private final PrintStream outStream;
     private final DryRunReport dryRunReport = new DryRunReport();
@@ -44,6 +45,14 @@ public class GenerationContext {
                              String serviceBasePath, ObjectType declaredObjectType, String moduleName,
                              String serviceName, boolean force, boolean dryRun, OverwritePrompt overwritePrompt,
                              PrintStream outStream) {
+        this(inputPath, declaredOperationMode, targetOutputPath, serviceBasePath, declaredObjectType, moduleName,
+                serviceName, force, dryRun, false, overwritePrompt, outStream);
+    }
+
+    public GenerationContext(String inputPath, OperationMode declaredOperationMode, Path targetOutputPath,
+                             String serviceBasePath, ObjectType declaredObjectType, String moduleName,
+                             String serviceName, boolean force, boolean dryRun, boolean merge,
+                             OverwritePrompt overwritePrompt, PrintStream outStream) {
         this.inputPath = inputPath;
         this.declaredOperationMode = declaredOperationMode;
         this.targetOutputPath = targetOutputPath;
@@ -53,6 +62,7 @@ public class GenerationContext {
         this.serviceName = serviceName;
         this.force = force;
         this.dryRun = dryRun;
+        this.merge = merge;
         this.overwritePrompt = overwritePrompt;
         this.outStream = outStream;
     }
@@ -106,6 +116,13 @@ public class GenerationContext {
 
     public boolean isDryRun() {
         return dryRun;
+    }
+
+    /**
+     * Returns whether existing output files are merged with the generated code instead of overwritten.
+     */
+    public boolean isMerge() {
+        return merge;
     }
 
     public OverwritePrompt getOverwritePrompt() {

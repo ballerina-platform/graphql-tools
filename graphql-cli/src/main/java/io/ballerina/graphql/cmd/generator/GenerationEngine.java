@@ -18,7 +18,9 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.exception.ToolException;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -28,20 +30,27 @@ import java.util.List;
  */
 public class GenerationEngine {
 
+    private static final String ERROR_MERGE_NOT_SUPPORTED =
+            "The --merge flag only applies to service generation. It cannot be used with \"%s\".";
+
     private GenerationEngine() {}
 
     public static void run(GenerationContext context) throws GenerationException {
         Generator generator = GeneratorFactory.getGenerator(context);
+        if (context.isMerge() && !generator.canMerge()) {
+            throw new ToolException(ExitCodes.USAGE, String.format(ERROR_MERGE_NOT_SUPPORTED,
+                    context.getInputPath()));
+        }
         generator.validate();
         generator.generate();
         // The output files are checked once all of them are known and before any is written (FF-4).
         List<Path> outputFiles = generator.outputFiles();
         OutputFileGuard.checkWritable(outputFiles);
         if (context.isDryRun()) {
-            OutputFileGuard.addToDryRunReport(outputFiles, context);
+            OutputFileGuard.addToDryRunReport(outputFiles, context, generator.canMerge());
             return;
         }
-        OutputFileGuard.confirmOverwrite(outputFiles, context);
+        OutputFileGuard.confirmOverwrite(outputFiles, context, generator.canMerge());
         generator.write();
     }
 }

@@ -33,14 +33,22 @@ import io.ballerina.graphql.generator.service.ServiceBaseName;
 import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
+import io.ballerina.graphql.generator.service.merge.MergeResult;
+import io.ballerina.graphql.generator.service.merge.MergeResult.MergedResolver;
+import io.ballerina.graphql.generator.service.merge.MergeResult.Outcome;
+import io.ballerina.graphql.generator.service.merge.ServiceMerger;
+import io.ballerina.graphql.generator.service.merge.TypesMerger;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,10 +64,14 @@ public class ServiceGeneration implements Generator {
     private static final String CREATED_FILE_FORMAT = "-- %s";
     private static final Set<String> GENERATED_FILES =
             Set.of(ServiceCodeGenerator.TYPES_FILE_NAME, ServiceCodeGenerator.SERVICE_FILE_NAME);
+    private static final String RESOLVER_SUMMARY = "Resolvers: %d replaced, %d added, %d kept.";
+    private static final String RESOLVER_LINE = "  %-9s %s";
+    private static final String ERROR_CANNOT_READ = "Cannot read \"%s\" to merge it. Check its permissions.";
 
     private final GenerationContext context;
     private final BalGraphqlConfig balGraphqlConfig;
     private final ServiceCodeGenerator serviceCodeGenerator;
+    private final List<MergedResolver> mergedResolvers = new ArrayList<>();
     private PackageOutput packageOutput;
     private Path outputPath;
     private GraphqlServiceProject project;
@@ -146,9 +158,71 @@ public class ServiceGeneration implements Generator {
         try {
             this.sources = this.serviceCodeGenerator.generateBalSources(this.project, serviceBaseName(),
                     ModuleDefinitions.read(this.outputPath, GENERATED_FILES));
+            if (context.isMerge()) {
+                this.sources = mergeIntoExistingFiles(this.sources);
+                if (context.isDryRun()) {
+                    resolverSummary().forEach(context.getDryRunReport()::addNote);
+                }
+            }
         } catch (ServiceGenerationException e) {
             throw new GenerationException(e);
         }
+    }
+
+    // The merge runs before the output files are checked and the user is asked, so a file that cannot be merged
+    // stops the run before anything is asked or written (FF-4). A file that does not exist yet is created as
+    // generated, and a directory in its place is left to the output file checks.
+    private List<SrcFilePojo> mergeIntoExistingFiles(List<SrcFilePojo> generatedSources)
+            throws ServiceGenerationException {
+        List<SrcFilePojo> mergedSources = new ArrayList<>();
+        for (SrcFilePojo source : generatedSources) {
+            Path filePath = CodeGeneratorUtils.resolveFilePath(source, this.outputPath);
+            if (!Files.isRegularFile(filePath)) {
+                mergedSources.add(source);
+                continue;
+            }
+            MergeResult result = merge(source, readExistingFile(filePath));
+            this.mergedResolvers.addAll(result.resolvers());
+            mergedSources.add(new SrcFilePojo(source.getType(), source.getModuleName(), source.getFileName(),
+                    result.source()));
+        }
+        return mergedSources;
+    }
+
+    private static MergeResult merge(SrcFilePojo source, String existingSource) throws ServiceGenerationException {
+        if (ServiceCodeGenerator.SERVICE_FILE_NAME.equals(source.getFileName())) {
+            return ServiceMerger.merge(existingSource, source.getContent());
+        }
+        return TypesMerger.merge(existingSource, source.getContent());
+    }
+
+    private static String readExistingFile(Path filePath) throws ServiceGenerationException {
+        try {
+            return Files.readString(filePath);
+        } catch (IOException e) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    String.format(ERROR_CANNOT_READ, OutputFileGuard.displayPath(filePath)));
+        }
+    }
+
+    // A count of each outcome, then the resolvers that were replaced or added. The kept ones are only counted, since
+    // they are unchanged.
+    private List<String> resolverSummary() {
+        if (this.mergedResolvers.isEmpty()) {
+            return List.of();
+        }
+        List<String> lines = new ArrayList<>();
+        lines.add(String.format(RESOLVER_SUMMARY, count(Outcome.REPLACED), count(Outcome.ADDED),
+                count(Outcome.KEPT)));
+        this.mergedResolvers.stream()
+                .filter(resolver -> resolver.outcome() != Outcome.KEPT)
+                .forEach(resolver -> lines.add(String.format(RESOLVER_LINE,
+                        resolver.outcome().name().toLowerCase(Locale.ROOT), resolver.key())));
+        return lines;
+    }
+
+    private long count(Outcome outcome) {
+        return this.mergedResolvers.stream().filter(resolver -> resolver.outcome() == outcome).count();
     }
 
     private ServiceBaseName serviceBaseName() {
@@ -187,5 +261,11 @@ public class ServiceGeneration implements Generator {
         context.getOutStream().println(SUCCESS_MESSAGE);
         outputFiles().forEach(filePath -> context.getOutStream().println(String.format(CREATED_FILE_FORMAT,
                 OutputFileGuard.displayPath(filePath))));
+        resolverSummary().forEach(context.getOutStream()::println);
+    }
+
+    @Override
+    public boolean canMerge() {
+        return true;
     }
 }

@@ -38,4 +38,12 @@ public interface Generator {
     List<Path> outputFiles();
 
     void write() throws GenerationException;
+
+    /**
+     * Returns whether the generator can merge its output into existing files with --merge. Only a generated service
+     * has code the developer writes into, so only service generation can.
+     */
+    default boolean canMerge() {
+        return false;
+    }
 }
