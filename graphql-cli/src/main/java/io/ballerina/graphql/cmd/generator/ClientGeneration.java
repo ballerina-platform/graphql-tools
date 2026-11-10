@@ -166,9 +166,12 @@ public class ClientGeneration implements Generator {
 
     @Override
     public List<Path> outputFiles() {
+        // Only the sources writeGeneratedSources writes are listed.
         List<Path> outputFiles = new ArrayList<>();
-        this.generatedSources.forEach((project, sources) -> sources.forEach(source -> outputFiles.add(
-                CodeGeneratorUtils.resolveFilePath(source, Path.of(project.getOutputPath())))));
+        this.generatedSources.forEach((project, sources) -> sources.stream()
+                .filter(source -> source.getType().isOverwritable())
+                .forEach(source -> outputFiles.add(
+                        CodeGeneratorUtils.resolveFilePath(source, Path.of(project.getOutputPath())))));
         return outputFiles;
     }
 

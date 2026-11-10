@@ -169,7 +169,11 @@ public class ServiceGeneration implements Generator {
 
     @Override
     public List<Path> outputFiles() {
-        return this.sources.stream().map(source -> CodeGeneratorUtils.resolveFilePath(source, outputPath)).toList();
+        // Only the sources writeGeneratedSources writes are listed.
+        return this.sources.stream()
+                .filter(source -> source.getType().isOverwritable())
+                .map(source -> CodeGeneratorUtils.resolveFilePath(source, outputPath))
+                .toList();
     }
 
     @Override
