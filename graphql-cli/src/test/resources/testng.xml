@@ -23,6 +23,7 @@
     <test name="graphql-test-suite" parallel="false">
         <classes>
             <class name="io.ballerina.graphql.cmd.GraphqlCmdTest"/>
+            <class name="io.ballerina.graphql.cmd.GraphqlMergeCmdTest"/>
             <class name="io.ballerina.graphql.cmd.BalGraphqlConfigFileNameTest"/>
             <class name="io.ballerina.graphql.cmd.IntrospectorTest"/>
             <class name="io.ballerina.graphql.cmd.SdlSchemaGenerationTest"/>
