@@ -18,11 +18,15 @@
 
 package io.ballerina.graphql.generator.service.merge;
 
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeVisitor;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
@@ -35,8 +39,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static io.ballerina.graphql.generator.service.merge.SourceMerger.LINE_BREAK;
 import static io.ballerina.graphql.generator.service.merge.SourceMerger.MEMBER_SEPARATOR;
@@ -51,7 +53,7 @@ public final class ServiceMerger {
 
     private static final String FILE_LABEL = "service";
     private static final String CONTEXT_INIT_FUNCTION = "initContext";
-    private static final Pattern DATALOADER_REGISTRATION = Pattern.compile("registerDataLoader\\(\\s*\"([^\"]+)\"");
+    private static final String REGISTER_DATALOADER = "registerDataLoader";
     private static final String NO_KEY_PREFIX = "";
 
     private ServiceMerger() {
@@ -141,8 +143,8 @@ public final class ServiceMerger {
         Set<String> registered = registeredDataLoaders(existing);
         List<String> missing = new ArrayList<>();
         for (StatementNode statement : statements(generated)) {
-            Matcher matcher = DATALOADER_REGISTRATION.matcher(statement.toSourceCode());
-            if (matcher.find() && !registered.contains(matcher.group(1))) {
+            Set<String> registers = registeredDataLoaders(statement);
+            if (!registers.isEmpty() && !registered.containsAll(registers)) {
                 missing.add(statement.toSourceCode().strip());
             }
         }
@@ -161,13 +163,29 @@ public final class ServiceMerger {
                 + function.substring(insertAt);
     }
 
-    private static Set<String> registeredDataLoaders(FunctionDefinitionNode function) {
+    // The DataLoaders registered by registerDataLoader("name", ...) calls in the code. The syntax tree is read
+    // instead of the text, so a call in a comment does not count.
+    private static Set<String> registeredDataLoaders(Node code) {
         Set<String> names = new HashSet<>();
-        Matcher matcher = DATALOADER_REGISTRATION.matcher(function.toSourceCode());
-        while (matcher.find()) {
-            names.add(matcher.group(1));
-        }
+        code.accept(new NodeVisitor() {
+            @Override
+            public void visit(MethodCallExpressionNode call) {
+                dataLoaderName(call).ifPresent(names::add);
+                super.visit(call);
+            }
+        });
         return names;
+    }
+
+    private static Optional<String> dataLoaderName(MethodCallExpressionNode call) {
+        if (!call.methodName().toSourceCode().strip().equals(REGISTER_DATALOADER) || call.arguments().isEmpty()
+                || !(call.arguments().get(0) instanceof PositionalArgumentNode argument)
+                || !(argument.expression() instanceof BasicLiteralNode literal)
+                || literal.kind() != SyntaxKind.STRING_LITERAL) {
+            return Optional.empty();
+        }
+        String quoted = literal.literalToken().text();
+        return Optional.of(quoted.substring(1, quoted.length() - 1));
     }
 
     private static List<StatementNode> statements(FunctionDefinitionNode function) {

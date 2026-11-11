@@ -87,6 +87,22 @@ public class ServiceMergerTest {
         Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.OUTDATED)));
     }
 
+    @Test(description = "Test that a renamed argument keeps the resolver matched, so it is kept and not an error")
+    public void testRenamedArgument() throws ServiceGenerationException {
+        MergeResult result = ServiceMerger.merge(service("""
+                    resource function get book(string id) returns Book?|error {
+                        return getBookFromDb(id);
+                    }
+                """), service("""
+                    resource function get book(string bookId) returns Book?|error {
+                        return error("Not implemented");
+                    }
+                """));
+
+        Assert.assertTrue(result.source().contains("return getBookFromDb(id);"), result.source());
+        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.OUTDATED)));
+    }
+
     @Test(description = "Test that a resolver is kept when a DataLoader adds a context parameter to its signature")
     public void testKeepsResolverWhenDataLoaderAdded() throws ServiceGenerationException {
         MergeResult result = ServiceMerger.merge(service("""
@@ -350,6 +366,36 @@ public class ServiceMergerTest {
                     context.registerDataLoader("authorLoader", new dataloader:DefaultDataLoader(authorLoader));
                     return context;
                 """), result.source());
+        Assert.assertEquals(result.source().split("registerDataLoader\\(\"profileLoader\"").length, 2,
+                result.source());
+    }
+
+    @Test(description = "Test that a registration in a comment does not count, so the DataLoader is still registered")
+    public void testCommentedOutRegistration() throws ServiceGenerationException {
+        String existing = dataLoaderService().replace("graphql:Context context = new;", """
+                graphql:Context context = new;
+                    // context.registerDataLoader("profileLoader", new dataloader:DefaultDataLoader(profileLoader));
+                """.stripTrailing());
+
+        MergeResult result = ServiceMerger.merge(existing, dataLoaderService("profileLoader"));
+
+        Assert.assertTrue(result.source().contains("""
+                    // context.registerDataLoader("profileLoader", new dataloader:DefaultDataLoader(profileLoader));
+                    context.registerDataLoader("profileLoader", new dataloader:DefaultDataLoader(profileLoader));
+                """), result.source());
+    }
+
+    @Test(description = "Test that a registration nested in the developer's code counts as registered")
+    public void testNestedRegistration() throws ServiceGenerationException {
+        String existing = dataLoaderService().replace("graphql:Context context = new;", """
+                graphql:Context context = new;
+                    if request.hasHeader("Authorization") {
+                        context.registerDataLoader("profileLoader",
+                                new dataloader:DefaultDataLoader(profileLoader));
+                    }""");
+
+        MergeResult result = ServiceMerger.merge(existing, dataLoaderService("profileLoader"));
+
         Assert.assertEquals(result.source().split("registerDataLoader\\(\"profileLoader\"").length, 2,
                 result.source());
     }

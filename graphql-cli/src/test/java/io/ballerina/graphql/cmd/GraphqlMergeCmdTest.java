@@ -245,6 +245,22 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         assertOutdatedResolverDoesNotCompile();
     }
 
+    @Test(description = "Test that renaming an argument in the schema keeps the resolver and reports it")
+    public void testMergeWithRenamedArgument() throws IOException {
+        generate(SCHEMA);
+        replace(this.serviceFile, NOT_IMPLEMENTED, "// developer book\n        return new Book();");
+        writeSchema(SCHEMA.replace("book(id: String!)", "book(bookId: String!)"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, answering("y", new ArrayList<>()), "--merge");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        List<String> lines = output.lines().toList();
+        Assert.assertTrue(lines.contains("Resolvers: 0 added, 2 kept."), output);
+        Assert.assertTrue(lines.contains(BOOK_OUTDATED), output);
+        Assert.assertTrue(Files.readString(this.serviceFile).contains("// developer book"));
+    }
+
     @Test(description = "Test that a resolver no longer in the schema fails the merge before asking")
     public void testMergeWithResolverNotInSchema() throws IOException {
         generate(CHANGED_SCHEMA);

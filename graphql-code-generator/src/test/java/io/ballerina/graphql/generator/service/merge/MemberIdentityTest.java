@@ -94,6 +94,37 @@ public class MemberIdentityTest {
         Assert.assertEquals(MemberIdentity.name(members.get(5)), "upper");
     }
 
+    @Test(description = "Test that renaming a path parameter does not change the resolver key")
+    public void testPathParameterRename() {
+        List<Node> members = classMembers("""
+                service class Library {
+                    resource function get book/[string id]() returns string {
+                        return id;
+                    }
+
+                    resource function get books/[string... ids]() returns string[] {
+                        return ids;
+                    }
+                }
+                """);
+        List<Node> renamed = classMembers("""
+                service class Library {
+                    resource function get book/[ string bookId ]() returns string {
+                        return bookId;
+                    }
+
+                    resource function get books/[string... bookIds]() returns string[] {
+                        return bookIds;
+                    }
+                }
+                """);
+
+        Assert.assertEquals(MemberIdentity.resolverKey(members.get(0)), Optional.of("get book/[string]"));
+        Assert.assertEquals(MemberIdentity.resolverKey(members.get(1)), Optional.of("get books/[string...]"));
+        Assert.assertEquals(MemberIdentity.resolverKey(renamed.get(0)), MemberIdentity.resolverKey(members.get(0)));
+        Assert.assertEquals(MemberIdentity.resolverKey(renamed.get(1)), MemberIdentity.resolverKey(members.get(1)));
+    }
+
     @Test(description = "Test that a field is still identified by its name after the developer edits it")
     public void testEditedFieldKeepsName() {
         Node generated = classMembers("class Book {\n    string title;\n}").get(0);

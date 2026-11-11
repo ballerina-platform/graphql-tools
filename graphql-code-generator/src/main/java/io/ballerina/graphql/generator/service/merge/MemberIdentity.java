@@ -26,7 +26,9 @@ import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
+import io.ballerina.compiler.syntax.tree.ResourcePathParameterNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 
@@ -42,6 +44,8 @@ final class MemberIdentity {
 
     private static final String KEY_SEPARATOR = " ";
     private static final String REMOTE_KEY_PREFIX = "remote ";
+    private static final String PATH_PARAMETER_START = "[";
+    private static final String PATH_PARAMETER_END = "]";
 
     private MemberIdentity() {
     }
@@ -59,7 +63,7 @@ final class MemberIdentity {
         }
         if (hasQualifier(function, SyntaxKind.RESOURCE_KEYWORD)) {
             String path = function.relativeResourcePath().stream()
-                    .map(node -> node.toSourceCode().strip())
+                    .map(MemberIdentity::pathSegment)
                     .collect(Collectors.joining());
             return Optional.of(function.functionName().text() + KEY_SEPARATOR + path);
         }
@@ -106,6 +110,16 @@ final class MemberIdentity {
             return inclusion.typeName().toSourceCode().strip();
         }
         return member.toSourceCode().strip();
+    }
+
+    // A path parameter is keyed by its type only, e.g. "[string]", so renaming it does not make the resolver look new.
+    private static String pathSegment(Node segment) {
+        if (segment instanceof ResourcePathParameterNode parameter) {
+            String rest = parameter.ellipsisToken().map(Token::text).orElse("");
+            return PATH_PARAMETER_START + parameter.typeDescriptor().toSourceCode().strip() + rest
+                    + PATH_PARAMETER_END;
+        }
+        return segment.toSourceCode().strip();
     }
 
     private static boolean hasQualifier(FunctionDefinitionNode function, SyntaxKind qualifier) {
