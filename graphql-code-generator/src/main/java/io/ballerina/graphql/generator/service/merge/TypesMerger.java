@@ -44,7 +44,8 @@ import static io.ballerina.graphql.generator.service.merge.SourceMerger.MEMBER_S
  * Merges a newly generated types file into the one the developer already has. The resolvers of each service class
  * are merged as in the service, and the developer's other code in a class is kept. The types that only describe the
  * schema, such as records, enums, unions and the service object type, are regenerated, since the schema is the source
- * of truth. The developer's own code in the file, such as helper functions, is kept.
+ * of truth, and a type or enum the schema no longer has is removed. The developer's own functions, constants and
+ * variables in the file are kept.
  */
 public final class TypesMerger {
 
@@ -60,7 +61,8 @@ public final class TypesMerger {
      *
      * @param existingSource  the source the developer already has
      * @param generatedSource the newly generated source
-     * @return the merged source and what happened to each service class resolver, keyed like {@code Book.get title}
+     * @return the merged source, what happened to each service class resolver, keyed like {@code Book.get title}, and
+     * the types that were removed
      * @throws ServiceGenerationException if the existing source has a syntax error, or has a service class or a
      *                                    resolver that is no longer in the schema
      */
@@ -99,14 +101,24 @@ public final class TypesMerger {
         }
         SourceMerger.checkInSchema(SERVICE_CLASSES, existingClasses.keySet());
         SourceMerger.checkResolversInSchema(notInSchema);
-        // The developer's own code, such as a helper function, is kept after the generated types.
-        otherExistingMembers.stream()
-                .filter(member -> !generatedNames.contains(memberName(member)))
-                .forEach(member -> members.add(member.toSourceCode().strip()));
+        // A type or enum the schema no longer has is removed, since the file is generated from the schema. The
+        // developer's own code, such as a helper function, is kept after the generated types.
+        List<String> removedTypes = new ArrayList<>();
+        for (ModuleMemberDeclarationNode member : otherExistingMembers) {
+            String name = memberName(member);
+            if (generatedNames.contains(name)) {
+                continue;
+            }
+            if (member instanceof TypeDefinitionNode || member instanceof EnumDeclarationNode) {
+                removedTypes.add(name);
+            } else {
+                members.add(member.toSourceCode().strip());
+            }
+        }
 
         String merged = String.join(LINE_BREAK, SourceMerger.mergeImports(existingModule, generatedModule))
                 + MEMBER_SEPARATOR + String.join(MEMBER_SEPARATOR, members) + LINE_BREAK;
-        return SourceMerger.format(merged, FILE_LABEL, resolvers);
+        return SourceMerger.format(merged, FILE_LABEL, resolvers, removedTypes);
     }
 
     // A member is matched by its name, so a generated type replaces the existing type of the same name.

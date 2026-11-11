@@ -171,6 +171,44 @@ public class TypesMergerTest {
         Assert.assertEquals(result.source().split("public type BookInput").length, 2, result.source());
     }
 
+    @Test(description = "Test that the records, enums and unions the schema no longer has are removed and reported")
+    public void testRemovesTypesNotInSchema() throws ServiceGenerationException {
+        MergeResult result = TypesMerger.merge(types("""
+                const DEFAULT_PAGES = 100;
+
+                public type BookInput record {|
+                    string title;
+                |};
+
+                public type AuthorInput record {|
+                    string name;
+                |};
+
+                public enum Genre {
+                    FICTION
+                }
+
+                public type SearchResult Book;
+
+                function toTitle(string value) returns string {
+                    return value.trim();
+                }
+                """), types("""
+                public type BookInput record {|
+                    string title;
+                |};
+                """));
+
+        Assert.assertEquals(result.removedTypes(), List.of("AuthorInput", "Genre", "SearchResult"));
+        Assert.assertTrue(result.source().contains("public type BookInput record {|"), result.source());
+        Assert.assertFalse(result.source().contains("AuthorInput"), result.source());
+        Assert.assertFalse(result.source().contains("enum Genre"), result.source());
+        Assert.assertFalse(result.source().contains("SearchResult"), result.source());
+        Assert.assertTrue(result.source().contains("const DEFAULT_PAGES = 100;"), result.source());
+        Assert.assertTrue(result.source().contains("function toTitle(string value) returns string {"),
+                result.source());
+    }
+
     @Test(description = "Test that a new service class is added with all its resolvers")
     public void testAddsServiceClass() throws ServiceGenerationException {
         MergeResult result = TypesMerger.merge(types(""), types("""
@@ -290,6 +328,7 @@ public class TypesMergerTest {
                 """).replace("import ballerina/graphql;", "import ballerina/graphql;\nimport ballerina/time;"),
                 types(""));
 
+        Assert.assertTrue(result.removedTypes().isEmpty(), result.removedTypes().toString());
         Assert.assertTrue(result.source().contains("import ballerina/time;"), result.source());
         Assert.assertTrue(result.source().contains("const DEFAULT_PAGES = 100;"), result.source());
         Assert.assertTrue(result.source().contains("function toTitle(string value) returns string {"),

@@ -189,8 +189,13 @@ final class SourceMerger {
 
     static MergeResult format(String merged, String fileLabel, List<MergedResolver> resolvers)
             throws ServiceGenerationException {
+        return format(merged, fileLabel, resolvers, List.of());
+    }
+
+    static MergeResult format(String merged, String fileLabel, List<MergedResolver> resolvers,
+                              List<String> removedTypes) throws ServiceGenerationException {
         try {
-            return new MergeResult(Formatter.format(merged), resolvers);
+            return new MergeResult(Formatter.format(merged), resolvers, removedTypes);
         } catch (FormatterException e) {
             throw error(String.format(ERROR_MERGED_SOURCE, fileLabel, e.getMessage()));
         }

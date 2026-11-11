@@ -208,6 +208,35 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         assertCompiles();
     }
 
+    @Test(description = "Test that a DataLoader removed from the configuration is not removed from the service")
+    public void testMergeKeepsRemovedDataLoader() throws IOException {
+        Files.writeString(this.packageRoot.resolve(BalGraphqlConfig.FILE_NAME), DATALOADER_CONFIG);
+        writeSchema(SCHEMA);
+        ExitCodeCaptor generateCaptor = new ExitCodeCaptor();
+        String generateOutput = run(generateCaptor, failIfAsked());
+        Assert.assertEquals(generateCaptor.getExitCode(), 0, generateOutput);
+        replace(this.serviceFile, "isolated function bookLoader(readonly & anydata[] keys) returns anydata[]|error {\n"
+                + "    " + NOT_IMPLEMENTED, "isolated function bookLoader(readonly & anydata[] keys) "
+                + "returns anydata[]|error {\n    return keys;");
+        Files.writeString(this.packageRoot.resolve(BalGraphqlConfig.FILE_NAME), CONFIG);
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, answering("y", new ArrayList<>()), "--merge");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        List<String> lines = output.lines().toList();
+        Assert.assertTrue(lines.contains("Resolvers: 1 replaced, 0 added, 1 kept."), output);
+        Assert.assertTrue(lines.contains("  replaced  get book"), output);
+        String service = Files.readString(this.serviceFile);
+        Assert.assertTrue(service.contains("resource function get book(string id) returns Book?|error {"), service);
+        Assert.assertTrue(service.contains(
+                "context.registerDataLoader(\"bookLoader\", new dataloader:DefaultDataLoader(bookLoader));"), service);
+        Assert.assertTrue(service.contains("@graphql:ServiceConfig {contextInit: initContext}"), service);
+        Assert.assertTrue(service.contains("function preBook(graphql:Context context, string id) {"), service);
+        Assert.assertTrue(service.contains("return keys;"), service);
+        assertCompiles();
+    }
+
     @Test(description = "Test that a resolver no longer in the schema fails the merge before asking")
     public void testMergeWithResolverNotInSchema() throws IOException {
         generate(CHANGED_SCHEMA);
@@ -466,6 +495,45 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         Assert.assertTrue(output.lines().toList().contains("Resolvers: 0 replaced, 0 added, 4 kept."), output);
         Assert.assertEquals(existingFiles(), merged, output);
+    }
+
+    @Test(description = "Test that a type the schema no longer has is removed and reported, also in a dry run")
+    public void testMergeRemovesTypesNotInSchema() throws IOException {
+        generate("""
+                type Query {
+                  book(id: String!, genre: Genre): Book
+                }
+
+                enum Genre {
+                  FICTION
+                }
+
+                type Book {
+                  title: String!
+                }
+                """);
+        replace(this.typesFile, NOT_IMPLEMENTED, "return \"Dune\";");
+        writeSchema(SCHEMA);
+        ExitCodeCaptor dryRunCaptor = new ExitCodeCaptor();
+
+        String dryRunOutput = run(dryRunCaptor, failIfAsked(), "--merge", "--dry-run");
+
+        Assert.assertEquals(dryRunCaptor.getExitCode(), 0, dryRunOutput);
+        Assert.assertTrue(dryRunOutput.lines().toList().contains("Removed types not in the schema: Genre."),
+                dryRunOutput);
+        Assert.assertTrue(Files.readString(this.typesFile).contains("enum Genre"));
+
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = run(exitCaptor, answering("y", new ArrayList<>()), "--merge");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        List<String> lines = output.lines().toList();
+        Assert.assertTrue(lines.contains("Resolvers: 1 replaced, 0 added, 1 kept."), output);
+        Assert.assertTrue(lines.contains("Removed types not in the schema: Genre."), output);
+        String types = Files.readString(this.typesFile);
+        Assert.assertFalse(types.contains("Genre"), types);
+        Assert.assertTrue(types.contains("return \"Dune\";"), types);
+        assertCompiles();
     }
 
     @Test(description = "Test that the files of a module are merged")

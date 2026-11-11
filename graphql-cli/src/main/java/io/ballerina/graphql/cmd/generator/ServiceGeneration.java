@@ -66,12 +66,15 @@ public class ServiceGeneration implements Generator {
             Set.of(ServiceCodeGenerator.TYPES_FILE_NAME, ServiceCodeGenerator.SERVICE_FILE_NAME);
     private static final String RESOLVER_SUMMARY = "Resolvers: %d replaced, %d added, %d kept.";
     private static final String RESOLVER_LINE = "  %-9s %s";
+    private static final String REMOVED_TYPES_SUMMARY = "Removed types not in the schema: %s.";
+    private static final String LIST_SEPARATOR = ", ";
     private static final String ERROR_CANNOT_READ = "Cannot read \"%s\" to merge it. Check its permissions.";
 
     private final GenerationContext context;
     private final BalGraphqlConfig balGraphqlConfig;
     private final ServiceCodeGenerator serviceCodeGenerator;
     private final List<MergedResolver> mergedResolvers = new ArrayList<>();
+    private final List<String> removedTypes = new ArrayList<>();
     private PackageOutput packageOutput;
     private Path outputPath;
     private GraphqlServiceProject project;
@@ -161,7 +164,7 @@ public class ServiceGeneration implements Generator {
             if (context.isMerge()) {
                 this.sources = mergeIntoExistingFiles(this.sources);
                 if (context.isDryRun()) {
-                    resolverSummary().forEach(context.getDryRunReport()::addNote);
+                    mergeSummary().forEach(context.getDryRunReport()::addNote);
                 }
             }
         } catch (ServiceGenerationException e) {
@@ -183,6 +186,7 @@ public class ServiceGeneration implements Generator {
             }
             MergeResult result = merge(source, readExistingFile(filePath));
             this.mergedResolvers.addAll(result.resolvers());
+            this.removedTypes.addAll(result.removedTypes());
             mergedSources.add(new SrcFilePojo(source.getType(), source.getModuleName(), source.getFileName(),
                     result.source()));
         }
@@ -205,19 +209,21 @@ public class ServiceGeneration implements Generator {
         }
     }
 
-    // A count of each outcome, then the resolvers that were replaced or added. The kept ones are only counted, since
-    // they are unchanged.
-    private List<String> resolverSummary() {
-        if (this.mergedResolvers.isEmpty()) {
-            return List.of();
-        }
+    // A count of each resolver outcome, then the resolvers that were replaced or added, and the types that were
+    // removed. The kept resolvers are only counted, since they are unchanged.
+    private List<String> mergeSummary() {
         List<String> lines = new ArrayList<>();
-        lines.add(String.format(RESOLVER_SUMMARY, count(Outcome.REPLACED), count(Outcome.ADDED),
-                count(Outcome.KEPT)));
-        this.mergedResolvers.stream()
-                .filter(resolver -> resolver.outcome() != Outcome.KEPT)
-                .forEach(resolver -> lines.add(String.format(RESOLVER_LINE,
-                        resolver.outcome().name().toLowerCase(Locale.ROOT), resolver.key())));
+        if (!this.mergedResolvers.isEmpty()) {
+            lines.add(String.format(RESOLVER_SUMMARY, count(Outcome.REPLACED), count(Outcome.ADDED),
+                    count(Outcome.KEPT)));
+            this.mergedResolvers.stream()
+                    .filter(resolver -> resolver.outcome() != Outcome.KEPT)
+                    .forEach(resolver -> lines.add(String.format(RESOLVER_LINE,
+                            resolver.outcome().name().toLowerCase(Locale.ROOT), resolver.key())));
+        }
+        if (!this.removedTypes.isEmpty()) {
+            lines.add(String.format(REMOVED_TYPES_SUMMARY, String.join(LIST_SEPARATOR, this.removedTypes)));
+        }
         return lines;
     }
 
@@ -261,7 +267,7 @@ public class ServiceGeneration implements Generator {
         context.getOutStream().println(SUCCESS_MESSAGE);
         outputFiles().forEach(filePath -> context.getOutStream().println(String.format(CREATED_FILE_FORMAT,
                 OutputFileGuard.displayPath(filePath))));
-        resolverSummary().forEach(context.getOutStream()::println);
+        mergeSummary().forEach(context.getOutStream()::println);
     }
 
     @Override
