@@ -54,6 +54,8 @@ public final class ServiceMerger {
     private static final String FILE_LABEL = "service";
     private static final String CONTEXT_INIT_FUNCTION = "initContext";
     private static final String REGISTER_DATALOADER = "registerDataLoader";
+    private static final String ERROR_SERVICE_NOT_FOUND =
+            "The existing service file has no \"%s\" service. Use --service-name to name the service to merge into.";
     private static final String NO_KEY_PREFIX = "";
 
     private ServiceMerger() {
@@ -68,15 +70,15 @@ public final class ServiceMerger {
      * @param existingSource  the source the developer already has
      * @param generatedSource the newly generated source
      * @return the merged source and what happened to each resolver
-     * @throws ServiceGenerationException if the existing source has a syntax error, or has a resolver that is no
-     *                                    longer in the schema
+     * @throws ServiceGenerationException if the existing source has a syntax error, has services but not the
+     *                                    generated one, or has a resolver that is no longer in the schema
      */
     public static MergeResult merge(String existingSource, String generatedSource)
             throws ServiceGenerationException {
         ModulePartNode existingModule = SourceMerger.parseExisting(existingSource, FILE_LABEL);
         ModulePartNode generatedModule = SourceMerger.parse(generatedSource);
-        ServiceDeclarationNode generatedService = service(generatedModule).orElseThrow();
-        Optional<ServiceDeclarationNode> existingService = service(existingModule);
+        ServiceDeclarationNode generatedService = services(generatedModule).get(0);
+        Optional<ServiceDeclarationNode> existingService = existingService(existingModule, generatedService);
 
         List<MergedResolver> resolvers = new ArrayList<>();
         String mergedService = mergeService(existingService, generatedService, existingSource, generatedSource,
@@ -217,11 +219,32 @@ public final class ServiceMerger {
         return SourceMerger.block(header, members);
     }
 
-    private static Optional<ServiceDeclarationNode> service(ModulePartNode modulePart) {
+    // The existing service is the one with the generated service's type, e.g. "service BookApiService on ...", so
+    // another service the developer has in the file, such as an admin service, is never merged into. With no
+    // service in the file, the generated one is added.
+    private static Optional<ServiceDeclarationNode> existingService(ModulePartNode existingModule,
+                                                                    ServiceDeclarationNode generatedService)
+            throws ServiceGenerationException {
+        List<ServiceDeclarationNode> services = services(existingModule);
+        String name = serviceName(generatedService);
+        Optional<ServiceDeclarationNode> existingService = services.stream()
+                .filter(service -> serviceName(service).equals(name))
+                .findFirst();
+        if (existingService.isEmpty() && !services.isEmpty()) {
+            throw SourceMerger.error(String.format(ERROR_SERVICE_NOT_FOUND, name));
+        }
+        return existingService;
+    }
+
+    private static List<ServiceDeclarationNode> services(ModulePartNode modulePart) {
         return modulePart.members().stream()
                 .filter(ServiceDeclarationNode.class::isInstance)
                 .map(ServiceDeclarationNode.class::cast)
-                .findFirst();
+                .toList();
+    }
+
+    private static String serviceName(ServiceDeclarationNode service) {
+        return service.typeDescriptor().map(type -> type.toSourceCode().strip()).orElse("");
     }
 
     private static Optional<FunctionDefinitionNode> contextInit(ModulePartNode modulePart) {

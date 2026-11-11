@@ -219,6 +219,51 @@ public class ServiceMergerTest {
                 error.getMessage());
     }
 
+    @Test(description = "Test that the service with the generated type is merged and another service is left alone")
+    public void testMergesServiceByType() throws ServiceGenerationException {
+        String existing = service("""
+                    resource function get book(string id) returns Book?|error {
+                        return getBookFromDb(id);
+                    }
+                """).replace("service BookApiService on", """
+                service on new graphql:Listener(9091) {
+                    resource function get health() returns string {
+                        return "ok";
+                    }
+                }
+
+                service BookApiService on""");
+
+        MergeResult result = ServiceMerger.merge(existing, service("""
+                    resource function get book(string id) returns Book?|error {
+                        return error("Not implemented");
+                    }
+
+                    resource function get books() returns Book[]|error {
+                        return error("Not implemented");
+                    }
+                """));
+
+        Assert.assertTrue(result.source().contains("""
+                service on new graphql:Listener(9091) {
+                    resource function get health() returns string {
+                        return "ok";
+                    }
+                }"""), result.source());
+        Assert.assertTrue(result.source().contains("return getBookFromDb(id);"), result.source());
+        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.KEPT),
+                new MergedResolver("get books", Outcome.ADDED)));
+    }
+
+    @Test(description = "Test that a file with services but not the generated one is not merged into")
+    public void testServiceNotFound() {
+        ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class,
+                () -> ServiceMerger.merge(service("").replace("BookApiService", "AdminService"), service("")));
+
+        Assert.assertTrue(error.getMessage().contains("The existing service file has no \"BookApiService\" service. "
+                + "Use --service-name to name the service to merge into."), error.getMessage());
+    }
+
     @Test(description = "Test that a function the developer added to the service is kept")
     public void testKeepsDeveloperFunction() throws ServiceGenerationException {
         MergeResult result = ServiceMerger.merge(service("""

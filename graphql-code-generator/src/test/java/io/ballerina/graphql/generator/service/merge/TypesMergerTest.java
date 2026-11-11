@@ -129,6 +129,30 @@ public class TypesMergerTest {
                 """), result.source());
     }
 
+    @Test(description = "Test that a generated field the developer edited is kept once and not added again")
+    public void testKeepsEditedField() throws ServiceGenerationException {
+        MergeResult result = TypesMerger.merge(types("""
+                public distinct service class Book {
+                    private final string title = "Dune";
+
+                    resource function get title() returns string|error {
+                        return self.title;
+                    }
+                }
+                """), types("""
+                public distinct service class Book {
+                    string title;
+
+                    resource function get title() returns string|error {
+                        return error("Not implemented");
+                    }
+                }
+                """));
+
+        Assert.assertTrue(result.source().contains("private final string title = \"Dune\";"), result.source());
+        Assert.assertFalse(result.source().contains("    string title;"), result.source());
+    }
+
     @Test(description = "Test that the records, enums, unions and service object type are regenerated")
     public void testRegeneratesSchemaTypes() throws ServiceGenerationException {
         MergeResult result = TypesMerger.merge(types("""
