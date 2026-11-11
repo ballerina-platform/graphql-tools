@@ -29,10 +29,6 @@ import java.util.List;
  */
 public record MergeResult(String source, List<MergedResolver> resolvers, List<String> removedTypes) {
 
-    public MergeResult(String source, List<MergedResolver> resolvers) {
-        this(source, resolvers, List.of());
-    }
-
     /**
      * What happened to one resolver.
      *
