@@ -23,14 +23,11 @@ import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.merge.MergeResult.MergedResolver;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,28 +67,25 @@ public final class TypesMerger {
             throws ServiceGenerationException {
         ModulePartNode existingModule = SourceMerger.parseExisting(existingSource, FILE_LABEL);
         ModulePartNode generatedModule = SourceMerger.parse(generatedSource);
-        Set<String> generatedClasses = generatedModule.members().stream()
-                .filter(ClassDefinitionNode.class::isInstance)
+        Set<String> schemaNames = generatedModule.members().stream()
                 .map(MemberIdentity::name)
                 .collect(Collectors.toSet());
+        // A declaration the tool owns is regenerated from the schema, and a service class is merged. Everything else
+        // is the developer's and is kept as written.
         Map<String, ClassDefinitionNode> existingClasses = new LinkedHashMap<>();
-        List<ModuleMemberDeclarationNode> otherExistingMembers = new ArrayList<>();
+        List<ModuleMemberDeclarationNode> developerMembers = new ArrayList<>();
         for (ModuleMemberDeclarationNode member : existingModule.members()) {
-            // A class the developer wrote, such as a cache, is kept like the rest of their code.
-            if (member instanceof ClassDefinitionNode serviceClass
-                    && (generatedClasses.contains(MemberIdentity.name(serviceClass)) || isServiceClass(serviceClass))) {
+            if (!MemberIdentity.isToolOwned(member, schemaNames)) {
+                developerMembers.add(member);
+            } else if (member instanceof ClassDefinitionNode serviceClass) {
                 existingClasses.put(MemberIdentity.name(serviceClass), serviceClass);
-            } else {
-                otherExistingMembers.add(member);
             }
         }
 
         List<String> members = new ArrayList<>();
         List<MergedResolver> resolvers = new ArrayList<>();
         List<String> notInSchema = new ArrayList<>();
-        Set<String> generatedNames = new HashSet<>();
         for (ModuleMemberDeclarationNode member : generatedModule.members()) {
-            generatedNames.add(MemberIdentity.name(member));
             if (member instanceof ClassDefinitionNode serviceClass) {
                 String name = MemberIdentity.name(serviceClass);
                 ClassDefinitionNode existing = existingClasses.remove(name);
@@ -107,17 +101,13 @@ public final class TypesMerger {
         }
         SourceMerger.checkInSchema(SERVICE_CLASSES, existingClasses.keySet());
         SourceMerger.checkResolversInSchema(notInSchema);
-        // The developer's own code, such as a helper function, is kept after the generated types. A type or enum the
-        // schema does not have is kept too, since the tool cannot tell a stale generated type from one the developer
-        // wrote, and it is reported so the developer can delete it.
+        // The developer's code is kept after the generated types. A type or enum among it is one the schema does not
+        // have: the tool cannot tell a stale generated type from one the developer wrote, so it is kept and reported
+        // for the developer to delete.
         List<String> typesNotInSchema = new ArrayList<>();
-        for (ModuleMemberDeclarationNode member : otherExistingMembers) {
-            String name = MemberIdentity.name(member);
-            if (generatedNames.contains(name)) {
-                continue;
-            }
+        for (ModuleMemberDeclarationNode member : developerMembers) {
             if (member instanceof TypeDefinitionNode || member instanceof EnumDeclarationNode) {
-                typesNotInSchema.add(name);
+                typesNotInSchema.add(MemberIdentity.name(member));
             }
             members.add(member.toSourceCode().strip());
         }
@@ -125,16 +115,5 @@ public final class TypesMerger {
         String merged = String.join(LINE_BREAK, SourceMerger.mergeImports(existingModule, generatedModule))
                 + MEMBER_SEPARATOR + String.join(MEMBER_SEPARATOR, members) + LINE_BREAK;
         return SourceMerger.format(merged, FILE_LABEL, resolvers, typesNotInSchema);
-    }
-
-    // A class is a GraphQL service class when it is a distinct service class with resolvers, as the tool generates.
-    private static boolean isServiceClass(ClassDefinitionNode classDefinition) {
-        Set<SyntaxKind> qualifiers = classDefinition.classTypeQualifiers().stream()
-                .map(Token::kind)
-                .collect(Collectors.toSet());
-        boolean hasResolvers = classDefinition.members().stream()
-                .anyMatch(member -> MemberIdentity.resolverKey(member).isPresent());
-        return qualifiers.contains(SyntaxKind.DISTINCT_KEYWORD) && qualifiers.contains(SyntaxKind.SERVICE_KEYWORD)
-                && hasResolvers;
     }
 }

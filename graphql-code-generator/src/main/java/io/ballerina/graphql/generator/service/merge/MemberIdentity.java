@@ -23,6 +23,7 @@ import io.ballerina.compiler.syntax.tree.ConstantDeclarationNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
@@ -33,12 +34,14 @@ import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * Says what identifies a member of a source file, a service or a class, so that an existing member and a generated
  * one are matched the same way by every merger. A resolver is identified by its key, and any other member by its
- * name, so a member is still matched after the developer moves or edits it.
+ * name, so a member is still matched after the developer moves or edits it. It also says which declarations the
+ * tool owns and may regenerate, and which are the developer's.
  */
 final class MemberIdentity {
 
@@ -110,6 +113,40 @@ final class MemberIdentity {
             return inclusion.typeName().toSourceCode().strip();
         }
         return member.toSourceCode().strip();
+    }
+
+    /**
+     * Says whether the tool owns an existing declaration of the types file, so a merge may regenerate it from the
+     * schema. The tool owns:
+     * <ul>
+     *     <li>the service object type, records, enums and unions whose name the schema still has, and</li>
+     *     <li>every GraphQL service class: one whose name the schema has, or a distinct service class with
+     *     resolvers, as the tool generates.</li>
+     * </ul>
+     * Everything else is the developer's, such as a helper function, a constant, a class of their own or a type the
+     * schema does not have, and a merge never changes or removes it.
+     *
+     * @param member      a module-level declaration of the existing types file
+     * @param schemaNames the names of the declarations generated from the schema
+     * @return whether the tool owns the declaration
+     */
+    static boolean isToolOwned(ModuleMemberDeclarationNode member, Set<String> schemaNames) {
+        if (member instanceof ClassDefinitionNode classDefinition) {
+            return schemaNames.contains(name(classDefinition)) || isServiceClass(classDefinition);
+        }
+        return (member instanceof TypeDefinitionNode || member instanceof EnumDeclarationNode)
+                && schemaNames.contains(name(member));
+    }
+
+    // A distinct service class with resolvers is a GraphQL service class, as the tool generates.
+    private static boolean isServiceClass(ClassDefinitionNode classDefinition) {
+        Set<SyntaxKind> qualifiers = classDefinition.classTypeQualifiers().stream()
+                .map(Token::kind)
+                .collect(Collectors.toSet());
+        boolean hasResolvers = classDefinition.members().stream()
+                .anyMatch(member -> resolverKey(member).isPresent());
+        return qualifiers.contains(SyntaxKind.DISTINCT_KEYWORD) && qualifiers.contains(SyntaxKind.SERVICE_KEYWORD)
+                && hasResolvers;
     }
 
     // A path parameter is keyed by its type only, e.g. "[string]", so renaming it does not make the resolver look new.

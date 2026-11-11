@@ -24,8 +24,11 @@ import io.ballerina.compiler.syntax.tree.Node;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Tests how members are identified when merging.
@@ -123,6 +126,63 @@ public class MemberIdentityTest {
         Assert.assertEquals(MemberIdentity.resolverKey(members.get(1)), Optional.of("get books/[string...]"));
         Assert.assertEquals(MemberIdentity.resolverKey(renamed.get(0)), MemberIdentity.resolverKey(members.get(0)));
         Assert.assertEquals(MemberIdentity.resolverKey(renamed.get(1)), MemberIdentity.resolverKey(members.get(1)));
+    }
+
+    @Test(description = "Test which declarations the tool owns and which are the developer's")
+    public void testToolOwnership() {
+        ModulePartNode module = SourceMerger.parse("""
+                type BookApiService service object {
+                    *graphql:Service;
+                };
+
+                public type Book record {|
+                    string title;
+                |};
+
+                public enum Genre {
+                    FICTION
+                }
+
+                public type SearchResult Book|Author;
+
+                public distinct service class Author {
+                    resource function get name() returns string {
+                        return "Herbert";
+                    }
+                }
+
+                public distinct service class Publisher {
+                    resource function get name() returns string {
+                        return "Chilton";
+                    }
+                }
+
+                public type AuditEntry record {|
+                    string id;
+                |};
+
+                class Cache {
+                }
+
+                distinct service class Empty {
+                }
+
+                const DEFAULT_PAGES = 100;
+
+                function Review() {
+                }
+                """);
+        Set<String> schemaNames = Set.of("BookApiService", "Book", "Genre", "SearchResult", "Author", "Review");
+
+        Map<String, Boolean> owned = new LinkedHashMap<>();
+        module.members().forEach(member -> owned.put(MemberIdentity.name(member),
+                MemberIdentity.isToolOwned(member, schemaNames)));
+
+        // A GraphQL service class the schema no longer has is still the tool's, so the merge can report it.
+        Assert.assertEquals(owned, Map.ofEntries(Map.entry("BookApiService", true), Map.entry("Book", true),
+                Map.entry("Genre", true), Map.entry("SearchResult", true), Map.entry("Author", true),
+                Map.entry("Publisher", true), Map.entry("AuditEntry", false), Map.entry("Cache", false),
+                Map.entry("Empty", false), Map.entry("DEFAULT_PAGES", false), Map.entry("Review", false)));
     }
 
     @Test(description = "Test that a field is still identified by its name after the developer edits it")
