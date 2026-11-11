@@ -238,6 +238,48 @@ public class TypesMergerTest {
                 "Service classes not in the schema: \"Author\". Update or delete them."), error.getMessage());
     }
 
+    @Test(description = "Test that a class the developer wrote is kept and not reported as not in the schema")
+    public void testKeepsDeveloperClasses() throws ServiceGenerationException {
+        MergeResult result = TypesMerger.merge(types("""
+                class Cache {
+                    map<string> entries = {};
+                }
+
+                service class Handler {
+                    resource function get status() returns string {
+                        return "ok";
+                    }
+                }
+
+                distinct service class Empty {
+                }
+                """), types(""));
+
+        Assert.assertTrue(result.source().contains("class Cache {"), result.source());
+        Assert.assertTrue(result.source().contains("service class Handler {"), result.source());
+        Assert.assertTrue(result.source().contains("distinct service class Empty {"), result.source());
+        Assert.assertTrue(result.resolvers().isEmpty(), result.resolvers().toString());
+    }
+
+    @Test(description = "Test that a generated class is merged even when the developer removed all its resolvers")
+    public void testMergesGeneratedClassWithoutResolvers() throws ServiceGenerationException {
+        MergeResult result = TypesMerger.merge(types("""
+                public distinct service class Book {
+                    private final string title = "Dune";
+                }
+                """), types("""
+                public distinct service class Book {
+                    resource function get title() returns string|error {
+                        return error("Not implemented");
+                    }
+                }
+                """));
+
+        Assert.assertEquals(result.source().split("class Book").length, 2, result.source());
+        Assert.assertTrue(result.source().contains("private final string title = \"Dune\";"), result.source());
+        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("Book.get title", Outcome.ADDED)));
+    }
+
     @Test(description = "Test that a service class resolver no longer in the schema is reported with its class")
     public void testServiceClassResolverNotInSchema() {
         ServiceGenerationException error = Assert.expectThrows(ServiceGenerationException.class,

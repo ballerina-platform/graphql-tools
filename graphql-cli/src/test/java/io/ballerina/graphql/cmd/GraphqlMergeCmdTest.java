@@ -289,6 +289,21 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         Assert.assertEquals(existingFiles(), before, output);
     }
 
+    @Test(description = "Test that a class the developer wrote in the types file is kept")
+    public void testMergeKeepsDeveloperClass() throws IOException {
+        generate(SCHEMA);
+        append(this.typesFile, "\nclass Cache {\n    map<string> entries = {};\n}\n");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, answering("y", new ArrayList<>()), "--merge");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        String types = Files.readString(this.typesFile);
+        Assert.assertTrue(types.contains("class Cache {"), types);
+        Assert.assertTrue(types.contains("map<string> entries = {};"), types);
+        assertCompiles();
+    }
+
     @Test(description = "Test that an existing file with a syntax error fails the merge before asking")
     public void testMergeWithSyntaxError() throws IOException {
         generate(SCHEMA);

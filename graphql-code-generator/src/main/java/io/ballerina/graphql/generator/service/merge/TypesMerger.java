@@ -23,6 +23,8 @@ import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.merge.MergeResult.MergedResolver;
@@ -33,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.ballerina.graphql.generator.service.merge.SourceMerger.LINE_BREAK;
 import static io.ballerina.graphql.generator.service.merge.SourceMerger.MEMBER_SEPARATOR;
@@ -67,10 +70,16 @@ public final class TypesMerger {
             throws ServiceGenerationException {
         ModulePartNode existingModule = SourceMerger.parseExisting(existingSource, FILE_LABEL);
         ModulePartNode generatedModule = SourceMerger.parse(generatedSource);
+        Set<String> generatedClasses = generatedModule.members().stream()
+                .filter(ClassDefinitionNode.class::isInstance)
+                .map(MemberIdentity::name)
+                .collect(Collectors.toSet());
         Map<String, ClassDefinitionNode> existingClasses = new LinkedHashMap<>();
         List<ModuleMemberDeclarationNode> otherExistingMembers = new ArrayList<>();
         for (ModuleMemberDeclarationNode member : existingModule.members()) {
-            if (member instanceof ClassDefinitionNode serviceClass) {
+            // A class the developer wrote, such as a cache, is kept like the rest of their code.
+            if (member instanceof ClassDefinitionNode serviceClass
+                    && (generatedClasses.contains(MemberIdentity.name(serviceClass)) || isServiceClass(serviceClass))) {
                 existingClasses.put(MemberIdentity.name(serviceClass), serviceClass);
             } else {
                 otherExistingMembers.add(member);
@@ -116,5 +125,16 @@ public final class TypesMerger {
         String merged = String.join(LINE_BREAK, SourceMerger.mergeImports(existingModule, generatedModule))
                 + MEMBER_SEPARATOR + String.join(MEMBER_SEPARATOR, members) + LINE_BREAK;
         return SourceMerger.format(merged, FILE_LABEL, resolvers, removedTypes);
+    }
+
+    // A class is a GraphQL service class when it is a distinct service class with resolvers, as the tool generates.
+    private static boolean isServiceClass(ClassDefinitionNode classDefinition) {
+        Set<SyntaxKind> qualifiers = classDefinition.classTypeQualifiers().stream()
+                .map(Token::kind)
+                .collect(Collectors.toSet());
+        boolean hasResolvers = classDefinition.members().stream()
+                .anyMatch(member -> MemberIdentity.resolverKey(member).isPresent());
+        return qualifiers.contains(SyntaxKind.DISTINCT_KEYWORD) && qualifiers.contains(SyntaxKind.SERVICE_KEYWORD)
+                && hasResolvers;
     }
 }
