@@ -19,12 +19,9 @@
 package io.ballerina.graphql.generator.service.merge;
 
 import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
-import io.ballerina.compiler.syntax.tree.ConstantDeclarationNode;
 import io.ballerina.compiler.syntax.tree.EnumDeclarationNode;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
@@ -74,7 +71,7 @@ public final class TypesMerger {
         List<ModuleMemberDeclarationNode> otherExistingMembers = new ArrayList<>();
         for (ModuleMemberDeclarationNode member : existingModule.members()) {
             if (member instanceof ClassDefinitionNode serviceClass) {
-                existingClasses.put(serviceClass.className().text(), serviceClass);
+                existingClasses.put(MemberIdentity.name(serviceClass), serviceClass);
             } else {
                 otherExistingMembers.add(member);
             }
@@ -85,9 +82,9 @@ public final class TypesMerger {
         List<String> notInSchema = new ArrayList<>();
         Set<String> generatedNames = new HashSet<>();
         for (ModuleMemberDeclarationNode member : generatedModule.members()) {
-            generatedNames.add(memberName(member));
+            generatedNames.add(MemberIdentity.name(member));
             if (member instanceof ClassDefinitionNode serviceClass) {
-                String name = serviceClass.className().text();
+                String name = MemberIdentity.name(serviceClass);
                 ClassDefinitionNode existing = existingClasses.remove(name);
                 List<Node> existingMembers = existing != null ? existing.members().stream().toList() : List.of();
                 members.add(SourceMerger.block(
@@ -105,7 +102,7 @@ public final class TypesMerger {
         // developer's own code, such as a helper function, is kept after the generated types.
         List<String> removedTypes = new ArrayList<>();
         for (ModuleMemberDeclarationNode member : otherExistingMembers) {
-            String name = memberName(member);
+            String name = MemberIdentity.name(member);
             if (generatedNames.contains(name)) {
                 continue;
             }
@@ -119,28 +116,5 @@ public final class TypesMerger {
         String merged = String.join(LINE_BREAK, SourceMerger.mergeImports(existingModule, generatedModule))
                 + MEMBER_SEPARATOR + String.join(MEMBER_SEPARATOR, members) + LINE_BREAK;
         return SourceMerger.format(merged, FILE_LABEL, resolvers, removedTypes);
-    }
-
-    // A member is matched by its name, so a generated type replaces the existing type of the same name.
-    private static String memberName(ModuleMemberDeclarationNode member) {
-        if (member instanceof ClassDefinitionNode serviceClass) {
-            return serviceClass.className().text();
-        }
-        if (member instanceof TypeDefinitionNode type) {
-            return type.typeName().text();
-        }
-        if (member instanceof EnumDeclarationNode enumDeclaration) {
-            return enumDeclaration.identifier().text();
-        }
-        if (member instanceof FunctionDefinitionNode function) {
-            return function.functionName().text();
-        }
-        if (member instanceof ConstantDeclarationNode constant) {
-            return constant.variableName().text();
-        }
-        if (member instanceof ModuleVariableDeclarationNode variable) {
-            return variable.typedBindingPattern().bindingPattern().toSourceCode().strip();
-        }
-        return member.toSourceCode().strip();
     }
 }

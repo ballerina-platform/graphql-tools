@@ -23,7 +23,6 @@ import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeReferenceNode;
@@ -59,8 +58,6 @@ final class SourceMerger {
     private static final String ERROR_NOT_IN_SCHEMA = "%s not in the schema: %s. Update or delete them.";
     private static final String ERROR_MERGED_SOURCE = "The merged %s could not be formatted: %s";
     private static final String RESOLVERS = "Resolvers";
-    private static final String KEY_SEPARATOR = " ";
-    private static final String REMOTE_KEY_PREFIX = "remote ";
     private static final String MODULE_SEPARATOR = ".";
     private static final String ORG_SEPARATOR = "/";
     private static final String QUOTE = "\"";
@@ -121,16 +118,16 @@ final class SourceMerger {
                                      String keyPrefix, List<MergedResolver> resolvers, List<String> notInSchema) {
         Map<String, FunctionDefinitionNode> generatedResolvers = new LinkedHashMap<>();
         Map<String, Node> generatedOthers = new LinkedHashMap<>();
-        generatedMembers.forEach(member -> resolverKey(member).ifPresentOrElse(
+        generatedMembers.forEach(member -> MemberIdentity.resolverKey(member).ifPresentOrElse(
                 key -> generatedResolvers.put(key, (FunctionDefinitionNode) member),
-                () -> generatedOthers.put(memberName(member), member)));
+                () -> generatedOthers.put(MemberIdentity.name(member), member)));
 
         List<String> members = new ArrayList<>();
         for (Node member : existingMembers) {
-            Optional<String> key = resolverKey(member);
+            Optional<String> key = MemberIdentity.resolverKey(member);
             if (key.isEmpty()) {
                 // A type inclusion comes from the schema, so one the schema no longer has is not kept.
-                boolean generated = generatedOthers.remove(memberName(member)) != null;
+                boolean generated = generatedOthers.remove(MemberIdentity.name(member)) != null;
                 if (generated || !(member instanceof TypeReferenceNode)) {
                     members.add(member.toSourceCode().strip());
                 }
@@ -151,11 +148,11 @@ final class SourceMerger {
 
         int inclusionIndex = 0;
         for (Node member : generatedMembers) {
-            Optional<String> key = resolverKey(member);
+            Optional<String> key = MemberIdentity.resolverKey(member);
             if (key.isPresent() && generatedResolvers.containsKey(key.get())) {
                 members.add(member.toSourceCode().strip());
                 resolvers.add(new MergedResolver(keyPrefix + key.get(), Outcome.ADDED));
-            } else if (key.isEmpty() && generatedOthers.containsKey(memberName(member))) {
+            } else if (key.isEmpty() && generatedOthers.containsKey(MemberIdentity.name(member))) {
                 if (member instanceof TypeReferenceNode) {
                     members.add(inclusionIndex++, member.toSourceCode().strip());
                 } else {
@@ -211,34 +208,6 @@ final class SourceMerger {
         String module = importNode.moduleName().stream().map(Token::text)
                 .collect(Collectors.joining(MODULE_SEPARATOR));
         return importNode.orgName().map(org -> org.orgName().text() + ORG_SEPARATOR + module).orElse(module);
-    }
-
-    // A resource resolver is keyed by its accessor and path, e.g. "get books", and a remote one by its name, e.g.
-    // "remote addBook". Any other member is not a resolver.
-    private static Optional<String> resolverKey(Node member) {
-        if (!(member instanceof FunctionDefinitionNode function)) {
-            return Optional.empty();
-        }
-        if (hasQualifier(function, SyntaxKind.RESOURCE_KEYWORD)) {
-            String path = function.relativeResourcePath().stream()
-                    .map(node -> node.toSourceCode().strip())
-                    .collect(Collectors.joining());
-            return Optional.of(function.functionName().text() + KEY_SEPARATOR + path);
-        }
-        if (hasQualifier(function, SyntaxKind.REMOTE_KEYWORD)) {
-            return Optional.of(REMOTE_KEY_PREFIX + function.functionName().text());
-        }
-        return Optional.empty();
-    }
-
-    private static boolean hasQualifier(FunctionDefinitionNode function, SyntaxKind qualifier) {
-        return function.qualifierList().stream().anyMatch(token -> token.kind() == qualifier);
-    }
-
-    // Members that are not resolvers are matched by name, so a function is found again even if it moved.
-    private static String memberName(Node member) {
-        return member instanceof FunctionDefinitionNode function ? function.functionName().text() :
-                member.toSourceCode().strip();
     }
 
     // The signature as its tokens, so spacing, line breaks and comments do not count as a change.

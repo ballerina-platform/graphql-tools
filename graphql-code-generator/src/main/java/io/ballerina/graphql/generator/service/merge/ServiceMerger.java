@@ -22,7 +22,6 @@ import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -54,8 +53,6 @@ public final class ServiceMerger {
     private static final String CONTEXT_INIT_FUNCTION = "initContext";
     private static final Pattern DATALOADER_REGISTRATION = Pattern.compile("registerDataLoader\\(\\s*\"([^\"]+)\"");
     private static final String NO_KEY_PREFIX = "";
-    private static final String FUNCTION_KEY_PREFIX = "function ";
-    private static final String VARIABLE_KEY_PREFIX = "variable ";
 
     private ServiceMerger() {
     }
@@ -104,7 +101,7 @@ public final class ServiceMerger {
                 members.add(mergedService);
                 continue;
             }
-            existingKeys.add(memberKey(member));
+            existingKeys.add(MemberIdentity.name(member));
             if (member instanceof FunctionDefinitionNode function
                     && function.functionName().text().equals(CONTEXT_INIT_FUNCTION)
                     && generatedContextInit.isPresent()) {
@@ -123,7 +120,7 @@ public final class ServiceMerger {
                 }
                 continue;
             }
-            if (existingKeys.contains(memberKey(member))) {
+            if (existingKeys.contains(MemberIdentity.name(member))) {
                 continue;
             }
             if (beforeService && serviceIndex >= 0) {
@@ -215,16 +212,5 @@ public final class ServiceMerger {
                 .map(FunctionDefinitionNode.class::cast)
                 .filter(function -> function.functionName().text().equals(CONTEXT_INIT_FUNCTION))
                 .findFirst();
-    }
-
-    // Module-level functions and variables are matched by name, so they are found again even if they moved.
-    private static String memberKey(ModuleMemberDeclarationNode member) {
-        if (member instanceof FunctionDefinitionNode function) {
-            return FUNCTION_KEY_PREFIX + function.functionName().text();
-        }
-        if (member instanceof ModuleVariableDeclarationNode variable) {
-            return VARIABLE_KEY_PREFIX + variable.typedBindingPattern().bindingPattern().toSourceCode().strip();
-        }
-        return member.toSourceCode().strip();
     }
 }
