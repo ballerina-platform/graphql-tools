@@ -23,7 +23,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * Holds the resolved inputs for a single GraphQL generation operation.
+ * Holds the resolved inputs for a single GraphQL generation operation. It is created with {@link #builder(String)},
+ * so each input is set by name and an input that was not given keeps its default.
  */
 public class GenerationContext {
 
@@ -41,30 +42,29 @@ public class GenerationContext {
     private final PrintStream outStream;
     private final DryRunReport dryRunReport = new DryRunReport();
 
-    public GenerationContext(String inputPath, OperationMode declaredOperationMode, Path targetOutputPath,
-                             String serviceBasePath, ObjectType declaredObjectType, String moduleName,
-                             String serviceName, boolean force, boolean dryRun, OverwritePrompt overwritePrompt,
-                             PrintStream outStream) {
-        this(inputPath, declaredOperationMode, targetOutputPath, serviceBasePath, declaredObjectType, moduleName,
-                serviceName, force, dryRun, false, overwritePrompt, outStream);
+    private GenerationContext(Builder builder) {
+        this.inputPath = builder.inputPath;
+        this.declaredOperationMode = builder.declaredOperationMode;
+        this.targetOutputPath = builder.targetOutputPath;
+        this.serviceBasePath = builder.serviceBasePath;
+        this.declaredObjectType = builder.declaredObjectType;
+        this.moduleName = builder.moduleName;
+        this.serviceName = builder.serviceName;
+        this.force = builder.force;
+        this.dryRun = builder.dryRun;
+        this.merge = builder.merge;
+        this.overwritePrompt = builder.overwritePrompt;
+        this.outStream = builder.outStream;
     }
 
-    public GenerationContext(String inputPath, OperationMode declaredOperationMode, Path targetOutputPath,
-                             String serviceBasePath, ObjectType declaredObjectType, String moduleName,
-                             String serviceName, boolean force, boolean dryRun, boolean merge,
-                             OverwritePrompt overwritePrompt, PrintStream outStream) {
-        this.inputPath = inputPath;
-        this.declaredOperationMode = declaredOperationMode;
-        this.targetOutputPath = targetOutputPath;
-        this.serviceBasePath = serviceBasePath;
-        this.declaredObjectType = declaredObjectType;
-        this.moduleName = moduleName;
-        this.serviceName = serviceName;
-        this.force = force;
-        this.dryRun = dryRun;
-        this.merge = merge;
-        this.overwritePrompt = overwritePrompt;
-        this.outStream = outStream;
+    /**
+     * Starts a context for the given input. The flags default to off, and the other inputs to not given.
+     *
+     * @param inputPath the path of the input file
+     * @return a builder for the context
+     */
+    public static Builder builder(String inputPath) {
+        return new Builder(inputPath);
     }
 
     public String getInputPath() {
@@ -135,5 +135,87 @@ public class GenerationContext {
 
     public PrintStream getOutStream() {
         return outStream;
+    }
+
+    /**
+     * Builds a {@link GenerationContext} one input at a time.
+     */
+    public static final class Builder {
+
+        private final String inputPath;
+        private OperationMode declaredOperationMode;
+        private Path targetOutputPath;
+        private String serviceBasePath;
+        private ObjectType declaredObjectType;
+        private String moduleName;
+        private String serviceName;
+        private boolean force;
+        private boolean dryRun;
+        private boolean merge;
+        private OverwritePrompt overwritePrompt;
+        private PrintStream outStream;
+
+        private Builder(String inputPath) {
+            this.inputPath = inputPath;
+        }
+
+        public Builder declaredOperationMode(OperationMode declaredOperationMode) {
+            this.declaredOperationMode = declaredOperationMode;
+            return this;
+        }
+
+        public Builder targetOutputPath(Path targetOutputPath) {
+            this.targetOutputPath = targetOutputPath;
+            return this;
+        }
+
+        public Builder serviceBasePath(String serviceBasePath) {
+            this.serviceBasePath = serviceBasePath;
+            return this;
+        }
+
+        public Builder declaredObjectType(ObjectType declaredObjectType) {
+            this.declaredObjectType = declaredObjectType;
+            return this;
+        }
+
+        public Builder moduleName(String moduleName) {
+            this.moduleName = moduleName;
+            return this;
+        }
+
+        public Builder serviceName(String serviceName) {
+            this.serviceName = serviceName;
+            return this;
+        }
+
+        public Builder force(boolean force) {
+            this.force = force;
+            return this;
+        }
+
+        public Builder dryRun(boolean dryRun) {
+            this.dryRun = dryRun;
+            return this;
+        }
+
+        public Builder merge(boolean merge) {
+            this.merge = merge;
+            return this;
+        }
+
+        public Builder overwritePrompt(OverwritePrompt overwritePrompt) {
+            this.overwritePrompt = overwritePrompt;
+            return this;
+        }
+
+        public Builder outStream(PrintStream outStream) {
+            this.outStream = outStream;
+            return this;
+        }
+
+        public GenerationContext build() {
+            return new GenerationContext(this);
+        }
     }
 }

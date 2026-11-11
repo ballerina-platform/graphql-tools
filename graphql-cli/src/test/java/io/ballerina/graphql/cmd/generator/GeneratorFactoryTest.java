@@ -35,8 +35,6 @@ public class GeneratorFactoryTest {
 
     private static final Path OUTPUT_PATH = Paths.get("build");
     private static final Path CONFIG_DIR = Paths.get("src/test/resources/balGraphqlConfigs").toAbsolutePath();
-    private static final boolean NO_FORCE = false;
-    private static final boolean NO_DRY_RUN = false;
     private static final OverwritePrompt NOT_INTERACTIVE = question -> Optional.empty();
 
     private GenerationContext createContext(String inputPath) {
@@ -58,8 +56,14 @@ public class GeneratorFactoryTest {
 
     private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode,
                                             ObjectType declaredObjectType, String serviceName) {
-        return new GenerationContext(inputPath, declaredOperationMode, OUTPUT_PATH, null, declaredObjectType, null,
-                serviceName, NO_FORCE, NO_DRY_RUN, NOT_INTERACTIVE, System.out);
+        return GenerationContext.builder(inputPath)
+                .declaredOperationMode(declaredOperationMode)
+                .targetOutputPath(OUTPUT_PATH)
+                .declaredObjectType(declaredObjectType)
+                .serviceName(serviceName)
+                .overwritePrompt(NOT_INTERACTIVE)
+                .outStream(System.out)
+                .build();
     }
 
     private Generator getGeneratorForConfig(String fileName) throws GenerationException {
