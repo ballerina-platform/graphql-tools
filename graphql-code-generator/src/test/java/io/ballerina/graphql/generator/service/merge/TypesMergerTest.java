@@ -67,11 +67,11 @@ public class TypesMergerTest {
                 """));
 
         Assert.assertTrue(result.source().contains("return self.title;"), result.source());
-        Assert.assertFalse(result.source().contains("return 10;"), result.source());
+        Assert.assertTrue(result.source().contains("return 10;"), result.source());
         Assert.assertTrue(result.source().contains("resource function get isbn() returns string|error {"),
                 result.source());
         Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("Book.get title", Outcome.KEPT),
-                new MergedResolver("Book.get pages", Outcome.REPLACED),
+                new MergedResolver("Book.get pages", Outcome.OUTDATED),
                 new MergedResolver("Book.get isbn", Outcome.ADDED)));
     }
 

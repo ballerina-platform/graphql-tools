@@ -33,7 +33,7 @@ public record MergeResult(String source, List<MergedResolver> resolvers, List<St
      * What happened to one resolver.
      *
      * @param key     the resolver's key, e.g. {@code get books} or {@code remote addBook}
-     * @param outcome whether the existing resolver was kept, replaced or added
+     * @param outcome whether the existing resolver was kept, kept though outdated, or added
      */
     public record MergedResolver(String key, Outcome outcome) {
     }
@@ -44,8 +44,8 @@ public record MergeResult(String source, List<MergedResolver> resolvers, List<St
     public enum Outcome {
         /** The existing resolver matched the schema and was kept as written. */
         KEPT,
-        /** The existing resolver's signature no longer matched the schema, so it was regenerated. */
-        REPLACED,
+        /** The existing resolver was kept as written, but its signature no longer matches the schema. */
+        OUTDATED,
         /** The resolver is new in the schema. */
         ADDED
     }

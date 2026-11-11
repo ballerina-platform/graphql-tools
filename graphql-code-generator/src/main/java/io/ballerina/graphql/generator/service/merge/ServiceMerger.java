@@ -43,9 +43,9 @@ import static io.ballerina.graphql.generator.service.merge.SourceMerger.MEMBER_S
 
 /**
  * Merges a newly generated service file into the one the developer already has. The schema is the source of truth
- * for the resolvers: each one is matched to its schema field by key, and kept as written while its signature still
- * matches. The developer's other code in the file, such as imports, the port, the context init function and batch
- * functions, is kept, and what the schema newly needs is added.
+ * for the resolvers: each one is matched to its schema field by key and kept as written, and reported when its
+ * signature no longer matches. The developer's other code in the file, such as imports, the port, the context init
+ * function and batch functions, is kept, and what the schema newly needs is added.
  */
 public final class ServiceMerger {
 
@@ -59,9 +59,9 @@ public final class ServiceMerger {
 
     /**
      * Merges the generated service file into the existing one. Each resolver of the generated service is kept from
-     * the existing service when its signature is unchanged, regenerated when its signature changed, or added when it
-     * is new. The existing imports, module-level code and service annotations are kept, and the imports, functions
-     * and DataLoader registrations the generated file newly needs are added.
+     * the existing service, reported as outdated when its signature changed, or added when it is new. The existing
+     * imports, module-level code and service annotations are kept, and the imports, functions and DataLoader
+     * registrations the generated file newly needs are added.
      *
      * @param existingSource  the source the developer already has
      * @param generatedSource the newly generated source

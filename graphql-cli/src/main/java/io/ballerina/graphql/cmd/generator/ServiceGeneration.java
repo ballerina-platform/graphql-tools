@@ -48,9 +48,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
@@ -64,8 +64,11 @@ public class ServiceGeneration implements Generator {
     private static final String CREATED_FILE_FORMAT = "-- %s";
     private static final Set<String> GENERATED_FILES =
             Set.of(ServiceCodeGenerator.TYPES_FILE_NAME, ServiceCodeGenerator.SERVICE_FILE_NAME);
-    private static final String RESOLVER_SUMMARY = "Resolvers: %d replaced, %d added, %d kept.";
-    private static final String RESOLVER_LINE = "  %-9s %s";
+    private static final String RESOLVER_SUMMARY = "Resolvers: %d added, %d kept.";
+    private static final String ADDED_RESOLVER_LINE = "  added     %s";
+    private static final String WARNING_OUTDATED_RESOLVERS =
+            "Warning: Resolvers whose signature does not match the schema: %s. Update them.";
+    private static final String QUOTE = "\"";
     private static final String WARNING_TYPES_NOT_IN_SCHEMA =
             "Warning: Types not in the schema: %s. Delete them if they are no longer needed.";
     private static final String LIST_SEPARATOR = ", ";
@@ -210,17 +213,19 @@ public class ServiceGeneration implements Generator {
         }
     }
 
-    // A count of each resolver outcome, then the resolvers that were replaced or added, and a warning for the types
-    // the schema does not have. The kept resolvers are only counted, since they are unchanged.
+    // A count of the added and kept resolvers and the added ones, then a warning for the kept resolvers whose
+    // signature no longer matches the schema and for the types the schema does not have.
     private List<String> mergeSummary() {
         List<String> lines = new ArrayList<>();
         if (!this.mergedResolvers.isEmpty()) {
-            lines.add(String.format(RESOLVER_SUMMARY, count(Outcome.REPLACED), count(Outcome.ADDED),
-                    count(Outcome.KEPT)));
-            this.mergedResolvers.stream()
-                    .filter(resolver -> resolver.outcome() != Outcome.KEPT)
-                    .forEach(resolver -> lines.add(String.format(RESOLVER_LINE,
-                            resolver.outcome().name().toLowerCase(Locale.ROOT), resolver.key())));
+            lines.add(String.format(RESOLVER_SUMMARY, count(Outcome.ADDED),
+                    count(Outcome.KEPT) + count(Outcome.OUTDATED)));
+            resolverKeys(Outcome.ADDED).forEach(key -> lines.add(String.format(ADDED_RESOLVER_LINE, key)));
+        }
+        List<String> outdated = resolverKeys(Outcome.OUTDATED);
+        if (!outdated.isEmpty()) {
+            lines.add(String.format(WARNING_OUTDATED_RESOLVERS, outdated.stream()
+                    .map(key -> QUOTE + key + QUOTE).collect(Collectors.joining(LIST_SEPARATOR))));
         }
         if (!this.typesNotInSchema.isEmpty()) {
             lines.add(String.format(WARNING_TYPES_NOT_IN_SCHEMA, String.join(LIST_SEPARATOR, this.typesNotInSchema)));
@@ -229,7 +234,14 @@ public class ServiceGeneration implements Generator {
     }
 
     private long count(Outcome outcome) {
-        return this.mergedResolvers.stream().filter(resolver -> resolver.outcome() == outcome).count();
+        return resolverKeys(outcome).size();
+    }
+
+    private List<String> resolverKeys(Outcome outcome) {
+        return this.mergedResolvers.stream()
+                .filter(resolver -> resolver.outcome() == outcome)
+                .map(MergedResolver::key)
+                .toList();
     }
 
     private ServiceBaseName serviceBaseName() {

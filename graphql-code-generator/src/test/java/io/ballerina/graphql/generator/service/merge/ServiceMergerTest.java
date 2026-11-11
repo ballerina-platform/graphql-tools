@@ -31,8 +31,6 @@ import java.util.List;
  */
 public class ServiceMergerTest {
 
-    private static final String NOT_IMPLEMENTED = "return error(\"Not implemented\");";
-
     @Test(description = "Test that a new resolver is added and an unchanged one keeps the developer's code")
     public void testMerge() throws ServiceGenerationException {
         MergeResult result = ServiceMerger.merge(service("""
@@ -70,8 +68,8 @@ public class ServiceMergerTest {
                 new MergedResolver("get authors", Outcome.ADDED)));
     }
 
-    @Test(description = "Test that a resolver whose signature changed is replaced with the schema version")
-    public void testReplacesChangedResolver() throws ServiceGenerationException {
+    @Test(description = "Test that a resolver whose signature changed is kept as written and reported as outdated")
+    public void testKeepsChangedResolver() throws ServiceGenerationException {
         MergeResult result = ServiceMerger.merge(service("""
                     resource function get book(string id) returns Book?|error {
                         return getBookFromDb(id);
@@ -82,15 +80,31 @@ public class ServiceMergerTest {
                     }
                 """));
 
-        Assert.assertTrue(result.source().contains("resource function get book(int id) returns Book?|error {"),
+        Assert.assertTrue(result.source().contains("resource function get book(string id) returns Book?|error {"),
                 result.source());
-        Assert.assertTrue(result.source().contains(NOT_IMPLEMENTED), result.source());
-        Assert.assertFalse(result.source().contains("getBookFromDb"), result.source());
-        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.REPLACED)));
+        Assert.assertTrue(result.source().contains("return getBookFromDb(id);"), result.source());
+        Assert.assertFalse(result.source().contains("get book(int id)"), result.source());
+        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.OUTDATED)));
+    }
+
+    @Test(description = "Test that a resolver is kept when a DataLoader adds a context parameter to its signature")
+    public void testKeepsResolverWhenDataLoaderAdded() throws ServiceGenerationException {
+        MergeResult result = ServiceMerger.merge(service("""
+                    resource function get book(string id) returns Book?|error {
+                        return getBookFromDb(id);
+                    }
+                """), service("""
+                    resource function get book(graphql:Context context, string id) returns Book?|error {
+                        return context.getDataLoader("bookLoader").get(id);
+                    }
+                """));
+
+        Assert.assertTrue(result.source().contains("return getBookFromDb(id);"), result.source());
+        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.OUTDATED)));
     }
 
     @Test(description = "Test that a changed return type also counts as a changed signature")
-    public void testReplacesChangedReturnType() throws ServiceGenerationException {
+    public void testReportsChangedReturnType() throws ServiceGenerationException {
         MergeResult result = ServiceMerger.merge(service("""
                     resource function get book(string id) returns Book?|error {
                         return getBookFromDb(id);
@@ -101,7 +115,7 @@ public class ServiceMergerTest {
                     }
                 """));
 
-        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.REPLACED)));
+        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.OUTDATED)));
     }
 
     @Test(description = "Test that spacing, line breaks and comments in a signature do not count as a change")
@@ -134,7 +148,7 @@ public class ServiceMergerTest {
                     }
                 """));
 
-        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.REPLACED)));
+        Assert.assertEquals(result.resolvers(), List.of(new MergedResolver("get book", Outcome.OUTDATED)));
     }
 
     @Test(description = "Test that remote and subscribe resolvers are matched by their own keys")

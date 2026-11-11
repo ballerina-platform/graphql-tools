@@ -142,8 +142,8 @@ public class GraphqlCmd implements BLauncherCmd {
                     + "name, or for a url or introspection schema, the module or package name.";
     private static final String MERGE_DESCRIPTION =
             "Merge the generated service into the output files that already exist instead of overwriting them. "
-                    + "Resolvers are kept while their signature matches the schema, replaced when it changed, and "
-                    + "added when they are new. Service generation only.";
+                    + "Existing resolvers are kept, new ones are added, and the ones whose signature no longer matches "
+                    + "the schema are reported. Service generation only.";
     private static final String FORCE_DESCRIPTION =
             "Overwrite or merge output files that already exist without asking.";
     private static final String DRY_RUN_DESCRIPTION =

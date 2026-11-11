@@ -102,10 +102,11 @@ final class SourceMerger {
 
     /**
      * Merges the members of a generated service or service class into the existing one, keeping the existing order.
-     * A resolver is kept as written while its signature matches, and replaced in place when it changed. A generated
-     * member that is not a resolver, such as a DataLoader prefetch function, is kept from the existing members when
-     * it is there. The developer's other members, such as fields, init and helper methods, are kept. A type inclusion
-     * the schema no longer has is removed. New type inclusions are added first, and other new members last.
+     * An existing resolver is always kept as written, and reported as outdated when its signature no longer matches
+     * the generated one. A generated member that is not a resolver, such as a DataLoader prefetch function, is kept
+     * from the existing members when it is there. The developer's other members, such as fields, init and helper
+     * methods, are kept. A type inclusion the schema no longer has is removed. New type inclusions are added first,
+     * and other new members last.
      *
      * @param existingMembers  the members the developer already has
      * @param generatedMembers the newly generated members
@@ -136,14 +137,15 @@ final class SourceMerger {
             FunctionDefinitionNode generated = generatedResolvers.remove(key.get());
             if (generated == null) {
                 notInSchema.add(keyPrefix + key.get());
-            } else if (tokens(((FunctionDefinitionNode) member).functionSignature())
-                    .equals(tokens(generated.functionSignature()))) {
-                members.add(member.toSourceCode().strip());
-                resolvers.add(new MergedResolver(keyPrefix + key.get(), Outcome.KEPT));
-            } else {
-                members.add(generated.toSourceCode().strip());
-                resolvers.add(new MergedResolver(keyPrefix + key.get(), Outcome.REPLACED));
+                continue;
             }
+            // The developer's resolver is always kept, so their code is never lost. When its signature no longer
+            // matches the schema, the developer is told to update it, and the compiler points at it, since the service
+            // implements the regenerated service object type.
+            members.add(member.toSourceCode().strip());
+            boolean matches = tokens(((FunctionDefinitionNode) member).functionSignature())
+                    .equals(tokens(generated.functionSignature()));
+            resolvers.add(new MergedResolver(keyPrefix + key.get(), matches ? Outcome.KEPT : Outcome.OUTDATED));
         }
 
         int inclusionIndex = 0;

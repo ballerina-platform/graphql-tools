@@ -85,6 +85,9 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
     private static final String MERGE_HINT = "Use --merge to keep the code in these file(s).";
     private static final String GENRE_NOT_IN_SCHEMA =
             "Warning: Types not in the schema: Genre. Delete them if they are no longer needed.";
+    private static final String OUTDATED_FORMAT =
+            "Warning: Resolvers whose signature does not match the schema: \"%s\". Update them.";
+    private static final String BOOK_OUTDATED = String.format(OUTDATED_FORMAT, "get book");
 
     private Path packageRoot;
     private Path serviceFile;
@@ -119,7 +122,7 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         Assert.assertEquals(questions, List.of(MERGE_QUESTION), output);
-        Assert.assertTrue(output.lines().toList().contains("Resolvers: 0 replaced, 0 added, 2 kept."), output);
+        Assert.assertTrue(output.lines().toList().contains("Resolvers: 0 added, 2 kept."), output);
         String service = Files.readString(this.serviceFile);
         Assert.assertTrue(service.contains("import ballerina/log;"), service);
         Assert.assertTrue(service.contains("configurable int port = 7000;"), service);
@@ -131,7 +134,7 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         assertCompiles();
     }
 
-    @Test(description = "Test that changed resolvers are replaced, new ones added and unchanged ones kept")
+    @Test(description = "Test that changed resolvers are kept and reported, new ones added and unchanged ones kept")
     public void testMergeFollowsSchemaChanges() throws IOException {
         generate(SCHEMA);
         replace(this.serviceFile, NOT_IMPLEMENTED, "// developer book\n        return new Book();");
@@ -143,15 +146,14 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         List<String> lines = output.lines().toList();
-        Assert.assertTrue(lines.contains("Resolvers: 1 replaced, 2 added, 1 kept."), output);
-        Assert.assertTrue(lines.contains("  replaced  get book"), output);
+        Assert.assertTrue(lines.contains("Resolvers: 2 added, 2 kept."), output);
+        Assert.assertTrue(lines.contains(BOOK_OUTDATED), output);
         Assert.assertTrue(lines.contains("  added     get books"), output);
         Assert.assertTrue(lines.contains("  added     Book.get pages"), output);
         Assert.assertFalse(lines.stream().anyMatch(line -> line.contains("Book.get title")), output);
         String service = Files.readString(this.serviceFile);
-        Assert.assertTrue(service.contains(
-                "resource function get book(@graphql:ID string id) returns Book?|error {"), service);
-        Assert.assertFalse(service.contains("// developer book"), service);
+        Assert.assertTrue(service.contains("resource function get book(string id) returns Book?|error {"), service);
+        Assert.assertTrue(service.contains("// developer book"), service);
         Assert.assertTrue(service.contains("resource function get books() returns Book[]|error {"), service);
         String types = Files.readString(this.typesFile);
         Assert.assertTrue(types.contains("return \"Dune\";"), types);
@@ -160,10 +162,11 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         assertCompiles();
     }
 
-    @Test(description = "Test that a DataLoader added to the configuration is wired into the existing service")
+    @Test(description = "Test that a DataLoader added to the configuration is wired in and the resolver is kept")
     public void testMergeAddsDataLoader() throws IOException {
         generate(SCHEMA);
         append(this.serviceFile, "\nfunction audit() {\n}\n");
+        replace(this.serviceFile, NOT_IMPLEMENTED, "// developer book\n        return new Book();");
         replace(this.typesFile, NOT_IMPLEMENTED, "return \"Dune\";");
         Files.writeString(this.packageRoot.resolve(BalGraphqlConfig.FILE_NAME), DATALOADER_CONFIG);
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
@@ -171,8 +174,12 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         String output = run(exitCaptor, answering("y", new ArrayList<>()), "--merge");
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
-        Assert.assertTrue(output.lines().toList().contains("Resolvers: 1 replaced, 0 added, 1 kept."), output);
+        List<String> lines = output.lines().toList();
+        Assert.assertTrue(lines.contains("Resolvers: 0 added, 2 kept."), output);
+        Assert.assertTrue(lines.contains(BOOK_OUTDATED), output);
         String service = Files.readString(this.serviceFile);
+        Assert.assertTrue(service.contains("resource function get book(string id) returns Book?|error {"), service);
+        Assert.assertTrue(service.contains("// developer book"), service);
         Assert.assertTrue(service.contains("import ballerina/graphql.dataloader;"), service);
         Assert.assertTrue(service.contains("import ballerina/http;"), service);
         Assert.assertTrue(service.contains(
@@ -180,12 +187,10 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         Assert.assertTrue(service.contains("@graphql:ServiceConfig {contextInit: initContext}"), service);
         Assert.assertTrue(service.contains("function preBook(graphql:Context context, string id) {"), service);
         Assert.assertTrue(service.contains(
-                "resource function get book(graphql:Context context, string id) returns Book?|error {"), service);
-        Assert.assertTrue(service.contains(
                 "isolated function bookLoader(readonly & anydata[] keys) returns anydata[]|error {"), service);
         Assert.assertTrue(service.contains("function audit() {"), service);
         Assert.assertTrue(Files.readString(this.typesFile).contains("return \"Dune\";"));
-        assertCompiles();
+        assertOutdatedResolverDoesNotCompile();
     }
 
     @Test(description = "Test that a DataLoader the developer implemented is kept and not registered twice")
@@ -203,7 +208,7 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         String output = run(exitCaptor, answering("y", new ArrayList<>()), "--merge");
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
-        Assert.assertTrue(output.lines().toList().contains("Resolvers: 0 replaced, 0 added, 2 kept."), output);
+        Assert.assertTrue(output.lines().toList().contains("Resolvers: 0 added, 2 kept."), output);
         String service = Files.readString(this.serviceFile);
         Assert.assertTrue(service.contains("return keys;"), service);
         Assert.assertEquals(service.split("registerDataLoader\\(\"bookLoader\"").length, 2, service);
@@ -227,16 +232,17 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         List<String> lines = output.lines().toList();
-        Assert.assertTrue(lines.contains("Resolvers: 1 replaced, 0 added, 1 kept."), output);
-        Assert.assertTrue(lines.contains("  replaced  get book"), output);
+        Assert.assertTrue(lines.contains("Resolvers: 0 added, 2 kept."), output);
+        Assert.assertTrue(lines.contains(BOOK_OUTDATED), output);
         String service = Files.readString(this.serviceFile);
-        Assert.assertTrue(service.contains("resource function get book(string id) returns Book?|error {"), service);
+        Assert.assertTrue(service.contains(
+                "resource function get book(graphql:Context context, string id) returns Book?|error {"), service);
         Assert.assertTrue(service.contains(
                 "context.registerDataLoader(\"bookLoader\", new dataloader:DefaultDataLoader(bookLoader));"), service);
         Assert.assertTrue(service.contains("@graphql:ServiceConfig {contextInit: initContext}"), service);
         Assert.assertTrue(service.contains("function preBook(graphql:Context context, string id) {"), service);
         Assert.assertTrue(service.contains("return keys;"), service);
-        assertCompiles();
+        assertOutdatedResolverDoesNotCompile();
     }
 
     @Test(description = "Test that a resolver no longer in the schema fails the merge before asking")
@@ -365,7 +371,7 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         Assert.assertFalse(output.contains("already exist"), output);
-        Assert.assertTrue(output.lines().toList().contains("Resolvers: 1 replaced, 2 added, 1 kept."), output);
+        Assert.assertTrue(output.lines().toList().contains("Resolvers: 2 added, 2 kept."), output);
         Assert.assertTrue(Files.readString(this.typesFile).contains("return \"Dune\";"));
     }
 
@@ -384,8 +390,8 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         Assert.assertTrue(lines.contains("  merge      " + displayPath(this.typesFile)), output);
         Assert.assertTrue(lines.contains("  merge      " + displayPath(this.serviceFile)), output);
         Assert.assertTrue(lines.contains("0 to create, 2 to merge."), output);
-        Assert.assertTrue(lines.contains("Resolvers: 1 replaced, 2 added, 1 kept."), output);
-        Assert.assertTrue(lines.contains("  replaced  get book"), output);
+        Assert.assertTrue(lines.contains("Resolvers: 2 added, 2 kept."), output);
+        Assert.assertTrue(lines.contains(BOOK_OUTDATED), output);
         Assert.assertFalse(output.contains(MERGE_HINT), output);
         Assert.assertEquals(existingFiles(), before, output);
     }
@@ -403,7 +409,7 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         List<String> lines = output.lines().toList();
         Assert.assertTrue(lines.contains("  " + displayPath(this.serviceFile)), output);
         Assert.assertFalse(lines.contains("  " + displayPath(this.typesFile)), output);
-        Assert.assertTrue(lines.contains("Resolvers: 0 replaced, 0 added, 1 kept."), output);
+        Assert.assertTrue(lines.contains("Resolvers: 0 added, 1 kept."), output);
         Assert.assertTrue(Files.readString(this.serviceFile).contains("// developer book"));
         Assert.assertTrue(Files.readString(this.typesFile).contains("public distinct service class Book {"));
         assertCompiles();
@@ -510,7 +516,7 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         String output = run(exitCaptor, failIfAsked(), "--merge", "--force");
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
-        Assert.assertTrue(output.lines().toList().contains("Resolvers: 0 replaced, 0 added, 4 kept."), output);
+        Assert.assertTrue(output.lines().toList().contains("Resolvers: 0 added, 4 kept."), output);
         Assert.assertEquals(existingFiles(), merged, output);
     }
 
@@ -543,12 +549,13 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         List<String> lines = output.lines().toList();
-        Assert.assertTrue(lines.contains("Resolvers: 1 replaced, 0 added, 1 kept."), output);
+        Assert.assertTrue(lines.contains("Resolvers: 0 added, 2 kept."), output);
         Assert.assertTrue(lines.contains(GENRE_NOT_IN_SCHEMA), output);
+        Assert.assertTrue(lines.contains(BOOK_OUTDATED), output);
         String types = Files.readString(this.typesFile);
         Assert.assertTrue(types.contains("public enum Genre {"), types);
         Assert.assertTrue(types.contains("return \"Dune\";"), types);
-        assertCompiles();
+        assertOutdatedResolverDoesNotCompile();
     }
 
     @Test(description = "Test that a record the developer wrote in the types file is kept")
@@ -585,7 +592,7 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         List<String> lines = output.lines().toList();
         Assert.assertTrue(lines.contains("  " + displayPath(moduleService)), output);
         Assert.assertTrue(lines.contains("  " + displayPath(moduleTypes)), output);
-        Assert.assertTrue(lines.contains("Resolvers: 0 replaced, 2 added, 2 kept."), output);
+        Assert.assertTrue(lines.contains("Resolvers: 2 added, 2 kept."), output);
         Assert.assertTrue(Files.readString(moduleService).contains("// developer book"));
         Assert.assertTrue(Files.readString(moduleService).contains("resource function get books()"));
         Assert.assertTrue(Files.readString(moduleTypes).contains("return \"Dune\";"));
@@ -618,17 +625,16 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         List<String> lines = output.lines().toList();
-        Assert.assertTrue(lines.contains("Resolvers: 1 replaced, 1 added, 2 kept."), output);
-        Assert.assertTrue(lines.contains("  replaced  remote addBook"), output);
+        Assert.assertTrue(lines.contains("Resolvers: 1 added, 3 kept."), output);
+        Assert.assertTrue(lines.contains(String.format(OUTDATED_FORMAT, "remote addBook")), output);
         Assert.assertTrue(lines.contains("  added     remote removeBook"), output);
         String service = Files.readString(this.serviceFile);
         Assert.assertTrue(service.contains("// developer book"), service);
-        Assert.assertFalse(service.contains("// developer addBook"), service);
-        Assert.assertTrue(service.contains("remote function addBook(string title, int? pages) returns Book?|error {"),
-                service);
+        Assert.assertTrue(service.contains("// developer addBook"), service);
+        Assert.assertTrue(service.contains("remote function addBook(string title) returns Book?|error {"), service);
         Assert.assertTrue(service.contains("remote function removeBook(string id) returns boolean?|error {"),
                 service);
-        assertCompiles();
+        assertOutdatedResolverDoesNotCompile();
     }
 
     @Test(description = "Test that a dry run reports a merge error instead of the planned files")
@@ -729,6 +735,13 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         DiagnosticResult diagnosticResult = getDiagnosticResult(this.packageRoot);
         Assert.assertTrue(diagnosticResult.errors().isEmpty(),
                 "Unexpected compilation errors: " + diagnosticResult.errors());
+    }
+
+    // A kept resolver whose signature no longer matches the schema does not match the regenerated service object
+    // type, so the compiler points the developer at it.
+    private void assertOutdatedResolverDoesNotCompile() {
+        DiagnosticResult diagnosticResult = getDiagnosticResult(this.packageRoot);
+        Assert.assertFalse(diagnosticResult.errors().isEmpty(), "Expected the outdated resolver not to compile");
     }
 
     private static void assertUsageError(String output, ExitCodeCaptor exitCaptor) {
