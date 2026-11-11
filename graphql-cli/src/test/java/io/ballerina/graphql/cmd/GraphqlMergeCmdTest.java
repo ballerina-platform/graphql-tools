@@ -83,6 +83,8 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
     private static final String NOT_IMPLEMENTED = "return error(\"Not implemented\");";
     private static final String MERGE_QUESTION = "Merge these file(s)? [y/N] ";
     private static final String MERGE_HINT = "Use --merge to keep the code in these file(s).";
+    private static final String GENRE_NOT_IN_SCHEMA =
+            "Warning: Types not in the schema: Genre. Delete them if they are no longer needed.";
 
     private Path packageRoot;
     private Path serviceFile;
@@ -512,8 +514,8 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         Assert.assertEquals(existingFiles(), merged, output);
     }
 
-    @Test(description = "Test that a type the schema no longer has is removed and reported, also in a dry run")
-    public void testMergeRemovesTypesNotInSchema() throws IOException {
+    @Test(description = "Test that a type the schema no longer has is kept and reported, also in a dry run")
+    public void testMergeKeepsTypesNotInSchema() throws IOException {
         generate("""
                 type Query {
                   book(id: String!, genre: Genre): Book
@@ -534,9 +536,7 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         String dryRunOutput = run(dryRunCaptor, failIfAsked(), "--merge", "--dry-run");
 
         Assert.assertEquals(dryRunCaptor.getExitCode(), 0, dryRunOutput);
-        Assert.assertTrue(dryRunOutput.lines().toList().contains("Removed types not in the schema: Genre."),
-                dryRunOutput);
-        Assert.assertTrue(Files.readString(this.typesFile).contains("enum Genre"));
+        Assert.assertTrue(dryRunOutput.lines().toList().contains(GENRE_NOT_IN_SCHEMA), dryRunOutput);
 
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         String output = run(exitCaptor, answering("y", new ArrayList<>()), "--merge");
@@ -544,10 +544,26 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         List<String> lines = output.lines().toList();
         Assert.assertTrue(lines.contains("Resolvers: 1 replaced, 0 added, 1 kept."), output);
-        Assert.assertTrue(lines.contains("Removed types not in the schema: Genre."), output);
+        Assert.assertTrue(lines.contains(GENRE_NOT_IN_SCHEMA), output);
         String types = Files.readString(this.typesFile);
-        Assert.assertFalse(types.contains("Genre"), types);
+        Assert.assertTrue(types.contains("public enum Genre {"), types);
         Assert.assertTrue(types.contains("return \"Dune\";"), types);
+        assertCompiles();
+    }
+
+    @Test(description = "Test that a record the developer wrote in the types file is kept")
+    public void testMergeKeepsDeveloperRecord() throws IOException {
+        generate(SCHEMA);
+        append(this.typesFile, "\ntype AuditEntry record {|\n    string id;\n|};\n");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, answering("y", new ArrayList<>()), "--merge");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(output.lines().toList().contains(
+                "Warning: Types not in the schema: AuditEntry. Delete them if they are no longer needed."), output);
+        String types = Files.readString(this.typesFile);
+        Assert.assertTrue(types.contains("type AuditEntry record {|"), types);
         assertCompiles();
     }
 

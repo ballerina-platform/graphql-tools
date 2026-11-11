@@ -171,8 +171,8 @@ public class TypesMergerTest {
         Assert.assertEquals(result.source().split("public type BookInput").length, 2, result.source());
     }
 
-    @Test(description = "Test that the records, enums and unions the schema no longer has are removed and reported")
-    public void testRemovesTypesNotInSchema() throws ServiceGenerationException {
+    @Test(description = "Test that the records, enums and unions the schema does not have are kept and reported")
+    public void testKeepsTypesNotInSchema() throws ServiceGenerationException {
         MergeResult result = TypesMerger.merge(types("""
                 const DEFAULT_PAGES = 100;
 
@@ -199,11 +199,11 @@ public class TypesMergerTest {
                 |};
                 """));
 
-        Assert.assertEquals(result.removedTypes(), List.of("AuthorInput", "Genre", "SearchResult"));
-        Assert.assertTrue(result.source().contains("public type BookInput record {|"), result.source());
-        Assert.assertFalse(result.source().contains("AuthorInput"), result.source());
-        Assert.assertFalse(result.source().contains("enum Genre"), result.source());
-        Assert.assertFalse(result.source().contains("SearchResult"), result.source());
+        Assert.assertEquals(result.typesNotInSchema(), List.of("AuthorInput", "Genre", "SearchResult"));
+        Assert.assertEquals(result.source().split("public type BookInput").length, 2, result.source());
+        Assert.assertTrue(result.source().contains("public type AuthorInput record {|"), result.source());
+        Assert.assertTrue(result.source().contains("public enum Genre {"), result.source());
+        Assert.assertTrue(result.source().contains("public type SearchResult Book;"), result.source());
         Assert.assertTrue(result.source().contains("const DEFAULT_PAGES = 100;"), result.source());
         Assert.assertTrue(result.source().contains("function toTitle(string value) returns string {"),
                 result.source());
@@ -370,7 +370,7 @@ public class TypesMergerTest {
                 """).replace("import ballerina/graphql;", "import ballerina/graphql;\nimport ballerina/time;"),
                 types(""));
 
-        Assert.assertTrue(result.removedTypes().isEmpty(), result.removedTypes().toString());
+        Assert.assertTrue(result.typesNotInSchema().isEmpty(), result.typesNotInSchema().toString());
         Assert.assertTrue(result.source().contains("import ballerina/time;"), result.source());
         Assert.assertTrue(result.source().contains("const DEFAULT_PAGES = 100;"), result.source());
         Assert.assertTrue(result.source().contains("function toTitle(string value) returns string {"),

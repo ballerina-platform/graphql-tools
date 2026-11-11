@@ -66,7 +66,8 @@ public class ServiceGeneration implements Generator {
             Set.of(ServiceCodeGenerator.TYPES_FILE_NAME, ServiceCodeGenerator.SERVICE_FILE_NAME);
     private static final String RESOLVER_SUMMARY = "Resolvers: %d replaced, %d added, %d kept.";
     private static final String RESOLVER_LINE = "  %-9s %s";
-    private static final String REMOVED_TYPES_SUMMARY = "Removed types not in the schema: %s.";
+    private static final String WARNING_TYPES_NOT_IN_SCHEMA =
+            "Warning: Types not in the schema: %s. Delete them if they are no longer needed.";
     private static final String LIST_SEPARATOR = ", ";
     private static final String ERROR_CANNOT_READ = "Cannot read \"%s\" to merge it. Check its permissions.";
 
@@ -74,7 +75,7 @@ public class ServiceGeneration implements Generator {
     private final BalGraphqlConfig balGraphqlConfig;
     private final ServiceCodeGenerator serviceCodeGenerator;
     private final List<MergedResolver> mergedResolvers = new ArrayList<>();
-    private final List<String> removedTypes = new ArrayList<>();
+    private final List<String> typesNotInSchema = new ArrayList<>();
     private PackageOutput packageOutput;
     private Path outputPath;
     private GraphqlServiceProject project;
@@ -186,7 +187,7 @@ public class ServiceGeneration implements Generator {
             }
             MergeResult result = merge(source, readExistingFile(filePath));
             this.mergedResolvers.addAll(result.resolvers());
-            this.removedTypes.addAll(result.removedTypes());
+            this.typesNotInSchema.addAll(result.typesNotInSchema());
             mergedSources.add(new SrcFilePojo(source.getType(), source.getModuleName(), source.getFileName(),
                     result.source()));
         }
@@ -209,8 +210,8 @@ public class ServiceGeneration implements Generator {
         }
     }
 
-    // A count of each resolver outcome, then the resolvers that were replaced or added, and the types that were
-    // removed. The kept resolvers are only counted, since they are unchanged.
+    // A count of each resolver outcome, then the resolvers that were replaced or added, and a warning for the types
+    // the schema does not have. The kept resolvers are only counted, since they are unchanged.
     private List<String> mergeSummary() {
         List<String> lines = new ArrayList<>();
         if (!this.mergedResolvers.isEmpty()) {
@@ -221,8 +222,8 @@ public class ServiceGeneration implements Generator {
                     .forEach(resolver -> lines.add(String.format(RESOLVER_LINE,
                             resolver.outcome().name().toLowerCase(Locale.ROOT), resolver.key())));
         }
-        if (!this.removedTypes.isEmpty()) {
-            lines.add(String.format(REMOVED_TYPES_SUMMARY, String.join(LIST_SEPARATOR, this.removedTypes)));
+        if (!this.typesNotInSchema.isEmpty()) {
+            lines.add(String.format(WARNING_TYPES_NOT_IN_SCHEMA, String.join(LIST_SEPARATOR, this.typesNotInSchema)));
         }
         return lines;
     }

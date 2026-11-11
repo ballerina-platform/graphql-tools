@@ -23,11 +23,11 @@ import java.util.List;
 /**
  * The result of merging a newly generated service into an existing one.
  *
- * @param source       the merged source
- * @param resolvers    what happened to each resolver of the generated service, in order
- * @param removedTypes the names of the existing types that were removed because the schema no longer has them
+ * @param source           the merged source
+ * @param resolvers        what happened to each resolver of the generated service, in order
+ * @param typesNotInSchema the names of the existing types and enums the schema does not have, which are kept
  */
-public record MergeResult(String source, List<MergedResolver> resolvers, List<String> removedTypes) {
+public record MergeResult(String source, List<MergedResolver> resolvers, List<String> typesNotInSchema) {
 
     /**
      * What happened to one resolver.

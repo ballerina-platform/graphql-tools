@@ -190,9 +190,9 @@ final class SourceMerger {
     }
 
     static MergeResult format(String merged, String fileLabel, List<MergedResolver> resolvers,
-                              List<String> removedTypes) throws ServiceGenerationException {
+                              List<String> typesNotInSchema) throws ServiceGenerationException {
         try {
-            return new MergeResult(Formatter.format(merged), resolvers, removedTypes);
+            return new MergeResult(Formatter.format(merged), resolvers, typesNotInSchema);
         } catch (FormatterException e) {
             throw error(String.format(ERROR_MERGED_SOURCE, fileLabel, e.getMessage()));
         }

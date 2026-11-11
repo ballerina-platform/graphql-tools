@@ -44,8 +44,8 @@ import static io.ballerina.graphql.generator.service.merge.SourceMerger.MEMBER_S
  * Merges a newly generated types file into the one the developer already has. The resolvers of each service class
  * are merged as in the service, and the developer's other code in a class is kept. The types that only describe the
  * schema, such as records, enums, unions and the service object type, are regenerated, since the schema is the source
- * of truth, and a type or enum the schema no longer has is removed. The developer's own functions, constants and
- * variables in the file are kept.
+ * of truth. The developer's own code in the file is kept, and a type or enum the schema does not have is kept and
+ * reported.
  */
 public final class TypesMerger {
 
@@ -62,7 +62,7 @@ public final class TypesMerger {
      * @param existingSource  the source the developer already has
      * @param generatedSource the newly generated source
      * @return the merged source, what happened to each service class resolver, keyed like {@code Book.get title}, and
-     * the types that were removed
+     * the types that are not in the schema
      * @throws ServiceGenerationException if the existing source has a syntax error, or has a service class or a
      *                                    resolver that is no longer in the schema
      */
@@ -107,24 +107,24 @@ public final class TypesMerger {
         }
         SourceMerger.checkInSchema(SERVICE_CLASSES, existingClasses.keySet());
         SourceMerger.checkResolversInSchema(notInSchema);
-        // A type or enum the schema no longer has is removed, since the file is generated from the schema. The
-        // developer's own code, such as a helper function, is kept after the generated types.
-        List<String> removedTypes = new ArrayList<>();
+        // The developer's own code, such as a helper function, is kept after the generated types. A type or enum the
+        // schema does not have is kept too, since the tool cannot tell a stale generated type from one the developer
+        // wrote, and it is reported so the developer can delete it.
+        List<String> typesNotInSchema = new ArrayList<>();
         for (ModuleMemberDeclarationNode member : otherExistingMembers) {
             String name = MemberIdentity.name(member);
             if (generatedNames.contains(name)) {
                 continue;
             }
             if (member instanceof TypeDefinitionNode || member instanceof EnumDeclarationNode) {
-                removedTypes.add(name);
-            } else {
-                members.add(member.toSourceCode().strip());
+                typesNotInSchema.add(name);
             }
+            members.add(member.toSourceCode().strip());
         }
 
         String merged = String.join(LINE_BREAK, SourceMerger.mergeImports(existingModule, generatedModule))
                 + MEMBER_SEPARATOR + String.join(MEMBER_SEPARATOR, members) + LINE_BREAK;
-        return SourceMerger.format(merged, FILE_LABEL, resolvers, removedTypes);
+        return SourceMerger.format(merged, FILE_LABEL, resolvers, typesNotInSchema);
     }
 
     // A class is a GraphQL service class when it is a distinct service class with resolvers, as the tool generates.
