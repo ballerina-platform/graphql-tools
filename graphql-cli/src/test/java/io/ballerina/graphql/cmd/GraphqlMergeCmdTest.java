@@ -245,6 +245,75 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         assertOutdatedResolverDoesNotCompile();
     }
 
+    @Test(description = "Test that what a merge keeps and adds is shown before the user is asked, and only once")
+    public void testMergePlanShownBeforeAsking() throws IOException {
+        generate(SCHEMA);
+        writeSchema(CHANGED_SCHEMA);
+        ExitCodeCaptor refusedCaptor = new ExitCodeCaptor();
+
+        String refusedOutput = run(refusedCaptor, askingOnConsole("n"), "--merge");
+
+        Assert.assertEquals(refusedCaptor.getExitCode(), 4, refusedOutput);
+        int question = refusedOutput.indexOf(MERGE_QUESTION);
+        Assert.assertTrue(question > 0, refusedOutput);
+        Assert.assertTrue(refusedOutput.indexOf("Resolvers: 2 added, 2 kept.") < question, refusedOutput);
+        Assert.assertTrue(refusedOutput.indexOf("  added     get books") < question, refusedOutput);
+        Assert.assertTrue(refusedOutput.indexOf(BOOK_OUTDATED) < question, refusedOutput);
+
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = run(exitCaptor, askingOnConsole("y"), "--merge");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(output.split("Resolvers: ", -1).length, 2, output);
+        Assert.assertTrue(output.indexOf("Resolvers: ") < output.indexOf(MERGE_QUESTION), output);
+    }
+
+    @Test(description = "Test that --force shows what a merge keeps and adds before writing")
+    public void testMergePlanShownWithForce() throws IOException {
+        generate(SCHEMA);
+        writeSchema(CHANGED_SCHEMA);
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, failIfAsked(), "--merge", "--force");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(output.indexOf("Resolvers: 2 added, 2 kept.")
+                < output.indexOf("The service generation process is complete."), output);
+        Assert.assertEquals(output.split("Resolvers: ", -1).length, 2, output);
+    }
+
+    @Test(description = "Test that a second service the developer declared first is left alone")
+    public void testMergeWithSecondService() throws IOException {
+        generate(SCHEMA);
+        replace(this.serviceFile, NOT_IMPLEMENTED, "// developer book\n        return new Book();");
+        replace(this.serviceFile, "service SchemaService on", """
+                service /admin on new graphql:Listener(9091) {
+                    resource function get health() returns string {
+                        return "ok";
+                    }
+                }
+
+                service SchemaService on""");
+        writeSchema(CHANGED_SCHEMA);
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, answering("y", new ArrayList<>()), "--merge");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(output.lines().toList().contains("Resolvers: 2 added, 2 kept."), output);
+        String service = Files.readString(this.serviceFile);
+        Assert.assertTrue(service.contains("""
+                service /admin on new graphql:Listener(9091) {
+                    resource function get health() returns string {
+                        return "ok";
+                    }
+                }"""), service);
+        Assert.assertTrue(service.contains("// developer book"), service);
+        Assert.assertTrue(service.indexOf("resource function get books()") > service.indexOf("service SchemaService"),
+                service);
+        assertCompiles();
+    }
+
     @Test(description = "Test that renaming an argument in the schema keeps the resolver and reports it")
     public void testMergeWithRenamedArgument() throws IOException {
         generate(SCHEMA);
@@ -357,7 +426,7 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
         Assert.assertEquals(questions, List.of(MERGE_QUESTION), output);
         Assert.assertTrue(output.contains("No files were written."), output);
         Assert.assertFalse(output.contains(MERGE_HINT), output);
-        Assert.assertFalse(output.contains("Resolvers:"), output);
+        Assert.assertTrue(output.lines().toList().contains("Resolvers: 2 added, 2 kept."), output);
         Assert.assertEquals(existingFiles(), before, output);
     }
 
@@ -720,6 +789,14 @@ public class GraphqlMergeCmdTest extends GraphqlTest {
     private static OverwritePrompt answering(String answer, List<String> questions) {
         return question -> {
             questions.add(question);
+            return Optional.of(answer);
+        };
+    }
+
+    // Prints the question to the captured console like a terminal does, so a test can check what is shown before it.
+    private OverwritePrompt askingOnConsole(String answer) {
+        return question -> {
+            this.printStream.println(question);
             return Optional.of(answer);
         };
     }

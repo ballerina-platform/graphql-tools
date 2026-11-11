@@ -167,9 +167,6 @@ public class ServiceGeneration implements Generator {
                     ModuleDefinitions.read(this.outputPath, GENERATED_FILES));
             if (context.isMerge()) {
                 this.sources = mergeIntoExistingFiles(this.sources);
-                if (context.isDryRun()) {
-                    mergeSummary().forEach(context.getDryRunReport()::addNote);
-                }
             }
         } catch (ServiceGenerationException e) {
             throw new GenerationException(e);
@@ -280,7 +277,12 @@ public class ServiceGeneration implements Generator {
         context.getOutStream().println(SUCCESS_MESSAGE);
         outputFiles().forEach(filePath -> context.getOutStream().println(String.format(CREATED_FILE_FORMAT,
                 OutputFileGuard.displayPath(filePath))));
-        mergeSummary().forEach(context.getOutStream()::println);
+    }
+
+    // What the merge keeps and adds, shown before the user is asked (FF-5).
+    @Override
+    public List<String> plan() {
+        return mergeSummary();
     }
 
     @Override
