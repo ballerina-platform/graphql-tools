@@ -110,7 +110,7 @@ public class ServiceGeneration implements Generator {
     public void validate() throws GenerationException {
         this.packageOutput = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName());
         this.outputPath = this.packageOutput.outputPath();
-        this.licenseHeader = LicenseHeader.read(context.getLicensePath());
+        this.licenseHeader = LicenseHeader.read(context.getLicensePath(), context.getExecutionPath());
         if (this.balGraphqlConfig != null
                 && this.balGraphqlConfig.schema().source() != SchemaSource.FILE) {
             validateFromRemoteSchema(this.balGraphqlConfig.schema());

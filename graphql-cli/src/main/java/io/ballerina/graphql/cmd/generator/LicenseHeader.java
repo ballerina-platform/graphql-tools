@@ -51,6 +51,8 @@ final class LicenseHeader {
     private static final String NO_HEADER = "";
     private static final char SPACE = ' ';
     private static final char TAB = '\t';
+    private static final char FORM_FEED = '\f';
+    private static final String CHARACTER_CODE_FORMAT = "\\u%04X";
 
     private LicenseHeader() {
     }
@@ -59,16 +61,18 @@ final class LicenseHeader {
      * Reads the license file and returns the header to add: the file's content with LF line breaks (GEN-2), followed
      * by one blank line.
      *
-     * @param licensePath the path of the license file as given, or {@code null} if --license was not given
+     * @param licensePath   the path of the license file as given, or {@code null} if --license was not given
+     * @param executionPath the directory a relative license path is resolved against, as -o is, or {@code null}
+     *                      to use the current directory
      * @return the header, or an empty string if no license was given or the file has no comments
      * @throws ToolException with exit code 1 if the file cannot be read, is not text, or has a line that is not a
      *                       comment
      */
-    static String read(String licensePath) {
+    static String read(String licensePath, Path executionPath) {
         if (licensePath == null) {
             return NO_HEADER;
         }
-        String content = readText(licensePath);
+        String content = readText(licensePath, executionPath);
         if (content.startsWith(BYTE_ORDER_MARK)) {
             content = content.substring(BYTE_ORDER_MARK.length());
         }
@@ -78,7 +82,7 @@ final class LicenseHeader {
             String line = stripWhitespace(lines[index]);
             if (!line.isEmpty() && !line.startsWith(COMMENT_PREFIX)) {
                 throw new ToolException(ExitCodes.RUNTIME,
-                        String.format(ERROR_NOT_A_COMMENT, licensePath, index + 1, line));
+                        String.format(ERROR_NOT_A_COMMENT, licensePath, index + 1, showInvisible(line)));
             }
         }
         String header = content.stripTrailing();
@@ -90,7 +94,7 @@ final class LicenseHeader {
      * files.
      *
      * @param sources the generated files
-     * @param header  the header from {@link #read(String)}
+     * @param header  the header from {@link #read(String, Path)}
      * @return the generated files with the header
      */
     static List<SrcFilePojo> addTo(List<SrcFilePojo> sources, String header) {
@@ -103,8 +107,9 @@ final class LicenseHeader {
                 .toList();
     }
 
-    // Only a space or a tab is whitespace in Ballerina source, so a line indented with another kind, such as an em
-    // space copied from a word processor, is not a comment line and is reported instead of breaking the build.
+    // Only a space, a tab or a form feed is whitespace in Ballerina source, so a line indented with another kind,
+    // such as an em space copied from a word processor, is not a comment line and is reported instead of breaking
+    // the build.
     private static String stripWhitespace(String line) {
         int start = 0;
         int end = line.length();
@@ -118,13 +123,26 @@ final class LicenseHeader {
     }
 
     private static boolean isWhitespace(char character) {
-        return character == SPACE || character == TAB;
+        return character == SPACE || character == TAB || character == FORM_FEED;
     }
 
-    private static String readText(String licensePath) {
+    // A space other than a space, a tab or a form feed, or a control or format character, is shown as its code,
+    // e.g. \u2003, so a line that looks blank in the message still shows what is wrong with it.
+    private static String showInvisible(String line) {
+        StringBuilder shown = new StringBuilder();
+        for (char character : line.toCharArray()) {
+            boolean invisible = !isWhitespace(character) && (Character.isWhitespace(character)
+                    || Character.isSpaceChar(character) || Character.isISOControl(character)
+                    || Character.getType(character) == Character.FORMAT);
+            shown.append(invisible ? String.format(CHARACTER_CODE_FORMAT, (int) character) : character);
+        }
+        return shown.toString();
+    }
+
+    private static String readText(String licensePath, Path executionPath) {
         Path path;
         try {
-            path = Paths.get(licensePath);
+            path = executionPath == null ? Paths.get(licensePath) : executionPath.resolve(licensePath);
         } catch (InvalidPathException e) {
             // A path the file system cannot name, such as one with "<" on Windows, cannot be read either.
             throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_CANNOT_READ, licensePath));

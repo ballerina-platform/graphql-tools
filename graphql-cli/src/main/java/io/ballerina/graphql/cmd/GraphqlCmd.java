@@ -436,6 +436,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 .dryRun(dryRun)
                 .merge(merge)
                 .licensePath(licensePath)
+                .executionPath(executionPath)
                 .overwritePrompt(overwritePrompt)
                 .outStream(outStream)
                 .build();

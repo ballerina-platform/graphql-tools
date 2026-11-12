@@ -39,6 +39,7 @@ public class GenerationContext {
     private final boolean dryRun;
     private final boolean merge;
     private final String licensePath;
+    private final Path executionPath;
     private final OverwritePrompt overwritePrompt;
     private final PrintStream outStream;
     private final DryRunReport dryRunReport = new DryRunReport();
@@ -55,6 +56,7 @@ public class GenerationContext {
         this.dryRun = builder.dryRun;
         this.merge = builder.merge;
         this.licensePath = builder.licensePath;
+        this.executionPath = builder.executionPath;
         this.overwritePrompt = builder.overwritePrompt;
         this.outStream = builder.outStream;
     }
@@ -135,6 +137,14 @@ public class GenerationContext {
         return licensePath;
     }
 
+    /**
+     * Returns the directory the command was run from, which a relative path given on the command line is resolved
+     * against, or {@code null} if it is not known.
+     */
+    public Path getExecutionPath() {
+        return executionPath;
+    }
+
     public OverwritePrompt getOverwritePrompt() {
         return overwritePrompt;
     }
@@ -163,6 +173,7 @@ public class GenerationContext {
         private boolean dryRun;
         private boolean merge;
         private String licensePath;
+        private Path executionPath;
         private OverwritePrompt overwritePrompt;
         private PrintStream outStream;
 
@@ -217,6 +228,11 @@ public class GenerationContext {
 
         public Builder licensePath(String licensePath) {
             this.licensePath = licensePath;
+            return this;
+        }
+
+        public Builder executionPath(Path executionPath) {
+            this.executionPath = executionPath;
             return this;
         }
 

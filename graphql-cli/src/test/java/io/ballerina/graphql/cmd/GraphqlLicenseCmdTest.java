@@ -202,14 +202,17 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
     @Test(description = "Test that a line indented or filled with a space Ballerina does not accept, such as an em "
             + "space from a word processor, is reported instead of breaking the build")
     public void testLicenseWithUnicodeSpace() throws IOException {
-        for (String line : List.of(" // Copyright 2026", " ")) {
+        for (String line : List.of("\u2003// Copyright 2026", "\u2003")) {
             Path license = writeLicense("// My Company\n" + line + "\n");
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
 
             String output = run(exitCaptor, "--license", license.toString());
 
             Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
-            Assert.assertTrue(output.contains("Line 2 is not a comment"), output);
+            // The em space is shown as its code, so the line does not look blank in the message.
+            Assert.assertTrue(output.contains("The license file \"" + license + "\" can only contain comment "
+                    + "lines and blank lines. Line 2 is not a comment: \"" + line.replace("\u2003", "\\u2003")
+                    + "\"."), output);
             Assert.assertEquals(balFiles(this.packageRoot), List.of(), output);
         }
     }
@@ -224,6 +227,20 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         assertHeader(this.packageRoot.resolve("service.bal"), "// My Company\n\t// Copyright 2026\n\n");
+        assertCompiles();
+    }
+
+    @Test(description = "Test that a form feed, which Ballerina accepts as whitespace, is allowed before a comment "
+            + "and on a line of its own, such as a page break in a GNU-style notice")
+    public void testLicenseWithFormFeed() throws IOException {
+        String content = "// Copyright 2026 My Company.\n\f\n\f// Licensed under the GNU GPL.\n";
+        Path license = writeLicense(content);
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, "--license", license.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        assertHeader(this.packageRoot.resolve("service.bal"), content + "\n");
         assertCompiles();
     }
 
@@ -449,13 +466,14 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
         Assert.assertEquals(balFiles(this.packageRoot), List.of(), output);
     }
 
-    @Test(description = "Test that a license path is resolved from the current directory, as other paths are")
+    @Test(description = "Test that a relative license path is resolved from the directory the command runs in, as "
+            + "-o is, and not from the directory of the Java process")
     public void testRelativeLicensePath() throws IOException {
         writeLicense(LICENSE);
-        Path relativeLicense = Path.of("").toAbsolutePath().relativize(this.packageRoot.resolve(LICENSE_FILE));
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
 
-        String output = run(exitCaptor, "--license", relativeLicense.toString());
+        // The command runs in the package root here, which is not the directory of the test process.
+        String output = run(exitCaptor, "--license", LICENSE_FILE);
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         assertHeader(this.packageRoot.resolve("service.bal"), HEADER);

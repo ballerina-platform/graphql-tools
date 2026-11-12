@@ -84,7 +84,7 @@ public class ClientGeneration implements Generator {
     @Override
     public void validate() throws GenerationException {
         this.outputPath = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName()).outputPath();
-        this.licenseHeader = LicenseHeader.read(context.getLicensePath());
+        this.licenseHeader = LicenseHeader.read(context.getLicensePath(), context.getExecutionPath());
         this.projects = this.balGraphqlConfig == null ? populateProjectsFromYamlConfig()
                 : populateProjectsFromBalGraphqlConfig();
         try {
