@@ -39,11 +39,18 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyNodeList;
@@ -74,6 +81,12 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
  * Utility class for GraphQL code generation.
  */
 public class CodeGeneratorUtils {
+
+    private static final String STAGING_DIRECTORY_PREFIX = ".graphql-tool-";
+    private static final String STAGED_FILE_SEPARATOR = "-";
+    // Not ".bal", so a staged file left behind by a killed run is never compiled.
+    private static final String STAGED_FILE_SUFFIX = ".tmp";
+
     /**
      * Gets the document name for a given document.
      *
@@ -135,6 +148,55 @@ public class CodeGeneratorUtils {
     public static void writeFile(Path filePath, String content) throws IOException {
         try (FileWriter writer = new FileWriter(filePath.toString(), StandardCharsets.UTF_8)) {
             writer.write(content);
+        }
+    }
+
+    /**
+     * Writes the files of a run together (FF-8). Each file is first written to a staging directory in the output
+     * path, and the files are moved into place only once all of them are written, so a failure while writing leaves
+     * the existing files as they were. The staging directory is always removed.
+     *
+     * @param files      the content of each file, by the path it is written to
+     * @param outputPath the output path the staging directory is created in, on the same file system as the files
+     * @throws IOException when a file operation fails
+     */
+    public static void writeFiles(Map<Path, String> files, Path outputPath) throws IOException {
+        if (files.isEmpty()) {
+            return;
+        }
+        Files.createDirectories(outputPath);
+        Path stagingDirectory = Files.createTempDirectory(outputPath, STAGING_DIRECTORY_PREFIX);
+        try {
+            Map<Path, Path> stagedFiles = new LinkedHashMap<>();
+            for (Map.Entry<Path, String> file : files.entrySet()) {
+                // Numbered, since two modules can each have a file of the same name.
+                Path stagedFile = stagingDirectory.resolve(stagedFiles.size() + STAGED_FILE_SEPARATOR
+                        + file.getKey().getFileName() + STAGED_FILE_SUFFIX);
+                Files.writeString(stagedFile, file.getValue(), StandardCharsets.UTF_8);
+                stagedFiles.put(stagedFile, file.getKey());
+            }
+            for (Map.Entry<Path, Path> stagedFile : stagedFiles.entrySet()) {
+                moveIntoPlace(stagedFile.getKey(), stagedFile.getValue());
+            }
+        } finally {
+            deleteDirectory(stagingDirectory);
+        }
+    }
+
+    private static void moveIntoPlace(Path stagedFile, Path filePath) throws IOException {
+        Files.createDirectories(filePath.toAbsolutePath().getParent());
+        try {
+            Files.move(stagedFile, filePath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(stagedFile, filePath, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private static void deleteDirectory(Path directory) throws IOException {
+        try (Stream<Path> paths = Files.walk(directory)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(path);
+            }
         }
     }
 

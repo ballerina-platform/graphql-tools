@@ -33,8 +33,10 @@ public final class DryRunReport {
     private static final String LINE_FORMAT = "  %-10s %s";
     private static final String MODULE_SUFFIX = " (module)";
     private static final String SUMMARY = "%d to create, %d to overwrite.";
+    private static final String MERGE_SUMMARY = "%d to create, %d to merge.";
 
     private final List<PlannedFile> files = new ArrayList<>();
+    private final List<String> notes = new ArrayList<>();
     private Path moduleToCreate;
 
     void add(Action action, Path path) {
@@ -45,9 +47,13 @@ public final class DryRunReport {
         this.moduleToCreate = moduleRoot;
     }
 
+    void addNote(String note) {
+        notes.add(note);
+    }
+
     /**
      * Prints the module to create, if any, and each planned file with its action, followed by a count of the files
-     * for each action.
+     * for each action and any notes, such as what a merge would do.
      *
      * @param outStream the stream to print the report to
      */
@@ -61,7 +67,12 @@ public final class DryRunReport {
             outStream.println(String.format(LINE_FORMAT, file.action().label(), file.path()));
         }
         outStream.println();
-        outStream.println(String.format(SUMMARY, count(Action.CREATE), count(Action.OVERWRITE)));
+        if (count(Action.MERGE) > 0) {
+            outStream.println(String.format(MERGE_SUMMARY, count(Action.CREATE), count(Action.MERGE)));
+        } else {
+            outStream.println(String.format(SUMMARY, count(Action.CREATE), count(Action.OVERWRITE)));
+        }
+        notes.forEach(outStream::println);
     }
 
     private long count(Action action) {
@@ -69,7 +80,7 @@ public final class DryRunReport {
     }
 
     enum Action {
-        CREATE, OVERWRITE;
+        CREATE, OVERWRITE, MERGE;
 
         String label() {
             return name().toLowerCase(Locale.ROOT);

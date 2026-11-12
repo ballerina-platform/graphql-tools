@@ -38,4 +38,20 @@ public interface Generator {
     List<Path> outputFiles();
 
     void write() throws GenerationException;
+
+    /**
+     * Returns what the run does to the existing files beyond writing them, such as the resolvers a merge keeps and
+     * adds, so it is shown before the user is asked. It is called after {@link #generate()}.
+     */
+    default List<String> plan() {
+        return List.of();
+    }
+
+    /**
+     * Returns whether the generator can merge its output into existing files with --merge. Only a generated service
+     * has code the developer writes into, so only service generation can.
+     */
+    default boolean canMerge() {
+        return false;
+    }
 }

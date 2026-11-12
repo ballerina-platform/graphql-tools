@@ -33,16 +33,24 @@ import io.ballerina.graphql.generator.service.ServiceBaseName;
 import io.ballerina.graphql.generator.service.diagnostic.ServiceDiagnosticMessages;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.generator.ServiceCodeGenerator;
+import io.ballerina.graphql.generator.service.merge.MergeResult;
+import io.ballerina.graphql.generator.service.merge.MergeResult.MergedResolver;
+import io.ballerina.graphql.generator.service.merge.MergeResult.Outcome;
+import io.ballerina.graphql.generator.service.merge.ServiceMerger;
+import io.ballerina.graphql.generator.service.merge.TypesMerger;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.generator.utils.SrcFilePojo;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
 
@@ -56,10 +64,21 @@ public class ServiceGeneration implements Generator {
     private static final String CREATED_FILE_FORMAT = "-- %s";
     private static final Set<String> GENERATED_FILES =
             Set.of(ServiceCodeGenerator.TYPES_FILE_NAME, ServiceCodeGenerator.SERVICE_FILE_NAME);
+    private static final String RESOLVER_SUMMARY = "Resolvers: %d added, %d kept.";
+    private static final String ADDED_RESOLVER_LINE = "  added     %s";
+    private static final String WARNING_OUTDATED_RESOLVERS =
+            "Warning: Resolvers whose signature does not match the schema: %s. Update them.";
+    private static final String QUOTE = "\"";
+    private static final String WARNING_TYPES_NOT_IN_SCHEMA =
+            "Warning: Types not in the schema: %s. Delete them if they are no longer needed.";
+    private static final String LIST_SEPARATOR = ", ";
+    private static final String ERROR_CANNOT_READ = "Cannot read \"%s\" to merge it. Check its permissions.";
 
     private final GenerationContext context;
     private final BalGraphqlConfig balGraphqlConfig;
     private final ServiceCodeGenerator serviceCodeGenerator;
+    private final List<MergedResolver> mergedResolvers = new ArrayList<>();
+    private final List<String> typesNotInSchema = new ArrayList<>();
     private PackageOutput packageOutput;
     private Path outputPath;
     private GraphqlServiceProject project;
@@ -146,9 +165,80 @@ public class ServiceGeneration implements Generator {
         try {
             this.sources = this.serviceCodeGenerator.generateBalSources(this.project, serviceBaseName(),
                     ModuleDefinitions.read(this.outputPath, GENERATED_FILES));
+            if (context.isMerge()) {
+                this.sources = mergeIntoExistingFiles(this.sources);
+            }
         } catch (ServiceGenerationException e) {
             throw new GenerationException(e);
         }
+    }
+
+    // The merge runs before the output files are checked and the user is asked, so a file that cannot be merged
+    // stops the run before anything is asked or written (FF-4). A file that does not exist yet is created as
+    // generated, and a directory in its place is left to the output file checks.
+    private List<SrcFilePojo> mergeIntoExistingFiles(List<SrcFilePojo> generatedSources)
+            throws ServiceGenerationException {
+        List<SrcFilePojo> mergedSources = new ArrayList<>();
+        for (SrcFilePojo source : generatedSources) {
+            Path filePath = CodeGeneratorUtils.resolveFilePath(source, this.outputPath);
+            if (!Files.isRegularFile(filePath)) {
+                mergedSources.add(source);
+                continue;
+            }
+            MergeResult result = merge(source, readExistingFile(filePath));
+            this.mergedResolvers.addAll(result.resolvers());
+            this.typesNotInSchema.addAll(result.typesNotInSchema());
+            mergedSources.add(new SrcFilePojo(source.getType(), source.getModuleName(), source.getFileName(),
+                    result.source()));
+        }
+        return mergedSources;
+    }
+
+    private static MergeResult merge(SrcFilePojo source, String existingSource) throws ServiceGenerationException {
+        if (ServiceCodeGenerator.SERVICE_FILE_NAME.equals(source.getFileName())) {
+            return ServiceMerger.merge(existingSource, source.getContent());
+        }
+        return TypesMerger.merge(existingSource, source.getContent());
+    }
+
+    private static String readExistingFile(Path filePath) throws ServiceGenerationException {
+        try {
+            return Files.readString(filePath);
+        } catch (IOException e) {
+            throw new ServiceGenerationException(ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_100, null,
+                    String.format(ERROR_CANNOT_READ, OutputFileGuard.displayPath(filePath)));
+        }
+    }
+
+    // A count of the added and kept resolvers and the added ones, then a warning for the kept resolvers whose
+    // signature no longer matches the schema and for the types the schema does not have.
+    private List<String> mergeSummary() {
+        List<String> lines = new ArrayList<>();
+        if (!this.mergedResolvers.isEmpty()) {
+            lines.add(String.format(RESOLVER_SUMMARY, count(Outcome.ADDED),
+                    count(Outcome.KEPT) + count(Outcome.OUTDATED)));
+            resolverKeys(Outcome.ADDED).forEach(key -> lines.add(String.format(ADDED_RESOLVER_LINE, key)));
+        }
+        List<String> outdated = resolverKeys(Outcome.OUTDATED);
+        if (!outdated.isEmpty()) {
+            lines.add(String.format(WARNING_OUTDATED_RESOLVERS, outdated.stream()
+                    .map(key -> QUOTE + key + QUOTE).collect(Collectors.joining(LIST_SEPARATOR))));
+        }
+        if (!this.typesNotInSchema.isEmpty()) {
+            lines.add(String.format(WARNING_TYPES_NOT_IN_SCHEMA, String.join(LIST_SEPARATOR, this.typesNotInSchema)));
+        }
+        return lines;
+    }
+
+    private long count(Outcome outcome) {
+        return resolverKeys(outcome).size();
+    }
+
+    private List<String> resolverKeys(Outcome outcome) {
+        return this.mergedResolvers.stream()
+                .filter(resolver -> resolver.outcome() == outcome)
+                .map(MergedResolver::key)
+                .toList();
     }
 
     private ServiceBaseName serviceBaseName() {
@@ -187,5 +277,16 @@ public class ServiceGeneration implements Generator {
         context.getOutStream().println(SUCCESS_MESSAGE);
         outputFiles().forEach(filePath -> context.getOutStream().println(String.format(CREATED_FILE_FORMAT,
                 OutputFileGuard.displayPath(filePath))));
+    }
+
+    // What the merge keeps and adds, shown before the user is asked (FF-5).
+    @Override
+    public List<String> plan() {
+        return mergeSummary();
+    }
+
+    @Override
+    public boolean canMerge() {
+        return true;
     }
 }
