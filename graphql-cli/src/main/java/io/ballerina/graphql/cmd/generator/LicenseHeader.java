@@ -52,6 +52,7 @@ final class LicenseHeader {
     private static final char SPACE = ' ';
     private static final char TAB = '\t';
     private static final char FORM_FEED = '\f';
+    private static final char LINE_BREAK_CHARACTER = '\n';
     private static final String CHARACTER_CODE_FORMAT = "\\u%04X";
 
     private LicenseHeader() {
@@ -85,8 +86,8 @@ final class LicenseHeader {
                         String.format(ERROR_NOT_A_COMMENT, licensePath, index + 1, showInvisible(line)));
             }
         }
-        String header = content.stripTrailing();
-        return header.isBlank() ? NO_HEADER : header + LINE_BREAK + LINE_BREAK;
+        String header = stripTrailingBlankLines(content);
+        return header.isEmpty() ? NO_HEADER : header + LINE_BREAK + LINE_BREAK;
     }
 
     /**
@@ -120,6 +121,16 @@ final class LicenseHeader {
             end--;
         }
         return line.substring(start, end);
+    }
+
+    // The blank lines and whitespace at the end are removed by the same rule as the line check, so the header is
+    // kept as written and only the end is trimmed, before the one blank line that follows it.
+    private static String stripTrailingBlankLines(String content) {
+        int end = content.length();
+        while (end > 0 && (content.charAt(end - 1) == LINE_BREAK_CHARACTER || isWhitespace(content.charAt(end - 1)))) {
+            end--;
+        }
+        return content.substring(0, end);
     }
 
     private static boolean isWhitespace(char character) {

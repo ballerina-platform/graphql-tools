@@ -244,6 +244,18 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
         assertCompiles();
     }
 
+    @Test(description = "Test that a character at the end of the last line that is not Ballerina whitespace, such "
+            + "as an em space inside the comment, is kept as written")
+    public void testLicenseKeepsTrailingNonBallerinaWhitespace() throws IOException {
+        Path license = writeLicense("// Copyright 2026 My Company.\u2003\n\n");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, "--license", license.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        assertHeader(this.packageRoot.resolve("service.bal"), "// Copyright 2026 My Company.\u2003\n\n");
+    }
+
     @Test(description = "Test that a path the file system cannot name fails cleanly instead of crashing")
     public void testInvalidLicensePath() throws IOException {
         String license = "lic\u0000ense.txt";
