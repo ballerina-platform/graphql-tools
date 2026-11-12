@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -42,12 +44,13 @@ final class LicenseHeader {
     private static final String ERROR_NOT_A_COMMENT = "The license file \"%s\" can only contain comment lines and "
             + "blank lines. Line %d is not a comment: \"%s\".";
     private static final String COMMENT_PREFIX = "//";
-    private static final String BYTE_ORDER_MARK = "﻿";
+    private static final String BYTE_ORDER_MARK = "\uFEFF";
     private static final String WINDOWS_LINE_BREAK = "\r\n";
     private static final String OLD_MAC_LINE_BREAK = "\r";
     private static final String LINE_BREAK = "\n";
-    private static final String BAL_EXTENSION = ".bal";
     private static final String NO_HEADER = "";
+    private static final char SPACE = ' ';
+    private static final char TAB = '\t';
 
     private LicenseHeader() {
     }
@@ -56,12 +59,12 @@ final class LicenseHeader {
      * Reads the license file and returns the header to add: the file's content with LF line breaks (GEN-2), followed
      * by one blank line.
      *
-     * @param licensePath the license file, or {@code null} if --license was not given
+     * @param licensePath the path of the license file as given, or {@code null} if --license was not given
      * @return the header, or an empty string if no license was given or the file has no comments
      * @throws ToolException with exit code 1 if the file cannot be read, is not text, or has a line that is not a
      *                       comment
      */
-    static String read(Path licensePath) {
+    static String read(String licensePath) {
         if (licensePath == null) {
             return NO_HEADER;
         }
@@ -72,7 +75,7 @@ final class LicenseHeader {
         content = content.replace(WINDOWS_LINE_BREAK, LINE_BREAK).replace(OLD_MAC_LINE_BREAK, LINE_BREAK);
         String[] lines = content.split(LINE_BREAK, -1);
         for (int index = 0; index < lines.length; index++) {
-            String line = lines[index].strip();
+            String line = stripWhitespace(lines[index]);
             if (!line.isEmpty() && !line.startsWith(COMMENT_PREFIX)) {
                 throw new ToolException(ExitCodes.RUNTIME,
                         String.format(ERROR_NOT_A_COMMENT, licensePath, index + 1, line));
@@ -83,10 +86,11 @@ final class LicenseHeader {
     }
 
     /**
-     * Adds the header at the top of each generated Ballerina file.
+     * Adds the header at the top of each generated file. Client and service generation only generate Ballerina
+     * files.
      *
      * @param sources the generated files
-     * @param header  the header from {@link #read(Path)}
+     * @param header  the header from {@link #read(String)}
      * @return the generated files with the header
      */
     static List<SrcFilePojo> addTo(List<SrcFilePojo> sources, String header) {
@@ -94,19 +98,42 @@ final class LicenseHeader {
             return sources;
         }
         return sources.stream()
-                .map(source -> source.getFileName().endsWith(BAL_EXTENSION)
-                        ? new SrcFilePojo(source.getType(), source.getModuleName(), source.getFileName(),
-                        header + source.getContent())
-                        : source)
+                .map(source -> new SrcFilePojo(source.getType(), source.getModuleName(), source.getFileName(),
+                        header + source.getContent()))
                 .toList();
     }
 
-    private static String readText(Path licensePath) {
-        if (!Files.isRegularFile(licensePath)) {
+    // Only a space or a tab is whitespace in Ballerina source, so a line indented with another kind, such as an em
+    // space copied from a word processor, is not a comment line and is reported instead of breaking the build.
+    private static String stripWhitespace(String line) {
+        int start = 0;
+        int end = line.length();
+        while (start < end && isWhitespace(line.charAt(start))) {
+            start++;
+        }
+        while (end > start && isWhitespace(line.charAt(end - 1))) {
+            end--;
+        }
+        return line.substring(start, end);
+    }
+
+    private static boolean isWhitespace(char character) {
+        return character == SPACE || character == TAB;
+    }
+
+    private static String readText(String licensePath) {
+        Path path;
+        try {
+            path = Paths.get(licensePath);
+        } catch (InvalidPathException e) {
+            // A path the file system cannot name, such as one with "<" on Windows, cannot be read either.
+            throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_CANNOT_READ, licensePath));
+        }
+        if (!Files.isRegularFile(path)) {
             throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_CANNOT_READ, licensePath));
         }
         try {
-            return Files.readString(licensePath, StandardCharsets.UTF_8);
+            return Files.readString(path, StandardCharsets.UTF_8);
         } catch (CharacterCodingException e) {
             throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_NOT_TEXT, licensePath));
         } catch (IOException e) {

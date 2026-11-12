@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
@@ -83,6 +84,7 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
             """;
     private static final String HEADER = LICENSE + "\n";
     private static final String LICENSE_FILE = "license.txt";
+    private static final String MERGE_HINT = "Use --merge to keep the code in these file(s).";
     private static final String ERROR_CANNOT_READ =
             "Cannot read the license file \"%s\". Check that it exists and is readable.";
 
@@ -197,6 +199,46 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test that a line indented or filled with a space Ballerina does not accept, such as an em "
+            + "space from a word processor, is reported instead of breaking the build")
+    public void testLicenseWithUnicodeSpace() throws IOException {
+        for (String line : List.of(" // Copyright 2026", " ")) {
+            Path license = writeLicense("// My Company\n" + line + "\n");
+            ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+            String output = run(exitCaptor, "--license", license.toString());
+
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+            Assert.assertTrue(output.contains("Line 2 is not a comment"), output);
+            Assert.assertEquals(balFiles(this.packageRoot), List.of(), output);
+        }
+    }
+
+    @Test(description = "Test that tabs and spaces around a comment are accepted")
+    public void testLicenseWithTabsAndSpaces() throws IOException {
+        String content = "// My Company\n\t// Copyright 2026  \n \t \n";
+        Path license = writeLicense(content);
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, "--license", license.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        assertHeader(this.packageRoot.resolve("service.bal"), "// My Company\n\t// Copyright 2026\n\n");
+        assertCompiles();
+    }
+
+    @Test(description = "Test that a path the file system cannot name fails cleanly instead of crashing")
+    public void testInvalidLicensePath() throws IOException {
+        String license = "lic\u0000ense.txt";
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, "--license", license);
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertTrue(output.contains(String.format(ERROR_CANNOT_READ, license)), output);
+        Assert.assertEquals(balFiles(this.packageRoot), List.of(), output);
+    }
+
     @Test(description = "Test that an empty license path is a usage error, not the current directory")
     public void testEmptyLicensePath() throws IOException {
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
@@ -263,7 +305,7 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
             + "so exactly one blank line follows the license")
     public void testLicenseNormalized() throws IOException {
         Path license = this.packageRoot.resolve(LICENSE_FILE);
-        Files.writeString(license, "﻿// Copyright (c) 2026 My Company.\r\n//\r\n// All rights reserved."
+        Files.writeString(license, "\uFEFF// Copyright (c) 2026 My Company.\r\n//\r\n// All rights reserved."
                 + "\r\n\r\n\r\n", StandardCharsets.UTF_8);
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
 
@@ -326,6 +368,30 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
         String output = run(exitCaptor, "--force", "--license", license.toString());
 
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        assertHeader(this.packageRoot.resolve("service.bal"), HEADER);
+    }
+
+    @Test(description = "Test that overwriting with a license does not suggest --merge, since the two cannot be "
+            + "used together")
+    public void testOverwriteWithLicenseDoesNotSuggestMerge() throws IOException {
+        ExitCodeCaptor generateCaptor = new ExitCodeCaptor();
+        String generateOutput = run(generateCaptor);
+        Assert.assertEquals(generateCaptor.getExitCode(), 0, generateOutput);
+        Path license = writeLicense(LICENSE);
+        ExitCodeCaptor dryRunCaptor = new ExitCodeCaptor();
+
+        String dryRunOutput = run(dryRunCaptor, "--dry-run", "--license", license.toString());
+
+        Assert.assertEquals(dryRunCaptor.getExitCode(), 0, dryRunOutput);
+        Assert.assertFalse(dryRunOutput.contains(MERGE_HINT), dryRunOutput);
+
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = runWithPrompt(exitCaptor, answering("y", questions), "--license", license.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(questions, List.of("Overwrite these file(s)? [y/N] "), output);
+        Assert.assertFalse(output.contains(MERGE_HINT), output);
         assertHeader(this.packageRoot.resolve("service.bal"), HEADER);
     }
 
@@ -413,18 +479,35 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
     }
 
     private String run(ExitCodeCaptor exitCaptor, String... flags) throws IOException {
-        return runWithMode(exitCaptor, "service", flags);
+        return runWithMode(exitCaptor, "service", failIfAsked(), flags);
+    }
+
+    private String runWithMode(ExitCodeCaptor exitCaptor, String mode, String... flags) throws IOException {
+        return runWithMode(exitCaptor, mode, failIfAsked(), flags);
+    }
+
+    private String runWithPrompt(ExitCodeCaptor exitCaptor, OverwritePrompt prompt, String... flags)
+            throws IOException {
+        return runWithMode(exitCaptor, "service", prompt, flags);
     }
 
     // Runs generation from the package's configuration file in the given mode with the given extra flags.
-    private String runWithMode(ExitCodeCaptor exitCaptor, String mode, String... flags) throws IOException {
+    private String runWithMode(ExitCodeCaptor exitCaptor, String mode, OverwritePrompt prompt, String... flags)
+            throws IOException {
         List<String> args = new ArrayList<>(List.of(this.packageRoot.resolve(BalGraphqlConfig.FILE_NAME).toString(),
                 "-o", this.packageRoot.toString(), "--mode", mode));
         args.addAll(List.of(flags));
-        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, printStream, this.packageRoot, exitCaptor, failIfAsked());
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, printStream, this.packageRoot, exitCaptor, prompt);
         new CommandLine(graphqlCmd).parseArgs(args.toArray(String[]::new));
         graphqlCmd.execute();
         return readOutput(true);
+    }
+
+    private static OverwritePrompt answering(String answer, List<String> questions) {
+        return question -> {
+            questions.add(question);
+            return Optional.of(answer);
+        };
     }
 
     private static OverwritePrompt failIfAsked() {
