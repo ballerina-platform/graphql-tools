@@ -38,6 +38,7 @@ public class GenerationContext {
     private final boolean force;
     private final boolean dryRun;
     private final boolean merge;
+    private final Path licensePath;
     private final OverwritePrompt overwritePrompt;
     private final PrintStream outStream;
     private final DryRunReport dryRunReport = new DryRunReport();
@@ -53,6 +54,7 @@ public class GenerationContext {
         this.force = builder.force;
         this.dryRun = builder.dryRun;
         this.merge = builder.merge;
+        this.licensePath = builder.licensePath;
         this.overwritePrompt = builder.overwritePrompt;
         this.outStream = builder.outStream;
     }
@@ -125,6 +127,14 @@ public class GenerationContext {
         return merge;
     }
 
+    /**
+     * Returns the license file whose content is added at the top of each generated Ballerina file, or {@code null}
+     * if none was given.
+     */
+    public Path getLicensePath() {
+        return licensePath;
+    }
+
     public OverwritePrompt getOverwritePrompt() {
         return overwritePrompt;
     }
@@ -152,6 +162,7 @@ public class GenerationContext {
         private boolean force;
         private boolean dryRun;
         private boolean merge;
+        private Path licensePath;
         private OverwritePrompt overwritePrompt;
         private PrintStream outStream;
 
@@ -201,6 +212,11 @@ public class GenerationContext {
 
         public Builder merge(boolean merge) {
             this.merge = merge;
+            return this;
+        }
+
+        public Builder licensePath(Path licensePath) {
+            this.licensePath = licensePath;
             return this;
         }
 

@@ -72,6 +72,7 @@ public class ClientGeneration implements Generator {
     private final ClientCodeGenerator clientCodeGenerator;
     private Path outputPath;
     private List<GraphqlClientProject> projects;
+    private String licenseHeader;
     private final Map<GraphqlClientProject, List<SrcFilePojo>> generatedSources = new LinkedHashMap<>();
 
     public ClientGeneration(GenerationContext context, BalGraphqlConfig balGraphqlConfig) {
@@ -83,6 +84,7 @@ public class ClientGeneration implements Generator {
     @Override
     public void validate() throws GenerationException {
         this.outputPath = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName()).outputPath();
+        this.licenseHeader = LicenseHeader.read(context.getLicensePath());
         this.projects = this.balGraphqlConfig == null ? populateProjectsFromYamlConfig()
                 : populateProjectsFromBalGraphqlConfig();
         try {
@@ -152,8 +154,8 @@ public class ClientGeneration implements Generator {
     public void generate() throws GenerationException {
         for (GraphqlClientProject project : this.projects) {
             try {
-                this.generatedSources.put(project,
-                        this.clientCodeGenerator.generateBalSources(project, GeneratorContext.CLI));
+                List<SrcFilePojo> sources = this.clientCodeGenerator.generateBalSources(project, GeneratorContext.CLI);
+                this.generatedSources.put(project, LicenseHeader.addTo(sources, this.licenseHeader));
             } catch (ClientCodeGenerationException e) {
                 throw new GenerationException(e);
             } catch (NullPointerException e) {

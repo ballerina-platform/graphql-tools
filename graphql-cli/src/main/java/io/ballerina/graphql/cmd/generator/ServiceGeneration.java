@@ -83,6 +83,7 @@ public class ServiceGeneration implements Generator {
     private Path outputPath;
     private GraphqlServiceProject project;
     private List<SrcFilePojo> sources;
+    private String licenseHeader;
 
     public ServiceGeneration(GenerationContext context, BalGraphqlConfig balGraphqlConfig) {
         this.context = context;
@@ -109,6 +110,7 @@ public class ServiceGeneration implements Generator {
     public void validate() throws GenerationException {
         this.packageOutput = PackageOutput.resolve(context.getTargetOutputPath(), context.getModuleName());
         this.outputPath = this.packageOutput.outputPath();
+        this.licenseHeader = LicenseHeader.read(context.getLicensePath());
         if (this.balGraphqlConfig != null
                 && this.balGraphqlConfig.schema().source() != SchemaSource.FILE) {
             validateFromRemoteSchema(this.balGraphqlConfig.schema());
@@ -168,6 +170,8 @@ public class ServiceGeneration implements Generator {
             if (context.isMerge()) {
                 this.sources = mergeIntoExistingFiles(this.sources);
             }
+            // --license and --merge are not used together, so the header is only added to files written whole.
+            this.sources = LicenseHeader.addTo(this.sources, this.licenseHeader);
         } catch (ServiceGenerationException e) {
             throw new GenerationException(e);
         }

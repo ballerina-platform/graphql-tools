@@ -68,6 +68,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
                 "              [--object-type <service|record>]",
                 "              [--service-name <service-name>]",
                 "              [--merge]",
+                "              [--license <license-file-path>]",
                 "              [--force]",
                 "              [-n | --dry-run]"},
         descriptionHeading = "%nDESCRIPTION%n",
@@ -90,6 +91,11 @@ public class GraphqlCmd implements BLauncherCmd {
             "The --object-type flag only applies to service generation. It cannot be used with \"%s\".";
     private static final String ERROR_SERVICE_NAME_NOT_SUPPORTED =
             "The --service-name flag only applies to service generation. It cannot be used with \"%s\".";
+    private static final String ERROR_LICENSE_NOT_SUPPORTED =
+            "The --license flag only applies to client and service generation. It cannot be used with \"%s\".";
+    private static final String ERROR_LICENSE_EMPTY_PATH = "The --license flag needs the path of a license file.";
+    private static final String ERROR_LICENSE_WITH_MERGE = "The --license flag cannot be used with --merge. "
+            + "Run without --merge to regenerate the files with the license header.";
     private static final String ERROR_MODULE_NOT_SUPPORTED =
             "The --module flag only applies to client and service generation. It cannot be used with \"%s\".";
     private static final String ERROR_UNKNOWN_OPTION =
@@ -118,6 +124,8 @@ public class GraphqlCmd implements BLauncherCmd {
                     "  Regenerate a Ballerina GraphQL service after the schema changed, keeping the resolvers " +
                     "already implemented:%n" +
                     "    $ bal graphql balGraphQL.toml --mode service --merge%n%n" +
+                    "  Generate a Ballerina GraphQL service with a license header at the top of each file:%n" +
+                    "    $ bal graphql balGraphQL.toml --mode service --license license.txt%n%n" +
                     "  Preview the files without writing them, then overwrite existing files:%n" +
                     "    $ bal graphql balGraphQL.toml --dry-run%n" +
                     "    $ bal graphql balGraphQL.toml --force";
@@ -144,6 +152,10 @@ public class GraphqlCmd implements BLauncherCmd {
             "Merge the generated service into the output files that already exist instead of overwriting them. "
                     + "Existing resolvers are kept, new ones are added, and the ones whose signature no longer matches "
                     + "the schema are reported. Service generation only.";
+    private static final String LICENSE_DESCRIPTION =
+            "Path to a file whose content is added at the top of each generated Ballerina file, such as a copyright "
+                    + "notice. It can only contain comment lines and blank lines. Client and service generation "
+                    + "only, and not with --merge.";
     private static final String FORCE_DESCRIPTION =
             "Overwrite or merge output files that already exist without asking.";
     private static final String DRY_RUN_DESCRIPTION =
@@ -188,6 +200,9 @@ public class GraphqlCmd implements BLauncherCmd {
 
     @CommandLine.Option(names = "--merge", description = MERGE_DESCRIPTION)
     private boolean merge;
+
+    @CommandLine.Option(names = "--license", paramLabel = "<license-file-path>", description = LICENSE_DESCRIPTION)
+    private String licensePath;
 
     @CommandLine.Option(names = "--force", description = FORCE_DESCRIPTION)
     private boolean force;
@@ -363,6 +378,21 @@ public class GraphqlCmd implements BLauncherCmd {
         if (moduleName != null && OperationMode.fromInputPath(inputPath).orElse(null) == OperationMode.SCHEMA) {
             throw usageError(String.format(ERROR_MODULE_NOT_SUPPORTED, inputPath));
         }
+
+        if (licensePath != null) {
+            // An empty path would name the current directory, so it is reported as a missing value instead.
+            if (licensePath.isBlank()) {
+                throw usageError(ERROR_LICENSE_EMPTY_PATH);
+            }
+            // A schema is not Ballerina source, so it takes no license header (IO-4).
+            if (OperationMode.fromInputPath(inputPath).orElse(null) == OperationMode.SCHEMA) {
+                throw usageError(String.format(ERROR_LICENSE_NOT_SUPPORTED, inputPath));
+            }
+            // A merge keeps the header the files already have, so it cannot add or replace one.
+            if (merge) {
+                throw usageError(ERROR_LICENSE_WITH_MERGE);
+            }
+        }
     }
 
     private boolean validInputFileExtension(String filePath) {
@@ -405,6 +435,7 @@ public class GraphqlCmd implements BLauncherCmd {
                 .force(force)
                 .dryRun(dryRun)
                 .merge(merge)
+                .licensePath(licensePath == null ? null : Paths.get(licensePath))
                 .overwritePrompt(overwritePrompt)
                 .outStream(outStream)
                 .build();

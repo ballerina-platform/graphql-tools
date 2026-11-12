@@ -1,0 +1,116 @@
+/*
+ * Copyright (c) 2026 WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package io.ballerina.graphql.cmd.generator;
+
+import io.ballerina.graphql.exception.ExitCodes;
+import io.ballerina.graphql.exception.ToolException;
+import io.ballerina.graphql.generator.utils.SrcFilePojo;
+
+import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+/**
+ * The license header the user gives with --license, added at the top of every generated Ballerina file (IO-2). The
+ * file is read and checked before anything is generated (IO-3, FF-4 phase 3), so a header that would stop the
+ * generated sources from compiling fails the run up front.
+ */
+final class LicenseHeader {
+
+    private static final String ERROR_CANNOT_READ =
+            "Cannot read the license file \"%s\". Check that it exists and is readable.";
+    private static final String ERROR_NOT_TEXT = "The license file \"%s\" is not a UTF-8 text file.";
+    private static final String ERROR_NOT_A_COMMENT = "The license file \"%s\" can only contain comment lines and "
+            + "blank lines. Line %d is not a comment: \"%s\".";
+    private static final String COMMENT_PREFIX = "//";
+    private static final String BYTE_ORDER_MARK = "﻿";
+    private static final String WINDOWS_LINE_BREAK = "\r\n";
+    private static final String OLD_MAC_LINE_BREAK = "\r";
+    private static final String LINE_BREAK = "\n";
+    private static final String BAL_EXTENSION = ".bal";
+    private static final String NO_HEADER = "";
+
+    private LicenseHeader() {
+    }
+
+    /**
+     * Reads the license file and returns the header to add: the file's content with LF line breaks (GEN-2), followed
+     * by one blank line.
+     *
+     * @param licensePath the license file, or {@code null} if --license was not given
+     * @return the header, or an empty string if no license was given or the file has no comments
+     * @throws ToolException with exit code 1 if the file cannot be read, is not text, or has a line that is not a
+     *                       comment
+     */
+    static String read(Path licensePath) {
+        if (licensePath == null) {
+            return NO_HEADER;
+        }
+        String content = readText(licensePath);
+        if (content.startsWith(BYTE_ORDER_MARK)) {
+            content = content.substring(BYTE_ORDER_MARK.length());
+        }
+        content = content.replace(WINDOWS_LINE_BREAK, LINE_BREAK).replace(OLD_MAC_LINE_BREAK, LINE_BREAK);
+        String[] lines = content.split(LINE_BREAK, -1);
+        for (int index = 0; index < lines.length; index++) {
+            String line = lines[index].strip();
+            if (!line.isEmpty() && !line.startsWith(COMMENT_PREFIX)) {
+                throw new ToolException(ExitCodes.RUNTIME,
+                        String.format(ERROR_NOT_A_COMMENT, licensePath, index + 1, line));
+            }
+        }
+        String header = content.stripTrailing();
+        return header.isBlank() ? NO_HEADER : header + LINE_BREAK + LINE_BREAK;
+    }
+
+    /**
+     * Adds the header at the top of each generated Ballerina file.
+     *
+     * @param sources the generated files
+     * @param header  the header from {@link #read(Path)}
+     * @return the generated files with the header
+     */
+    static List<SrcFilePojo> addTo(List<SrcFilePojo> sources, String header) {
+        if (header.isEmpty()) {
+            return sources;
+        }
+        return sources.stream()
+                .map(source -> source.getFileName().endsWith(BAL_EXTENSION)
+                        ? new SrcFilePojo(source.getType(), source.getModuleName(), source.getFileName(),
+                        header + source.getContent())
+                        : source)
+                .toList();
+    }
+
+    private static String readText(Path licensePath) {
+        if (!Files.isRegularFile(licensePath)) {
+            throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_CANNOT_READ, licensePath));
+        }
+        try {
+            return Files.readString(licensePath, StandardCharsets.UTF_8);
+        } catch (CharacterCodingException e) {
+            throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_NOT_TEXT, licensePath));
+        } catch (IOException e) {
+            throw new ToolException(ExitCodes.RUNTIME, String.format(ERROR_CANNOT_READ, licensePath));
+        }
+    }
+}
