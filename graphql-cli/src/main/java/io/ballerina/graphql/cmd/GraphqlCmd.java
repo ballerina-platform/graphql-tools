@@ -151,7 +151,8 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final String MERGE_DESCRIPTION =
             "Merge the generated service into the output files that already exist instead of overwriting them. "
                     + "Existing resolvers are kept, new ones are added, and the ones whose signature no longer matches "
-                    + "the schema are reported. Service generation only.";
+                    + "the schema are reported. Records, enums and unions in the schema are regenerated, so edits to "
+                    + "them are lost. Service generation only.";
     private static final String LICENSE_DESCRIPTION =
             "Path to a file whose content is added at the top of each generated Ballerina file, such as a copyright "
                     + "notice. It can only contain comment lines and blank lines. Client and service generation "
