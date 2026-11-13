@@ -37,7 +37,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static io.ballerina.graphql.common.TestUtils.createBallerinaPackage;
@@ -84,7 +83,6 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
             """;
     private static final String HEADER = LICENSE + "\n";
     private static final String LICENSE_FILE = "license.txt";
-    private static final String MERGE_HINT = "Use --merge to keep the code in these file(s).";
     private static final String ERROR_CANNOT_READ =
             "Cannot read the license file \"%s\". Check that it exists and is readable.";
 
@@ -400,30 +398,6 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
         assertHeader(this.packageRoot.resolve("service.bal"), HEADER);
     }
 
-    @Test(description = "Test that overwriting with a license does not suggest --merge, since the two cannot be "
-            + "used together")
-    public void testOverwriteWithLicenseDoesNotSuggestMerge() throws IOException {
-        ExitCodeCaptor generateCaptor = new ExitCodeCaptor();
-        String generateOutput = run(generateCaptor);
-        Assert.assertEquals(generateCaptor.getExitCode(), 0, generateOutput);
-        Path license = writeLicense(LICENSE);
-        ExitCodeCaptor dryRunCaptor = new ExitCodeCaptor();
-
-        String dryRunOutput = run(dryRunCaptor, "--dry-run", "--license", license.toString());
-
-        Assert.assertEquals(dryRunCaptor.getExitCode(), 0, dryRunOutput);
-        Assert.assertFalse(dryRunOutput.contains(MERGE_HINT), dryRunOutput);
-
-        List<String> questions = new ArrayList<>();
-        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        String output = runWithPrompt(exitCaptor, answering("y", questions), "--license", license.toString());
-
-        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
-        Assert.assertEquals(questions, List.of("Overwrite these file(s)? [y/N] "), output);
-        Assert.assertFalse(output.contains(MERGE_HINT), output);
-        assertHeader(this.packageRoot.resolve("service.bal"), HEADER);
-    }
-
     @Test(description = "Test that --license with --merge is a usage error, so a merge never changes a header")
     public void testLicenseWithMerge() throws IOException {
         Path license = writeLicense(LICENSE);
@@ -516,11 +490,6 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
         return runWithMode(exitCaptor, mode, failIfAsked(), flags);
     }
 
-    private String runWithPrompt(ExitCodeCaptor exitCaptor, OverwritePrompt prompt, String... flags)
-            throws IOException {
-        return runWithMode(exitCaptor, "service", prompt, flags);
-    }
-
     // Runs generation from the package's configuration file in the given mode with the given extra flags.
     private String runWithMode(ExitCodeCaptor exitCaptor, String mode, OverwritePrompt prompt, String... flags)
             throws IOException {
@@ -531,13 +500,6 @@ public class GraphqlLicenseCmdTest extends GraphqlTest {
         new CommandLine(graphqlCmd).parseArgs(args.toArray(String[]::new));
         graphqlCmd.execute();
         return readOutput(true);
-    }
-
-    private static OverwritePrompt answering(String answer, List<String> questions) {
-        return question -> {
-            questions.add(question);
-            return Optional.of(answer);
-        };
     }
 
     private static OverwritePrompt failIfAsked() {

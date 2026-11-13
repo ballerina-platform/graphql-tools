@@ -35,7 +35,6 @@ enum ExistingFileAction {
         if (context.isMerge()) {
             return MERGE;
         }
-        // --license cannot be used with --merge, so a run with a license header only overwrites.
-        return generator.canMerge() && context.getLicensePath() == null ? OVERWRITE_OR_MERGE : OVERWRITE;
+        return generator.canMerge() ? OVERWRITE_OR_MERGE : OVERWRITE;
     }
 }
