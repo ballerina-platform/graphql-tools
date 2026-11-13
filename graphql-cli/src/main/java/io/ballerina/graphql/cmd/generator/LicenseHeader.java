@@ -20,7 +20,7 @@ package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.ToolException;
-import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import io.ballerina.graphql.generator.utils.GeneratedFile;
 
 import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
@@ -98,12 +98,12 @@ final class LicenseHeader {
      * @param header  the header from {@link #read(String, Path)}
      * @return the generated files with the header
      */
-    static List<SrcFilePojo> addTo(List<SrcFilePojo> sources, String header) {
+    static List<GeneratedFile> addTo(List<GeneratedFile> sources, String header) {
         if (header.isEmpty()) {
             return sources;
         }
         return sources.stream()
-                .map(source -> new SrcFilePojo(source.getType(), source.getModuleName(), source.getFileName(),
+                .map(source -> new GeneratedFile(source.getType(), source.getModuleName(), source.getFileName(),
                         header + source.getContent()))
                 .toList();
     }

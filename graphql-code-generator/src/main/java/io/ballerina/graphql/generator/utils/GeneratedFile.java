@@ -17,9 +17,9 @@
 package io.ballerina.graphql.generator.utils;
 
 /**
- * Model class representing generated source file information.
+ * A file the tool generated: its type, module, file name and content.
  */
-public class SrcFilePojo {
+public class GeneratedFile {
     private GenFileType type;
     private String moduleName;
     private String fileName;
@@ -46,7 +46,7 @@ public class SrcFilePojo {
         }
     }
 
-    public SrcFilePojo(GenFileType type, String moduleName, String fileName, String content) {
+    public GeneratedFile(GenFileType type, String moduleName, String fileName, String content) {
         this.type = type;
         this.moduleName = moduleName;
         this.fileName = fileName;

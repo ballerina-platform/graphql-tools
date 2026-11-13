@@ -35,8 +35,8 @@ import io.ballerina.graphql.generator.client.exception.IntospectionException;
 import io.ballerina.graphql.generator.client.generator.ClientCodeGenerator;
 import io.ballerina.graphql.generator.client.pojo.Extension;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
+import io.ballerina.graphql.generator.utils.GeneratedFile;
 import io.ballerina.graphql.generator.utils.GeneratorContext;
-import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
 import org.yaml.snakeyaml.Yaml;
@@ -73,7 +73,7 @@ public class ClientGeneration implements Generator {
     private Path outputPath;
     private List<GraphqlClientProject> projects;
     private String licenseHeader;
-    private final Map<GraphqlClientProject, List<SrcFilePojo>> generatedSources = new LinkedHashMap<>();
+    private final Map<GraphqlClientProject, List<GeneratedFile>> generatedSources = new LinkedHashMap<>();
 
     public ClientGeneration(GenerationContext context, BalGraphqlConfig balGraphqlConfig) {
         this.context = context;
@@ -154,7 +154,8 @@ public class ClientGeneration implements Generator {
     public void generate() throws GenerationException {
         for (GraphqlClientProject project : this.projects) {
             try {
-                List<SrcFilePojo> sources = this.clientCodeGenerator.generateBalSources(project, GeneratorContext.CLI);
+                List<GeneratedFile> sources =
+                        this.clientCodeGenerator.generateBalSources(project, GeneratorContext.CLI);
                 this.generatedSources.put(project, LicenseHeader.addTo(sources, this.licenseHeader));
             } catch (ClientCodeGenerationException e) {
                 throw new GenerationException(e);
@@ -179,7 +180,7 @@ public class ClientGeneration implements Generator {
 
     @Override
     public void write() throws GenerationException {
-        for (Map.Entry<GraphqlClientProject, List<SrcFilePojo>> entry : this.generatedSources.entrySet()) {
+        for (Map.Entry<GraphqlClientProject, List<GeneratedFile>> entry : this.generatedSources.entrySet()) {
             GraphqlClientProject project = entry.getKey();
             Path projectOutputPath = Path.of(project.getOutputPath());
             try {

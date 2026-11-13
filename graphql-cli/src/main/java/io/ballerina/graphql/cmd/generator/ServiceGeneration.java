@@ -39,7 +39,7 @@ import io.ballerina.graphql.generator.service.merge.MergeResult.Outcome;
 import io.ballerina.graphql.generator.service.merge.ServiceMerger;
 import io.ballerina.graphql.generator.service.merge.TypesMerger;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
-import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import io.ballerina.graphql.generator.utils.GeneratedFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +82,7 @@ public class ServiceGeneration implements Generator {
     private PackageOutput packageOutput;
     private Path outputPath;
     private GraphqlServiceProject project;
-    private List<SrcFilePojo> sources;
+    private List<GeneratedFile> sources;
     private String licenseHeader;
 
     public ServiceGeneration(GenerationContext context, BalGraphqlConfig balGraphqlConfig) {
@@ -180,10 +180,10 @@ public class ServiceGeneration implements Generator {
     // The merge runs before the output files are checked and the user is asked, so a file that cannot be merged
     // stops the run before anything is asked or written (FF-4). A file that does not exist yet is created as
     // generated, and a directory in its place is left to the output file checks.
-    private List<SrcFilePojo> mergeIntoExistingFiles(List<SrcFilePojo> generatedSources)
+    private List<GeneratedFile> mergeIntoExistingFiles(List<GeneratedFile> generatedSources)
             throws ServiceGenerationException {
-        List<SrcFilePojo> mergedSources = new ArrayList<>();
-        for (SrcFilePojo source : generatedSources) {
+        List<GeneratedFile> mergedSources = new ArrayList<>();
+        for (GeneratedFile source : generatedSources) {
             Path filePath = CodeGeneratorUtils.resolveFilePath(source, this.outputPath);
             if (!Files.isRegularFile(filePath)) {
                 mergedSources.add(source);
@@ -192,13 +192,13 @@ public class ServiceGeneration implements Generator {
             MergeResult result = merge(source, readExistingFile(filePath));
             this.mergedResolvers.addAll(result.resolvers());
             this.typesNotInSchema.addAll(result.typesNotInSchema());
-            mergedSources.add(new SrcFilePojo(source.getType(), source.getModuleName(), source.getFileName(),
+            mergedSources.add(new GeneratedFile(source.getType(), source.getModuleName(), source.getFileName(),
                     result.source()));
         }
         return mergedSources;
     }
 
-    private static MergeResult merge(SrcFilePojo source, String existingSource) throws ServiceGenerationException {
+    private static MergeResult merge(GeneratedFile source, String existingSource) throws ServiceGenerationException {
         if (ServiceCodeGenerator.SERVICE_FILE_NAME.equals(source.getFileName())) {
             return ServiceMerger.merge(existingSource, source.getContent());
         }

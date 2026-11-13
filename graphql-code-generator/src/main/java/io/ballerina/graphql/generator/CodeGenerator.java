@@ -21,7 +21,7 @@ package io.ballerina.graphql.generator;
 import io.ballerina.graphql.generator.client.exception.ClientCodeGenerationException;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
-import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import io.ballerina.graphql.generator.utils.GeneratedFile;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -47,13 +47,13 @@ public abstract class CodeGenerator {
      * Writes the generated Ballerina source codes to the files in the specified {@code outputPath}. The files are
      * written together, so a failure while writing leaves the existing files as they were (FF-8).
      *
-     * @param sources    the list of generated Ballerina source file pojo
+     * @param sources    the generated files
      * @param outputPath the target output path for the code generation
      * @throws IOException If an I/O error occurs
      */
-    public void writeGeneratedSources(List<SrcFilePojo> sources, Path outputPath) throws IOException {
+    public void writeGeneratedSources(List<GeneratedFile> sources, Path outputPath) throws IOException {
         Map<Path, String> files = new LinkedHashMap<>();
-        for (SrcFilePojo file : sources) {
+        for (GeneratedFile file : sources) {
             if (file.getType().isOverwritable()) {
                 files.put(CodeGeneratorUtils.resolveFilePath(file, outputPath), file.getContent());
             }
