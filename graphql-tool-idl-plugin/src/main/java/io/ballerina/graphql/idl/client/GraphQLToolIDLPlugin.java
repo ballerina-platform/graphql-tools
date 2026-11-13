@@ -27,7 +27,7 @@ import io.ballerina.graphql.exception.ParseException;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.graphql.generator.CodeGenerator;
 import io.ballerina.graphql.generator.GeneratorContext;
-import io.ballerina.graphql.generator.model.SrcFilePojo;
+import io.ballerina.graphql.generator.model.GeneratedFile;
 import io.ballerina.graphql.idl.exception.IDLMultipleProjectException;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
@@ -104,7 +104,7 @@ public class GraphQLToolIDLPlugin extends IDLGeneratorPlugin {
                 String moduleName = idlSourceGeneratorContext.clientNode().clientPrefix().text();
                 Utils.validateGraphqlProject(projects.get(0));
                 QueryValidator.getInstance().validate(projects.get(0));
-                List<SrcFilePojo> genSrcFiles = CodeGenerator.getInstance().generateBalSources(projects.get(0),
+                List<GeneratedFile> genSrcFiles = CodeGenerator.getInstance().generateBalSources(projects.get(0),
                         GeneratorContext.IDL_PLUGIN);
                 ModuleId moduleId = ModuleId.create(moduleName, idlSourceGeneratorContext.currentPackage().packageId());
                 LinkedList<DocumentConfig> documents = new LinkedList<>();

@@ -28,7 +28,7 @@ import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.pojo.Extension;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
-import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import io.ballerina.graphql.generator.utils.GeneratedFile;
 import io.ballerina.graphql.validator.ConfigValidator;
 import io.ballerina.graphql.validator.QueryValidator;
 import io.ballerina.projects.DiagnosticResult;
@@ -270,9 +270,9 @@ public class TestUtils {
         }
     }
 
-    public static void writeSources(List<SrcFilePojo> sources, Path outputPath) throws IOException {
+    public static void writeSources(List<GeneratedFile> sources, Path outputPath) throws IOException {
         if (!sources.isEmpty()) {
-            for (SrcFilePojo file : sources) {
+            for (GeneratedFile file : sources) {
                 if (file.getType().isOverwritable()) {
                     Path filePath = CodeGeneratorUtils.getAbsoluteFilePath(file, outputPath);
                     String fileContent = file.getContent();
@@ -295,8 +295,8 @@ public class TestUtils {
     }
 
     public static void writeContentTo(String content, Path projectDir, String fileName) throws IOException {
-        SrcFilePojo srcFile = new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, "root", fileName, content);
-        List<SrcFilePojo> srcFiles = new ArrayList<>();
+        GeneratedFile srcFile = new GeneratedFile(GeneratedFile.GenFileType.MODEL_SRC, "root", fileName, content);
+        List<GeneratedFile> srcFiles = new ArrayList<>();
         srcFiles.add(srcFile);
         writeSources(srcFiles, projectDir);
     }

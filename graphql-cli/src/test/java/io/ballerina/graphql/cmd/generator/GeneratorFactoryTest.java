@@ -57,12 +57,12 @@ public class GeneratorFactoryTest {
     private GenerationContext createContext(String inputPath, OperationMode declaredOperationMode,
                                             ObjectType declaredObjectType, String serviceName) {
         return GenerationContext.builder(inputPath)
-                .declaredOperationMode(declaredOperationMode)
-                .targetOutputPath(OUTPUT_PATH)
-                .declaredObjectType(declaredObjectType)
-                .serviceName(serviceName)
-                .overwritePrompt(NOT_INTERACTIVE)
-                .outStream(System.out)
+                .withDeclaredOperationMode(declaredOperationMode)
+                .withTargetOutputPath(OUTPUT_PATH)
+                .withDeclaredObjectType(declaredObjectType)
+                .withServiceName(serviceName)
+                .withOverwritePrompt(NOT_INTERACTIVE)
+                .withOutStream(System.out)
                 .build();
     }
 

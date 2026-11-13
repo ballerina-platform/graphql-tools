@@ -22,7 +22,7 @@ import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.UnExecutableSchemaGenerator;
 import io.ballerina.graphql.generator.service.GraphqlServiceProject;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
-import io.ballerina.graphql.generator.utils.SrcFilePojo;
+import io.ballerina.graphql.generator.utils.GeneratedFile;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -148,7 +148,7 @@ public class ServiceCodeGeneratorTest {
         project.setGraphQLSchema(UnExecutableSchemaGenerator.makeUnExecutableSchema(
                 new SchemaParser().parse("type Query { book: String }")));
 
-        List<SrcFilePojo> sources = new ServiceCodeGenerator().generateBalSources(project);
+        List<GeneratedFile> sources = new ServiceCodeGenerator().generateBalSources(project);
 
         Assert.assertTrue(content(sources, TYPES_FILE).contains("type CaféApiService service object {"),
                 content(sources, TYPES_FILE));
@@ -162,7 +162,7 @@ public class ServiceCodeGeneratorTest {
                 fileName);
     }
 
-    private static String content(List<SrcFilePojo> sources, String fileName) {
+    private static String content(List<GeneratedFile> sources, String fileName) {
         return sources.stream()
                 .filter(source -> source.getFileName().equals(fileName))
                 .findFirst()

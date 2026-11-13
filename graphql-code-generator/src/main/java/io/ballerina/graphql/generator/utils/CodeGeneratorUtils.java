@@ -118,7 +118,7 @@ public class CodeGeneratorUtils {
      * @param outputPath the target output path
      * @return the path of the file to be generated
      */
-    public static Path resolveFilePath(SrcFilePojo file, Path outputPath) {
+    public static Path resolveFilePath(GeneratedFile file, Path outputPath) {
         if (file.getModuleName().equals(ROOT_PROJECT_NAME)) {
             return outputPath.resolve(file.getFileName());
         }
@@ -132,7 +132,7 @@ public class CodeGeneratorUtils {
      * @param outputPath       the target output path
      * @return                 the client file name of the client file to be generated
      */
-    public static Path getAbsoluteFilePath(SrcFilePojo file, Path outputPath) {
+    public static Path getAbsoluteFilePath(GeneratedFile file, Path outputPath) {
         Path filePath = resolveFilePath(file, outputPath);
         filePath.getParent().toFile().mkdirs();
         return filePath;

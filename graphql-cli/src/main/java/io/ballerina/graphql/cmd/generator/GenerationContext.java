@@ -38,6 +38,8 @@ public class GenerationContext {
     private final boolean force;
     private final boolean dryRun;
     private final boolean merge;
+    private final String licensePath;
+    private final Path executionPath;
     private final OverwritePrompt overwritePrompt;
     private final PrintStream outStream;
     private final DryRunReport dryRunReport = new DryRunReport();
@@ -53,6 +55,8 @@ public class GenerationContext {
         this.force = builder.force;
         this.dryRun = builder.dryRun;
         this.merge = builder.merge;
+        this.licensePath = builder.licensePath;
+        this.executionPath = builder.executionPath;
         this.overwritePrompt = builder.overwritePrompt;
         this.outStream = builder.outStream;
     }
@@ -125,6 +129,22 @@ public class GenerationContext {
         return merge;
     }
 
+    /**
+     * Returns the license file whose content is added at the top of each generated Ballerina file, or {@code null}
+     * if none was given.
+     */
+    public String getLicensePath() {
+        return licensePath;
+    }
+
+    /**
+     * Returns the directory the command was run from, which a relative path given on the command line is resolved
+     * against, or {@code null} if it is not known.
+     */
+    public Path getExecutionPath() {
+        return executionPath;
+    }
+
     public OverwritePrompt getOverwritePrompt() {
         return overwritePrompt;
     }
@@ -152,6 +172,8 @@ public class GenerationContext {
         private boolean force;
         private boolean dryRun;
         private boolean merge;
+        private String licensePath;
+        private Path executionPath;
         private OverwritePrompt overwritePrompt;
         private PrintStream outStream;
 
@@ -159,57 +181,67 @@ public class GenerationContext {
             this.inputPath = inputPath;
         }
 
-        public Builder declaredOperationMode(OperationMode declaredOperationMode) {
+        public Builder withDeclaredOperationMode(OperationMode declaredOperationMode) {
             this.declaredOperationMode = declaredOperationMode;
             return this;
         }
 
-        public Builder targetOutputPath(Path targetOutputPath) {
+        public Builder withTargetOutputPath(Path targetOutputPath) {
             this.targetOutputPath = targetOutputPath;
             return this;
         }
 
-        public Builder serviceBasePath(String serviceBasePath) {
+        public Builder withServiceBasePath(String serviceBasePath) {
             this.serviceBasePath = serviceBasePath;
             return this;
         }
 
-        public Builder declaredObjectType(ObjectType declaredObjectType) {
+        public Builder withDeclaredObjectType(ObjectType declaredObjectType) {
             this.declaredObjectType = declaredObjectType;
             return this;
         }
 
-        public Builder moduleName(String moduleName) {
+        public Builder withModuleName(String moduleName) {
             this.moduleName = moduleName;
             return this;
         }
 
-        public Builder serviceName(String serviceName) {
+        public Builder withServiceName(String serviceName) {
             this.serviceName = serviceName;
             return this;
         }
 
-        public Builder force(boolean force) {
+        public Builder withForce(boolean force) {
             this.force = force;
             return this;
         }
 
-        public Builder dryRun(boolean dryRun) {
+        public Builder withDryRun(boolean dryRun) {
             this.dryRun = dryRun;
             return this;
         }
 
-        public Builder merge(boolean merge) {
+        public Builder withMerge(boolean merge) {
             this.merge = merge;
             return this;
         }
 
-        public Builder overwritePrompt(OverwritePrompt overwritePrompt) {
+        public Builder withLicensePath(String licensePath) {
+            this.licensePath = licensePath;
+            return this;
+        }
+
+        public Builder withExecutionPath(Path executionPath) {
+            this.executionPath = executionPath;
+            return this;
+        }
+
+        public Builder withOverwritePrompt(OverwritePrompt overwritePrompt) {
             this.overwritePrompt = overwritePrompt;
             return this;
         }
 
-        public Builder outStream(PrintStream outStream) {
+        public Builder withOutStream(PrintStream outStream) {
             this.outStream = outStream;
             return this;
         }

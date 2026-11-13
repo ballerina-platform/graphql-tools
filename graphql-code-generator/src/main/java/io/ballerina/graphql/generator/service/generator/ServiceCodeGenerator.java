@@ -28,8 +28,8 @@ import io.ballerina.graphql.generator.service.emitter.TypesEmitter;
 import io.ballerina.graphql.generator.service.exception.ServiceGenerationException;
 import io.ballerina.graphql.generator.service.mapper.ServiceModelMapper;
 import io.ballerina.graphql.generator.service.model.ServiceModel;
+import io.ballerina.graphql.generator.utils.GeneratedFile;
 import io.ballerina.graphql.generator.utils.NullLocation;
-import io.ballerina.graphql.generator.utils.SrcFilePojo;
 import org.ballerinalang.formatter.core.Formatter;
 import org.ballerinalang.formatter.core.FormatterException;
 
@@ -129,7 +129,7 @@ public class ServiceCodeGenerator extends CodeGenerator {
      */
     // TODO: Remove once nothing uses it.
     @Deprecated
-    public List<SrcFilePojo> generateBalSources(GraphqlProject project) throws ServiceGenerationException {
+    public List<GeneratedFile> generateBalSources(GraphqlProject project) throws ServiceGenerationException {
         return generateBalSources(project,
                 new ServiceBaseName(project.getFileName(), ServiceBaseName.Source.SCHEMA_FILE), Map.of());
     }
@@ -147,13 +147,13 @@ public class ServiceCodeGenerator extends CodeGenerator {
      *                                    service name can be made from the base name, the service name is already
      *                                    defined in the module, or the generated code cannot be formatted
      */
-    public List<SrcFilePojo> generateBalSources(GraphqlProject project, ServiceBaseName baseName,
+    public List<GeneratedFile> generateBalSources(GraphqlProject project, ServiceBaseName baseName,
                                                 Map<String, String> moduleDefinitions)
             throws ServiceGenerationException {
         ServiceModel model = new ServiceModelMapper(project.getGraphQLSchema(), this.useRecordsForObjects,
                 this.idTypes, this.dataLoaders).map(baseName, moduleDefinitions);
         return List.of(typesSource(project.getName(), model),
-                new SrcFilePojo(SrcFilePojo.GenFileType.GEN_SRC, project.getName(), SERVICE_FILE_NAME,
+                new GeneratedFile(GeneratedFile.GenFileType.GEN_SRC, project.getName(), SERVICE_FILE_NAME,
                         format(ServiceEmitter.emit(model), ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_101)));
     }
 
@@ -171,16 +171,16 @@ public class ServiceCodeGenerator extends CodeGenerator {
      *
      * @since 0.14.0
      */
-    public SrcFilePojo generateServiceTypes(String projectName, String baseName, GraphQLSchema graphQLSchema)
+    public GeneratedFile generateServiceTypes(String projectName, String baseName, GraphQLSchema graphQLSchema)
             throws ServiceGenerationException {
         return typesSource(projectName,
                 new ServiceModelMapper(graphQLSchema, this.useRecordsForObjects, this.idTypes, this.dataLoaders)
                         .map(new ServiceBaseName(baseName, ServiceBaseName.Source.SCHEMA_FILE), Map.of()));
     }
 
-    private static SrcFilePojo typesSource(String projectName, ServiceModel model)
+    private static GeneratedFile typesSource(String projectName, ServiceModel model)
             throws ServiceGenerationException {
-        return new SrcFilePojo(SrcFilePojo.GenFileType.MODEL_SRC, projectName, TYPES_FILE_NAME,
+        return new GeneratedFile(GeneratedFile.GenFileType.MODEL_SRC, projectName, TYPES_FILE_NAME,
                 format(TypesEmitter.emit(model), ServiceDiagnosticMessages.GRAPHQL_SERVICE_GEN_102));
     }
 
