@@ -427,19 +427,19 @@ public class GraphqlCmd implements BLauncherCmd {
 
     private void executeOperation() throws GenerationException {
         GenerationContext context = GenerationContext.builder(inputPath)
-                .declaredOperationMode(OperationMode.fromModeFlag(mode).orElse(null))
-                .targetOutputPath(getTargetOutputPath())
-                .serviceBasePath(serviceBasePath)
-                .declaredObjectType(ObjectType.fromValue(objectType).orElse(null))
-                .moduleName(moduleName)
-                .serviceName(serviceName)
-                .force(force)
-                .dryRun(dryRun)
-                .merge(merge)
-                .licensePath(licensePath)
-                .executionPath(executionPath)
-                .overwritePrompt(overwritePrompt)
-                .outStream(outStream)
+                .withDeclaredOperationMode(OperationMode.fromModeFlag(mode).orElse(null))
+                .withTargetOutputPath(getTargetOutputPath())
+                .withServiceBasePath(serviceBasePath)
+                .withDeclaredObjectType(ObjectType.fromValue(objectType).orElse(null))
+                .withModuleName(moduleName)
+                .withServiceName(serviceName)
+                .withForce(force)
+                .withDryRun(dryRun)
+                .withMerge(merge)
+                .withLicensePath(licensePath)
+                .withExecutionPath(executionPath)
+                .withOverwritePrompt(overwritePrompt)
+                .withOutStream(outStream)
                 .build();
         GenerationEngine.run(context);
         if (dryRun) {

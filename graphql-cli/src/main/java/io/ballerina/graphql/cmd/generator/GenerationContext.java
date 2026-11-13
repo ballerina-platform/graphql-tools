@@ -181,67 +181,67 @@ public class GenerationContext {
             this.inputPath = inputPath;
         }
 
-        public Builder declaredOperationMode(OperationMode declaredOperationMode) {
+        public Builder withDeclaredOperationMode(OperationMode declaredOperationMode) {
             this.declaredOperationMode = declaredOperationMode;
             return this;
         }
 
-        public Builder targetOutputPath(Path targetOutputPath) {
+        public Builder withTargetOutputPath(Path targetOutputPath) {
             this.targetOutputPath = targetOutputPath;
             return this;
         }
 
-        public Builder serviceBasePath(String serviceBasePath) {
+        public Builder withServiceBasePath(String serviceBasePath) {
             this.serviceBasePath = serviceBasePath;
             return this;
         }
 
-        public Builder declaredObjectType(ObjectType declaredObjectType) {
+        public Builder withDeclaredObjectType(ObjectType declaredObjectType) {
             this.declaredObjectType = declaredObjectType;
             return this;
         }
 
-        public Builder moduleName(String moduleName) {
+        public Builder withModuleName(String moduleName) {
             this.moduleName = moduleName;
             return this;
         }
 
-        public Builder serviceName(String serviceName) {
+        public Builder withServiceName(String serviceName) {
             this.serviceName = serviceName;
             return this;
         }
 
-        public Builder force(boolean force) {
+        public Builder withForce(boolean force) {
             this.force = force;
             return this;
         }
 
-        public Builder dryRun(boolean dryRun) {
+        public Builder withDryRun(boolean dryRun) {
             this.dryRun = dryRun;
             return this;
         }
 
-        public Builder merge(boolean merge) {
+        public Builder withMerge(boolean merge) {
             this.merge = merge;
             return this;
         }
 
-        public Builder licensePath(String licensePath) {
+        public Builder withLicensePath(String licensePath) {
             this.licensePath = licensePath;
             return this;
         }
 
-        public Builder executionPath(Path executionPath) {
+        public Builder withExecutionPath(Path executionPath) {
             this.executionPath = executionPath;
             return this;
         }
 
-        public Builder overwritePrompt(OverwritePrompt overwritePrompt) {
+        public Builder withOverwritePrompt(OverwritePrompt overwritePrompt) {
             this.overwritePrompt = overwritePrompt;
             return this;
         }
 
-        public Builder outStream(PrintStream outStream) {
+        public Builder withOutStream(PrintStream outStream) {
             this.outStream = outStream;
             return this;
         }

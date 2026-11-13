@@ -334,11 +334,11 @@ public class BalGraphqlConfigGenerationTest {
     private void generateService(Path configPath, Path packagePath, String moduleName, String serviceName)
             throws IOException, ParseException, GenerationException {
         GenerationContext context = GenerationContext.builder(configPath.toString())
-                .targetOutputPath(packagePath)
-                .moduleName(moduleName)
-                .serviceName(serviceName)
-                .overwritePrompt(NOT_INTERACTIVE)
-                .outStream(System.out)
+                .withTargetOutputPath(packagePath)
+                .withModuleName(moduleName)
+                .withServiceName(serviceName)
+                .withOverwritePrompt(NOT_INTERACTIVE)
+                .withOutStream(System.out)
                 .build();
         Generator generator = new ServiceGeneration(context, readConfig(configPath));
         generator.validate();
@@ -360,10 +360,10 @@ public class BalGraphqlConfigGenerationTest {
 
     private GenerationContext createContext(Path configPath, Path targetOutputPath, ObjectType declaredObjectType) {
         return GenerationContext.builder(configPath.toString())
-                .targetOutputPath(targetOutputPath)
-                .declaredObjectType(declaredObjectType)
-                .overwritePrompt(NOT_INTERACTIVE)
-                .outStream(System.out)
+                .withTargetOutputPath(targetOutputPath)
+                .withDeclaredObjectType(declaredObjectType)
+                .withOverwritePrompt(NOT_INTERACTIVE)
+                .withOutStream(System.out)
                 .build();
     }
 
