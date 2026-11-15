@@ -134,11 +134,9 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test
-    public void testExecutionWithoutModeFlagForGraphqlFileInput() {
-        Path graphql = resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
-        String[] args = {graphql.toString(), "-o", this.tmpDir.toString()};
+    @Test(description = "Test that a service is generated from a configuration file without the mode flag")
+    public void testExecutionWithoutModeFlagForConfigInput() {
+        String[] args = {singleObjectConfig(), "-o", this.tmpDir.toString()};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -623,6 +621,34 @@ public class GraphqlCmdTest extends GraphqlTest {
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
+    }
+
+    @DataProvider(name = "schemaFileInputFlags")
+    public Object[][] createSchemaFileInputFlagsData() {
+        return new Object[][]{
+                {new String[]{}},
+                {new String[]{"--mode", "service"}},
+                {new String[]{"--object-type", "record"}},
+                {new String[]{"--service-name", "users"}},
+                {new String[]{"--merge"}},
+                {new String[]{"--dry-run"}}
+        };
+    }
+
+    @Test(description = "Test that a GraphQL schema file is rejected as input, with any flag",
+            dataProvider = "schemaFileInputFlags")
+    public void testExecuteWithSchemaFileInput(String[] flags) throws IOException {
+        String schema = resourceDir.resolve(
+                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql")).toString();
+        List<String> args = new ArrayList<>(List.of(schema, "-o", this.tmpDir.toString()));
+        args.addAll(List.of(flags));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = run(exitCaptor, args.toArray(new String[0]));
+        Assert.assertTrue(output.contains("File \"" + schema + "\" is a GraphQL schema and cannot be used as input. "
+                + "Set it as the [schema] path in a balGraphQL.toml file and pass that file instead."), output);
+        assertUsageError(output, exitCaptor);
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("service.bal")), output);
+        Assert.assertFalse(Files.exists(this.tmpDir.resolve("types.bal")), output);
     }
 
     @DataProvider(name = "mismatchModeAndFile")
