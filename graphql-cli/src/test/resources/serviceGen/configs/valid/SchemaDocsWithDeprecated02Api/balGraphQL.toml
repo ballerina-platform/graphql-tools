@@ -1,0 +1,3 @@
+[schema]
+source = "file"
+path = "../../../graphqlSchemas/valid/SchemaDocsWithDeprecated02Api.graphql"

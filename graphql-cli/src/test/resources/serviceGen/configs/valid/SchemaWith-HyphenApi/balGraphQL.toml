@@ -1,0 +1,3 @@
+[schema]
+source = "file"
+path = "../../../graphqlSchemas/valid/SchemaWith-HyphenApi.graphql"
