@@ -174,7 +174,10 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "SchemaDocsWithMultipleLinesApi.graphql", "SchemaDocsWithObjectsApi.graphql",
                 "SchemaDocsWithUnionApi.graphql", "SchemaDocsWithEnumApi.graphql", "SchemaDocsWithInputsApi.graphql",
                 "SchemaDocsWithInterfacesApi.graphql", "SchemaDocsWithDeprecated01Api.graphql",
-                "SchemaCompleteApi.graphql", "SchemaWith-HyphenApi.graphql"};
+                "SchemaCompleteApi.graphql", "SchemaWith-HyphenApi.graphql", "SchemaDocsWithDeprecated02Api.graphql",
+                "SchemaDocsWithDeprecated03Api.graphql", "SchemaWithFileUploadApi.graphql",
+                "SchemaWithIDTypeApi.graphql", "SchemaWithInputTypeDefaultParametersApi.graphql",
+                "SchemaWithListsApi.graphql"};
     }
 
     @Test(
