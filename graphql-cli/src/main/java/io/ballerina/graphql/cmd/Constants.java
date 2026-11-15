@@ -60,7 +60,6 @@ public class Constants {
     public static final String YAML_EXTENSION = ".yaml";
     public static final String YML_EXTENSION = ".yml";
     public static final String BAL_EXTENSION = ".bal";
-    public static final String GRAPHQL_EXTENSION = ".graphql";
 
     // Constants related to HTTP request
     public static final String URL_RECOGNIZER = "http";
