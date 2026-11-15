@@ -35,7 +35,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -66,7 +65,6 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.MARKDOWN_DOCUMENTATIO
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.BAL_KEYWORDS;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_CLASS_PREFIX;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_FILE_NAME;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.ESCAPE_PATTERN;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.IMPORT;
 import static io.ballerina.graphql.generator.CodeGeneratorConstants.LINE_SEPARATOR;
@@ -86,30 +84,6 @@ public class CodeGeneratorUtils {
     private static final String STAGED_FILE_SEPARATOR = "-";
     // Not ".bal", so a staged file left behind by a killed run is never compiled.
     private static final String STAGED_FILE_SUFFIX = ".tmp";
-
-    /**
-     * Gets the document name for a given document.
-     *
-     * @param documentFile     the queries document file
-     * @return                 the document name
-     */
-    public static String getDocumentName(File documentFile) {
-        return documentFile.getName().split(".graphql")[0]
-                .replaceAll("[-+.^:,]", "").substring(0, 1).toUpperCase() +
-                documentFile.getName().split(".graphql")[0]
-                        .replaceAll("[-+.^:,]", "").substring(1);
-    }
-
-    /**
-     * Gets the client file name of the client file to be generated for a given document.
-     *
-     * @param documentFile     the queries document file
-     * @return                 the client file name of the client file to be generated
-     */
-    public static String getClientFileName(File documentFile) {
-        return documentFile.getName().split(".graphql")[0]
-                .replaceAll("[-+.^:,]", "_").concat("_") + CLIENT_FILE_NAME;
-    }
 
     /**
      * Gets the path a generated source file is written to, without creating any directories.

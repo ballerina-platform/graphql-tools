@@ -33,7 +33,6 @@ public class CodeGeneratorConstants {
     public static final String GRAPHQL_FLOAT_TYPE = "Float";
     public static final String GRAPHQL_BOOLEAN_TYPE = "Boolean";
 
-    public static final String GRAPHQL_UPLOAD_TYPE = "Upload";
     public static final String ROOT_PROJECT_NAME = "root";
     public static final String MODULES_PATH = "/modules/";
     public static final String CLIENT_FILE_NAME = "client.bal";
@@ -44,12 +43,9 @@ public class CodeGeneratorConstants {
     public static final String SCHEMA_PATTERN = "schema";
     public static final String DOCUMENTS_PATTERN = "documents";
     public static final String GET = "get";
-    public static final String SUBSCRIBE = "subscribe";
     public static final String ID = "id";
 
     public static final String SLASH = "/";
-    public static final String WRITE_STRING_FORMAT = "\"%s\"";
-    public static final String DOUBLE_UNDERSCORE = "__";
     public static final String SEMICOLON = ";";
     public static final String WHITESPACE = " ";
     public static final String EMPTY_STRING = "";
@@ -61,7 +57,6 @@ public class CodeGeneratorConstants {
     public static final String NULLABLE_EXPRESSION = "()";
     public static final String IMPORT = "import";
     public static final String BALLERINA = "ballerina";
-    public static final String BALLERINAX = "ballerinax";
     public static final String HTTP = "http";
     public static final String GRAPHQL = "graphql";
     public static final String CLIENT_CLASS_PREFIX = "Graphql";
@@ -71,7 +66,6 @@ public class CodeGeneratorConstants {
     public static final String MODE_SCHEMA = "schema";
     public static final String CLIENT = "Client";
     public static final String SERVICE = "Service";
-    public static final String LISTENER = "Listener";
     public static final String GRAPHQL_CLIENT = "graphqlClient";
     public static final String INIT = "init";
     public static final String INIT_RETURN_TYPE = "graphql:ClientError";
@@ -84,18 +78,10 @@ public class CodeGeneratorConstants {
     public static final String FRAGMENT = "Fragment";
     public static final String MUTATION = "Mutation";
     public static final String QUERY = "Query";
-    public static final String SUBSCRIPTION = "Subscription";
-    public static final String REPRESENTS = "# Represents ";
-    public static final String HASH_DEPRECATED = "# Deprecated";
     public static final String RESPONSE = "Response";
     public static final String HTTP_CLIENT_CONFIG_TYPE_NAME = "graphql:ClientConfiguration";
-    public static final String CONNECTION_CONFIG_PARAM_NAME = "connectionConfig";
     public static final String SERVICE_URL_TYPE_NAME = "string";
     public static final String SERVICE_URL_PARAM_NAME = "serviceUrl";
-    public static final String GRAPHQL_RESPONSE_TYPE_NAME = "json";
-    public static final String GRAPHQL_RESPONSE_PARAM_NAME = "graphqlResponse";
-    public static final String TARGET_TYPE_PARAM_TYPE_NAME = "typedesc<graphql:DataResponse>";
-    public static final String TARGET_TYPE_PARAM_NAME = "targetType";
     public static final String GRAPHQL_CLIENT_TYPE_NAME = "graphql:Client";
     public static final String GRAPHQL_CLIENT_VAR_NAME = "clientEp";
     public static final String GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME = "graphqlClientConfig";
@@ -117,12 +103,6 @@ public class CodeGeneratorConstants {
     public static final String DISPLAY_ANNOTATION_KIND_FIELD = "kind";
     public static final String DISPLAY_ANNOTATION_KIND_PASSWORD = "password";
 
-    public static final String PORT = "port";
-    public static final String PORT_NUMBER_DEFAULT = "9090";
-    public static final String DEPRECATED = "deprecated";
-    public static final String TRUE = "true";
-    public static final String FALSE = "false";
-
     // OS specific line separator
     public static final String LINE_SEPARATOR = System.lineSeparator();
 
@@ -140,15 +120,10 @@ public class CodeGeneratorConstants {
             , "commit", "enum", "base16", "base64", "rollback", "configurable",  "class", "module", "never",
             "outer", "order", "null", "key", "let", "by", "equals"};
 
-    private static final String[] TYPES = new String[]{"int", "any", "anydata", "boolean", "byte", "float", "int",
-            "json", "string", "table", "var", "xml"};
-
     public static final List<String> BAL_KEYWORDS;
-    public static final List<String> BAL_TYPES;
 
     static {
         BAL_KEYWORDS = Collections.unmodifiableList(Arrays.asList(KEYWORDS));
-        BAL_TYPES = Collections.unmodifiableList(Arrays.asList(TYPES));
     }
 
     public static final String ESCAPE_PATTERN = "([\\[\\]\\\\?!<>@#&~`*\\-=^+();:\\/\\_{}\\s|.$])";
