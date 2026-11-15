@@ -22,6 +22,7 @@ import io.ballerina.cli.launcher.BLauncherException;
 import io.ballerina.graphql.common.GraphqlTest;
 import io.ballerina.graphql.exception.ValidationException;
 import io.ballerina.projects.DiagnosticResult;
+import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -46,6 +47,14 @@ import static io.ballerina.graphql.common.TestUtils.getValidatedMockServiceProje
  * This class includes tests for Ballerina Graphql service generation.
  */
 public class ServiceGenerationTest extends GraphqlTest {
+    private static final String CONFIG_FILE_NAME = "balGraphQL.toml";
+    private static final String UNREADABLE_SCHEMA_CONFIG = """
+            [schema]
+            source = "file"
+            path = "schema.graphql"
+            """;
+    private static final String SCHEMA_EXTENSION = ".graphql";
+
     private final Path balTomlPath =
             this.resourceDir.resolve(Paths.get("serviceGen", "expectedServices", "Ballerina.toml"));
 
@@ -74,9 +83,9 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution for service generation with invalid schema")
     public void testExecuteWithInvalidSchemaForServiceGen() {
-        Path graphqlSchema = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "invalid", "SchemaWithMissingCharApi.graphql"));
-        String[] args = {graphqlSchema.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        Path config = this.resourceDir.resolve(
+                Paths.get("serviceGen", "configs", "invalid", "SchemaWithMissingCharApi", CONFIG_FILE_NAME));
+        String[] args = {config.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
@@ -92,14 +101,15 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with invalid schema input file path")
     public void testExecuteWithSchemaInvalidFilePath() {
-        Path invalidPath =
-                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "invalid", "Schema.graphql"));
-        String[] args = {invalidPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        Path config = this.resourceDir.resolve(Paths.get("serviceGen", "configs", "missing", CONFIG_FILE_NAME));
+        Path missingSchema =
+                this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", "missing.graphql"));
+        String[] args = {config.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
-            String message = String.format(MESSAGE_MISSING_SCHEMA_FILE, invalidPath);
+            String message = String.format(MESSAGE_MISSING_SCHEMA_FILE, missingSchema);
             String output;
             graphqlCmd.execute();
             output = readOutput(true);
@@ -111,10 +121,10 @@ public class ServiceGenerationTest extends GraphqlTest {
 
     @Test(groups = {"invalid_permission"}, description = "Test GraphQL command execution with readonly output path")
     public void testExecuteWithReadOnlyOutputPath() {
-        Path graphqlSchema = this.resourceDir.resolve(
-                Paths.get("serviceGen", "graphqlSchemas", "valid", "SchemaWithSingleObjectApi.graphql"));
+        Path config = this.resourceDir.resolve(
+                Paths.get("serviceGen", "configs", "valid", "SchemaWithSingleObjectApi", CONFIG_FILE_NAME));
         Path outputPath = Paths.get(tmpDir.toString(), "new");
-        String[] args = {graphqlSchema.toString(), "-o", outputPath.toString(), "--mode", "service"};
+        String[] args = {config.toString(), "-o", outputPath.toString(), "--mode", "service"};
         File file = new File(outputPath.toString());
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
@@ -140,10 +150,13 @@ public class ServiceGenerationTest extends GraphqlTest {
             groups = {"invalid_permission"},
             description = "Test GraphQL command execution with schema file without read permission"
     )
-    public void testExecuteWithSchemaFileWithoutReadPermission() {
-        Path graphqlSchema = Paths.get(tmpDir.toString(), "schema.graphql");
-        String[] args = {graphqlSchema.toString(), "-o", tmpDir.toString(), "--mode", "service"};
+    public void testExecuteWithSchemaFileWithoutReadPermission() throws IOException {
+        // The schema is created by the test, so its configuration is written next to it.
+        Path schemaDirectory = Files.createDirectories(tmpDir.resolve("unreadable-schema"));
         try {
+            Path graphqlSchema = schemaDirectory.resolve("schema.graphql");
+            Path config = Files.writeString(schemaDirectory.resolve(CONFIG_FILE_NAME), UNREADABLE_SCHEMA_CONFIG);
+            String[] args = {config.toString(), "-o", tmpDir.toString(), "--mode", "service"};
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
@@ -154,11 +167,15 @@ public class ServiceGenerationTest extends GraphqlTest {
             graphqlCmd.execute();
             String output = readOutput(true);
             Assert.assertTrue(output.contains(message));
-        } catch (BLauncherException | IOException e) {
+        } catch (BLauncherException e) {
             Assert.fail(e.toString());
+        } finally {
+            // Removed here, since the per-test cleanup only deletes the files directly in the output directory.
+            FileUtils.deleteDirectory(schemaDirectory.toFile());
         }
     }
 
+    // Each schema here is generated from its balGraphQL.toml in serviceGen/configs/valid/<schema name>.
     @DataProvider(name = "schemaFileNames")
     public Object[] getSchemaFileNames() {
         return new Object[]{"SchemaWithSingleObjectApi.graphql", "SchemaWithMultipleObjectsApi.graphql",
@@ -180,13 +197,18 @@ public class ServiceGenerationTest extends GraphqlTest {
                 "SchemaWithListsApi.graphql"};
     }
 
+    private Path validSchemaConfig(String schemaFileName) {
+        String schemaName = schemaFileName.substring(0, schemaFileName.length() - SCHEMA_EXTENSION.length());
+        return this.resourceDir.resolve(Paths.get("serviceGen", "configs", "valid", schemaName, CONFIG_FILE_NAME));
+    }
+
     @Test(
             description = "Test compilation for all schemas with the default object type",
             dataProvider = "schemaFileNames"
     )
     public void testCompilationForAllSchemas(String file) {
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
-        String[] args = {schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
+        Path config = validSchemaConfig(file);
+        String[] args = {config.toString(), "-o", this.tmpDir.toString(), "--mode", "service"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, this.tmpDir, exitCaptor);
@@ -205,8 +227,8 @@ public class ServiceGenerationTest extends GraphqlTest {
             dataProvider = "schemaFileNames"
     )
     public void testCompilationForAllSchemasWithUseRecordsForObjects(String file) {
-        Path schemaPath = this.resourceDir.resolve(Paths.get("serviceGen", "graphqlSchemas", "valid", file));
-        String[] args = {schemaPath.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
+        Path config = validSchemaConfig(file);
+        String[] args = {config.toString(), "-o", this.tmpDir.toString(), "--mode", "service",
                 "--object-type", "record"};
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
