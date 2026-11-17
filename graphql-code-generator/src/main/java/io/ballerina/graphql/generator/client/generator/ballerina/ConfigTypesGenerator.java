@@ -40,6 +40,7 @@ import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.graphql.generator.client.exception.ConfigTypesGenerationException;
 import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfigType;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Package;
@@ -95,18 +96,18 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_LITERAL;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.AuthConfigType;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_KIND_FIELD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_KIND_PASSWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_LABEL_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DISPLAY_ANNOTATION_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.getMetadataNode;
 
 /**
  * This class is used to generate connection config related types in the ballerina config types file.
  */
 public class ConfigTypesGenerator {
+    private static final String DISPLAY_ANNOTATION_KIND_FIELD = "kind";
+    private static final String DISPLAY_ANNOTATION_KIND_PASSWORD = "password";
+    private static final String DISPLAY_ANNOTATION_LABEL_NAME = "label";
+    private static final String DISPLAY_ANNOTATION_NAME = "display";
+    private static final String EMPTY_STRING = "";
+
     private static ConfigTypesGenerator configTypesGenerator = null;
     private static final String CONNECTION_CONFIG = "ConnectionConfig";
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigTypesGenerator.class);

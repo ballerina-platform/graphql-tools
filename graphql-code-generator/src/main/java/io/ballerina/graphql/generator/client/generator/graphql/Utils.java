@@ -25,11 +25,6 @@ import graphql.language.TypeName;
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.client.generator.model.FieldType;
 
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_BOOLEAN_TYPE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_FLOAT_TYPE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_ID_TYPE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_INT_TYPE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_STRING_TYPE;
 import static io.ballerina.graphql.generator.client.generator.graphql.Constants.BALLERINA_ANYDATA_TYPE;
 import static io.ballerina.graphql.generator.client.generator.graphql.Constants.BALLERINA_BOOLEAN_TYPE;
 import static io.ballerina.graphql.generator.client.generator.graphql.Constants.BALLERINA_FLOAT_TYPE;
@@ -40,6 +35,11 @@ import static io.ballerina.graphql.generator.client.generator.graphql.Constants.
  * Utility class for GraphQL schema (SDL) reader & GraphQL query reader.
  */
 public class Utils {
+    private static final String GRAPHQL_BOOLEAN_TYPE = "Boolean";
+    private static final String GRAPHQL_FLOAT_TYPE = "Float";
+    private static final String GRAPHQL_ID_TYPE = "ID";
+    private static final String GRAPHQL_INT_TYPE = "Int";
+    private static final String GRAPHQL_STRING_TYPE = "String";
 
     /**
      * Gets the Ballerina type name for a given GraphQL type name.

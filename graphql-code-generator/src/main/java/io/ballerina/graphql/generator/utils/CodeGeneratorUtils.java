@@ -33,7 +33,6 @@ import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -62,23 +61,38 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createMetadataNode;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.DOCUMENTATION_DESCRIPTION;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.HASH_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.MARKDOWN_DOCUMENTATION_LINE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.BAL_KEYWORDS;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_CLASS_PREFIX;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ESCAPE_PATTERN;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.IMPORT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.LINE_SEPARATOR;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODULES_PATH;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SEMICOLON;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SLASH;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SPECIAL_CHAR_REGEX;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
+import static io.ballerina.graphql.generator.GraphqlProject.ROOT_PROJECT_NAME;
 
 /**
  * Utility class for GraphQL code generation.
  */
 public class CodeGeneratorUtils {
+    private static final String BALLERINA = "ballerina";
+    private static final String CLIENT = "Client";
+    private static final String CLIENT_CLASS_PREFIX = "Graphql";
+    private static final String ESCAPE_PATTERN = "([\\[\\]\\\\?!<>@#&~`*\\-=^+();:\\/\\_{}\\s|.$])";
+    private static final String GRAPHQL = "graphql";
+    private static final String IDL_PLUGIN_CLIENT = "'client";
+    private static final String IMPORT = "import";
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+    private static final String MODULES_PATH = "/modules/";
+    private static final String SEMICOLON = ";";
+    private static final String SLASH = "/";
+    private static final String SPECIAL_CHAR_REGEX = "([\\[\\]\\\\?!<>@#&~`*\\-=^+();:\\/\\_{}\\s|.$])";
+    private static final String WHITESPACE = " ";
+    // TODO: Update keywords if Ballerina Grammer changes
+    private static final List<String> BAL_KEYWORDS = List.of("abort", "aborted", "abstract", "all", "annotation",
+            "any", "anydata", "boolean", "break", "byte", "catch", "channel", "check", "checkpanic", "client",
+            "committed", "const", "continue", "decimal", "else", "error", "external", "fail", "final", "finally",
+            "float", "flush", "fork", "function", "future", "handle", "if", "import", "in", "int", "is", "join",
+            "json", "listener", "lock", "match", "new", "object", "OBJECT_INIT", "onretry", "parameter", "panic",
+            "private", "public", "record", "remote", "resource", "retries", "retry", "return", "returns", "service",
+            "source", "start", "stream", "string", "table", "transaction", "try", "type", "typedesc", "typeof",
+            "trap", "throw", "wait", "while", "with", "worker", "var", "version", "xml", "xmlns", "BOOLEAN_LITERAL",
+            "NULL_LITERAL", "ascending", "descending", "foreach", "map", "group", "from", "default", "field",
+            "limit", "as", "on", "isolated", "readonly", "distinct", "where", "select", "do", "transactional",
+            "commit", "enum", "base16", "base64", "rollback", "configurable", "class", "module", "never",
+            "outer", "order", "null", "key", "let", "by", "equals");
 
     private static final String STAGING_DIRECTORY_PREFIX = ".graphql-tool-";
     private static final String STAGED_FILE_SEPARATOR = "-";
@@ -215,7 +229,7 @@ public class CodeGeneratorUtils {
      */
     public static String getClientClassName(GeneratorContext generatorContext) {
         if (generatorContext == GeneratorContext.IDL_PLUGIN) {
-            return CodeGeneratorConstants.IDL_PLUGIN_CLIENT;
+            return IDL_PLUGIN_CLIENT;
         } else {
             return CLIENT_CLASS_PREFIX + CLIENT;
         }
@@ -289,7 +303,7 @@ public class CodeGeneratorUtils {
     public static NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();
         ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
-                CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.GRAPHQL);
+                BALLERINA, GRAPHQL);
         imports.add(importForGraphql);
         return createNodeList(imports);
     }

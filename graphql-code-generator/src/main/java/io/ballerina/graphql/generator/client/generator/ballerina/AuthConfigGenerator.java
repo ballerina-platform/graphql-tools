@@ -18,8 +18,8 @@
 
 package io.ballerina.graphql.generator.client.generator.ballerina;
 
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
+import io.ballerina.graphql.generator.client.generator.model.AuthConfigType;
 import io.ballerina.graphql.generator.client.pojo.Extension;
 
 import java.util.Map;
@@ -51,14 +51,14 @@ public class AuthConfigGenerator {
             for (String headerName : headers.keySet()) {
                 if (headerName.equals("Authorization")) {
                     if (headers.get(headerName).startsWith("Basic")) {
-                        authConfig.addAuthConfigType(CodeGeneratorConstants.AuthConfigType.BASIC);
+                        authConfig.addAuthConfigType(AuthConfigType.BASIC);
                     } else if (headers.get(headerName).startsWith("Bearer")) {
-                        authConfig.addAuthConfigType(CodeGeneratorConstants.AuthConfigType.BEARER);
+                        authConfig.addAuthConfigType(AuthConfigType.BEARER);
                     } else {
-                        authConfig.addAuthConfigType(CodeGeneratorConstants.AuthConfigType.API_KEY);
+                        authConfig.addAuthConfigType(AuthConfigType.API_KEY);
                     }
                 } else {
-                    authConfig.addAuthConfigType(CodeGeneratorConstants.AuthConfigType.API_KEY);
+                    authConfig.addAuthConfigType(AuthConfigType.API_KEY);
                 }
             }
         }

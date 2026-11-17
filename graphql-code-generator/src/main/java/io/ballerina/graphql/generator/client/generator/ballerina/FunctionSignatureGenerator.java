@@ -32,7 +32,6 @@ import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
 import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.client.generator.model.FieldType;
@@ -58,21 +57,24 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.COMMA_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.QUESTION_MARK_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RETURNS_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONFIG_PARAM_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONNECTION_CONFIG_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_EXPRESSION;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.INIT_RETURN_TYPE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.NULLABLE_EXPRESSION;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUESTION_MARK;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SERVICE_URL_TYPE_NAME;
+import static io.ballerina.graphql.generator.client.generator.ballerina.ClientGenerator.API_KEYS_CONFIG_PARAM_NAME;
+import static io.ballerina.graphql.generator.client.generator.ballerina.ClientGenerator.API_KEYS_CONFIG_TYPE_NAME;
 import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.escapeIdentifier;
 
 /**
  * This class is used to generate function signatures in the ballerina client file.
  */
 public class FunctionSignatureGenerator {
+    public static final String SERVICE_URL_PARAM_NAME = "serviceUrl";
+    private static final String CONFIG_PARAM_NAME = "config";
+    private static final String CONNECTION_CONFIG_TYPE_NAME = "ConnectionConfig";
+    private static final String EMPTY_EXPRESSION = "{}";
+    private static final String EQUAL = "=";
+    private static final String INIT_RETURN_TYPE = "graphql:ClientError";
+    private static final String NULLABLE_EXPRESSION = "()";
+    private static final String QUESTION_MARK = "?";
+    private static final String SERVICE_URL_TYPE_NAME = "string";
+
     private static FunctionSignatureGenerator functionSignatureGenerator = null;
 
     public static FunctionSignatureGenerator getInstance() {
@@ -137,7 +139,7 @@ public class FunctionSignatureGenerator {
         BuiltinSimpleNameReferenceNode httpClientConfigTypeName = createBuiltinSimpleNameReferenceNode(null,
                 createIdentifierToken(CONNECTION_CONFIG_TYPE_NAME));
         IdentifierToken httpClientConfigParamName = createIdentifierToken(CONFIG_PARAM_NAME);
-        IdentifierToken equalToken = createIdentifierToken(CodeGeneratorConstants.EQUAL);
+        IdentifierToken equalToken = createIdentifierToken(EQUAL);
         BasicLiteralNode emptyExpression = createBasicLiteralNode(null, createIdentifierToken(EMPTY_EXPRESSION));
         DefaultableParameterNode defaultConnectionConfig = createDefaultableParameterNode(annotationNodes,
                 httpClientConfigTypeName, httpClientConfigParamName, equalToken, emptyExpression);
@@ -178,7 +180,7 @@ public class FunctionSignatureGenerator {
         NodeList<AnnotationNode> annotationNodes = createEmptyNodeList();
         BuiltinSimpleNameReferenceNode serviceURLTypeName = createBuiltinSimpleNameReferenceNode(null,
                 createIdentifierToken(SERVICE_URL_TYPE_NAME));
-        IdentifierToken serviceURLParamName = createIdentifierToken(CodeGeneratorConstants.SERVICE_URL_PARAM_NAME);
+        IdentifierToken serviceURLParamName = createIdentifierToken(SERVICE_URL_PARAM_NAME);
         serviceURLNode = createRequiredParameterNode(annotationNodes, serviceURLTypeName, serviceURLParamName);
         return serviceURLNode;
     }
@@ -230,7 +232,7 @@ public class FunctionSignatureGenerator {
                 BuiltinSimpleNameReferenceNode optionalFieldTypeName = createBuiltinSimpleNameReferenceNode(null,
                         createIdentifierToken(variableDefinitionsMap.get(variableName).getFieldTypeAsString()));
                 IdentifierToken optionalFieldParamName = createIdentifierToken(escapeIdentifier(variableName));
-                IdentifierToken equalToken = createIdentifierToken(CodeGeneratorConstants.EQUAL);
+                IdentifierToken equalToken = createIdentifierToken(EQUAL);
                 BasicLiteralNode nullableExpression =
                         createBasicLiteralNode(null, createIdentifierToken(NULLABLE_EXPRESSION));
                 DefaultableParameterNode optionalFieldNode = createDefaultableParameterNode(createEmptyNodeList(),

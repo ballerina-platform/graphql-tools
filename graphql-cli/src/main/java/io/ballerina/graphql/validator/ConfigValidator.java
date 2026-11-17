@@ -43,7 +43,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_SCHEMA_URL;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISSING_SCHEMA_OR_DOCUMENTS;
 import static io.ballerina.graphql.cmd.Constants.URL_RECOGNIZER;
 import static io.ballerina.graphql.cmd.Utils.isValidURL;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+import static io.ballerina.graphql.generator.GraphqlProject.ROOT_PROJECT_NAME;
 
 /**
  * This class is used to validate the GraphQL configuration file.

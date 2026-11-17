@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+import static io.ballerina.graphql.generator.GraphqlProject.ROOT_PROJECT_NAME;
 
 /**
  * Generates a Ballerina service for a given GraphQL schema file.

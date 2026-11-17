@@ -57,7 +57,7 @@ import java.util.Map;
 
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_EMPTY_CONFIGURATION_FILE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_CONFIGURATION_FILE_CONTENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+import static io.ballerina.graphql.generator.GraphqlProject.ROOT_PROJECT_NAME;
 
 /**
  * Generates a Ballerina client for a given GraphQL configuration file.

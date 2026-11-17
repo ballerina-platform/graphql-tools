@@ -26,6 +26,8 @@ import org.apache.commons.io.FilenameUtils;
  * Represents a GraphQL project in source file.
  */
 public abstract class GraphqlProject {
+    public static final String ROOT_PROJECT_NAME = "root";
+
     private String name;
     private String schema; // Web URL or File URL
     private String outputPath;

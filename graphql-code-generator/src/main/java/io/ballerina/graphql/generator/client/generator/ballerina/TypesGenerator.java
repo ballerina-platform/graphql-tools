@@ -67,18 +67,19 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.QUESTION_MARK_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.RECORD_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.FRAGMENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.MUTATION;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.NEW_LINE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.RESPONSE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
 import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.escapeIdentifier;
 
 /**
  * This class is used to generate ballerina types file according to given SDL and query files.
  */
 public class TypesGenerator {
+    private static final String FRAGMENT = "Fragment";
+    private static final String MUTATION = "Mutation";
+    private static final String NEW_LINE = "\n";
+    private static final String QUERY = "Query";
+    private static final String RESPONSE = "Response";
+    private static final String WHITESPACE = " ";
+
     private static final Log log = LogFactory.getLog(TypesGenerator.class);
     private static TypesGenerator typesGenerator = null;
 
@@ -172,7 +173,6 @@ public class TypesGenerator {
             }
         }
     }
-
 
     /**
      * Handle a Selection and create record field nodes according to its type.

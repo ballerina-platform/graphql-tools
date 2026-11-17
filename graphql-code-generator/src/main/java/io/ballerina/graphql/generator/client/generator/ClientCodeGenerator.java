@@ -20,7 +20,6 @@ package io.ballerina.graphql.generator.client.generator;
 
 import graphql.schema.GraphQLSchema;
 import io.ballerina.graphql.generator.CodeGenerator;
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.GraphqlProject;
 import io.ballerina.graphql.generator.client.GraphqlClientProject;
 import io.ballerina.graphql.generator.client.exception.ClientCodeGenerationException;
@@ -47,6 +46,11 @@ import java.util.List;
  * Generates Ballerina client code.
  */
 public class ClientCodeGenerator extends CodeGenerator {
+    private static final String CLIENT_FILE_NAME = "client.bal";
+    private static final String CONFIG_TYPES_FILE_NAME = "config_types.bal";
+    private static final String TYPES_FILE_NAME = "types.bal";
+    private static final String UTILS_FILE_NAME = "utils.bal";
+
     @Override
     public void generate(GraphqlProject project) throws ClientCodeGenerationException {
         String outputPath = project.getOutputPath();
@@ -100,7 +104,7 @@ public class ClientCodeGenerator extends CodeGenerator {
         String clientSrc = ClientGenerator.getInstance().generateSrc(documents, schema, authConfig, generatorContext);
         sourceFiles.add(
                 new GeneratedFile(GeneratedFile.GenFileType.GEN_SRC, projectName,
-                        CodeGeneratorConstants.CLIENT_FILE_NAME, clientSrc));
+                        CLIENT_FILE_NAME, clientSrc));
     }
 
     /**
@@ -118,7 +122,7 @@ public class ClientCodeGenerator extends CodeGenerator {
         typesFileContent = ClientTypesGenerator.getInstance().generateSrc(schema, documents);
         sourceFiles.add(
                 new GeneratedFile(GeneratedFile.GenFileType.MODEL_SRC, projectName,
-                        CodeGeneratorConstants.TYPES_FILE_NAME, typesFileContent));
+                        TYPES_FILE_NAME, typesFileContent));
     }
 
     /**
@@ -134,7 +138,7 @@ public class ClientCodeGenerator extends CodeGenerator {
         String utilSrc = UtilsGenerator.getInstance().generateSrc(authConfig);
         sourceFiles.add(
                 new GeneratedFile(GeneratedFile.GenFileType.UTIL_SRC, projectName,
-                        CodeGeneratorConstants.UTILS_FILE_NAME, utilSrc));
+                        UTILS_FILE_NAME, utilSrc));
     }
 
     /**
@@ -149,6 +153,6 @@ public class ClientCodeGenerator extends CodeGenerator {
             throws ConfigTypesGenerationException {
         String configTypesSrc = ConfigTypesGenerator.getInstance().generateSrc(authConfig);
         sourceFiles.add(new GeneratedFile(GeneratedFile.GenFileType.CONFIG_SRC, projectName,
-                CodeGeneratorConstants.CONFIG_TYPES_FILE_NAME, configTypesSrc));
+                CONFIG_TYPES_FILE_NAME, configTypesSrc));
     }
 }
