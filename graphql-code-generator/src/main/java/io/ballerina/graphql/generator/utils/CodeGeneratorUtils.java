@@ -31,6 +31,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 
@@ -47,7 +48,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
@@ -80,19 +80,6 @@ public class CodeGeneratorUtils {
     private static final String SLASH = "/";
     private static final String SPECIAL_CHAR_REGEX = "([\\[\\]\\\\?!<>@#&~`*\\-=^+();:\\/\\_{}\\s|.$])";
     private static final String WHITESPACE = " ";
-    // TODO: Update keywords if Ballerina Grammer changes
-    private static final List<String> BAL_KEYWORDS = List.of("abort", "aborted", "abstract", "all", "annotation",
-            "any", "anydata", "boolean", "break", "byte", "catch", "channel", "check", "checkpanic", "client",
-            "committed", "const", "continue", "decimal", "else", "error", "external", "fail", "final", "finally",
-            "float", "flush", "fork", "function", "future", "handle", "if", "import", "in", "int", "is", "join",
-            "json", "listener", "lock", "match", "new", "object", "OBJECT_INIT", "onretry", "parameter", "panic",
-            "private", "public", "record", "remote", "resource", "retries", "retry", "return", "returns", "service",
-            "source", "start", "stream", "string", "table", "transaction", "try", "type", "typedesc", "typeof",
-            "trap", "throw", "wait", "while", "with", "worker", "var", "version", "xml", "xmlns", "BOOLEAN_LITERAL",
-            "NULL_LITERAL", "ascending", "descending", "foreach", "map", "group", "from", "default", "field",
-            "limit", "as", "on", "isolated", "readonly", "distinct", "where", "select", "do", "transactional",
-            "commit", "enum", "base16", "base64", "rollback", "configurable", "class", "module", "never",
-            "outer", "order", "null", "key", "let", "by", "equals");
 
     private static final String STAGING_DIRECTORY_PREFIX = ".graphql-tool-";
     private static final String STAGED_FILE_SEPARATOR = "-";
@@ -319,7 +306,7 @@ public class CodeGeneratorUtils {
         if (identifier.matches("\\b[0-9]*\\b")) {
             return "'" + identifier;
         } else if (!identifier.matches("\\b[_a-zA-Z][_a-zA-Z0-9]*\\b")
-                || BAL_KEYWORDS.stream().anyMatch(identifier::equals)) {
+                || SyntaxInfo.isKeyword(identifier)) {
 
             // TODO: Remove this `if`. Refer - https://github.com/ballerina-platform/ballerina-lang/issues/23045
             if (identifier.equals("error")) {
@@ -332,10 +319,7 @@ public class CodeGeneratorUtils {
                         stringBuilder.deleteCharAt(identifier.length() - 2);
                         identifier = stringBuilder.toString();
                     }
-                    if (BAL_KEYWORDS.stream().anyMatch(Optional.ofNullable(identifier)
-                            .filter(sStr -> sStr.length() != 0)
-                            .map(sStr -> sStr.substring(0, sStr.length() - 1))
-                            .orElse(identifier)::equals)) {
+                    if (SyntaxInfo.isKeyword(identifier.substring(0, identifier.length() - 1))) {
                         identifier = "'" + identifier;
                     } else {
                         return identifier;
