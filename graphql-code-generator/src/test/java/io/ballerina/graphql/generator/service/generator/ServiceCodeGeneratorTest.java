@@ -33,7 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+import static io.ballerina.graphql.generator.GraphqlProject.ROOT_PROJECT_NAME;
 
 /**
  * Tests the types and service files generated for the GraphQL schemas in the test resources.

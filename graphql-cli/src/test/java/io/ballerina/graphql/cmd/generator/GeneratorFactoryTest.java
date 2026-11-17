@@ -108,10 +108,13 @@ public class GeneratorFactoryTest {
         Assert.assertTrue(generator instanceof ClientGeneration);
     }
 
-    @Test(description = "Test generating a service generator for a GraphQL schema file")
-    public void testGetGeneratorForSchemaFile() throws GenerationException {
-        Generator generator = GeneratorFactory.getGenerator(createContext("schema.graphql"));
-        Assert.assertTrue(generator instanceof ServiceGeneration);
+    @Test(description = "Test that no generator is resolved for a GraphQL schema file")
+    public void testGetGeneratorForSchemaFileFails() {
+        GenerationException error = Assert.expectThrows(GenerationException.class,
+                () -> GeneratorFactory.getGenerator(createContext("schema.graphql")));
+
+        Assert.assertEquals(error.getMessage(),
+                "The operation to perform could not be resolved from the input \"schema.graphql\".");
     }
 
     @Test(description = "Test generating a schema generator for a Ballerina service file")

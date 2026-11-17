@@ -54,9 +54,6 @@ import java.util.regex.Pattern;
 
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DOCUMENTS_PATTERN;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SCHEMA_PATTERN;
 
 /**
  * IDL client generation class.
@@ -64,6 +61,9 @@ import static io.ballerina.graphql.generator.CodeGeneratorConstants.SCHEMA_PATTE
  * @since 0.3.0
  */
 public class GraphQLToolIDLPlugin extends IDLGeneratorPlugin {
+    private static final String DOCUMENTS_PATTERN = "documents";
+    private static final String EMPTY_STRING = "";
+    private static final String SCHEMA_PATTERN = "schema";
 
     @Override
     public void init(IDLPluginContext idlPluginContext) {

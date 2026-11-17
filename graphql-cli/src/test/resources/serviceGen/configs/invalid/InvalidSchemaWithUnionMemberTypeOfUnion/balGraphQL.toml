@@ -1,0 +1,3 @@
+[schema]
+source = "file"
+path = "../../../graphqlSchemas/invalid/InvalidSchemaWithUnionMemberTypeOfUnion.graphql"

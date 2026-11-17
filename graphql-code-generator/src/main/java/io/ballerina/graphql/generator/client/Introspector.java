@@ -34,17 +34,108 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.APPLICATION_JSON;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CONTENT_TYPE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.DATA_FIELD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ERROR_FIELD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.INTROSPECTION_QUERY;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY_VAR_NAME;
-
 /**
  * This class is used to introspect a GraphQL API.
  */
 public class Introspector {
+    private static final String APPLICATION_JSON = "application/json";
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String DATA_FIELD = "data";
+    private static final String ERROR_FIELD = "errors";
+    private static final String QUERY_VAR_NAME = "query";
+    private static final String INTROSPECTION_QUERY =
+            "    query IntrospectionQuery {\n" +
+                    "      __schema {\n" +
+                    "        queryType { name }\n" +
+                    "        mutationType { name }\n" +
+                    "        subscriptionType { name }\n" +
+                    "        types {\n" +
+                    "          ...FullType\n" +
+                    "        }\n" +
+                    "        directives {\n" +
+                    "          name\n" +
+                    "          description\n" +
+                    "          locations\n" +
+                    "          args {\n" +
+                    "            ...InputValue\n" +
+                    "          }\n" +
+                    "        }\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  \n" +
+                    "    fragment FullType on __Type {\n" +
+                    "      kind\n" +
+                    "      name\n" +
+                    "      description\n" +
+                    "      fields(includeDeprecated: true) {\n" +
+                    "        name\n" +
+                    "        description\n" +
+                    "        args {\n" +
+                    "          ...InputValue\n" +
+                    "        }\n" +
+                    "        type {\n" +
+                    "          ...TypeRef\n" +
+                    "        }\n" +
+                    "        isDeprecated\n" +
+                    "        deprecationReason\n" +
+                    "      }\n" +
+                    "      inputFields {\n" +
+                    "        ...InputValue\n" +
+                    "      }\n" +
+                    "      interfaces {\n" +
+                    "        ...TypeRef\n" +
+                    "      }\n" +
+                    "      enumValues(includeDeprecated: true) {\n" +
+                    "        name\n" +
+                    "        description\n" +
+                    "        isDeprecated\n" +
+                    "        deprecationReason\n" +
+                    "      }\n" +
+                    "      possibleTypes {\n" +
+                    "        ...TypeRef\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  \n" +
+                    "    fragment InputValue on __InputValue {\n" +
+                    "      name\n" +
+                    "      description\n" +
+                    "      type { ...TypeRef }\n" +
+                    "      defaultValue\n" +
+                    "    }\n" +
+                    "  \n" +
+                    "    fragment TypeRef on __Type {\n" +
+                    "      kind\n" +
+                    "      name\n" +
+                    "      ofType {\n" +
+                    "        kind\n" +
+                    "        name\n" +
+                    "        ofType {\n" +
+                    "          kind\n" +
+                    "          name\n" +
+                    "          ofType {\n" +
+                    "            kind\n" +
+                    "            name\n" +
+                    "            ofType {\n" +
+                    "              kind\n" +
+                    "              name\n" +
+                    "              ofType {\n" +
+                    "                kind\n" +
+                    "                name\n" +
+                    "                ofType {\n" +
+                    "                  kind\n" +
+                    "                  name\n" +
+                    "                  ofType {\n" +
+                    "                    kind\n" +
+                    "                    name\n" +
+                    "                  }\n" +
+                    "                }\n" +
+                    "              }\n" +
+                    "            }\n" +
+                    "          }\n" +
+                    "        }\n" +
+                    "      }\n" +
+                    "    }\n";
+
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
     private static Introspector introspector = null;

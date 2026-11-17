@@ -30,7 +30,6 @@ public class OperationModeTest {
 
     @Test(description = "Test resolving the operation mode from the input file extension")
     public void testFromInputPath() {
-        Assert.assertEquals(OperationMode.fromInputPath("schema.graphql"), Optional.of(OperationMode.SERVICE));
         Assert.assertEquals(OperationMode.fromInputPath("service.bal"), Optional.of(OperationMode.SCHEMA));
         Assert.assertEquals(OperationMode.fromInputPath("graphql.config.yaml"), Optional.of(OperationMode.CLIENT));
         Assert.assertEquals(OperationMode.fromInputPath("graphql.config.yml"), Optional.of(OperationMode.CLIENT));
@@ -40,12 +39,12 @@ public class OperationModeTest {
     public void testFromInputPathWithUnsupportedExtension() {
         Assert.assertTrue(OperationMode.fromInputPath("notes.txt").isEmpty());
         Assert.assertTrue(OperationMode.fromInputPath("schema").isEmpty());
+        Assert.assertTrue(OperationMode.fromInputPath("schema.graphql").isEmpty());
     }
 
     @Test(description = "Test resolving the operation mode from a path with directories")
     public void testFromInputPathWithDirectories() {
-        Assert.assertEquals(OperationMode.fromInputPath("./resources/schema.graphql"),
-                Optional.of(OperationMode.SERVICE));
+        Assert.assertTrue(OperationMode.fromInputPath("./resources/schema.graphql").isEmpty());
         Assert.assertEquals(OperationMode.fromInputPath("/home/user/project/service.bal"),
                 Optional.of(OperationMode.SCHEMA));
     }
@@ -66,7 +65,7 @@ public class OperationModeTest {
 
     @Test(description = "Test whether an input file extension is supported")
     public void testIsKnownExtension() {
-        Assert.assertTrue(OperationMode.isKnownExtension("schema.graphql"));
+        Assert.assertFalse(OperationMode.isKnownExtension("schema.graphql"));
         Assert.assertTrue(OperationMode.isKnownExtension("service.bal"));
         Assert.assertTrue(OperationMode.isKnownExtension("graphql.config.yaml"));
         Assert.assertTrue(OperationMode.isKnownExtension("graphql.config.yml"));
@@ -75,7 +74,7 @@ public class OperationModeTest {
 
     @Test(description = "Test whether each operation mode accepts only its own input file extensions")
     public void testAccepts() {
-        Assert.assertTrue(OperationMode.SERVICE.accepts("schema.graphql"));
+        Assert.assertFalse(OperationMode.SERVICE.accepts("schema.graphql"));
         Assert.assertFalse(OperationMode.SERVICE.accepts("service.bal"));
 
         Assert.assertTrue(OperationMode.SCHEMA.accepts("service.bal"));

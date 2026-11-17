@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
+import static io.ballerina.graphql.generator.GraphqlProject.ROOT_PROJECT_NAME;
 
 /**
  * Generates a Ballerina service for a given GraphQL schema file.
@@ -93,14 +93,14 @@ public class ServiceGeneration implements Generator {
     }
 
     private Map<String, String> idTypes() {
-        if (this.balGraphqlConfig == null || this.balGraphqlConfig.idTypes() == null) {
+        if (this.balGraphqlConfig.idTypes() == null) {
             return Map.of();
         }
         return this.balGraphqlConfig.idTypes();
     }
 
     private Map<String, String> dataLoaders() {
-        if (this.balGraphqlConfig == null || this.balGraphqlConfig.dataloaders() == null) {
+        if (this.balGraphqlConfig.dataloaders() == null) {
             return Map.of();
         }
         return this.balGraphqlConfig.dataloaders();
@@ -155,9 +155,6 @@ public class ServiceGeneration implements Generator {
     }
 
     private String resolveSchemaPath() {
-        if (this.balGraphqlConfig == null) {
-            return context.getInputPath();
-        }
         Path configDirectory = Paths.get(context.getInputPath()).toAbsolutePath().getParent();
         return configDirectory.resolve(this.balGraphqlConfig.schema().path()).normalize().toString();
     }
@@ -249,7 +246,7 @@ public class ServiceGeneration implements Generator {
         if (context.getServiceName() != null) {
             return new ServiceBaseName(context.getServiceName(), ServiceBaseName.Source.GIVEN);
         }
-        if (this.balGraphqlConfig == null || this.balGraphqlConfig.schema().source() == SchemaSource.FILE) {
+        if (this.balGraphqlConfig.schema().source() == SchemaSource.FILE) {
             return new ServiceBaseName(this.project.getFileName(), ServiceBaseName.Source.SCHEMA_FILE);
         }
         if (context.getModuleName() != null) {

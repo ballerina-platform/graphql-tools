@@ -25,7 +25,6 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.exception.ClientTypesGenerationException;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocuments;
@@ -46,6 +45,8 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
  * This class is used to generate the types file content.
  */
 public class ClientTypesGenerator extends TypesGenerator {
+    private static final String EMPTY_STRING = "";
+
     public static ClientTypesGenerator clientTypesGenerator = null;
 
     public static ClientTypesGenerator getInstance() {
@@ -94,7 +95,7 @@ public class ClientTypesGenerator extends TypesGenerator {
                 members,
                 createToken(EOF_TOKEN));
 
-        TextDocument textDocument = TextDocuments.from(CodeGeneratorConstants.EMPTY_STRING);
+        TextDocument textDocument = TextDocuments.from(EMPTY_STRING);
         SyntaxTree syntaxTree = SyntaxTree.from(textDocument);
         return syntaxTree.modifyWith(modulePartNode);
     }

@@ -26,21 +26,17 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static io.ballerina.graphql.cmd.Constants.BAL_EXTENSION;
-import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YAML_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.YML_EXTENSION;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_CLIENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_SCHEMA;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODE_SERVICE;
 
 /**
  * The operation mode for the GraphQL code generator.
  */
 public enum OperationMode {
 
-    CLIENT(MODE_CLIENT, Set.of(YAML_EXTENSION, YML_EXTENSION)),
-    SCHEMA(MODE_SCHEMA, Set.of(BAL_EXTENSION)),
-    SERVICE(MODE_SERVICE, Set.of(GRAPHQL_EXTENSION));
+    CLIENT("client", Set.of(YAML_EXTENSION, YML_EXTENSION)),
+    SCHEMA("schema", Set.of(BAL_EXTENSION)),
+    SERVICE("service", Set.of());
 
     private final String modeFlag;
     private final Set<String> extensions;

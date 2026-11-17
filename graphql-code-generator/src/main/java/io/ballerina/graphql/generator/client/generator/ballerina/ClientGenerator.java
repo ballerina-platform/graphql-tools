@@ -36,7 +36,6 @@ import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.Utils;
 import io.ballerina.graphql.generator.client.exception.ClientGenerationException;
 import io.ballerina.graphql.generator.client.generator.graphql.QueryReader;
@@ -80,17 +79,20 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.PUBLIC_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.READONLY_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.REMOTE_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.INIT;
 
 /**
  * This class is used to generate ballerina client file according to given SDL and query file.
  */
 public class ClientGenerator {
+    public static final String API_KEYS_CONFIG_PARAM_NAME = "apiKeysConfig";
+    public static final String API_KEYS_CONFIG_TYPE_NAME = "ApiKeysConfig";
+    public static final String GRAPHQL_CLIENT = "graphqlClient";
+    private static final String BALLERINA = "ballerina";
+    private static final String CLIENT = "Client";
+    private static final String EMPTY_STRING = "";
+    private static final String GRAPHQL = "graphql";
+    private static final String INIT = "init";
+
     private static ClientGenerator clientGenerator = null;
 
     public static ClientGenerator getInstance() {
@@ -150,7 +152,7 @@ public class ClientGenerator {
     private NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();
         ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
-                CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.GRAPHQL);
+                BALLERINA, GRAPHQL);
         imports.add(importForGraphql);
         return createNodeList(imports);
     }
@@ -309,7 +311,7 @@ public class ClientGenerator {
         NodeList<Token> qualifierList = createNodeList(finalKeywordToken);
 
         QualifiedNameReferenceNode typeName = createQualifiedNameReferenceNode(createIdentifierToken(GRAPHQL),
-                createToken(COLON_TOKEN), createIdentifierToken(CodeGeneratorConstants.CLIENT));
+                createToken(COLON_TOKEN), createIdentifierToken(CLIENT));
 
         IdentifierToken fieldName = createIdentifierToken(GRAPHQL_CLIENT);
 

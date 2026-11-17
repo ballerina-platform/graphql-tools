@@ -31,11 +31,10 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +48,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createEmptyMinutiaeList;
@@ -63,53 +61,30 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createMetadataNode;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.DOCUMENTATION_DESCRIPTION;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.HASH_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.MARKDOWN_DOCUMENTATION_LINE;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.BAL_KEYWORDS;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_CLASS_PREFIX;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_FILE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ESCAPE_PATTERN;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.IMPORT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.LINE_SEPARATOR;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.MODULES_PATH;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.ROOT_PROJECT_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SEMICOLON;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SLASH;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SPECIAL_CHAR_REGEX;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.WHITESPACE;
+import static io.ballerina.graphql.generator.GraphqlProject.ROOT_PROJECT_NAME;
 
 /**
  * Utility class for GraphQL code generation.
  */
 public class CodeGeneratorUtils {
+    private static final String BALLERINA = "ballerina";
+    private static final String CLIENT = "Client";
+    private static final String CLIENT_CLASS_PREFIX = "Graphql";
+    private static final String ESCAPE_PATTERN = "([\\[\\]\\\\?!<>@#&~`*\\-=^+();:\\/\\_{}\\s|.$])";
+    private static final String GRAPHQL = "graphql";
+    private static final String IDL_PLUGIN_CLIENT = "'client";
+    private static final String IMPORT = "import";
+    private static final String LINE_SEPARATOR = System.lineSeparator();
+    private static final String MODULES_PATH = "/modules/";
+    private static final String SEMICOLON = ";";
+    private static final String SLASH = "/";
+    private static final String SPECIAL_CHAR_REGEX = "([\\[\\]\\\\?!<>@#&~`*\\-=^+();:\\/\\_{}\\s|.$])";
+    private static final String WHITESPACE = " ";
 
     private static final String STAGING_DIRECTORY_PREFIX = ".graphql-tool-";
     private static final String STAGED_FILE_SEPARATOR = "-";
     // Not ".bal", so a staged file left behind by a killed run is never compiled.
     private static final String STAGED_FILE_SUFFIX = ".tmp";
-
-    /**
-     * Gets the document name for a given document.
-     *
-     * @param documentFile     the queries document file
-     * @return                 the document name
-     */
-    public static String getDocumentName(File documentFile) {
-        return documentFile.getName().split(".graphql")[0]
-                .replaceAll("[-+.^:,]", "").substring(0, 1).toUpperCase() +
-                documentFile.getName().split(".graphql")[0]
-                        .replaceAll("[-+.^:,]", "").substring(1);
-    }
-
-    /**
-     * Gets the client file name of the client file to be generated for a given document.
-     *
-     * @param documentFile     the queries document file
-     * @return                 the client file name of the client file to be generated
-     */
-    public static String getClientFileName(File documentFile) {
-        return documentFile.getName().split(".graphql")[0]
-                .replaceAll("[-+.^:,]", "_").concat("_") + CLIENT_FILE_NAME;
-    }
 
     /**
      * Gets the path a generated source file is written to, without creating any directories.
@@ -241,7 +216,7 @@ public class CodeGeneratorUtils {
      */
     public static String getClientClassName(GeneratorContext generatorContext) {
         if (generatorContext == GeneratorContext.IDL_PLUGIN) {
-            return CodeGeneratorConstants.IDL_PLUGIN_CLIENT;
+            return IDL_PLUGIN_CLIENT;
         } else {
             return CLIENT_CLASS_PREFIX + CLIENT;
         }
@@ -315,7 +290,7 @@ public class CodeGeneratorUtils {
     public static NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();
         ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
-                CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.GRAPHQL);
+                BALLERINA, GRAPHQL);
         imports.add(importForGraphql);
         return createNodeList(imports);
     }
@@ -331,7 +306,7 @@ public class CodeGeneratorUtils {
         if (identifier.matches("\\b[0-9]*\\b")) {
             return "'" + identifier;
         } else if (!identifier.matches("\\b[_a-zA-Z][_a-zA-Z0-9]*\\b")
-                || BAL_KEYWORDS.stream().anyMatch(identifier::equals)) {
+                || SyntaxInfo.isKeyword(identifier)) {
 
             // TODO: Remove this `if`. Refer - https://github.com/ballerina-platform/ballerina-lang/issues/23045
             if (identifier.equals("error")) {
@@ -344,10 +319,7 @@ public class CodeGeneratorUtils {
                         stringBuilder.deleteCharAt(identifier.length() - 2);
                         identifier = stringBuilder.toString();
                     }
-                    if (BAL_KEYWORDS.stream().anyMatch(Optional.ofNullable(identifier)
-                            .filter(sStr -> sStr.length() != 0)
-                            .map(sStr -> sStr.substring(0, sStr.length() - 1))
-                            .orElse(identifier)::equals)) {
+                    if (SyntaxInfo.isKeyword(identifier.substring(0, identifier.length() - 1))) {
                         identifier = "'" + identifier;
                     } else {
                         return identifier;

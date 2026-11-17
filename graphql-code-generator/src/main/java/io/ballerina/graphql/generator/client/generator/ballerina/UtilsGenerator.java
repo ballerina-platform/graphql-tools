@@ -27,7 +27,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.exception.UtilsGenerationException;
 import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
@@ -63,12 +62,15 @@ import static io.ballerina.compiler.syntax.tree.NodeFactory.createTypeDefinition
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.EOF_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.TYPE_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.EMPTY_STRING;
 
 /**
  * This class is used to generate utility functions in the ballerina utils file.
  */
 public class UtilsGenerator {
+    private static final String BALLERINA = "ballerina";
+    private static final String EMPTY_STRING = "";
+    private static final String GRAPHQL = "graphql";
+
     private static final Log log = LogFactory.getLog(UtilsGenerator.class);
     private static UtilsGenerator utilsGenerator = null;
 
@@ -152,7 +154,7 @@ public class UtilsGenerator {
     private NodeList<ImportDeclarationNode> generateImports() {
         List<ImportDeclarationNode> imports = new ArrayList<>();
         ImportDeclarationNode importForGraphql = CodeGeneratorUtils.getImportDeclarationNode(
-                CodeGeneratorConstants.BALLERINA, CodeGeneratorConstants.GRAPHQL);
+                BALLERINA, GRAPHQL);
         imports.add(importForGraphql);
         return createNodeList(imports);
     }

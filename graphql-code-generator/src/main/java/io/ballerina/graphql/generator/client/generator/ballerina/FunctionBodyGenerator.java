@@ -52,7 +52,6 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
 import io.ballerina.graphql.generator.client.generator.graphql.components.ExtendedOperationDefinition;
 import io.ballerina.graphql.generator.client.generator.model.AuthConfig;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
@@ -87,31 +86,33 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.RIGHT_ARROW_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.STRING_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.VAR_KEYWORD;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEYS_CONFIG_PARAM_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.API_KEY_CONFIG_PARAM;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLIENT_EP;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.CLONE_READ_ONLY;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.COMMA;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_CLIENT_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_RESPONSE_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARIABLES_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.GRAPHQL_VARIABLES_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HEADER_VALUES_VARIABLES_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HEADER_VALUES_VARIABLES_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_CLIENT_CONFIG_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_TYPE_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.HTTP_HEADERS_VARIABLES_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.QUERY_VAR_NAME;
-import static io.ballerina.graphql.generator.CodeGeneratorConstants.SELF;
+import static io.ballerina.graphql.generator.client.generator.ballerina.ClientGenerator.API_KEYS_CONFIG_PARAM_NAME;
+import static io.ballerina.graphql.generator.client.generator.ballerina.ClientGenerator.GRAPHQL_CLIENT;
+import static io.ballerina.graphql.generator.client.generator.ballerina.FunctionSignatureGenerator.SERVICE_URL_PARAM_NAME;
 import static io.ballerina.graphql.generator.utils.CodeGeneratorUtils.escapeIdentifier;
 
 /**
  * This class is used to generate function body's in the ballerina client file.
  */
 public class FunctionBodyGenerator {
+    private static final String API_KEY_CONFIG_PARAM = "apiKeysConfig";
+    private static final String CLIENT_EP = "clientEp";
+    private static final String CLONE_READ_ONLY = "cloneReadOnly";
+    private static final String COMMA = ",";
+    private static final String GRAPHQL_CLIENT_CONFIGURATION_VAR_NAME = "graphqlClientConfig";
+    private static final String GRAPHQL_CLIENT_TYPE_NAME = "graphql:Client";
+    private static final String GRAPHQL_CLIENT_VAR_NAME = "clientEp";
+    private static final String GRAPHQL_RESPONSE_VAR_NAME = "graphqlResponse";
+    private static final String GRAPHQL_VARIABLES_TYPE_NAME = "map<anydata>";
+    private static final String GRAPHQL_VARIABLES_VAR_NAME = "variables";
+    private static final String HEADER_VALUES_VARIABLES_TYPE_NAME = "map<any>";
+    private static final String HEADER_VALUES_VARIABLES_VAR_NAME = "headerValues";
+    private static final String HTTP_CLIENT_CONFIG_TYPE_NAME = "graphql:ClientConfiguration";
+    private static final String HTTP_HEADERS_VARIABLES_TYPE_NAME = "map<string|string[]>";
+    private static final String HTTP_HEADERS_VARIABLES_VAR_NAME = "httpHeaders";
+    private static final String QUERY_VAR_NAME = "query";
+    private static final String SELF = "self";
+
     private static FunctionBodyGenerator functionBodyGenerator = null;
 
     public static FunctionBodyGenerator getInstance() {
@@ -342,7 +343,7 @@ public class FunctionBodyGenerator {
         List<Node> argumentsList = new ArrayList<>();
         PositionalArgumentNode positionalArgumentNode01 = NodeFactory.createPositionalArgumentNode(
                 NodeFactory.createSimpleNameReferenceNode(createIdentifierToken(
-                        CodeGeneratorConstants.SERVICE_URL_PARAM_NAME)));
+                        SERVICE_URL_PARAM_NAME)));
         argumentsList.add(positionalArgumentNode01);
         Token comma1 = createIdentifierToken(COMMA);
 

@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static io.ballerina.graphql.cmd.Constants.GRAPHQL_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_FILE_EXTENSION;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_INVALID_MODE;
 import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION;
@@ -82,6 +81,10 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final String USAGE_SYNOPSIS = "Usage: bal graphql [OPTIONS] <input>";
     private static final String USAGE_HELP_POINTER = "Try 'bal graphql --help' for more information.";
     private static final String ERROR_MISSING_INPUT = "Missing required argument <input>.";
+    private static final String GRAPHQL_EXTENSION = ".graphql";
+    private static final String ERROR_SCHEMA_FILE_INPUT = "File \"%s\" is a GraphQL schema and cannot be used as "
+            + "input. Set it as the [schema] path in a " + BalGraphqlConfig.FILE_NAME
+            + " file and pass that file instead.";
     private static final ExitHandler DEFAULT_EXIT_HANDLER = code -> Runtime.getRuntime().exit(code);
     private static final String ERROR_INVALID_CONFIG_FILE_NAME =
             "The GraphQL configuration file should be named \"" + BalGraphqlConfig.FILE_NAME + "\". Found \"%s\".";
@@ -351,6 +354,10 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private void validateInputFlags() {
+        if (inputPath.endsWith(GRAPHQL_EXTENSION)) {
+            throw usageError(String.format(ERROR_SCHEMA_FILE_INPUT, inputPath));
+        }
+
         if (!validInputFileExtension(inputPath)) {
             throw usageError(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
         }
@@ -367,12 +374,12 @@ public class GraphqlCmd implements BLauncherCmd {
             if (ObjectType.fromValue(objectType).isEmpty()) {
                 throw usageError(String.format(ERROR_INVALID_OBJECT_TYPE, objectType));
             }
-            if (!inputPath.endsWith(GRAPHQL_EXTENSION) && !isConfigFileInput(inputPath)) {
+            if (!isConfigFileInput(inputPath)) {
                 throw usageError(String.format(ERROR_OBJECT_TYPE_NOT_SUPPORTED, inputPath));
             }
         }
 
-        if (serviceName != null && !inputPath.endsWith(GRAPHQL_EXTENSION) && !isConfigFileInput(inputPath)) {
+        if (serviceName != null && !isConfigFileInput(inputPath)) {
             throw usageError(String.format(ERROR_SERVICE_NAME_NOT_SUPPORTED, inputPath));
         }
 

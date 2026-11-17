@@ -18,8 +18,6 @@
 
 package io.ballerina.graphql.generator.client.generator.model;
 
-import io.ballerina.graphql.generator.CodeGeneratorConstants;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -27,7 +25,7 @@ import java.util.Set;
  * Model class representing authentication configuration information.
  */
 public class AuthConfig {
-    private final Set<CodeGeneratorConstants.AuthConfigType> authConfigTypes = new LinkedHashSet<>();
+    private final Set<AuthConfigType> authConfigTypes = new LinkedHashSet<>();
     private final Set<String> apiHeaders = new LinkedHashSet<>();
 
     /**
@@ -37,7 +35,7 @@ public class AuthConfig {
      */
     public boolean isApiKeysConfig() {
         if (getAuthConfigTypes().size() != 0) {
-            if (getAuthConfigTypes().contains(CodeGeneratorConstants.AuthConfigType.API_KEY)) {
+            if (getAuthConfigTypes().contains(AuthConfigType.API_KEY)) {
                 return true;
             }
         }
@@ -51,19 +49,19 @@ public class AuthConfig {
      */
     public boolean isClientConfig() {
         if (getAuthConfigTypes().size() != 0) {
-            if (getAuthConfigTypes().contains(CodeGeneratorConstants.AuthConfigType.BASIC) ||
-                    getAuthConfigTypes().contains(CodeGeneratorConstants.AuthConfigType.BEARER)) {
+            if (getAuthConfigTypes().contains(AuthConfigType.BASIC) ||
+                    getAuthConfigTypes().contains(AuthConfigType.BEARER)) {
                 return true;
             }
         }
         return false;
     }
 
-    public void addAuthConfigType(CodeGeneratorConstants.AuthConfigType authConfigType) {
+    public void addAuthConfigType(AuthConfigType authConfigType) {
         this.authConfigTypes.add(authConfigType);
     }
 
-    public Set<CodeGeneratorConstants.AuthConfigType> getAuthConfigTypes() {
+    public Set<AuthConfigType> getAuthConfigTypes() {
         return authConfigTypes;
     }
 
