@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.cmd;
 
+import io.ballerina.graphql.cmd.generator.OverwritePrompt;
 import io.ballerina.graphql.common.GraphqlTest;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -29,11 +30,18 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * This class is used to test the functionality of the GraphQL command.
  */
 public class SdlSchemaGenerationTest extends GraphqlTest {
+    private static final String SERVICE_FILE = "service_1.bal";
+    private static final String SCHEMA_FILE = "schema_graphql.graphql";
+    private static final String EXISTING_CONTENT = "# existing";
+    private static final String OVERWRITE_QUESTION = "Overwrite these file(s)? [y/N] ";
 
     @DataProvider(name = "serviceFileNames")
     public Object[][] dataProviderSdlGeneration() {
@@ -181,5 +189,118 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         } catch (IOException e) {
             Assert.fail(e.toString());
         }
+    }
+
+    @DataProvider(name = "dryRunFlags")
+    public Object[][] dryRunFlags() {
+        return new Object[][]{{"--dry-run"}, {"-n"}};
+    }
+
+    @Test(description = "Test that a dry run lists the schema file it would create without writing it",
+            dataProvider = "dryRunFlags")
+    public void testDryRunListsSchemaWithoutWriting(String dryRunFlag) throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "dry-run");
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(questions, "y"),
+                validService(SERVICE_FILE), "-o", outputPath.toString(), dryRunFlag);
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(output.contains("Dry run: no files were written."), output);
+        Assert.assertTrue(output.contains("  create     " + displayPath(outputPath.resolve(SCHEMA_FILE))), output);
+        Assert.assertTrue(output.contains("1 to create, 0 to overwrite."), output);
+        Assert.assertTrue(questions.isEmpty(), output);
+        Assert.assertFalse(Files.exists(outputPath.resolve(SCHEMA_FILE)), output);
+    }
+
+    @Test(description = "Test that an existing schema file is overwritten when the user agrees")
+    public void testExistingSchemaOverwrittenWhenAgreed() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "prompt-yes");
+        Path schemaFile = Files.writeString(outputPath.resolve(SCHEMA_FILE), EXISTING_CONTENT);
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(questions, "y"),
+                validService(SERVICE_FILE), "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(questions, List.of(OVERWRITE_QUESTION), output);
+        Assert.assertEquals(readContentWithFormat(schemaFile), expectedSchema(SCHEMA_FILE));
+    }
+
+    @Test(description = "Test that an existing schema file is kept when the user declines")
+    public void testExistingSchemaKeptWhenDeclined() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "prompt-no");
+        Path schemaFile = Files.writeString(outputPath.resolve(SCHEMA_FILE), EXISTING_CONTENT);
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(questions, "n"),
+                validService(SERVICE_FILE), "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 4, output);
+        Assert.assertEquals(questions, List.of(OVERWRITE_QUESTION), output);
+        Assert.assertTrue(output.contains("No files were written."), output);
+        Assert.assertEquals(Files.readString(schemaFile), EXISTING_CONTENT);
+    }
+
+    @Test(description = "Test that an existing schema file is kept when the run cannot ask")
+    public void testExistingSchemaKeptWhenNotInteractive() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "not-interactive");
+        Path schemaFile = Files.writeString(outputPath.resolve(SCHEMA_FILE), EXISTING_CONTENT);
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, question -> Optional.empty(),
+                validService(SERVICE_FILE), "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 4, output);
+        Assert.assertTrue(output.contains("The following file(s) already exist." + System.lineSeparator()
+                + "  " + displayPath(schemaFile)), output);
+        Assert.assertTrue(output.contains("Cannot ask to overwrite these file(s) in a non-interactive run. "
+                + "Use --force to overwrite them."), output);
+        Assert.assertEquals(Files.readString(schemaFile), EXISTING_CONTENT);
+    }
+
+    @Test(description = "Test that an existing schema file is overwritten with the force flag without asking")
+    public void testExistingSchemaOverwrittenWithForce() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "force");
+        Path schemaFile = Files.writeString(outputPath.resolve(SCHEMA_FILE), EXISTING_CONTENT);
+        List<String> questions = new ArrayList<>();
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(questions, "n"),
+                validService(SERVICE_FILE), "-o", outputPath.toString(), "--force");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(questions.isEmpty(), output);
+        Assert.assertEquals(readContentWithFormat(schemaFile), expectedSchema(SCHEMA_FILE));
+    }
+
+    private String run(ExitCodeCaptor exitCaptor, OverwritePrompt overwritePrompt, String... args)
+            throws IOException {
+        GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, printStream, this.tmpDir, exitCaptor, overwritePrompt);
+        new CommandLine(graphqlCmd).parseArgs(args);
+        graphqlCmd.execute();
+        return readOutput(true);
+    }
+
+    private static OverwritePrompt recordingPrompt(List<String> questions, String answer) {
+        return question -> {
+            questions.add(question);
+            return Optional.of(answer);
+        };
+    }
+
+    private String validService(String serviceFile) {
+        return resourceDir.resolve(Paths.get("graphqlServices", "valid", serviceFile)).toString();
+    }
+
+    private String expectedSchema(String schemaFile) throws IOException {
+        return readContentWithFormat(resourceDir.resolve(Paths.get("expectedSchemas", schemaFile)));
+    }
+
+    private static Path displayPath(Path filePath) {
+        return Path.of("").toAbsolutePath().relativize(filePath.toAbsolutePath());
     }
 }
