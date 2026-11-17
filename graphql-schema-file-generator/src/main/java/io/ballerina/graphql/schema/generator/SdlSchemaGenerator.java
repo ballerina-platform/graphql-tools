@@ -27,8 +27,8 @@ import io.ballerina.compiler.syntax.tree.ObjectConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
-import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
+import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
+import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
@@ -71,12 +71,12 @@ public class SdlSchemaGenerator {
     private SdlSchemaGenerator() {}
 
     public static void generate(Path filePath, Path outPath, String serviceBasePath, PrintStream outStream)
-            throws SchemaFileGenerationException {
+            throws SchemaGenerationException {
         writeSchemaFiles(generateSchemaDefinitions(filePath, serviceBasePath), outPath, outStream);
     }
 
     public static List<SdlSchema> generateSchemaDefinitions(Path filePath, String serviceBasePath)
-            throws SchemaFileGenerationException {
+            throws SchemaGenerationException {
         Project project = ProjectLoader.loadProject(filePath);
         PackageCompilation compilation = getPackageCompilation(project);
         Package packageName = project.currentPackage();
@@ -98,12 +98,12 @@ public class SdlSchemaGenerator {
     }
 
     public static void writeSchemaFiles(List<SdlSchema> schemaDefinitions, Path outPath, PrintStream outStream)
-            throws SchemaFileGenerationException {
+            throws SchemaGenerationException {
         List<String> fileNames = new ArrayList<>();
         for (SdlSchema definition : schemaDefinitions) {
-            String fileName = definition.getName();
+            String fileName = definition.name();
             createOutputDirectory(outPath);
-            writeFile(outPath.resolve(fileName), definition.getSchema());
+            writeFile(outPath.resolve(fileName), definition.schema());
             fileNames.add(fileName);
         }
         if (fileNames.isEmpty()) {
@@ -118,7 +118,7 @@ public class SdlSchemaGenerator {
     }
 
     private static List<SdlSchema> generateSdlSchema(SyntaxTree syntaxTree, SemanticModel semanticModel,
-                                                     String serviceBasePath) throws SchemaFileGenerationException {
+                                                     String serviceBasePath) throws SchemaGenerationException {
         Map<String, String> servicesToGenerate = new HashMap<>();
         List<String> availableServices = new ArrayList<>();
         List<SdlSchema> outputs = new ArrayList<>();
@@ -128,7 +128,7 @@ public class SdlSchemaGenerator {
                 servicesToGenerate);
         // If there are no services found for a given service name.
         if (serviceBasePath != null && servicesToGenerate.isEmpty()) {
-            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_101, null, serviceBasePath,
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_101, null, serviceBasePath,
                     availableServices.toString());
         }
         // Generating schema for selected services
@@ -151,7 +151,7 @@ public class SdlSchemaGenerator {
     public static void extractSchemaStringsFromServices(String serviceBasePath, ModulePartNode modulePartNode,
                                                         SemanticModel semanticModel, List<String> availableServices,
                                                         Map<String, String> schemasToGenerate)
-                                                        throws SchemaFileGenerationException {
+                                                        throws SchemaGenerationException {
         int duplicateCount = 0;
         for (Node node : modulePartNode.members()) {
             SyntaxKind syntaxKind = node.kind();
@@ -214,7 +214,7 @@ public class SdlSchemaGenerator {
         }
     }
 
-    private static PackageCompilation getPackageCompilation(Project project) throws SchemaFileGenerationException {
+    private static PackageCompilation getPackageCompilation(Project project) throws SchemaGenerationException {
         DiagnosticResult diagnosticResult = project.currentPackage().runCodeGenAndModifyPlugins();
         boolean hasErrors = diagnosticResult
                 .diagnostics().stream()
@@ -228,6 +228,6 @@ public class SdlSchemaGenerator {
                 return compilation;
             }
         }
-        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_100, null);
+        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_100, null);
     }
 }

@@ -32,8 +32,8 @@ import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
-import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
+import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
+import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 import io.ballerina.stdlib.graphql.commons.types.Schema;
 import org.apache.commons.io.FilenameUtils;
 
@@ -92,17 +92,17 @@ public final class Utils {
         return formatBasePath(currentServiceName.toString().trim());
     }
 
-    public static String getSchemaString(ServiceDeclarationNode node) throws SchemaFileGenerationException {
+    public static String getSchemaString(ServiceDeclarationNode node) throws SchemaGenerationException {
         if (node.metadata().isPresent()) {
             if (!node.metadata().get().annotations().isEmpty()) {
                 MappingConstructorExpressionNode annotationValue = getAnnotationValue(node.metadata().get());
                 return getSchemaStringFieldFromValue(annotationValue);
             }
         }
-        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
+        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
     }
 
-    public static String getSchemaString(ObjectConstructorExpressionNode node) throws SchemaFileGenerationException {
+    public static String getSchemaString(ObjectConstructorExpressionNode node) throws SchemaGenerationException {
         if (!node.annotations().isEmpty()) {
             for (AnnotationNode annotationNode: node.annotations()) {
                 if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
@@ -110,22 +110,22 @@ public final class Utils {
                 }
             }
         }
-        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
+        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
     }
 
     private static MappingConstructorExpressionNode getAnnotationValue(MetadataNode metadataNode)
-            throws SchemaFileGenerationException {
+            throws SchemaGenerationException {
         for (AnnotationNode annotationNode: metadataNode.annotations()) {
             if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
                 return annotationNode.annotValue().get();
             }
         }
-        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
                 MESSAGE_MISSING_SERVICE_CONFIG);
     }
 
     private static String getSchemaStringFieldFromValue(MappingConstructorExpressionNode annotationValue)
-            throws SchemaFileGenerationException {
+            throws SchemaGenerationException {
         SeparatedNodeList<MappingFieldNode> existingFields = annotationValue.fields();
         for (MappingFieldNode field : existingFields) {
             if (field.children().get(0).toString().contains(SCHEMA_STRING_FIELD)) {
@@ -133,7 +133,7 @@ public final class Utils {
                 return schemaString.substring(1, schemaString.length() - 1);
             }
         }
-        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
                 MESSAGE_MISSING_FIELD_SCHEMA_STRING);
     }
 
@@ -181,9 +181,9 @@ public final class Utils {
         return basePath;
     }
 
-    public static Schema getDecodedSchema(String schemaString) throws SchemaFileGenerationException {
+    public static Schema getDecodedSchema(String schemaString) throws SchemaGenerationException {
         if (schemaString == null || schemaString.isBlank() || schemaString.isEmpty()) {
-            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
                     MESSAGE_INVALID_SCHEMA_STRING);
         }
         byte[] decodedString = Base64.getDecoder().decode(schemaString.getBytes(StandardCharsets.UTF_8));
@@ -192,16 +192,16 @@ public final class Utils {
             ObjectInputStream inputStream = new ObjectInputStream(byteStream);
             return (Schema) inputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_102, null,
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
                     MESSAGE_CANNOT_READ_SCHEMA_STRING);
         }
     }
 
-    public static void writeFile(Path filePath, String content) throws SchemaFileGenerationException {
+    public static void writeFile(Path filePath, String content) throws SchemaGenerationException {
         try (FileWriter writer = new FileWriter(filePath.toString(), StandardCharsets.UTF_8)) {
             writer.write(content);
         } catch (IOException e) {
-            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage());
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage());
         }
     }
 

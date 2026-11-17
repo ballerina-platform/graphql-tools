@@ -19,8 +19,8 @@
 package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.exception.GenerationException;
-import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
-import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
+import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
+import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 import io.ballerina.graphql.schema.generator.SdlSchema;
 import io.ballerina.graphql.schema.generator.SdlSchemaGenerator;
 
@@ -50,18 +50,18 @@ public class SchemaGeneration implements Generator {
     public void validate() throws GenerationException {
         File balFile = new File(context.getInputPath());
         if (!balFile.exists()) {
-            throw new GenerationException(new SchemaFileGenerationException(
-                    DiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_MISSING_BAL_FILE));
+            throw new GenerationException(new SchemaGenerationException(
+                    SchemaDiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_MISSING_BAL_FILE));
         }
         if (!balFile.canRead()) {
-            throw new GenerationException(new SchemaFileGenerationException(
-                    DiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_CANNOT_READ_BAL_FILE));
+            throw new GenerationException(new SchemaGenerationException(
+                    SchemaDiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_CANNOT_READ_BAL_FILE));
         }
         try {
             this.balFilePath = Paths.get(balFile.getCanonicalPath());
         } catch (IOException e) {
-            throw new GenerationException(new SchemaFileGenerationException(
-                    DiagnosticMessages.SDL_SCHEMA_103, null, e.toString()));
+            throw new GenerationException(new SchemaGenerationException(
+                    SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.toString()));
         }
     }
 
@@ -70,21 +70,21 @@ public class SchemaGeneration implements Generator {
         try {
             this.schemas = SdlSchemaGenerator.generateSchemaDefinitions(this.balFilePath,
                     context.getServiceBasePath());
-        } catch (SchemaFileGenerationException e) {
+        } catch (SchemaGenerationException e) {
             throw new GenerationException(e);
         }
     }
 
     @Override
     public List<Path> outputFiles() {
-        return this.schemas.stream().map(schema -> context.getTargetOutputPath().resolve(schema.getName())).toList();
+        return this.schemas.stream().map(schema -> context.getTargetOutputPath().resolve(schema.name())).toList();
     }
 
     @Override
     public void write() throws GenerationException {
         try {
             SdlSchemaGenerator.writeSchemaFiles(this.schemas, context.getTargetOutputPath(), context.getOutStream());
-        } catch (SchemaFileGenerationException e) {
+        } catch (SchemaGenerationException e) {
             throw new GenerationException(e);
         }
     }
