@@ -24,68 +24,140 @@ import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.directory.ProjectLoader;
+import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 /**
- * A compiled Ballerina file that the SDL schema is generated from.
+ * The compiled Ballerina source that the SDL schemas are generated from: a standalone Ballerina file, the default
+ * module of a package, or one module of a package.
  *
- * @param syntaxTree    the syntax tree of the file
- * @param semanticModel the semantic model of the module that holds the file
+ * @param documents the Ballerina files of the source, in file name order
  */
-public record SchemaProject(SyntaxTree syntaxTree, SemanticModel semanticModel) {
+public record SchemaProject(List<SchemaDocument> documents) {
 
     private static final String ERROR_MISSING_FILE = "Provided Ballerina file path does not exist";
     private static final String ERROR_CANNOT_READ_FILE = "Cannot read provided Ballerina file (Permission denied)";
+    private static final String ERROR_FILE_IN_PACKAGE =
+            "\"%s\" is part of the package \"%s\". Pass the package folder or a module folder instead.";
+    private static final String ERROR_NOT_PACKAGE_OR_MODULE = "\"%s\" is not a Ballerina package or module folder.";
 
     /**
-     * Checks that the given Ballerina file can be read, then loads and compiles it.
+     * A compiled Ballerina file of the source.
      *
-     * @param filePath the path of the Ballerina file
-     * @return the compiled file
-     * @throws SchemaGenerationException if the file cannot be read or has compilation errors
+     * @param syntaxTree    the syntax tree of the file
+     * @param semanticModel the semantic model of the module that holds the file
      */
-    public static SchemaProject load(Path filePath) throws SchemaGenerationException {
-        Path balFilePath = toReadablePath(filePath);
-        Project project = ProjectLoader.loadProject(balFilePath);
-        PackageCompilation compilation = compile(project);
-        DocumentId documentId = findDocumentId(project, balFilePath);
-        Document document = project.currentPackage().module(documentId.moduleId()).document(documentId);
-        return new SchemaProject(document.syntaxTree(), compilation.getSemanticModel(documentId.moduleId()));
+    public record SchemaDocument(SyntaxTree syntaxTree, SemanticModel semanticModel) {
     }
 
-    private static Path toReadablePath(Path filePath) throws SchemaGenerationException {
-        File balFile = filePath.toFile();
-        if (!balFile.exists()) {
+    /**
+     * Loads and compiles the given input. A standalone Ballerina file is taken as it is, a package folder gives its
+     * default module, and a folder under the modules folder of a package gives that module.
+     *
+     * @param inputPath the path of a standalone Ballerina file, a package folder or a module folder
+     * @return the compiled source
+     * @throws SchemaGenerationException if the input cannot be read, is a file inside a package, is a folder that is
+     *                                   not a package or module, or has compilation errors
+     */
+    public static SchemaProject load(Path inputPath) throws SchemaGenerationException {
+        Path path = toReadablePath(inputPath);
+        if (!Files.isDirectory(path)) {
+            return loadFile(inputPath, path);
+        }
+        if (Files.isRegularFile(path.resolve(ProjectConstants.BALLERINA_TOML))) {
+            Project project = loadProject(path);
+            return fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());
+        }
+        if (isModuleFolder(path)) {
+            Project project = loadProject(path.getParent().getParent());
+            Optional<ModuleId> moduleId = findModule(project, path.getFileName().toString());
+            if (moduleId.isPresent()) {
+                return fromModule(project, compile(project), moduleId.get());
+            }
+        }
+        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
+                String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
+    }
+
+    private static SchemaProject loadFile(Path inputPath, Path filePath) throws SchemaGenerationException {
+        Project project = loadProject(filePath);
+        if (project.kind() == ProjectKind.BUILD_PROJECT) {
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
+                    String.format(ERROR_FILE_IN_PACKAGE, inputPath, project.currentPackage().packageName().value()));
+        }
+        return fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());
+    }
+
+    private static Path toReadablePath(Path inputPath) throws SchemaGenerationException {
+        File input = inputPath.toFile();
+        if (!input.exists()) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, ERROR_MISSING_FILE);
         }
-        if (!balFile.canRead()) {
+        if (!input.canRead()) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
                     ERROR_CANNOT_READ_FILE);
         }
         try {
-            return Paths.get(balFile.getCanonicalPath());
+            return Paths.get(input.getCanonicalPath());
         } catch (IOException e) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
         }
     }
 
-    private static DocumentId findDocumentId(Project project, Path balFilePath) {
-        if (project.kind() == ProjectKind.BUILD_PROJECT) {
-            return project.documentId(balFilePath);
+    private static boolean isModuleFolder(Path folder) {
+        Path modulesFolder = folder.getParent();
+        if (modulesFolder == null || modulesFolder.getParent() == null
+                || !ProjectConstants.MODULES_ROOT.equals(modulesFolder.getFileName().toString())) {
+            return false;
         }
-        Module defaultModule = project.currentPackage().getDefaultModule();
-        return defaultModule.documentIds().iterator().next();
+        return Files.isRegularFile(modulesFolder.getParent().resolve(ProjectConstants.BALLERINA_TOML));
+    }
+
+    private static Optional<ModuleId> findModule(Project project, String moduleFolderName) {
+        for (ModuleId moduleId : project.currentPackage().moduleIds()) {
+            Module module = project.currentPackage().module(moduleId);
+            if (moduleFolderName.equals(module.moduleName().moduleNamePart())) {
+                return Optional.of(moduleId);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static Project loadProject(Path path) throws SchemaGenerationException {
+        try {
+            return ProjectLoader.loadProject(path);
+        } catch (ProjectException e) {
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage());
+        }
+    }
+
+    // The module is read from the package after compiling, since the GraphQL compiler plugin adds the encoded
+    // schemas to the syntax trees while compiling.
+    private static SchemaProject fromModule(Project project, PackageCompilation compilation, ModuleId moduleId) {
+        Module module = project.currentPackage().module(moduleId);
+        SemanticModel semanticModel = compilation.getSemanticModel(moduleId);
+        List<SchemaDocument> documents = module.documentIds().stream()
+                .map(module::document)
+                .sorted(Comparator.comparing(Document::name))
+                .map(document -> new SchemaDocument(document.syntaxTree(), semanticModel))
+                .toList();
+        return new SchemaProject(documents);
     }
 
     private static PackageCompilation compile(Project project) throws SchemaGenerationException {

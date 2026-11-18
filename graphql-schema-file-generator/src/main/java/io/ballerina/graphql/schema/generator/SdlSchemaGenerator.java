@@ -55,7 +55,7 @@ public class SdlSchemaGenerator {
 
     private static List<SdlSchema> generateSdlSchema(SchemaProject project, String serviceBasePath)
             throws SchemaGenerationException {
-        Map<String, String> servicesToGenerate = new HashMap<>();
+        Map<String, GraphqlService> servicesToGenerate = new HashMap<>();
         List<String> availableServices = new ArrayList<>();
         int duplicateCount = 0;
         for (GraphqlService service : GraphqlServiceFinder.find(project)) {
@@ -69,12 +69,12 @@ public class SdlSchemaGenerator {
                 serviceName = getUpdatedServiceName(serviceName, duplicateCount);
             }
             if (serviceBasePath == null) {
-                servicesToGenerate.put(serviceName, service.encodedSchema());
+                servicesToGenerate.put(serviceName, service);
                 continue;
             }
             availableServices.add(service.basePath());
             if (formatBasePath(serviceBasePath).equals(service.basePath())) {
-                servicesToGenerate.put(serviceName, service.encodedSchema());
+                servicesToGenerate.put(serviceName, service);
             }
         }
         if (serviceBasePath != null && servicesToGenerate.isEmpty()) {
@@ -82,9 +82,9 @@ public class SdlSchemaGenerator {
                     availableServices.toString());
         }
         List<SdlSchema> outputs = new ArrayList<>();
-        for (Map.Entry<String, String> schema : servicesToGenerate.entrySet()) {
-            String sdlFileName = SchemaFileName.of(project.syntaxTree().filePath(), schema.getKey());
-            Schema schemaObject = decodeSchema(schema.getValue());
+        for (Map.Entry<String, GraphqlService> schema : servicesToGenerate.entrySet()) {
+            String sdlFileName = SchemaFileName.of(schema.getValue().filePath(), schema.getKey());
+            Schema schemaObject = decodeSchema(schema.getValue().encodedSchema());
             outputs.add(new SdlSchema(sdlFileName, SdlSchemaStringGenerator.generate(schemaObject)));
         }
         return outputs;

@@ -35,6 +35,7 @@ import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.schema.SchemaProject;
+import io.ballerina.graphql.schema.SchemaProject.SchemaDocument;
 import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 
@@ -67,34 +68,46 @@ final class GraphqlServiceFinder {
      * @param basePath      the base path, empty for the root path and for a service object
      * @param encodedSchema the encoded schema the GraphQL compiler plugin added to the service
      * @param serviceObject whether the service is a service object assigned to a module-level variable
+     * @param filePath      the path of the Ballerina file that holds the service
      */
-    record GraphqlService(String basePath, String encodedSchema, boolean serviceObject) {
+    record GraphqlService(String basePath, String encodedSchema, boolean serviceObject, String filePath) {
     }
 
     private GraphqlServiceFinder() {
     }
 
     /**
-     * Finds the GraphQL services in the order they are declared in the file.
+     * Finds the GraphQL services of every file, in the order they are declared.
      *
-     * @param project the compiled Ballerina file
+     * @param project the compiled Ballerina source
      * @return the GraphQL services
      * @throws SchemaGenerationException if a service has no encoded schema
      */
     static List<GraphqlService> find(SchemaProject project) throws SchemaGenerationException {
         List<GraphqlService> services = new ArrayList<>();
-        ModulePartNode modulePartNode = project.syntaxTree().rootNode();
+        for (SchemaDocument document : project.documents()) {
+            services.addAll(find(document));
+        }
+        return services;
+    }
+
+    private static List<GraphqlService> find(SchemaDocument document) throws SchemaGenerationException {
+        List<GraphqlService> services = new ArrayList<>();
+        String filePath = document.syntaxTree().filePath();
+        ModulePartNode modulePartNode = document.syntaxTree().rootNode();
         for (Node member : modulePartNode.members()) {
             if (member.kind() == SyntaxKind.SERVICE_DECLARATION) {
                 ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) member;
-                if (isGraphqlService(serviceNode, project.semanticModel())) {
-                    services.add(new GraphqlService(getBasePath(serviceNode), getSchemaString(serviceNode), false));
+                if (isGraphqlService(serviceNode, document.semanticModel())) {
+                    services.add(new GraphqlService(getBasePath(serviceNode), getSchemaString(serviceNode), false,
+                            filePath));
                 }
             } else if (member.kind() == SyntaxKind.MODULE_VAR_DECL) {
                 Optional<ObjectConstructorExpressionNode> serviceObject =
                         getServiceObject((ModuleVariableDeclarationNode) member);
                 if (serviceObject.isPresent()) {
-                    services.add(new GraphqlService(NO_BASE_PATH, getSchemaString(serviceObject.get()), true));
+                    services.add(new GraphqlService(NO_BASE_PATH, getSchemaString(serviceObject.get()), true,
+                            filePath));
                 }
             }
         }
