@@ -18,18 +18,10 @@
 
 package io.ballerina.graphql.schema.generator;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.ObjectConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.schema.SchemaProject;
 import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
+import io.ballerina.graphql.schema.generator.GraphqlServiceFinder.GraphqlService;
 import io.ballerina.stdlib.graphql.commons.types.Schema;
 import io.ballerina.stdlib.graphql.commons.utils.SdlSchemaStringGenerator;
 
@@ -41,17 +33,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.graphql.schema.Constants.EMPTY_STRING;
 import static io.ballerina.graphql.schema.Constants.PERIOD;
+import static io.ballerina.graphql.schema.generator.GraphqlServiceFinder.formatBasePath;
 import static io.ballerina.graphql.schema.utils.Utils.createOutputDirectory;
-import static io.ballerina.graphql.schema.utils.Utils.formatBasePath;
 import static io.ballerina.graphql.schema.utils.Utils.getDecodedSchema;
-import static io.ballerina.graphql.schema.utils.Utils.getSchemaString;
 import static io.ballerina.graphql.schema.utils.Utils.getSdlFileName;
-import static io.ballerina.graphql.schema.utils.Utils.getServiceBasePath;
-import static io.ballerina.graphql.schema.utils.Utils.isGraphqlService;
 import static io.ballerina.graphql.schema.utils.Utils.writeFile;
-import static io.ballerina.stdlib.graphql.commons.utils.Utils.isGraphQLServiceObjectDeclaration;
 
 /**
  * This class implements the GraphQL SDL schema generation.
@@ -68,7 +55,7 @@ public class SdlSchemaGenerator {
 
     public static List<SdlSchema> generateSchemaDefinitions(SchemaProject project, String serviceBasePath)
             throws SchemaGenerationException {
-        return generateSdlSchema(project.syntaxTree(), project.semanticModel(), serviceBasePath);
+        return generateSdlSchema(project, serviceBasePath);
     }
 
     public static void writeSchemaFiles(List<SdlSchema> schemaDefinitions, Path outPath, PrintStream outStream)
@@ -91,93 +78,41 @@ public class SdlSchemaGenerator {
         }
     }
 
-    private static List<SdlSchema> generateSdlSchema(SyntaxTree syntaxTree, SemanticModel semanticModel,
-                                                     String serviceBasePath) throws SchemaGenerationException {
+    private static List<SdlSchema> generateSdlSchema(SchemaProject project, String serviceBasePath)
+            throws SchemaGenerationException {
         Map<String, String> servicesToGenerate = new HashMap<>();
         List<String> availableServices = new ArrayList<>();
-        List<SdlSchema> outputs = new ArrayList<>();
-
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        extractSchemaStringsFromServices(serviceBasePath, modulePartNode, semanticModel, availableServices,
-                servicesToGenerate);
-        // If there are no services found for a given service name.
+        int duplicateCount = 0;
+        for (GraphqlService service : GraphqlServiceFinder.find(project)) {
+            // A service object has no base path, so it is skipped when a service base path is given.
+            if (service.serviceObject() && serviceBasePath != null) {
+                continue;
+            }
+            String serviceName = service.basePath();
+            if (servicesToGenerate.containsKey(serviceName)) {
+                duplicateCount += 1;
+                serviceName = getUpdatedServiceName(serviceName, duplicateCount);
+            }
+            if (serviceBasePath == null) {
+                servicesToGenerate.put(serviceName, service.encodedSchema());
+                continue;
+            }
+            availableServices.add(service.basePath());
+            if (formatBasePath(serviceBasePath).equals(service.basePath())) {
+                servicesToGenerate.put(serviceName, service.encodedSchema());
+            }
+        }
         if (serviceBasePath != null && servicesToGenerate.isEmpty()) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_101, null, serviceBasePath,
                     availableServices.toString());
         }
-        // Generating schema for selected services
+        List<SdlSchema> outputs = new ArrayList<>();
         for (Map.Entry<String, String> schema : servicesToGenerate.entrySet()) {
-            String sdlFileName = getSdlFileName(syntaxTree.filePath(), schema.getKey());
+            String sdlFileName = getSdlFileName(project.syntaxTree().filePath(), schema.getKey());
             Schema schemaObject = getDecodedSchema(schema.getValue());
-            String sdlSchemaString = SdlSchemaStringGenerator.generate(schemaObject);
-            SdlSchema sdlSchema = new SdlSchema(sdlFileName, sdlSchemaString);
-            outputs.add(sdlSchema);
+            outputs.add(new SdlSchema(sdlFileName, SdlSchemaStringGenerator.generate(schemaObject)));
         }
         return outputs;
-    }
-
-    /**
-     * Filter the GraphQL schemas from the service node.
-     * This method not filter services declared as module-level variables,
-     * since the service base path info is not included in node.
-     * Hence, extract schemas for all the GraphQL services with variable declaration.
-     */
-    public static void extractSchemaStringsFromServices(String serviceBasePath, ModulePartNode modulePartNode,
-                                                        SemanticModel semanticModel, List<String> availableServices,
-                                                        Map<String, String> schemasToGenerate)
-                                                        throws SchemaGenerationException {
-        int duplicateCount = 0;
-        for (Node node : modulePartNode.members()) {
-            SyntaxKind syntaxKind = node.kind();
-            if (syntaxKind == SyntaxKind.SERVICE_DECLARATION) {
-                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
-                if (isGraphqlService(serviceNode, semanticModel)) {
-                    String actualBasePath = getServiceBasePath(serviceNode);
-                    String schema = getSchemaString(serviceNode);
-                    String updatedServiceName = actualBasePath;
-                    if (schemasToGenerate.containsKey(actualBasePath)) {
-                        duplicateCount += 1;
-                        updatedServiceName = getUpdatedServiceName(actualBasePath, duplicateCount);
-                    }
-                    addToList(serviceBasePath, actualBasePath, updatedServiceName, schema, availableServices,
-                            schemasToGenerate);
-                }
-            } else if (syntaxKind == SyntaxKind.MODULE_VAR_DECL && serviceBasePath == null) {
-                // if the service base path is given, the schema is not generated for the services with
-                // module level variable declarations since base path is unknown.
-                ModuleVariableDeclarationNode moduleVariableNode = (ModuleVariableDeclarationNode) node;
-                if (!isGraphQLServiceObjectDeclaration(moduleVariableNode)) {
-                    continue;
-                }
-                if (moduleVariableNode.initializer().isEmpty()) {
-                    continue;
-                }
-                ExpressionNode expressionNode = moduleVariableNode.initializer().get();
-                if (expressionNode.kind() == SyntaxKind.OBJECT_CONSTRUCTOR) {
-                    ObjectConstructorExpressionNode graphqlServiceObject =
-                            (ObjectConstructorExpressionNode) moduleVariableNode.initializer().get();
-                    String schema = getSchemaString(graphqlServiceObject);
-                    String service = EMPTY_STRING;
-                    if (schemasToGenerate.containsKey(service)) {
-                        duplicateCount += 1;
-                        service = getUpdatedServiceName(service, duplicateCount);
-                    }
-                    schemasToGenerate.put(service, schema);
-                }
-            }
-        }
-    }
-
-    private static void addToList(String serviceBasePath, String actualPath, String updateServiceName, String schema,
-                                  List<String> availableServices, Map<String, String> schemasToGenerate) {
-        if (serviceBasePath != null) {
-            availableServices.add(actualPath);
-            if (formatBasePath(serviceBasePath).equals(actualPath)) {
-                schemasToGenerate.put(updateServiceName, schema);
-            }
-        } else {
-            schemasToGenerate.put(updateServiceName, schema);
-        }
     }
 
     private static String getUpdatedServiceName(String serviceName, int duplicateCount) {

@@ -18,20 +18,6 @@
 
 package io.ballerina.graphql.schema.utils;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.ServiceDeclarationSymbol;
-import io.ballerina.compiler.api.symbols.SymbolKind;
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingFieldNode;
-import io.ballerina.compiler.syntax.tree.MetadataNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.ObjectConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 import io.ballerina.stdlib.graphql.commons.types.Schema;
@@ -48,22 +34,13 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.stream.Collectors;
 
-import static io.ballerina.graphql.schema.Constants.EMPTY_STRING;
 import static io.ballerina.graphql.schema.Constants.GRAPHQL_EXTENSION;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_CANNOT_READ_SCHEMA_STRING;
 import static io.ballerina.graphql.schema.Constants.MESSAGE_INVALID_SCHEMA_STRING;
-import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_ANNOTATION;
-import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_FIELD_SCHEMA_STRING;
-import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_SERVICE_CONFIG;
 import static io.ballerina.graphql.schema.Constants.PERIOD;
 import static io.ballerina.graphql.schema.Constants.SCHEMA_PREFIX;
-import static io.ballerina.graphql.schema.Constants.SCHEMA_STRING_FIELD;
-import static io.ballerina.graphql.schema.Constants.SERVICE_CONFIG_IDENTIFIER;
 import static io.ballerina.graphql.schema.Constants.SLASH;
 import static io.ballerina.graphql.schema.Constants.UNDERSCORE;
-import static io.ballerina.stdlib.graphql.commons.utils.TypeUtils.removeEscapeCharacter;
-import static io.ballerina.stdlib.graphql.commons.utils.Utils.PACKAGE_NAME;
-import static io.ballerina.stdlib.graphql.commons.utils.Utils.hasGraphqlListener;
 
 /**
  * Utility class for Ballerina GraphQL SDL schema generation.
@@ -71,82 +48,6 @@ import static io.ballerina.stdlib.graphql.commons.utils.Utils.hasGraphqlListener
 public final class Utils {
 
     private Utils() {}
-
-    public static boolean isGraphqlService(ServiceDeclarationNode node, SemanticModel semanticModel) {
-        if (semanticModel.symbol(node).isEmpty()) {
-            return false;
-        }
-        if (semanticModel.symbol(node).get().kind() != SymbolKind.SERVICE_DECLARATION) {
-            return false;
-        }
-        ServiceDeclarationSymbol symbol = (ServiceDeclarationSymbol) semanticModel.symbol(node).get();
-        return hasGraphqlListener(symbol);
-    }
-
-    public static String getServiceBasePath(ServiceDeclarationNode serviceDefinition) {
-        StringBuilder currentServiceName = new StringBuilder();
-        NodeList<Node> serviceNameNodes = serviceDefinition.absoluteResourcePath();
-        for (Node serviceBasedPathNode : serviceNameNodes) {
-            currentServiceName.append(removeEscapeCharacter(serviceBasedPathNode.toString()));
-        }
-        return formatBasePath(currentServiceName.toString().trim());
-    }
-
-    public static String getSchemaString(ServiceDeclarationNode node) throws SchemaGenerationException {
-        if (node.metadata().isPresent()) {
-            if (!node.metadata().get().annotations().isEmpty()) {
-                MappingConstructorExpressionNode annotationValue = getAnnotationValue(node.metadata().get());
-                return getSchemaStringFieldFromValue(annotationValue);
-            }
-        }
-        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
-    }
-
-    public static String getSchemaString(ObjectConstructorExpressionNode node) throws SchemaGenerationException {
-        if (!node.annotations().isEmpty()) {
-            for (AnnotationNode annotationNode: node.annotations()) {
-                if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
-                    return getSchemaStringFieldFromValue(annotationNode.annotValue().get());
-                }
-            }
-        }
-        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null, MESSAGE_MISSING_ANNOTATION);
-    }
-
-    private static MappingConstructorExpressionNode getAnnotationValue(MetadataNode metadataNode)
-            throws SchemaGenerationException {
-        for (AnnotationNode annotationNode: metadataNode.annotations()) {
-            if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
-                return annotationNode.annotValue().get();
-            }
-        }
-        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
-                MESSAGE_MISSING_SERVICE_CONFIG);
-    }
-
-    private static String getSchemaStringFieldFromValue(MappingConstructorExpressionNode annotationValue)
-            throws SchemaGenerationException {
-        SeparatedNodeList<MappingFieldNode> existingFields = annotationValue.fields();
-        for (MappingFieldNode field : existingFields) {
-            if (field.children().get(0).toString().contains(SCHEMA_STRING_FIELD)) {
-                String schemaString = field.children().get(2).toString();
-                return schemaString.substring(1, schemaString.length() - 1);
-            }
-        }
-        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
-                MESSAGE_MISSING_FIELD_SCHEMA_STRING);
-    }
-
-    private static boolean isGraphqlServiceConfig(AnnotationNode annotationNode) {
-        if (annotationNode.annotReference().kind() != SyntaxKind.QUALIFIED_NAME_REFERENCE) {
-            return false;
-        }
-        QualifiedNameReferenceNode referenceNode = ((QualifiedNameReferenceNode) annotationNode.annotReference());
-        if (!PACKAGE_NAME.equals(referenceNode.modulePrefix().text())) {
-            return false;
-        }
-        return SERVICE_CONFIG_IDENTIFIER.equals(referenceNode.identifier().text());
-    }
 
     public static String getSdlFileName(String servicePath, String serviceName) {
         String sdlFileName;
@@ -172,13 +73,6 @@ public final class Utils {
                     .collect(Collectors.joining(UNDERSCORE));
         }
         return sdlFileName;
-    }
-
-    public static String formatBasePath(String basePath) {
-        if (basePath.equals(SLASH)) {
-            return EMPTY_STRING;
-        }
-        return basePath;
     }
 
     public static Schema getDecodedSchema(String schemaString) throws SchemaGenerationException {
