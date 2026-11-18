@@ -39,6 +39,4 @@ public final class Constants {
             "'schemaString' field is missing in GraphQL ServiceConfig";
     public static final String MESSAGE_CANNOT_READ_SCHEMA_STRING = "Cannot read decoded schema string";
     public static final String MESSAGE_INVALID_SCHEMA_STRING = "Invalid schema string found";
-    public static final String MESSAGE_MISSING_BAL_FILE = "Provided Ballerina file path does not exist";
-    public static final String MESSAGE_CANNOT_READ_BAL_FILE = "Cannot read provided Ballerina file (Permission denied)";
 }

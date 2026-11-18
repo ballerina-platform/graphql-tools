@@ -19,19 +19,14 @@
 package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.exception.GenerationException;
-import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
+import io.ballerina.graphql.schema.SchemaProject;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 import io.ballerina.graphql.schema.generator.SdlSchema;
 import io.ballerina.graphql.schema.generator.SdlSchemaGenerator;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-
-import static io.ballerina.graphql.schema.Constants.MESSAGE_CANNOT_READ_BAL_FILE;
-import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
 
 /**
  * Generates the SDL schema for a given Ballerina GraphQL service file.
@@ -39,7 +34,7 @@ import static io.ballerina.graphql.schema.Constants.MESSAGE_MISSING_BAL_FILE;
 public class SchemaGeneration implements Generator {
 
     private final GenerationContext context;
-    private Path balFilePath;
+    private SchemaProject project;
     private List<SdlSchema> schemas;
 
     public SchemaGeneration(GenerationContext context) {
@@ -48,27 +43,17 @@ public class SchemaGeneration implements Generator {
 
     @Override
     public void validate() throws GenerationException {
-        File balFile = new File(context.getInputPath());
-        if (!balFile.exists()) {
-            throw new GenerationException(new SchemaGenerationException(
-                    SchemaDiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_MISSING_BAL_FILE));
-        }
-        if (!balFile.canRead()) {
-            throw new GenerationException(new SchemaGenerationException(
-                    SchemaDiagnosticMessages.SDL_SCHEMA_103, null, MESSAGE_CANNOT_READ_BAL_FILE));
-        }
         try {
-            this.balFilePath = Paths.get(balFile.getCanonicalPath());
-        } catch (IOException e) {
-            throw new GenerationException(new SchemaGenerationException(
-                    SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.toString()));
+            this.project = SchemaProject.load(Paths.get(context.getInputPath()));
+        } catch (SchemaGenerationException e) {
+            throw new GenerationException(e);
         }
     }
 
     @Override
     public void generate() throws GenerationException {
         try {
-            this.schemas = SdlSchemaGenerator.generateSchemaDefinitions(this.balFilePath,
+            this.schemas = SdlSchemaGenerator.generateSchemaDefinitions(this.project,
                     context.getServiceBasePath());
         } catch (SchemaGenerationException e) {
             throw new GenerationException(e);

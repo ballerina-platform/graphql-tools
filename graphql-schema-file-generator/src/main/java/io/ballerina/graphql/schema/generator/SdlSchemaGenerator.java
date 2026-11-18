@@ -27,21 +27,11 @@ import io.ballerina.compiler.syntax.tree.ObjectConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.graphql.schema.SchemaProject;
 import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
-import io.ballerina.projects.DiagnosticResult;
-import io.ballerina.projects.Document;
-import io.ballerina.projects.DocumentId;
-import io.ballerina.projects.Module;
-import io.ballerina.projects.ModuleId;
-import io.ballerina.projects.Package;
-import io.ballerina.projects.PackageCompilation;
-import io.ballerina.projects.Project;
-import io.ballerina.projects.ProjectKind;
-import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.stdlib.graphql.commons.types.Schema;
 import io.ballerina.stdlib.graphql.commons.utils.SdlSchemaStringGenerator;
-import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -72,29 +62,13 @@ public class SdlSchemaGenerator {
 
     public static void generate(Path filePath, Path outPath, String serviceBasePath, PrintStream outStream)
             throws SchemaGenerationException {
-        writeSchemaFiles(generateSchemaDefinitions(filePath, serviceBasePath), outPath, outStream);
+        writeSchemaFiles(generateSchemaDefinitions(SchemaProject.load(filePath), serviceBasePath), outPath,
+                outStream);
     }
 
-    public static List<SdlSchema> generateSchemaDefinitions(Path filePath, String serviceBasePath)
+    public static List<SdlSchema> generateSchemaDefinitions(SchemaProject project, String serviceBasePath)
             throws SchemaGenerationException {
-        Project project = ProjectLoader.loadProject(filePath);
-        PackageCompilation compilation = getPackageCompilation(project);
-        Package packageName = project.currentPackage();
-        DocumentId docId;
-        Document doc;
-        if (project.kind().equals(ProjectKind.BUILD_PROJECT)) {
-            docId = project.documentId(filePath);
-            ModuleId moduleId = docId.moduleId();
-            doc = project.currentPackage().module(moduleId).document(docId);
-        } else {
-            Module currentModule = packageName.getDefaultModule();
-            docId = currentModule.documentIds().iterator().next();
-            doc = currentModule.document(docId);
-        }
-
-        SyntaxTree syntaxTree = doc.syntaxTree();
-        SemanticModel semanticModel = compilation.getSemanticModel(docId.moduleId());
-        return generateSdlSchema(syntaxTree, semanticModel, serviceBasePath);
+        return generateSdlSchema(project.syntaxTree(), project.semanticModel(), serviceBasePath);
     }
 
     public static void writeSchemaFiles(List<SdlSchema> schemaDefinitions, Path outPath, PrintStream outStream)
@@ -212,22 +186,5 @@ public class SdlSchemaGenerator {
         } else {
             return serviceName + PERIOD + duplicateCount;
         }
-    }
-
-    private static PackageCompilation getPackageCompilation(Project project) throws SchemaGenerationException {
-        DiagnosticResult diagnosticResult = project.currentPackage().runCodeGenAndModifyPlugins();
-        boolean hasErrors = diagnosticResult
-                .diagnostics().stream()
-                .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
-        if (!hasErrors) {
-            PackageCompilation compilation = project.currentPackage().getCompilation();
-            hasErrors = compilation.diagnosticResult()
-                    .diagnostics().stream()
-                    .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
-            if (!hasErrors) {
-                return compilation;
-            }
-        }
-        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_100, null);
     }
 }
