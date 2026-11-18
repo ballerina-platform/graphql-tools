@@ -24,12 +24,9 @@ import io.ballerina.stdlib.graphql.commons.types.Schema;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.stream.Collectors;
@@ -88,21 +85,6 @@ public final class Utils {
         } catch (IOException | ClassNotFoundException e) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
                     MESSAGE_CANNOT_READ_SCHEMA_STRING);
-        }
-    }
-
-    public static void writeFile(Path filePath, String content) throws SchemaGenerationException {
-        try (FileWriter writer = new FileWriter(filePath.toString(), StandardCharsets.UTF_8)) {
-            writer.write(content);
-        } catch (IOException e) {
-            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage());
-        }
-    }
-
-    public static void createOutputDirectory(Path outputPath) {
-        File outputDir = new File(outputPath.toString());
-        if (!outputDir.exists()) {
-            outputDir.mkdirs();
         }
     }
 }

@@ -25,20 +25,15 @@ import io.ballerina.graphql.schema.generator.GraphqlServiceFinder.GraphqlService
 import io.ballerina.stdlib.graphql.commons.types.Schema;
 import io.ballerina.stdlib.graphql.commons.utils.SdlSchemaStringGenerator;
 
-import java.io.PrintStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import static io.ballerina.graphql.schema.Constants.PERIOD;
 import static io.ballerina.graphql.schema.generator.GraphqlServiceFinder.formatBasePath;
-import static io.ballerina.graphql.schema.utils.Utils.createOutputDirectory;
 import static io.ballerina.graphql.schema.utils.Utils.getDecodedSchema;
 import static io.ballerina.graphql.schema.utils.Utils.getSdlFileName;
-import static io.ballerina.graphql.schema.utils.Utils.writeFile;
 
 /**
  * This class implements the GraphQL SDL schema generation.
@@ -47,35 +42,9 @@ public class SdlSchemaGenerator {
 
     private SdlSchemaGenerator() {}
 
-    public static void generate(Path filePath, Path outPath, String serviceBasePath, PrintStream outStream)
-            throws SchemaGenerationException {
-        writeSchemaFiles(generateSchemaDefinitions(SchemaProject.load(filePath), serviceBasePath), outPath,
-                outStream);
-    }
-
     public static List<SdlSchema> generateSchemaDefinitions(SchemaProject project, String serviceBasePath)
             throws SchemaGenerationException {
         return generateSdlSchema(project, serviceBasePath);
-    }
-
-    public static void writeSchemaFiles(List<SdlSchema> schemaDefinitions, Path outPath, PrintStream outStream)
-            throws SchemaGenerationException {
-        List<String> fileNames = new ArrayList<>();
-        for (SdlSchema definition : schemaDefinitions) {
-            String fileName = definition.name();
-            createOutputDirectory(outPath);
-            writeFile(outPath.resolve(fileName), definition.schema());
-            fileNames.add(fileName);
-        }
-        if (fileNames.isEmpty()) {
-            outStream.println("Given Ballerina file does not contain any GraphQL services");
-            return;
-        }
-        outStream.println("SDL Schema(s) generated successfully and copied to :");
-        Iterator<String> iterator = fileNames.iterator();
-        while (iterator.hasNext()) {
-            outStream.println("-- " + iterator.next());
-        }
     }
 
     private static List<SdlSchema> generateSdlSchema(SchemaProject project, String serviceBasePath)

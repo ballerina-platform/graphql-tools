@@ -19,19 +19,29 @@
 package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.schema.SchemaProject;
+import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 import io.ballerina.graphql.schema.generator.SdlSchema;
 import io.ballerina.graphql.schema.generator.SdlSchemaGenerator;
 
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Generates the SDL schema for a given Ballerina GraphQL service file.
  */
 public class SchemaGeneration implements Generator {
+
+    private static final String SUCCESS_MESSAGE = "SDL Schema(s) generated successfully and copied to :";
+    private static final String NO_SERVICES_MESSAGE = "Given Ballerina file does not contain any GraphQL services";
+    private static final String WRITTEN_FILE_FORMAT = "-- %s";
 
     private final GenerationContext context;
     private SchemaProject project;
@@ -67,10 +77,22 @@ public class SchemaGeneration implements Generator {
 
     @Override
     public void write() throws GenerationException {
-        try {
-            SdlSchemaGenerator.writeSchemaFiles(this.schemas, context.getTargetOutputPath(), context.getOutStream());
-        } catch (SchemaGenerationException e) {
-            throw new GenerationException(e);
+        PrintStream outStream = context.getOutStream();
+        if (this.schemas.isEmpty()) {
+            outStream.println(NO_SERVICES_MESSAGE);
+            return;
         }
+        Map<Path, String> files = new LinkedHashMap<>();
+        for (SdlSchema schema : this.schemas) {
+            files.put(context.getTargetOutputPath().resolve(schema.name()), schema.schema());
+        }
+        try {
+            CodeGeneratorUtils.writeFiles(files, context.getTargetOutputPath());
+        } catch (IOException e) {
+            throw new GenerationException(new SchemaGenerationException(
+                    SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage()));
+        }
+        outStream.println(SUCCESS_MESSAGE);
+        this.schemas.forEach(schema -> outStream.println(String.format(WRITTEN_FILE_FORMAT, schema.name())));
     }
 }
