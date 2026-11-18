@@ -18,6 +18,7 @@
 
 package io.ballerina.graphql.schema.generator;
 
+import io.ballerina.graphql.schema.SchemaFileName;
 import io.ballerina.graphql.schema.SchemaProject;
 import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
@@ -25,20 +26,25 @@ import io.ballerina.graphql.schema.generator.GraphqlServiceFinder.GraphqlService
 import io.ballerina.stdlib.graphql.commons.types.Schema;
 import io.ballerina.stdlib.graphql.commons.utils.SdlSchemaStringGenerator;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.ballerina.graphql.schema.Constants.PERIOD;
 import static io.ballerina.graphql.schema.generator.GraphqlServiceFinder.formatBasePath;
-import static io.ballerina.graphql.schema.utils.Utils.getDecodedSchema;
-import static io.ballerina.graphql.schema.utils.Utils.getSdlFileName;
 
 /**
  * This class implements the GraphQL SDL schema generation.
  */
 public class SdlSchemaGenerator {
+
+    private static final String ERROR_INVALID_SCHEMA_STRING = "Invalid schema string found";
+    private static final String ERROR_CANNOT_READ_SCHEMA_STRING = "Cannot read decoded schema string";
 
     private SdlSchemaGenerator() {}
 
@@ -77,8 +83,8 @@ public class SdlSchemaGenerator {
         }
         List<SdlSchema> outputs = new ArrayList<>();
         for (Map.Entry<String, String> schema : servicesToGenerate.entrySet()) {
-            String sdlFileName = getSdlFileName(project.syntaxTree().filePath(), schema.getKey());
-            Schema schemaObject = getDecodedSchema(schema.getValue());
+            String sdlFileName = SchemaFileName.of(project.syntaxTree().filePath(), schema.getKey());
+            Schema schemaObject = decodeSchema(schema.getValue());
             outputs.add(new SdlSchema(sdlFileName, SdlSchemaStringGenerator.generate(schemaObject)));
         }
         return outputs;
@@ -86,9 +92,23 @@ public class SdlSchemaGenerator {
 
     private static String getUpdatedServiceName(String serviceName, int duplicateCount) {
         if (serviceName.isBlank()) {
-            return PERIOD + duplicateCount;
+            return SchemaFileName.DUPLICATE_SEPARATOR + duplicateCount;
         } else {
-            return serviceName + PERIOD + duplicateCount;
+            return serviceName + SchemaFileName.DUPLICATE_SEPARATOR + duplicateCount;
+        }
+    }
+
+    private static Schema decodeSchema(String encodedSchema) throws SchemaGenerationException {
+        if (encodedSchema == null || encodedSchema.isBlank()) {
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
+                    ERROR_INVALID_SCHEMA_STRING);
+        }
+        byte[] decodedSchema = Base64.getDecoder().decode(encodedSchema.getBytes(StandardCharsets.UTF_8));
+        try (ObjectInputStream inputStream = new ObjectInputStream(new ByteArrayInputStream(decodedSchema))) {
+            return (Schema) inputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
+                    ERROR_CANNOT_READ_SCHEMA_STRING);
         }
     }
 }
