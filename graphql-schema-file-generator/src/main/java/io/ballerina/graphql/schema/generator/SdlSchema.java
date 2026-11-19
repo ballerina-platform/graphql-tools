@@ -20,21 +20,9 @@ package io.ballerina.graphql.schema.generator;
 
 /**
  * Represents a GraphQL SDL schema of a GraphQL Service.
+ *
+ * @param name   the schema file name
+ * @param schema the SDL content of the schema
  */
-public class SdlSchema {
-    private String name;
-    private String schema;
-
-    public SdlSchema(String name, String schema) {
-        this.name = name;
-        this.schema = schema;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
+public record SdlSchema(String name, String schema) {
 }
