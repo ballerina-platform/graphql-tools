@@ -265,6 +265,26 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
     }
 
+    @DataProvider(name = "directoryNamesWithFormatCharacters")
+    public Object[][] directoryNamesWithFormatCharacters() {
+        return new Object[][]{{"a{b}"}, {"o'brien"}, {"{0}"}};
+    }
+
+    @Test(description = "Test that braces and quotes in the input path are printed as they are",
+            dataProvider = "directoryNamesWithFormatCharacters")
+    public void testInputPathWithFormatCharacters(String directoryName) throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "format-characters");
+        Path input = Files.createDirectories(outputPath.resolve(directoryName));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input.toString(), "-o",
+                outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is not a Ballerina "
+                + "package or module directory.", input)), output);
+        Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
+    }
+
     @Test(description = "Test that the services in every file of the default module are generated, and that a root "
             + "service is named after its own file")
     public void testPackageInputReadsEveryFile() throws IOException {

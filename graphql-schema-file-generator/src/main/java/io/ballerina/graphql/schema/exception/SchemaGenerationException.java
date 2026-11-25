@@ -46,10 +46,13 @@ public class SchemaGenerationException extends Exception {
         return String.format(diagnosticMessage.getDescription(), (Object[]) args);
     }
 
+    // createDiagnostic formats the message again with MessageFormat, so its quotes and braces are escaped to keep
+    // them as they are.
     private static DiagnosticInfo generateDiagnosticInfo(SchemaDiagnosticMessages diagnosticMessage,
                                                          String... args) {
-        return new DiagnosticInfo(diagnosticMessage.getCode(), generateDescription(diagnosticMessage, args),
-                diagnosticMessage.getSeverity());
+        String description = generateDescription(diagnosticMessage, args).replace("'", "''")
+                .replace("{", "'{'").replace("}", "'}'");
+        return new DiagnosticInfo(diagnosticMessage.getCode(), description, diagnosticMessage.getSeverity());
     }
 
     private static Location getLocation(Location location) {
