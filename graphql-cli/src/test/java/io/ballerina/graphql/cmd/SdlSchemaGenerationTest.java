@@ -498,6 +498,34 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
                 output);
     }
 
+    @Test(description = "Test that the services of a file that imports ballerina/graphql with another prefix are "
+            + "generated together with the services of the other files")
+    public void testAliasedGraphqlImport() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "aliased-import");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"),
+                validService("project_aliased_import"), "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql", "schema_main.graphql",
+                "schema_orders.graphql"), output);
+        Assert.assertTrue(Files.readString(outputPath.resolve("schema_main.graphql")).contains("stars"), output);
+    }
+
+    @Test(description = "Test that --service finds a service when another file imports ballerina/graphql with "
+            + "another prefix")
+    public void testServiceFlagWithAliasedGraphqlImport() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "aliased-import-service");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"),
+                validService("project_aliased_import"), "-o", outputPath.toString(), "--service", "/orders");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_orders.graphql"), output);
+    }
+
     @Test(description = "Test that the services in every file of the default module are generated, and that a root "
             + "service is named after its own file")
     public void testPackageInputReadsEveryFile() throws IOException {

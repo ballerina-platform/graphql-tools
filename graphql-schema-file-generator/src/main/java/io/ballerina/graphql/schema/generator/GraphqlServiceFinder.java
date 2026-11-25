@@ -31,7 +31,6 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ObjectConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.graphql.schema.SchemaProject;
@@ -44,9 +43,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.ballerina.stdlib.graphql.commons.utils.TypeUtils.removeEscapeCharacter;
-import static io.ballerina.stdlib.graphql.commons.utils.Utils.PACKAGE_NAME;
 import static io.ballerina.stdlib.graphql.commons.utils.Utils.hasGraphqlListener;
 import static io.ballerina.stdlib.graphql.commons.utils.Utils.isGraphQLServiceObjectDeclaration;
+import static io.ballerina.stdlib.graphql.commons.utils.Utils.isGraphqlModuleSymbol;
 
 /**
  * Finds the GraphQL services in a compiled Ballerina file and reads the encoded schema of each one.
@@ -99,15 +98,15 @@ final class GraphqlServiceFinder {
             if (member.kind() == SyntaxKind.SERVICE_DECLARATION) {
                 ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) member;
                 if (isGraphqlService(serviceNode, document.semanticModel())) {
-                    services.add(new GraphqlService(getBasePath(serviceNode), getSchemaString(serviceNode), false,
-                            filePath));
+                    services.add(new GraphqlService(getBasePath(serviceNode),
+                            getSchemaString(serviceNode, document.semanticModel()), false, filePath));
                 }
             } else if (member.kind() == SyntaxKind.MODULE_VAR_DECL) {
                 Optional<ObjectConstructorExpressionNode> serviceObject =
                         getServiceObject((ModuleVariableDeclarationNode) member);
                 if (serviceObject.isPresent()) {
-                    services.add(new GraphqlService(NO_BASE_PATH, getSchemaString(serviceObject.get()), true,
-                            filePath));
+                    services.add(new GraphqlService(NO_BASE_PATH,
+                            getSchemaString(serviceObject.get(), document.semanticModel()), true, filePath));
                 }
             }
         }
@@ -155,11 +154,12 @@ final class GraphqlServiceFinder {
         return formatBasePath(basePath.toString().trim());
     }
 
-    private static String getSchemaString(ServiceDeclarationNode serviceNode) throws SchemaGenerationException {
+    private static String getSchemaString(ServiceDeclarationNode serviceNode, SemanticModel semanticModel)
+            throws SchemaGenerationException {
         Optional<MetadataNode> metadata = serviceNode.metadata();
         if (metadata.isPresent() && !metadata.get().annotations().isEmpty()) {
             for (AnnotationNode annotationNode : metadata.get().annotations()) {
-                if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
+                if (isGraphqlServiceConfig(annotationNode, semanticModel) && annotationNode.annotValue().isPresent()) {
                     return getSchemaStringField(annotationNode.annotValue().get());
                 }
             }
@@ -169,10 +169,10 @@ final class GraphqlServiceFinder {
         throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null, ERROR_MISSING_ANNOTATION);
     }
 
-    private static String getSchemaString(ObjectConstructorExpressionNode serviceObject)
-            throws SchemaGenerationException {
+    private static String getSchemaString(ObjectConstructorExpressionNode serviceObject,
+                                          SemanticModel semanticModel) throws SchemaGenerationException {
         for (AnnotationNode annotationNode : serviceObject.annotations()) {
-            if (isGraphqlServiceConfig(annotationNode) && annotationNode.annotValue().isPresent()) {
+            if (isGraphqlServiceConfig(annotationNode, semanticModel) && annotationNode.annotValue().isPresent()) {
                 return getSchemaStringField(annotationNode.annotValue().get());
             }
         }
@@ -191,12 +191,11 @@ final class GraphqlServiceFinder {
                 ERROR_MISSING_SCHEMA_STRING);
     }
 
-    private static boolean isGraphqlServiceConfig(AnnotationNode annotationNode) {
-        if (annotationNode.annotReference().kind() != SyntaxKind.QUALIFIED_NAME_REFERENCE) {
-            return false;
-        }
-        QualifiedNameReferenceNode referenceNode = (QualifiedNameReferenceNode) annotationNode.annotReference();
-        return PACKAGE_NAME.equals(referenceNode.modulePrefix().text())
-                && SERVICE_CONFIG_IDENTIFIER.equals(referenceNode.identifier().text());
+    // The annotation is identified by its module, since a file can import ballerina/graphql with another prefix.
+    private static boolean isGraphqlServiceConfig(AnnotationNode annotationNode, SemanticModel semanticModel) {
+        Optional<Symbol> symbol = semanticModel.symbol(annotationNode);
+        return symbol.isPresent() && symbol.get().kind() == SymbolKind.ANNOTATION
+                && isGraphqlModuleSymbol(symbol.get())
+                && symbol.get().getName().filter(SERVICE_CONFIG_IDENTIFIER::equals).isPresent();
     }
 }
