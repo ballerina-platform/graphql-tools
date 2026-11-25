@@ -465,6 +465,39 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
     }
 
+    @Test(description = "Test that services whose file names clash, ignoring case, each get their own schema file")
+    public void testClashingFileNamesKeepEverySchema() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "name-clash");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("project_name_clash"),
+                "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_booKs_1.graphql", "schema_books.graphql",
+                "schema_main.graphql", "schema_main_1.graphql"), output);
+        Assert.assertTrue(Files.readString(outputPath.resolve("schema_main.graphql")).contains("rootField"), output);
+        Assert.assertTrue(Files.readString(outputPath.resolve("schema_main_1.graphql")).contains("mainField"), output);
+        Assert.assertTrue(Files.readString(outputPath.resolve("schema_books.graphql")).contains("lowerCaseField"),
+                output);
+        Assert.assertTrue(Files.readString(outputPath.resolve("schema_booKs_1.graphql")).contains("mixedCaseField"),
+                output);
+    }
+
+    @Test(description = "Test that a dry run counts each clashing schema file once")
+    public void testClashingFileNamesInDryRun() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "name-clash-dry-run");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("project_name_clash"),
+                "-o", outputPath.toString(), "--dry-run");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(output.contains("4 to create, 0 to overwrite."), output);
+        Assert.assertTrue(output.contains("  create     " + displayPath(outputPath.resolve("schema_main_1.graphql"))),
+                output);
+    }
+
     @Test(description = "Test that the services in every file of the default module are generated, and that a root "
             + "service is named after its own file")
     public void testPackageInputReadsEveryFile() throws IOException {
