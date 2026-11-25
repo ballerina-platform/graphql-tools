@@ -156,7 +156,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
         Assert.assertTrue(output.contains("No Ballerina services found with name \"/missing\" to generate SDL "
                 + "schema. These services are available in ballerina file. [/books, /, /]"), output);
-        Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
     }
 
     @Test(
@@ -253,7 +253,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is part of the "
                 + "package at \"%s\". Pass the package directory or a module directory instead.", input, packageRoot)),
                 output);
-        Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
         try (Stream<Path> files = Files.list(outputPath)) {
             Assert.assertEquals(files.count(), 0, output);
         }
@@ -275,7 +275,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is not a Ballerina "
                 + "package or module directory.", input)), output);
-        Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
     }
 
     @DataProvider(name = "directoryNamesWithFormatCharacters")
@@ -295,7 +295,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is not a Ballerina "
                 + "package or module directory.", input)), output);
-        Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
     }
 
     @Test(description = "Test that the services in every file of the default module are generated, and that a root "
@@ -343,7 +343,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
                 filePath, "-o", outputPath.toString());
         Assert.assertTrue(fileOutput.contains(String.format("\"%s\" is part of the package at \"%s\".",
                 filePath, Path.of(validService("project_1")).toRealPath())), fileOutput);
-        Assert.assertNotEquals(fileExitCaptor.getExitCode(), 0, fileOutput);
+        Assert.assertEquals(fileExitCaptor.getExitCode(), 3, fileOutput);
     }
 
     @Test(description = "Test that a package with compilation errors is reported")
@@ -355,7 +355,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
 
         Assert.assertTrue(output.contains("Given Ballerina file contains compilation error(s)."), output);
-        Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
     }
 

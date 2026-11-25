@@ -91,14 +91,14 @@ public record SchemaProject(List<SchemaDocument> documents) {
                 return fromModule(project, compile(project), moduleId.get());
             }
         }
-        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
+        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_104, null,
                 String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
     }
 
     private static SchemaProject loadFile(Path inputPath, Path filePath) throws SchemaGenerationException {
         Project project = loadProject(filePath);
         if (project.kind() == ProjectKind.BUILD_PROJECT) {
-            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_104, null,
                     String.format(ERROR_FILE_IN_PACKAGE, inputPath, project.sourceRoot()));
         }
         return fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());

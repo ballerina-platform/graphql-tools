@@ -18,7 +18,9 @@
 
 package io.ballerina.graphql.cmd.generator;
 
+import io.ballerina.graphql.exception.ExitCodes;
 import io.ballerina.graphql.exception.GenerationException;
+import io.ballerina.graphql.exception.ToolException;
 import io.ballerina.graphql.generator.utils.CodeGeneratorUtils;
 import io.ballerina.graphql.schema.SchemaProject;
 import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
@@ -56,6 +58,9 @@ public class SchemaGeneration implements Generator {
         try {
             this.project = SchemaProject.load(Paths.get(context.getInputPath()));
         } catch (SchemaGenerationException e) {
+            if (e.getDiagnosticMessage() == SchemaDiagnosticMessages.SDL_SCHEMA_104) {
+                throw new ToolException(ExitCodes.INVALID_TARGET, e.getMessage());
+            }
             throw new GenerationException(e);
         }
     }

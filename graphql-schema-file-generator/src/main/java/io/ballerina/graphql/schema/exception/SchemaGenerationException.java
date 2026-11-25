@@ -31,15 +31,21 @@ import static io.ballerina.tools.diagnostics.DiagnosticFactory.createDiagnostic;
  */
 public class SchemaGenerationException extends Exception {
     private final Diagnostic diagnostic;
+    private final SchemaDiagnosticMessages diagnosticMessage;
 
     public SchemaGenerationException(SchemaDiagnosticMessages diagnosticMessage, Location location,
                                      String... args) {
         super(generateDescription(diagnosticMessage, args));
         this.diagnostic = createDiagnostic(generateDiagnosticInfo(diagnosticMessage, args), getLocation(location));
+        this.diagnosticMessage = diagnosticMessage;
     }
 
     public String getMessage() {
         return this.diagnostic.toString();
+    }
+
+    public SchemaDiagnosticMessages getDiagnosticMessage() {
+        return this.diagnosticMessage;
     }
 
     private static String generateDescription(SchemaDiagnosticMessages diagnosticMessage, String... args) {

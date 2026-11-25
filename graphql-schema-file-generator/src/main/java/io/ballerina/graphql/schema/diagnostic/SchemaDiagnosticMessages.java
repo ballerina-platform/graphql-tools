@@ -29,7 +29,9 @@ public enum SchemaDiagnosticMessages {
             "These services are available in ballerina file. %s", DiagnosticSeverity.ERROR),
     SDL_SCHEMA_102("SDL_SCHEMA_102", "SDL Schema generation failed due to an error occurred " +
             "in Ballerina GraphQL Package: %s", DiagnosticSeverity.ERROR),
-    SDL_SCHEMA_103("SDL_SCHEMA_103", "SDL schema generation failed: %s", DiagnosticSeverity.ERROR);
+    SDL_SCHEMA_103("SDL_SCHEMA_103", "SDL schema generation failed: %s", DiagnosticSeverity.ERROR),
+    // The input is not a valid target, e.g. a file inside a package or a directory that is not a package or module.
+    SDL_SCHEMA_104("SDL_SCHEMA_104", "SDL schema generation failed: %s", DiagnosticSeverity.ERROR);
 
     private final String code;
     private final String description;
