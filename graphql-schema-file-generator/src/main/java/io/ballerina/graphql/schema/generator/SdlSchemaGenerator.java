@@ -45,6 +45,7 @@ public class SdlSchemaGenerator {
 
     private static final String ERROR_INVALID_SCHEMA_STRING = "Invalid schema string found";
     private static final String ERROR_CANNOT_READ_SCHEMA_STRING = "Cannot read decoded schema string";
+    private static final String ROOT_BASE_PATH = "/";
 
     private SdlSchemaGenerator() {}
 
@@ -72,7 +73,8 @@ public class SdlSchemaGenerator {
                 servicesToGenerate.put(serviceName, service);
                 continue;
             }
-            availableServices.add(service.basePath());
+            // A root service has an empty base path, so it is listed as "/".
+            availableServices.add(service.basePath().isEmpty() ? ROOT_BASE_PATH : service.basePath());
             if (formatBasePath(serviceBasePath).equals(service.basePath())) {
                 servicesToGenerate.put(serviceName, service);
             }

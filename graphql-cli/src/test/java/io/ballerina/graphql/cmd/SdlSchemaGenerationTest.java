@@ -146,6 +146,19 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test that root services are listed as / when the given service is not found")
+    public void testRootServicesListedWhenServiceNotFound() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "root-services");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("project_3"),
+                "-o", outputPath.toString(), "--service", "/missing");
+
+        Assert.assertTrue(output.contains("No Ballerina services found with name \"/missing\" to generate SDL "
+                + "schema. These services are available in ballerina file. [/books, /, /]"), output);
+        Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
+    }
+
     @Test(
         groups = {"invalid_permission"},
         description = "Test GraphQL command execution with readonly output path"
