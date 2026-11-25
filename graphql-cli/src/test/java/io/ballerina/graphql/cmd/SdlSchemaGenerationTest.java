@@ -229,15 +229,16 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     }
 
     @Test(description = "Test that a Ballerina file inside a package is rejected", dataProvider = "filesInPackages")
-    public void testBalFileInPackageRejected(String serviceFile, String packageName) throws IOException {
+    public void testBalFileInPackageRejected(String serviceFile, String packageDirectory) throws IOException {
         Path outputPath = Files.createTempDirectory(this.tmpDir, "file-in-package");
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         String input = validService(serviceFile);
+        Path packageRoot = Path.of(validService(packageDirectory)).toRealPath();
 
         String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
 
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is part of the "
-                + "package \"%s\". Pass the package directory or a module directory instead.", input, packageName)),
+                + "package at \"%s\". Pass the package directory or a module directory instead.", input, packageRoot)),
                 output);
         Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
         try (Stream<Path> files = Files.list(outputPath)) {
@@ -307,8 +308,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         ExitCodeCaptor fileExitCaptor = new ExitCodeCaptor();
         String fileOutput = run(fileExitCaptor, recordingPrompt(new ArrayList<>(), "y"),
                 filePath, "-o", outputPath.toString());
-        Assert.assertTrue(fileOutput.contains(String.format("\"%s\" is part of the package \"project_1\".",
-                filePath)), fileOutput);
+        Assert.assertTrue(fileOutput.contains(String.format("\"%s\" is part of the package at \"%s\".",
+                filePath, Path.of(validService("project_1")).toRealPath())), fileOutput);
         Assert.assertNotEquals(fileExitCaptor.getExitCode(), 0, fileOutput);
     }
 

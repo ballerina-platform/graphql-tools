@@ -54,7 +54,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
     private static final String ERROR_MISSING_FILE = "Provided Ballerina file path does not exist";
     private static final String ERROR_CANNOT_READ_FILE = "Cannot read provided Ballerina file (Permission denied)";
     private static final String ERROR_FILE_IN_PACKAGE =
-            "\"%s\" is part of the package \"%s\". Pass the package directory or a module directory instead.";
+            "\"%s\" is part of the package at \"%s\". Pass the package directory or a module directory instead.";
     private static final String ERROR_NOT_PACKAGE_OR_MODULE = "\"%s\" is not a Ballerina package or module directory.";
 
     /**
@@ -99,7 +99,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
         Project project = loadProject(filePath);
         if (project.kind() == ProjectKind.BUILD_PROJECT) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
-                    String.format(ERROR_FILE_IN_PACKAGE, inputPath, project.currentPackage().packageName().value()));
+                    String.format(ERROR_FILE_IN_PACKAGE, inputPath, project.sourceRoot()));
         }
         return fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());
     }
