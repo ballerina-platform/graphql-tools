@@ -20,7 +20,9 @@ package io.ballerina.graphql.cmd;
 
 import io.ballerina.graphql.cmd.generator.OverwritePrompt;
 import io.ballerina.graphql.common.GraphqlTest;
+import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picocli.CommandLine;
@@ -246,7 +248,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Path outputPath = Files.createTempDirectory(this.tmpDir, "file-in-package");
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         String input = validService(serviceFile);
-        Path packageRoot = Path.of(validService(packageDirectory)).toRealPath();
+        Path packageRoot = Path.of(validService(packageDirectory)).toAbsolutePath().normalize();
 
         String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
 
@@ -334,7 +336,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
 
         Assert.assertTrue(output.contains(String.format("\"%s\" is part of the package at \"%s\".", input,
-                Path.of(validService("workspace_1/books")).toRealPath())), output);
+                Path.of(validService("workspace_1/books")).toAbsolutePath().normalize())), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
     }
 
@@ -363,7 +365,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: Dependencies are not locked "
                 + "for the package \"unlocked_package\". Run 'bal build' to lock the dependencies, then re-run. "
-                + "Try: bal build %s", input.toRealPath())), output);
+                + "Try: bal build %s", input.toAbsolutePath().normalize())), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
         Assert.assertFalse(Files.exists(input.resolve("Dependencies.toml")), output);
@@ -398,6 +400,43 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql"), output);
         Assert.assertEquals(Files.readAllBytes(dependenciesToml), before, output);
+    }
+
+    @Test(description = "Test that a module directory that is a symbolic link is reported, since the compiler does not "
+            + "read its files")
+    public void testLinkedModuleDirectoryRejected() throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "linked-module");
+        Path packageRoot = workDir.resolve("shop");
+        FileUtils.copyDirectory(new File(validService("project_3")), packageRoot.toFile());
+        Path moduleDirectory = packageRoot.resolve(Paths.get("modules", "orders"));
+        FileUtils.moveDirectory(moduleDirectory.toFile(), workDir.resolve("orders").toFile());
+        createSymbolicLink(moduleDirectory, workDir.resolve("orders"));
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), moduleDirectory.toString(), "-o",
+                outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is a symbolic link, "
+                + "and the Ballerina compiler does not read a module directory that is a symbolic link. Replace the "
+                + "link with the module directory.", moduleDirectory)), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
+        Assert.assertEquals(fileNames(outputPath), List.of(), output);
+    }
+
+    @Test(description = "Test that a module is found when the package is reached through a symbolic link")
+    public void testModuleOfLinkedPackage() throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "linked-package");
+        Path linkedPackage = workDir.resolve("shop");
+        createSymbolicLink(linkedPackage, Path.of(validService("project_3")).toAbsolutePath());
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"),
+                linkedPackage.resolve(Paths.get("modules", "orders")).toString(), "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_orders.graphql"), output);
     }
 
     @Test(description = "Test that the services in every file of the default module are generated, and that a root "
@@ -444,7 +483,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         String fileOutput = run(fileExitCaptor, recordingPrompt(new ArrayList<>(), "y"),
                 filePath, "-o", outputPath.toString());
         Assert.assertTrue(fileOutput.contains(String.format("\"%s\" is part of the package at \"%s\".",
-                filePath, Path.of(validService("project_1")).toRealPath())), fileOutput);
+                filePath, Path.of(validService("project_1")).toAbsolutePath().normalize())), fileOutput);
         Assert.assertEquals(fileExitCaptor.getExitCode(), 3, fileOutput);
     }
 
@@ -607,6 +646,15 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     private static List<String> fileNames(Path directory) throws IOException {
         try (Stream<Path> files = Files.list(directory)) {
             return files.map(file -> file.getFileName().toString()).sorted().toList();
+        }
+    }
+
+    // Skips the test where links cannot be created, e.g. on Windows without the permission for it.
+    private static void createSymbolicLink(Path link, Path target) {
+        try {
+            Files.createSymbolicLink(link, target);
+        } catch (IOException | UnsupportedOperationException e) {
+            throw new SkipException("Symbolic links are not supported here: " + e.getMessage());
         }
     }
 

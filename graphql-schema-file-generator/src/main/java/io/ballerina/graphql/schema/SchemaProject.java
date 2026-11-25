@@ -38,10 +38,8 @@ import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -66,6 +64,8 @@ public record SchemaProject(List<SchemaDocument> documents) {
             "\"%s\" is not a Ballerina package. Its Ballerina.toml has no [package] table.";
     private static final String ERROR_DEPENDENCIES_NOT_LOCKED = "Dependencies are not locked for the package "
             + "\"%s\". Run 'bal build' to lock the dependencies, then re-run. Try: bal build %s";
+    private static final String ERROR_LINKED_MODULE = "\"%s\" is a symbolic link, and the Ballerina compiler does "
+            + "not read a module directory that is a symbolic link. Replace the link with the module directory.";
     private static final String PACKAGE_TABLE = "package";
     // The versions in Dependencies.toml are used as they are, and are never updated (CMP-1).
     private static final BuildOptions BUILD_OPTIONS =
@@ -137,6 +137,10 @@ public record SchemaProject(List<SchemaDocument> documents) {
         }
         if (packageRoot.resolve(ProjectConstants.MODULES_ROOT).equals(path.getParent())) {
             Optional<ModuleId> moduleId = findModule(project, path.getFileName().toString());
+            // The compiler does not read the files of a module directory that is a link, so the module would be empty.
+            if (moduleId.isPresent() && Files.isSymbolicLink(path)) {
+                throw invalidTarget(String.format(ERROR_LINKED_MODULE, inputPath));
+            }
             if (moduleId.isPresent()) {
                 return moduleId.get();
             }
@@ -169,6 +173,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
         return new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_104, null, message);
     }
 
+    // The links in the path are kept, since resolving a linked module directory would lose its modules/<name> layout.
     private static Path toReadablePath(Path inputPath) throws SchemaGenerationException {
         File input = inputPath.toFile();
         if (!input.exists()) {
@@ -178,11 +183,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
                     ERROR_CANNOT_READ_FILE);
         }
-        try {
-            return Paths.get(input.getCanonicalPath());
-        } catch (IOException e) {
-            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
-        }
+        return inputPath.toAbsolutePath().normalize();
     }
 
     private static Optional<ModuleId> findModule(Project project, String moduleDirectoryName) {
