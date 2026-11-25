@@ -352,6 +352,54 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
     }
 
+    @Test(description = "Test that a package without a Dependencies.toml is rejected, and that none is created")
+    public void testPackageWithoutLockedDependenciesRejected() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "unlocked");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        Path input = resourceDir.resolve(Paths.get("graphqlServices", "invalid", "unlocked_package"));
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input.toString(), "-o",
+                outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format("SDL schema generation failed: Dependencies are not locked "
+                + "for the package \"unlocked_package\". Run 'bal build' to lock the dependencies, then re-run. "
+                + "Try: bal build %s", input.toRealPath())), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertEquals(fileNames(outputPath), List.of(), output);
+        Assert.assertFalse(Files.exists(input.resolve("Dependencies.toml")), output);
+    }
+
+    @Test(description = "Test that the Dependencies.toml of the package is not changed")
+    public void testDependenciesTomlNotChanged() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "locked");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        Path dependenciesToml = Path.of(validService("project_3"), "Dependencies.toml");
+        byte[] before = Files.readAllBytes(dependenciesToml);
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("project_3"),
+                "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(Files.readAllBytes(dependenciesToml), before, output);
+    }
+
+    @Test(description = "Test that a warning about the dependencies is passed on, and the schema is still generated")
+    public void testDependencyWarningPassedOn() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "old-distribution");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        Path dependenciesToml = Path.of(validService("old_distribution"), "Dependencies.toml");
+        byte[] before = Files.readAllBytes(dependenciesToml);
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("old_distribution"),
+                "-o", outputPath.toString());
+
+        Assert.assertTrue(output.contains("WARNING [old_distribution] Detected an attempt to compile this package "
+                + "using Swan Lake Update 13. However, this package was built using Swan Lake Update 10."), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql"), output);
+        Assert.assertEquals(Files.readAllBytes(dependenciesToml), before, output);
+    }
+
     @Test(description = "Test that the services in every file of the default module are generated, and that a root "
             + "service is named after its own file")
     public void testPackageInputReadsEveryFile() throws IOException {

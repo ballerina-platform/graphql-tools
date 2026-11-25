@@ -56,7 +56,7 @@ public class SchemaGeneration implements Generator {
     @Override
     public void validate() throws GenerationException {
         try {
-            this.project = SchemaProject.load(Paths.get(context.getInputPath()));
+            this.project = SchemaProject.load(Paths.get(context.getInputPath()), context.getOutStream()::println);
         } catch (SchemaGenerationException e) {
             if (e.getDiagnosticMessage() == SchemaDiagnosticMessages.SDL_SCHEMA_104) {
                 throw new ToolException(ExitCodes.INVALID_TARGET, e.getMessage());

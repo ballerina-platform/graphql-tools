@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
 import io.ballerina.graphql.schema.exception.SchemaGenerationException;
+import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
@@ -32,6 +33,7 @@ import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.directory.WorkspaceProject;
+import io.ballerina.projects.environment.PackageLockingMode;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
@@ -43,6 +45,7 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * The compiled Ballerina source that the SDL schemas are generated from: a standalone Ballerina file, the default
@@ -61,7 +64,12 @@ public record SchemaProject(List<SchemaDocument> documents) {
             "\"%s\" is a Ballerina workspace. Pass the directory of one of its packages instead.";
     private static final String ERROR_NO_PACKAGE_TABLE =
             "\"%s\" is not a Ballerina package. Its Ballerina.toml has no [package] table.";
+    private static final String ERROR_DEPENDENCIES_NOT_LOCKED = "Dependencies are not locked for the package "
+            + "\"%s\". Run 'bal build' to lock the dependencies, then re-run. Try: bal build %s";
     private static final String PACKAGE_TABLE = "package";
+    // The versions in Dependencies.toml are used as they are, and are never updated (CMP-1).
+    private static final BuildOptions BUILD_OPTIONS =
+            BuildOptions.builder().setLockingMode(PackageLockingMode.HARD).build();
 
     /**
      * A compiled Ballerina file of the source.
@@ -77,27 +85,45 @@ public record SchemaProject(List<SchemaDocument> documents) {
      * default module, and a directory under the modules directory of a package gives that module. A package that
      * belongs to a workspace is loaded through the workspace.
      *
-     * @param inputPath the path of a standalone Ballerina file, a package directory or a module directory
+     * @param inputPath      the path of a standalone Ballerina file, a package directory or a module directory
+     * @param warningHandler receives the warnings about the dependencies, such as a Dependencies.toml written by an
+     *                       older distribution
      * @return the compiled source
      * @throws SchemaGenerationException if the input cannot be read, is a file inside a package, is a workspace root,
-     *                                   is a directory that is not a package or module, or has compilation errors
+     *                                   is a directory that is not a package or module, is a package whose
+     *                                   dependencies are not locked, or has compilation errors
      */
-    public static SchemaProject load(Path inputPath) throws SchemaGenerationException {
+    public static SchemaProject load(Path inputPath, Consumer<String> warningHandler)
+            throws SchemaGenerationException {
         Path path = toReadablePath(inputPath);
         Project project = loadProject(inputPath, path);
         return switch (project.kind()) {
-            case SINGLE_FILE_PROJECT ->
-                    fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());
-            case BUILD_PROJECT -> fromPackage(inputPath, path, project);
+            // A standalone file has no Dependencies.toml, so it uses the packages in the distribution.
+            case SINGLE_FILE_PROJECT -> fromModule(project, compile(project, warningHandler),
+                    project.currentPackage().getDefaultModule().moduleId());
+            case BUILD_PROJECT -> fromPackage(inputPath, path, project, warningHandler);
             case WORKSPACE_PROJECT -> fromPackage(inputPath, path, findWorkspaceMember(inputPath, path,
-                    (WorkspaceProject) project));
+                    (WorkspaceProject) project), warningHandler);
             default -> throw invalidTarget(String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
         };
     }
 
+    private static SchemaProject fromPackage(Path inputPath, Path path, Project project,
+                                             Consumer<String> warningHandler) throws SchemaGenerationException {
+        ModuleId moduleId = findTargetModule(inputPath, path, project);
+        // The HARD locking mode takes the latest compatible versions when nothing is locked, so the result could
+        // differ between runs without a Dependencies.toml.
+        if (project.currentPackage().dependenciesToml().isEmpty()) {
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
+                    String.format(ERROR_DEPENDENCIES_NOT_LOCKED, project.currentPackage().packageName().value(),
+                            project.sourceRoot()));
+        }
+        return fromModule(project, compile(project, warningHandler), moduleId);
+    }
+
     // The loader gives the same package for its root, its modules directory, a module and a file inside it, so the
     // given path is compared with the package root to tell them apart.
-    private static SchemaProject fromPackage(Path inputPath, Path path, Project project)
+    private static ModuleId findTargetModule(Path inputPath, Path path, Project project)
             throws SchemaGenerationException {
         if (!hasPackageTable(project)) {
             throw invalidTarget(String.format(ERROR_NO_PACKAGE_TABLE, inputPath));
@@ -107,12 +133,12 @@ public record SchemaProject(List<SchemaDocument> documents) {
             throw invalidTarget(String.format(ERROR_FILE_IN_PACKAGE, inputPath, packageRoot));
         }
         if (path.equals(packageRoot)) {
-            return fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());
+            return project.currentPackage().getDefaultModule().moduleId();
         }
         if (packageRoot.resolve(ProjectConstants.MODULES_ROOT).equals(path.getParent())) {
             Optional<ModuleId> moduleId = findModule(project, path.getFileName().toString());
             if (moduleId.isPresent()) {
-                return fromModule(project, compile(project), moduleId.get());
+                return moduleId.get();
             }
         }
         throw invalidTarget(String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
@@ -172,7 +198,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
     // A path that cannot be loaded as a project is not a valid target, e.g. a directory without a Ballerina.toml.
     private static Project loadProject(Path inputPath, Path path) throws SchemaGenerationException {
         try {
-            return ProjectLoader.load(path).project();
+            return ProjectLoader.load(path, BUILD_OPTIONS).project();
         } catch (ProjectException e) {
             throw invalidTarget(Files.isDirectory(path) ? String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath)
                     : e.getMessage());
@@ -192,7 +218,12 @@ public record SchemaProject(List<SchemaDocument> documents) {
         return new SchemaProject(documents);
     }
 
-    private static PackageCompilation compile(Project project) throws SchemaGenerationException {
+    // The dependency warnings are passed on before compiling, so they are shown even when the compilation fails
+    // (CMP-4).
+    private static PackageCompilation compile(Project project, Consumer<String> warningHandler)
+            throws SchemaGenerationException {
+        project.currentPackage().getResolution().diagnosticResult().warnings()
+                .forEach(warning -> warningHandler.accept(warning.toString()));
         DiagnosticResult codeGenResult = project.currentPackage().runCodeGenAndModifyPlugins();
         if (!hasErrors(codeGenResult)) {
             PackageCompilation compilation = project.currentPackage().getCompilation();
