@@ -963,6 +963,11 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.assertTrue(output.contains("--object-type"));
             Assert.assertTrue(output.contains("--service-name"), output);
             Assert.assertFalse(output.contains("--input"));
+            Assert.assertTrue(output.contains("bal graphql <service.bal | package-directory | module-directory>"),
+                    output);
+            Assert.assertTrue(output.contains("$ bal graphql ./shop -o ./schemas"), output);
+            Assert.assertTrue(output.contains("$ bal graphql ./shop/modules/orders -o ./schemas"), output);
+            Assert.assertFalse(output.contains("service file"), output);
             Assert.assertEquals(exitCaptor.getExitCode(), 0, "Help flag should exit with code 0");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
