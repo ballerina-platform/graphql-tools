@@ -79,7 +79,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     public void testSdlGeneration(String svcFile, String expSchema, String genSchema) {
         String servicePath = resourceDir.resolve(Paths.get("graphqlServices", "valid", svcFile)).toString();
         try {
-            // Each run writes to its own folder, so a schema written by another run cannot make the check pass.
+            // Each run writes to its own directory, so a schema written by another run cannot make the check pass.
             Path outputPath = Files.createTempDirectory(this.tmpDir, "sdl");
             String[] args = {servicePath, "-o", outputPath.toString(), "--force"};
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
@@ -204,8 +204,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         };
     }
 
-    @Test(description = "Test that a package folder gives only its default module and a module folder only that module",
-            dataProvider = "packageInputs")
+    @Test(description = "Test that a package directory gives only its default module and a module directory only "
+            + "that module", dataProvider = "packageInputs")
     public void testPackageInputTakesOnlyOneModule(String input, String writtenSchema, String skippedSchema)
             throws IOException {
         Path outputPath = Files.createTempDirectory(this.tmpDir, "package-input");
@@ -237,7 +237,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
 
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is part of the "
-                + "package \"%s\". Pass the package folder or a module folder instead.", input, packageName)),
+                + "package \"%s\". Pass the package directory or a module directory instead.", input, packageName)),
                 output);
         Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
         try (Stream<Path> files = Files.list(outputPath)) {
@@ -245,22 +245,22 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         }
     }
 
-    @DataProvider(name = "foldersThatAreNotPackages")
-    public Object[][] foldersThatAreNotPackages() {
+    @DataProvider(name = "directoriesThatAreNotPackages")
+    public Object[][] directoriesThatAreNotPackages() {
         return new Object[][]{{""}, {"project_3/modules"}};
     }
 
-    @Test(description = "Test that a folder that is not a Ballerina package or module is rejected",
-            dataProvider = "foldersThatAreNotPackages")
-    public void testFolderThatIsNotPackageRejected(String folder) throws IOException {
+    @Test(description = "Test that a directory that is not a Ballerina package or module is rejected",
+            dataProvider = "directoriesThatAreNotPackages")
+    public void testDirectoryThatIsNotPackageRejected(String directory) throws IOException {
         Path outputPath = Files.createTempDirectory(this.tmpDir, "not-package");
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-        String input = validService(folder);
+        String input = validService(directory);
 
         String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
 
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is not a Ballerina "
-                + "package or module folder.", input)), output);
+                + "package or module directory.", input)), output);
         Assert.assertNotEquals(exitCaptor.getExitCode(), 0, output);
     }
 
@@ -338,7 +338,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
     }
 
-    @Test(description = "Test that a client or service only flag is a usage error with a package folder")
+    @Test(description = "Test that a client or service only flag is a usage error with a package directory")
     public void testClientAndServiceFlagsRejectedWithPackage() throws IOException {
         Path outputPath = Files.createTempDirectory(this.tmpDir, "package-flags");
         String input = validService("project_3");
@@ -468,8 +468,8 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         return readContentWithFormat(resourceDir.resolve(Paths.get("expectedSchemas", schemaFile)));
     }
 
-    private static List<String> fileNames(Path folder) throws IOException {
-        try (Stream<Path> files = Files.list(folder)) {
+    private static List<String> fileNames(Path directory) throws IOException {
+        try (Stream<Path> files = Files.list(directory)) {
             return files.map(file -> file.getFileName().toString()).sorted().toList();
         }
     }

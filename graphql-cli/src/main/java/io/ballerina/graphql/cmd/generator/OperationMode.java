@@ -62,7 +62,7 @@ public enum OperationMode {
     }
 
     public static Optional<OperationMode> fromInputPath(String inputPath) {
-        // A folder is a Ballerina package or module, which only schema generation reads.
+        // A directory is a Ballerina package or module, which only schema generation reads.
         if (Files.isDirectory(Paths.get(inputPath))) {
             return Optional.of(SCHEMA);
         }

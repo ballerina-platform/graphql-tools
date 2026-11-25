@@ -54,8 +54,8 @@ public record SchemaProject(List<SchemaDocument> documents) {
     private static final String ERROR_MISSING_FILE = "Provided Ballerina file path does not exist";
     private static final String ERROR_CANNOT_READ_FILE = "Cannot read provided Ballerina file (Permission denied)";
     private static final String ERROR_FILE_IN_PACKAGE =
-            "\"%s\" is part of the package \"%s\". Pass the package folder or a module folder instead.";
-    private static final String ERROR_NOT_PACKAGE_OR_MODULE = "\"%s\" is not a Ballerina package or module folder.";
+            "\"%s\" is part of the package \"%s\". Pass the package directory or a module directory instead.";
+    private static final String ERROR_NOT_PACKAGE_OR_MODULE = "\"%s\" is not a Ballerina package or module directory.";
 
     /**
      * A compiled Ballerina file of the source.
@@ -67,12 +67,12 @@ public record SchemaProject(List<SchemaDocument> documents) {
     }
 
     /**
-     * Loads and compiles the given input. A standalone Ballerina file is taken as it is, a package folder gives its
-     * default module, and a folder under the modules folder of a package gives that module.
+     * Loads and compiles the given input. A standalone Ballerina file is taken as it is, a package directory gives its
+     * default module, and a directory under the modules directory of a package gives that module.
      *
-     * @param inputPath the path of a standalone Ballerina file, a package folder or a module folder
+     * @param inputPath the path of a standalone Ballerina file, a package directory or a module directory
      * @return the compiled source
-     * @throws SchemaGenerationException if the input cannot be read, is a file inside a package, is a folder that is
+     * @throws SchemaGenerationException if the input cannot be read, is a file inside a package, is a directory that is
      *                                   not a package or module, or has compilation errors
      */
     public static SchemaProject load(Path inputPath) throws SchemaGenerationException {
@@ -84,7 +84,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
             Project project = loadProject(path);
             return fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());
         }
-        if (isModuleFolder(path)) {
+        if (isModuleDirectory(path)) {
             Project project = loadProject(path.getParent().getParent());
             Optional<ModuleId> moduleId = findModule(project, path.getFileName().toString());
             if (moduleId.isPresent()) {
@@ -120,19 +120,19 @@ public record SchemaProject(List<SchemaDocument> documents) {
         }
     }
 
-    private static boolean isModuleFolder(Path folder) {
-        Path modulesFolder = folder.getParent();
-        if (modulesFolder == null || modulesFolder.getParent() == null
-                || !ProjectConstants.MODULES_ROOT.equals(modulesFolder.getFileName().toString())) {
+    private static boolean isModuleDirectory(Path directory) {
+        Path modulesDirectory = directory.getParent();
+        if (modulesDirectory == null || modulesDirectory.getParent() == null
+                || !ProjectConstants.MODULES_ROOT.equals(modulesDirectory.getFileName().toString())) {
             return false;
         }
-        return Files.isRegularFile(modulesFolder.getParent().resolve(ProjectConstants.BALLERINA_TOML));
+        return Files.isRegularFile(modulesDirectory.getParent().resolve(ProjectConstants.BALLERINA_TOML));
     }
 
-    private static Optional<ModuleId> findModule(Project project, String moduleFolderName) {
+    private static Optional<ModuleId> findModule(Project project, String moduleDirectoryName) {
         for (ModuleId moduleId : project.currentPackage().moduleIds()) {
             Module module = project.currentPackage().module(moduleId);
-            if (moduleFolderName.equals(module.moduleName().moduleNamePart())) {
+            if (moduleDirectoryName.equals(module.moduleName().moduleNamePart())) {
                 return Optional.of(moduleId);
             }
         }

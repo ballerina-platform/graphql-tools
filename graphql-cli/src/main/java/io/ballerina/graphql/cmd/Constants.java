@@ -26,7 +26,7 @@ public class Constants {
     // GraphQL command line tool messages
     public static final String MESSAGE_FOR_INVALID_FILE_EXTENSION = "File \"%s\" is not a supported input. " +
             "Provide a balGraphQL.toml file, a Ballerina service file (.bal), or a Ballerina package or module " +
-            "folder.";
+            "directory.";
     public static final String MESSAGE_FOR_MISMATCH_MODE_AND_FILE_EXTENSION = "\"%s\" mode cannot be used with " +
             "\"%s\". The mode flag only applies to a balGraphQL.toml file.";
     public static final String MESSAGE_FOR_EMPTY_CONFIGURATION_FILE =

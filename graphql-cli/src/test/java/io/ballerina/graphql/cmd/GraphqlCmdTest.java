@@ -1020,22 +1020,22 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test that a folder inside a Ballerina package is rejected as the output")
-    public void testGenerationInPackageSubfolder() throws IOException {
-        Path subfolder = Files.createDirectories(this.tmpDir.resolve("subfolder"));
+    @Test(description = "Test that a directory inside a Ballerina package is rejected as the output")
+    public void testGenerationInPackageSubdirectory() throws IOException {
+        Path subdirectory = Files.createDirectories(this.tmpDir.resolve("subdirectory"));
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-            String output = run(exitCaptor, SINGLE_OBJECT_CONFIG, "-o", subfolder.toString(), "--mode", "service");
-            Assert.assertTrue(output.contains(notAPackage(subfolder)), output);
+            String output = run(exitCaptor, SINGLE_OBJECT_CONFIG, "-o", subdirectory.toString(), "--mode", "service");
+            Assert.assertTrue(output.contains(notAPackage(subdirectory)), output);
             assertInvalidTarget(output, exitCaptor);
-            Assert.assertFalse(Files.exists(subfolder.resolve("types.bal")), output);
+            Assert.assertFalse(Files.exists(subdirectory.resolve("types.bal")), output);
         } finally {
-            FileUtils.deleteDirectory(subfolder.toFile());
+            FileUtils.deleteDirectory(subdirectory.toFile());
         }
     }
 
-    @Test(description = "Test that a missing output folder outside a Ballerina package is not created")
-    public void testGenerationToMissingFolderOutsidePackage() throws IOException {
+    @Test(description = "Test that a missing output directory outside a Ballerina package is not created")
+    public void testGenerationToMissingDirectoryOutsidePackage() throws IOException {
         Path parent = Files.createTempDirectory("no-package");
         Path outputPath = parent.resolve("output");
         try {
