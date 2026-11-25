@@ -25,6 +25,7 @@ import io.ballerina.graphql.schema.exception.SchemaGenerationException;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
@@ -66,6 +67,8 @@ public record SchemaProject(List<SchemaDocument> documents) {
             + "\"%s\". Run 'bal build' to lock the dependencies, then re-run. Try: bal build %s";
     private static final String ERROR_LINKED_MODULE = "\"%s\" is a symbolic link, and the Ballerina compiler does "
             + "not read a module directory that is a symbolic link. Replace the link with the module directory.";
+    private static final String ERROR_TEST_FILE =
+            "\"%s\" is a test file. Schema generation does not support test services.";
     private static final String PACKAGE_TABLE = "package";
     // The versions in Dependencies.toml are used as they are, and are never updated (CMP-1).
     private static final BuildOptions BUILD_OPTIONS =
@@ -118,7 +121,35 @@ public record SchemaProject(List<SchemaDocument> documents) {
                     String.format(ERROR_DEPENDENCIES_NOT_LOCKED, project.currentPackage().packageName().value(),
                             project.sourceRoot()));
         }
+        removeTestDocuments(project);
         return fromModule(project, compile(project, warningHandler), moduleId);
+    }
+
+    // Test services are not supported, so the test sources are removed from the loaded package before compiling, and
+    // an error in them does not stop the generation. Only the loaded package changes, the files stay as they are.
+    private static void removeTestDocuments(Project project) {
+        for (ModuleId moduleId : project.currentPackage().moduleIds()) {
+            Module module = project.currentPackage().module(moduleId);
+            if (module.testDocumentIds().isEmpty()) {
+                continue;
+            }
+            Module.Modifier modifier = module.modify();
+            for (DocumentId testDocumentId : module.testDocumentIds()) {
+                modifier = modifier.removeDocument(testDocumentId);
+            }
+            modifier.apply();
+        }
+    }
+
+    private static boolean isTestDocument(Project project, Path filePath) {
+        try {
+            DocumentId documentId = project.documentId(filePath);
+            return project.currentPackage().moduleIds().stream()
+                    .anyMatch(moduleId -> project.currentPackage().module(moduleId).testDocumentIds()
+                            .contains(documentId));
+        } catch (ProjectException e) {
+            return false;
+        }
     }
 
     // The loader gives the same package for its root, its modules directory, a module and a file inside it, so the
@@ -130,6 +161,9 @@ public record SchemaProject(List<SchemaDocument> documents) {
         }
         Path packageRoot = project.sourceRoot();
         if (!Files.isDirectory(path)) {
+            if (isTestDocument(project, path)) {
+                throw invalidTarget(String.format(ERROR_TEST_FILE, inputPath));
+            }
             throw invalidTarget(String.format(ERROR_FILE_IN_PACKAGE, inputPath, packageRoot));
         }
         if (path.equals(packageRoot)) {

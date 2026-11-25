@@ -439,6 +439,32 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(fileNames(outputPath), List.of("schema_orders.graphql"), output);
     }
 
+    @Test(description = "Test that a package is generated without its test services, even when a test file has errors")
+    public void testTestSourcesIgnored() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "with-tests");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("project_with_tests"),
+                "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql"), output);
+    }
+
+    @Test(description = "Test that a test file is rejected, since test services are not supported")
+    public void testTestFileRejected() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "test-file");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String input = validService("project_with_tests/tests/service_test.bal");
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is a test file. Schema "
+                + "generation does not support test services.", input)), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
+        Assert.assertEquals(fileNames(outputPath), List.of(), output);
+    }
+
     @Test(description = "Test that the services in every file of the default module are generated, and that a root "
             + "service is named after its own file")
     public void testPackageInputReadsEveryFile() throws IOException {
