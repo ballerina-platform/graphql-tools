@@ -298,6 +298,60 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
     }
 
+    @Test(description = "Test that a package in a workspace is generated with the types of the sibling it imports")
+    public void testWorkspaceMemberGenerated() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "workspace-member");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("workspace_1/books"),
+                "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql"), output);
+        Assert.assertTrue(Files.readString(outputPath.resolve("schema_books.graphql")).contains("type Book {"), output);
+    }
+
+    @Test(description = "Test that a workspace root is rejected")
+    public void testWorkspaceRootRejected() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "workspace-root");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String input = validService("workspace_1");
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is a Ballerina "
+                + "workspace. Pass the directory of one of its packages instead.", input)), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
+        Assert.assertEquals(fileNames(outputPath), List.of(), output);
+    }
+
+    @Test(description = "Test that a Ballerina file inside a package of a workspace is rejected with the package root")
+    public void testBalFileInWorkspaceMemberRejected() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "workspace-file");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String input = validService("workspace_1/books/main.bal");
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format("\"%s\" is part of the package at \"%s\".", input,
+                Path.of(validService("workspace_1/books")).toRealPath())), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
+    }
+
+    @Test(description = "Test that a directory whose Ballerina.toml has no [package] table is rejected")
+    public void testBallerinaTomlWithoutPackageTableRejected() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "no-package-table");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String input = resourceDir.resolve(Paths.get("graphqlServices", "invalid", "no_package_table")).toString();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input, "-o", outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is not a Ballerina "
+                + "package. Its Ballerina.toml has no [package] table.", input)), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
+        Assert.assertEquals(fileNames(outputPath), List.of(), output);
+    }
+
     @Test(description = "Test that the services in every file of the default module are generated, and that a root "
             + "service is named after its own file")
     public void testPackageInputReadsEveryFile() throws IOException {

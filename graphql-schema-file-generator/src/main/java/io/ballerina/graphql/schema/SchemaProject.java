@@ -29,8 +29,9 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
-import io.ballerina.projects.ProjectKind;
+import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
+import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
@@ -56,6 +57,11 @@ public record SchemaProject(List<SchemaDocument> documents) {
     private static final String ERROR_FILE_IN_PACKAGE =
             "\"%s\" is part of the package at \"%s\". Pass the package directory or a module directory instead.";
     private static final String ERROR_NOT_PACKAGE_OR_MODULE = "\"%s\" is not a Ballerina package or module directory.";
+    private static final String ERROR_WORKSPACE_ROOT =
+            "\"%s\" is a Ballerina workspace. Pass the directory of one of its packages instead.";
+    private static final String ERROR_NO_PACKAGE_TABLE =
+            "\"%s\" is not a Ballerina package. Its Ballerina.toml has no [package] table.";
+    private static final String PACKAGE_TABLE = "package";
 
     /**
      * A compiled Ballerina file of the source.
@@ -68,40 +74,73 @@ public record SchemaProject(List<SchemaDocument> documents) {
 
     /**
      * Loads and compiles the given input. A standalone Ballerina file is taken as it is, a package directory gives its
-     * default module, and a directory under the modules directory of a package gives that module.
+     * default module, and a directory under the modules directory of a package gives that module. A package that
+     * belongs to a workspace is loaded through the workspace.
      *
      * @param inputPath the path of a standalone Ballerina file, a package directory or a module directory
      * @return the compiled source
-     * @throws SchemaGenerationException if the input cannot be read, is a file inside a package, is a directory that is
-     *                                   not a package or module, or has compilation errors
+     * @throws SchemaGenerationException if the input cannot be read, is a file inside a package, is a workspace root,
+     *                                   is a directory that is not a package or module, or has compilation errors
      */
     public static SchemaProject load(Path inputPath) throws SchemaGenerationException {
         Path path = toReadablePath(inputPath);
-        if (!Files.isDirectory(path)) {
-            return loadFile(inputPath, path);
+        Project project = loadProject(inputPath, path);
+        return switch (project.kind()) {
+            case SINGLE_FILE_PROJECT ->
+                    fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());
+            case BUILD_PROJECT -> fromPackage(inputPath, path, project);
+            case WORKSPACE_PROJECT -> fromPackage(inputPath, path, findWorkspaceMember(inputPath, path,
+                    (WorkspaceProject) project));
+            default -> throw invalidTarget(String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
+        };
+    }
+
+    // The loader gives the same package for its root, its modules directory, a module and a file inside it, so the
+    // given path is compared with the package root to tell them apart.
+    private static SchemaProject fromPackage(Path inputPath, Path path, Project project)
+            throws SchemaGenerationException {
+        if (!hasPackageTable(project)) {
+            throw invalidTarget(String.format(ERROR_NO_PACKAGE_TABLE, inputPath));
         }
-        if (Files.isRegularFile(path.resolve(ProjectConstants.BALLERINA_TOML))) {
-            Project project = loadProject(path);
+        Path packageRoot = project.sourceRoot();
+        if (!Files.isDirectory(path)) {
+            throw invalidTarget(String.format(ERROR_FILE_IN_PACKAGE, inputPath, packageRoot));
+        }
+        if (path.equals(packageRoot)) {
             return fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());
         }
-        if (isModuleDirectory(path)) {
-            Project project = loadProject(path.getParent().getParent());
+        if (packageRoot.resolve(ProjectConstants.MODULES_ROOT).equals(path.getParent())) {
             Optional<ModuleId> moduleId = findModule(project, path.getFileName().toString());
             if (moduleId.isPresent()) {
                 return fromModule(project, compile(project), moduleId.get());
             }
         }
-        throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_104, null,
-                String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
+        throw invalidTarget(String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
     }
 
-    private static SchemaProject loadFile(Path inputPath, Path filePath) throws SchemaGenerationException {
-        Project project = loadProject(filePath);
-        if (project.kind() == ProjectKind.BUILD_PROJECT) {
-            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_104, null,
-                    String.format(ERROR_FILE_IN_PACKAGE, inputPath, project.sourceRoot()));
+    // The loader gives the workspace for its root and for anything inside one of its packages, so the package is
+    // taken from the workspace, which lets the package API resolve the sibling packages it imports.
+    private static Project findWorkspaceMember(Path inputPath, Path path, WorkspaceProject workspace)
+            throws SchemaGenerationException {
+        for (BuildProject member : workspace.projects()) {
+            if (path.startsWith(member.sourceRoot())) {
+                return member;
+            }
         }
-        return fromModule(project, compile(project), project.currentPackage().getDefaultModule().moduleId());
+        if (path.equals(workspace.sourceRoot())) {
+            throw invalidTarget(String.format(ERROR_WORKSPACE_ROOT, inputPath));
+        }
+        throw invalidTarget(String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
+    }
+
+    private static boolean hasPackageTable(Project project) {
+        return project.currentPackage().ballerinaToml()
+                .map(ballerinaToml -> ballerinaToml.tomlAstNode().entries().containsKey(PACKAGE_TABLE))
+                .orElse(false);
+    }
+
+    private static SchemaGenerationException invalidTarget(String message) {
+        return new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_104, null, message);
     }
 
     private static Path toReadablePath(Path inputPath) throws SchemaGenerationException {
@@ -120,15 +159,6 @@ public record SchemaProject(List<SchemaDocument> documents) {
         }
     }
 
-    private static boolean isModuleDirectory(Path directory) {
-        Path modulesDirectory = directory.getParent();
-        if (modulesDirectory == null || modulesDirectory.getParent() == null
-                || !ProjectConstants.MODULES_ROOT.equals(modulesDirectory.getFileName().toString())) {
-            return false;
-        }
-        return Files.isRegularFile(modulesDirectory.getParent().resolve(ProjectConstants.BALLERINA_TOML));
-    }
-
     private static Optional<ModuleId> findModule(Project project, String moduleDirectoryName) {
         for (ModuleId moduleId : project.currentPackage().moduleIds()) {
             Module module = project.currentPackage().module(moduleId);
@@ -139,11 +169,13 @@ public record SchemaProject(List<SchemaDocument> documents) {
         return Optional.empty();
     }
 
-    private static Project loadProject(Path path) throws SchemaGenerationException {
+    // A path that cannot be loaded as a project is not a valid target, e.g. a directory without a Ballerina.toml.
+    private static Project loadProject(Path inputPath, Path path) throws SchemaGenerationException {
         try {
-            return ProjectLoader.loadProject(path);
+            return ProjectLoader.load(path).project();
         } catch (ProjectException e) {
-            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.getMessage());
+            throw invalidTarget(Files.isDirectory(path) ? String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath)
+                    : e.getMessage());
         }
     }
 

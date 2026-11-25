@@ -20,6 +20,7 @@ module io.ballerina.graphql.schema {
     requires io.ballerina.lang;
     requires io.ballerina.parser;
     requires io.ballerina.tools.api;
+    requires io.ballerina.toml;
     requires org.apache.commons.io;
     requires io.ballerina.stdlib.graphql.commons;
     // Remove export to a specific module due to a warning(warning: [module] module not found:q)
