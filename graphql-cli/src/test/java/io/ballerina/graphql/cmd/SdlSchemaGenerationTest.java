@@ -634,6 +634,28 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
     }
 
+    @Test(description = "Test that a standalone file that imports a package outside the distribution gets a clear "
+            + "error, since it only sees the packages in the distribution")
+    public void testStandaloneFileWithPackageOutsideDistribution() throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "standalone-import");
+        Path input = workDir.resolve("service.bal");
+        Files.writeString(input, "import ballerina/graphql;\nimport ballerinax/kafka;\n\n"
+                + "service /orders on new graphql:Listener(9090) {\n"
+                + "    resource function get id() returns int => 1;\n}\n\n"
+                + "kafka:ProducerConfiguration producerConfig = {};\n");
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input.toString(), "-o",
+                outputPath.toString());
+
+        Assert.assertTrue(output.contains("SDL schema generation failed: A standalone Ballerina file can only import "
+                + "the packages in the Ballerina distribution (cannot resolve module 'ballerinax/kafka'). Put the "
+                + "service in a package to use other packages."), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        Assert.assertEquals(fileNames(outputPath), List.of(), output);
+    }
+
     @Test(description = "Test that services whose file names clash, ignoring case, each get their own schema file")
     public void testClashingFileNamesKeepEverySchema() throws IOException {
         Path outputPath = Files.createTempDirectory(this.tmpDir, "name-clash");

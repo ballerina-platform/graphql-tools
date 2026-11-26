@@ -30,14 +30,19 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.ProjectException;
+import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.directory.WorkspaceProject;
+import io.ballerina.projects.environment.Environment;
+import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.projects.environment.PackageLockingMode;
 import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,6 +87,13 @@ public record SchemaProject(List<SchemaDocument> documents) {
     // The versions in Dependencies.toml are used as they are, and are never updated (CMP-1).
     private static final BuildOptions BUILD_OPTIONS =
             BuildOptions.builder().setLockingMode(PackageLockingMode.HARD).build();
+    // Offline, so a standalone file never downloads a newer version of a package than the distribution has.
+    private static final BuildOptions STANDALONE_OPTIONS = BuildOptions.builder().setOffline(true).build();
+    private static final String STANDALONE_HOME_PREFIX = "ballerina-graphql-home";
+    // The compiler's code for "cannot resolve module".
+    private static final String UNRESOLVED_MODULE_CODE = "BCE2003";
+    private static final String ERROR_STANDALONE_IMPORT = "A standalone Ballerina file can only import the packages "
+            + "in the Ballerina distribution (%s). Put the service in a package to use other packages.";
 
     /**
      * A compiled Ballerina file of the source.
@@ -108,16 +120,33 @@ public record SchemaProject(List<SchemaDocument> documents) {
     public static SchemaProject load(Path inputPath, Consumer<String> warningHandler)
             throws SchemaGenerationException {
         Path path = toReadablePath(inputPath);
-        Project project = loadProject(inputPath, path);
-        return switch (project.kind()) {
-            // A standalone file has no Dependencies.toml, so it uses the packages in the distribution.
-            case SINGLE_FILE_PROJECT -> fromModule(project, compile(project, warningHandler),
-                    project.currentPackage().getDefaultModule().moduleId());
-            case BUILD_PROJECT -> fromPackage(inputPath, path, project, warningHandler);
-            case WORKSPACE_PROJECT -> fromPackage(inputPath, path, findWorkspaceMember(inputPath, path,
-                    (WorkspaceProject) project), warningHandler);
-            default -> throw invalidTarget(String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
-        };
+        // A file has no Dependencies.toml to lock its dependencies, so it is loaded offline with an empty Ballerina
+        // home of its own, and only sees the packages in the distribution, not the newer ones in the local cache. A
+        // file inside a package is rejected below, before anything is compiled.
+        Path standaloneHome = Files.isDirectory(path) ? null : createStandaloneHome();
+        try {
+            Project project = loadProject(inputPath, path, standaloneHome);
+            return switch (project.kind()) {
+                case SINGLE_FILE_PROJECT -> fromModule(project, compile(project, warningHandler),
+                        project.currentPackage().getDefaultModule().moduleId());
+                case BUILD_PROJECT -> fromPackage(inputPath, path, project, warningHandler);
+                case WORKSPACE_PROJECT -> fromPackage(inputPath, path, findWorkspaceMember(inputPath, path,
+                        (WorkspaceProject) project), warningHandler);
+                default -> throw invalidTarget(String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
+            };
+        } finally {
+            if (standaloneHome != null) {
+                FileUtils.deleteQuietly(standaloneHome.toFile());
+            }
+        }
+    }
+
+    private static Path createStandaloneHome() throws SchemaGenerationException {
+        try {
+            return Files.createTempDirectory(STANDALONE_HOME_PREFIX);
+        } catch (IOException e) {
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
+        }
     }
 
     private static SchemaProject fromPackage(Path inputPath, Path path, Project project,
@@ -277,9 +306,15 @@ public record SchemaProject(List<SchemaDocument> documents) {
         return Optional.empty();
     }
 
-    private static Project loadProject(Path inputPath, Path path) throws SchemaGenerationException {
+    private static Project loadProject(Path inputPath, Path path, Path standaloneHome)
+            throws SchemaGenerationException {
         try {
-            return ProjectLoader.load(path, BUILD_OPTIONS).project();
+            if (standaloneHome == null) {
+                return ProjectLoader.load(path, BUILD_OPTIONS).project();
+            }
+            Environment environment = EnvironmentBuilder.getBuilder().setUserHome(standaloneHome).build();
+            return ProjectLoader.load(path, ProjectEnvironmentBuilder.getBuilder(environment), STANDALONE_OPTIONS)
+                    .project();
         } catch (ProjectException e) {
             if (!Files.isDirectory(path)) {
                 throw invalidTarget(e.getMessage());
@@ -341,10 +376,20 @@ public record SchemaProject(List<SchemaDocument> documents) {
         project.currentPackage().getResolution().diagnosticResult().warnings()
                 .forEach(warning -> warningHandler.accept(warning.toString()));
         DiagnosticResult codeGenResult = project.currentPackage().runCodeGenAndModifyPlugins();
-        if (!hasErrors(codeGenResult)) {
-            PackageCompilation compilation = project.currentPackage().getCompilation();
-            if (!hasErrors(compilation.diagnosticResult())) {
-                return compilation;
+        PackageCompilation compilation = project.currentPackage().getCompilation();
+        if (!hasErrors(codeGenResult) && !hasErrors(compilation.diagnosticResult())) {
+            return compilation;
+        }
+        // A standalone file only sees the packages in the distribution, so an import of any other package can't be
+        // resolved. That is reported clearly, instead of as a compilation error in the developer's code.
+        if (project.kind() == ProjectKind.SINGLE_FILE_PROJECT) {
+            List<String> unresolvedImports = compilation.diagnosticResult().errors().stream()
+                    .filter(error -> UNRESOLVED_MODULE_CODE.equals(error.diagnosticInfo().code()))
+                    .map(Diagnostic::message)
+                    .toList();
+            if (!unresolvedImports.isEmpty()) {
+                throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
+                        String.format(ERROR_STANDALONE_IMPORT, String.join(ERROR_SEPARATOR, unresolvedImports)));
             }
         }
         throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_100, null);
