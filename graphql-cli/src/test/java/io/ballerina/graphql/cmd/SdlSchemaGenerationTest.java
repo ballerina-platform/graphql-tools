@@ -102,8 +102,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
     public Object[][] dataProviderExecuteWithBalFileIncludeCompilationErrors() {
         return new Object[][]{
                 {"service_1.bal", "ERROR [:(-1:-1,-1:-1)] Given Ballerina file contains compilation error(s)."},
-                {"service.bal", "ERROR [:(-1:-1,-1:-1)] SDL schema generation failed: " +
-                        "Provided Ballerina file path does not exist"}
+                {"service.bal", "service.bal\" does not exist."}
         };
     }
 
@@ -363,6 +362,64 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is not a Ballerina "
                 + "package. Its Ballerina.toml has no [package] table.", input)), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
+        Assert.assertEquals(fileNames(outputPath), List.of(), output);
+    }
+
+    @DataProvider(name = "invalidInputs")
+    public Object[][] invalidInputs() {
+        return new Object[][]{
+                {"missing.bal", false, "\"%s\" does not exist."},
+                {"missing_directory", false, "\"%s\" does not exist."},
+                {"service.bala", true, "File \"%s\" is not a supported input."},
+                {"service.txt", true, "File \"%s\" is not a supported input."}
+        };
+    }
+
+    @Test(description = "Test that an input that does not exist or is not a supported file is an invalid target",
+            dataProvider = "invalidInputs")
+    public void testInvalidInputIsInvalidTarget(String fileName, boolean create, String message) throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "invalid-input");
+        Path input = workDir.resolve(fileName);
+        if (create) {
+            Files.writeString(input, "");
+        }
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input.toString(), "-o",
+                outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format(message, input)), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
+        Assert.assertFalse(output.contains("Usage: bal graphql"), output);
+    }
+
+    @DataProvider(name = "invalidBallerinaTomls")
+    public Object[][] invalidBallerinaTomls() {
+        return new Object[][]{
+                {"[package\norg = \"test\"\nname = \"shop\"\nversion = \"0.1.0\"\n", "missing close bracket token"},
+                {"[package]\norg = \"my-org!\"\nname = \"shop\"\nversion = \"abc\"\n",
+                        "invalid 'org' under [package]: 'org' can only contain alphanumerics and underscores; "
+                                + "invalid 'version' under [package]: 'version' should be compatible with semver"}
+        };
+    }
+
+    @Test(description = "Test that the errors in an invalid Ballerina.toml are reported, instead of a missing "
+            + "[package] table or missing lock file", dataProvider = "invalidBallerinaTomls")
+    public void testInvalidBallerinaTomlReported(String ballerinaToml, String errors) throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "invalid-toml");
+        Path packageRoot = Files.createDirectory(workDir.resolve("shop"));
+        Files.writeString(packageRoot.resolve("Ballerina.toml"), ballerinaToml);
+        Files.copy(Path.of(validService("project_1"), "main.bal"), packageRoot.resolve("main.bal"));
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), packageRoot.toString(), "-o",
+                outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is not valid: %s",
+                packageRoot.resolve("Ballerina.toml"), errors)), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
     }

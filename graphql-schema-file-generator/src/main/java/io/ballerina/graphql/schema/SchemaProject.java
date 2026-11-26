@@ -36,6 +36,7 @@ import io.ballerina.projects.directory.ProjectLoader;
 import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.projects.environment.PackageLockingMode;
 import io.ballerina.projects.util.ProjectConstants;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.io.File;
@@ -57,7 +58,9 @@ import java.util.stream.Stream;
  */
 public record SchemaProject(List<SchemaDocument> documents) {
 
-    private static final String ERROR_MISSING_FILE = "Provided Ballerina file path does not exist";
+    private static final String ERROR_MISSING_FILE = "\"%s\" does not exist.";
+    private static final String ERROR_INVALID_BALLERINA_TOML = "\"%s\" is not valid: %s";
+    private static final String ERROR_SEPARATOR = "; ";
     private static final String ERROR_CANNOT_READ_FILE = "Cannot read provided Ballerina file (Permission denied)";
     private static final String ERROR_CANNOT_READ = "Cannot read \"%s\".";
     private static final String PARENT_DIRECTORY = "..";
@@ -162,6 +165,16 @@ public record SchemaProject(List<SchemaDocument> documents) {
     // given path is compared with the package root to tell them apart.
     private static ModuleId findTargetModule(Path inputPath, Path path, Project project)
             throws SchemaGenerationException {
+        // The errors in Ballerina.toml are reported first, since they also cause the missing [package] table and the
+        // missing lock file errors below.
+        List<String> tomlErrors = project.currentPackage().manifest().diagnostics().errors().stream()
+                .map(Diagnostic::message)
+                .toList();
+        if (!tomlErrors.isEmpty()) {
+            throw invalidTarget(String.format(ERROR_INVALID_BALLERINA_TOML,
+                    project.sourceRoot().resolve(ProjectConstants.BALLERINA_TOML), String.join(ERROR_SEPARATOR,
+                            tomlErrors)));
+        }
         if (!hasPackageTable(project)) {
             throw invalidTarget(String.format(ERROR_NO_PACKAGE_TABLE, inputPath));
         }
@@ -220,7 +233,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
     private static Path toReadablePath(Path inputPath) throws SchemaGenerationException {
         File input = inputPath.toFile();
         if (!input.exists()) {
-            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, ERROR_MISSING_FILE);
+            throw invalidTarget(String.format(ERROR_MISSING_FILE, inputPath));
         }
         if (!input.canRead()) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,

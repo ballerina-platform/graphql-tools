@@ -33,6 +33,7 @@ import picocli.CommandLine;
 
 import java.io.Console;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -104,6 +105,7 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final String ERROR_UNKNOWN_OPTION =
             "Unknown option \"%s\". Run \"bal graphql --help\" to see the available options.";
     private static final String ERROR_MULTIPLE_INPUTS = "Only one input file can be given. Found: %s.";
+    private static final String ERROR_INPUT_NOT_FOUND = "\"%s\" does not exist.";
     // Not private: the @Command annotation on the class can only reference non-private constants.
     static final String HEADER =
             "  bal graphql - Generate Ballerina GraphQL services and clients, and GraphQL schemas";
@@ -365,8 +367,11 @@ public class GraphqlCmd implements BLauncherCmd {
             throw usageError(String.format(ERROR_SCHEMA_FILE_INPUT, inputPath));
         }
 
+        // An input that does not exist, or is not a supported file, is not a valid target (TGT-6, TGT-8).
         if (!validInputFileExtension(inputPath)) {
-            throw usageError(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
+            throw invalidTarget(Files.exists(Paths.get(inputPath))
+                    ? String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath)
+                    : String.format(ERROR_INPUT_NOT_FOUND, inputPath));
         }
 
         if (isConfigFileInput(inputPath) && !isBalGraphqlConfigFile(inputPath)) {
@@ -480,6 +485,11 @@ public class GraphqlCmd implements BLauncherCmd {
 
     private static ToolException usageError(String message) {
         return new ToolException(ExitCodes.USAGE, Utils.constructGraphqlDiagnostic(
+                DiagnosticMessages.GRAPHQL_CLI_100.getCode(), message, DiagnosticSeverity.ERROR, null).toString());
+    }
+
+    private static ToolException invalidTarget(String message) {
+        return new ToolException(ExitCodes.INVALID_TARGET, Utils.constructGraphqlDiagnostic(
                 DiagnosticMessages.GRAPHQL_CLI_100.getCode(), message, DiagnosticSeverity.ERROR, null).toString());
     }
 

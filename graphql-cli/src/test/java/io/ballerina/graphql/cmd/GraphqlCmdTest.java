@@ -574,16 +574,18 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with invalid config file extension")
     public void testExecuteWithInvalidConfigFileExtension() {
-        Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yam"));
+        Path graphqlConfigYaml = this.tmpDir.resolve("graphql.config.yam");
         String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
         String message = String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, graphqlConfigYaml);
         try {
+            Files.writeString(graphqlConfigYaml, "");
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains(message));
+            Assert.assertTrue(output.contains(message), output);
+            assertInvalidTarget(output, exitCaptor);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
@@ -597,16 +599,18 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with invalid file extensions",
             dataProvider = "invalidFileNameExtension")
     public void testExecuteWithInvalidFileExtensions(String invalidFileNameExtension) {
-        Path filePath = resourceDir.resolve(Paths.get("specs", invalidFileNameExtension));
+        Path filePath = this.tmpDir.resolve(invalidFileNameExtension);
         String[] args = {filePath.toString(), "-o", this.tmpDir.toString()};
         try {
+            Files.writeString(filePath, "");
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             String message = String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, filePath);
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains(message));
+            Assert.assertTrue(output.contains(message), output);
+            assertInvalidTarget(output, exitCaptor);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
