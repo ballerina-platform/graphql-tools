@@ -95,8 +95,10 @@ public record SchemaProject(List<SchemaDocument> documents) {
     private static final String STANDALONE_HOME_PREFIX = "ballerina-graphql-home";
     // The compiler's code for "cannot resolve module".
     private static final String UNRESOLVED_MODULE_CODE = "BCE2003";
-    private static final String ERROR_STANDALONE_IMPORT = "A standalone Ballerina file can only import the packages "
-            + "in the Ballerina distribution (%s). Put the service in a package to use other packages.";
+    // The module can be misspelled, or not be in the distribution (also in the ballerina org), so both are mentioned.
+    private static final String ERROR_STANDALONE_IMPORT = "%s. A standalone Ballerina file can only use the packages "
+            + "in the Ballerina distribution, so check the module name, or put the service in a package to use other "
+            + "packages.";
 
     /**
      * A compiled Ballerina file of the source.

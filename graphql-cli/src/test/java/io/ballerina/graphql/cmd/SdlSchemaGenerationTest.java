@@ -669,24 +669,29 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
     }
 
-    @Test(description = "Test that a standalone file that imports a package outside the distribution gets a clear "
-            + "error, since it only sees the packages in the distribution")
-    public void testStandaloneFileWithPackageOutsideDistribution() throws IOException {
+    @DataProvider(name = "unresolvedStandaloneImports")
+    public Object[][] unresolvedStandaloneImports() {
+        // A package outside the distribution, and a misspelled distribution package.
+        return new Object[][]{{"ballerinax/kafka"}, {"ballerina/grapql"}};
+    }
+
+    @Test(description = "Test that a standalone file with an import that can't be resolved gets a clear error, since "
+            + "it only sees the packages in the distribution", dataProvider = "unresolvedStandaloneImports")
+    public void testStandaloneFileWithUnresolvedImport(String module) throws IOException {
         Path workDir = Files.createTempDirectory(this.tmpDir, "standalone-import");
         Path input = workDir.resolve("service.bal");
-        Files.writeString(input, "import ballerina/graphql;\nimport ballerinax/kafka;\n\n"
+        Files.writeString(input, "import ballerina/graphql;\nimport " + module + ";\n\n"
                 + "service /orders on new graphql:Listener(9090) {\n"
-                + "    resource function get id() returns int => 1;\n}\n\n"
-                + "kafka:ProducerConfiguration producerConfig = {};\n");
+                + "    resource function get id() returns int => 1;\n}\n");
         Path outputPath = Files.createDirectory(workDir.resolve("out"));
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
 
         String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), input.toString(), "-o",
                 outputPath.toString());
 
-        Assert.assertTrue(output.contains("SDL schema generation failed: A standalone Ballerina file can only import "
-                + "the packages in the Ballerina distribution (cannot resolve module 'ballerinax/kafka'). Put the "
-                + "service in a package to use other packages."), output);
+        Assert.assertTrue(output.contains(String.format("SDL schema generation failed: cannot resolve module '%s'. "
+                + "A standalone Ballerina file can only use the packages in the Ballerina distribution, so check the "
+                + "module name, or put the service in a package to use other packages.", module)), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
     }
