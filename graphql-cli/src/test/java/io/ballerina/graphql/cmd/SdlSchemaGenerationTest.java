@@ -282,7 +282,7 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @DataProvider(name = "directoryNamesWithFormatCharacters")
     public Object[][] directoryNamesWithFormatCharacters() {
-        return new Object[][]{{"a{b}"}, {"o'brien"}, {"{0}"}};
+        return new Object[][]{{"a{b}"}, {"o'brien"}, {"{0}"}, {"{}"}, {"{id}{x}"}, {"it's {a}'s"}};
     }
 
     @Test(description = "Test that braces and quotes in the input path are printed as they are",
@@ -298,6 +298,19 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: \"%s\" is not a Ballerina "
                 + "package or module directory.", input)), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 3, output);
+    }
+
+    @Test(description = "Test that braces in the --service value are printed as they are")
+    public void testServiceNameWithFormatCharacters() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "format-characters-service");
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("project_3"),
+                "-o", outputPath.toString(), "--service", "{}");
+
+        Assert.assertTrue(output.contains("No Ballerina services found with name \"{}\" to generate SDL schema."),
+                output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
     }
 
     @Test(description = "Test that a package in a workspace is generated with the types of the sibling it imports")

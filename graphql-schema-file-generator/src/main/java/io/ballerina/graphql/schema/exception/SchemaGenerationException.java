@@ -30,13 +30,18 @@ import static io.ballerina.tools.diagnostics.DiagnosticFactory.createDiagnostic;
  * Exception type definition for GraphQL SDL schema generation related errors.
  */
 public class SchemaGenerationException extends Exception {
+    private static final String MESSAGE_PATTERN = "{0}";
+
     private final Diagnostic diagnostic;
     private final SchemaDiagnosticMessages diagnosticMessage;
 
     public SchemaGenerationException(SchemaDiagnosticMessages diagnosticMessage, Location location,
                                      String... args) {
         super(generateDescription(diagnosticMessage, args));
-        this.diagnostic = createDiagnostic(generateDiagnosticInfo(diagnosticMessage, args), getLocation(location));
+        // The description is passed as the only argument of a {0} pattern, since createDiagnostic formats the
+        // message with MessageFormat, which would otherwise read quotes and braces in it as format syntax.
+        this.diagnostic = createDiagnostic(new DiagnosticInfo(diagnosticMessage.getCode(), MESSAGE_PATTERN,
+                diagnosticMessage.getSeverity()), getLocation(location), generateDescription(diagnosticMessage, args));
         this.diagnosticMessage = diagnosticMessage;
     }
 
@@ -50,15 +55,6 @@ public class SchemaGenerationException extends Exception {
 
     private static String generateDescription(SchemaDiagnosticMessages diagnosticMessage, String... args) {
         return String.format(diagnosticMessage.getDescription(), (Object[]) args);
-    }
-
-    // createDiagnostic formats the message again with MessageFormat, so its quotes and braces are escaped to keep
-    // them as they are.
-    private static DiagnosticInfo generateDiagnosticInfo(SchemaDiagnosticMessages diagnosticMessage,
-                                                         String... args) {
-        String description = generateDescription(diagnosticMessage, args).replace("'", "''")
-                .replace("{", "'{'").replace("}", "'}'");
-        return new DiagnosticInfo(diagnosticMessage.getCode(), description, diagnosticMessage.getSeverity());
     }
 
     private static Location getLocation(Location location) {
