@@ -497,6 +497,43 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(fileNames(outputPath), List.of("schema_orders.graphql"), output);
     }
 
+    @Test(description = "Test that a package directory that is a symbolic link is generated from the real package")
+    public void testLinkedPackageDirectory() throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "linked-package-directory");
+        Path linkedPackage = workDir.resolve("shop");
+        createSymbolicLink(linkedPackage, Path.of(validService("project_3")).toAbsolutePath());
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), linkedPackage.toString(), "-o",
+                outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql", "schema_main.graphql",
+                "schema_reviews_1.graphql"), output);
+    }
+
+    @Test(description = "Test that \"..\" after a symbolic link goes up from the real directory of the link, so the "
+            + "package the path points to is generated")
+    public void testParentDirectoryAfterLink() throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "parent-after-link");
+        // link points to real/inner, so link/../proj is real/proj, while removing ".." as text would give proj.
+        Files.createDirectories(workDir.resolve(Paths.get("real", "inner")));
+        FileUtils.copyDirectory(new File(validService("project_3")), workDir.resolve(Paths.get("real", "proj"))
+                .toFile());
+        FileUtils.copyDirectory(new File(validService("project_1")), workDir.resolve("proj").toFile());
+        createSymbolicLink(workDir.resolve("link"), workDir.resolve(Paths.get("real", "inner")));
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"),
+                workDir.resolve(Paths.get("link", "..", "proj")).toString(), "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql", "schema_main.graphql",
+                "schema_reviews_1.graphql"), output);
+    }
+
     @Test(description = "Test that a package is generated without its test services, even when a test file has errors")
     public void testTestSourcesIgnored() throws IOException {
         Path outputPath = Files.createTempDirectory(this.tmpDir, "with-tests");

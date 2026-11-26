@@ -60,6 +60,8 @@ public record SchemaProject(List<SchemaDocument> documents) {
     private static final String ERROR_MISSING_FILE = "Provided Ballerina file path does not exist";
     private static final String ERROR_CANNOT_READ_FILE = "Cannot read provided Ballerina file (Permission denied)";
     private static final String ERROR_CANNOT_READ = "Cannot read \"%s\".";
+    private static final String PARENT_DIRECTORY = "..";
+    private static final String CURRENT_DIRECTORY = ".";
     private static final String ERROR_FILE_IN_PACKAGE =
             "\"%s\" is part of the package at \"%s\". Pass the package directory or a module directory instead.";
     private static final String ERROR_NOT_PACKAGE_OR_MODULE = "\"%s\" is not a Ballerina package or module directory.";
@@ -211,7 +213,10 @@ public record SchemaProject(List<SchemaDocument> documents) {
         return new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_104, null, message);
     }
 
-    // The links in the path are kept, since resolving a linked module directory would lose its modules/<name> layout.
+    // The parent is resolved to its real path, so links and ".." in it are followed the way the file system follows
+    // them. The last part is kept as given only when it is a linked module directory, so its modules/<name> layout
+    // can be detected and reported. Any other link, such as a linked package directory, is resolved, since the
+    // compiler does not read the files of a linked directory.
     private static Path toReadablePath(Path inputPath) throws SchemaGenerationException {
         File input = inputPath.toFile();
         if (!input.exists()) {
@@ -221,7 +226,26 @@ public record SchemaProject(List<SchemaDocument> documents) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
                     ERROR_CANNOT_READ_FILE);
         }
-        return inputPath.toAbsolutePath().normalize();
+        try {
+            Path absolutePath = inputPath.toAbsolutePath();
+            Path fileName = absolutePath.getFileName();
+            if (absolutePath.getParent() == null || fileName == null || PARENT_DIRECTORY.equals(fileName.toString())
+                    || CURRENT_DIRECTORY.equals(fileName.toString())) {
+                return absolutePath.toRealPath();
+            }
+            Path path = absolutePath.getParent().toRealPath().resolve(fileName);
+            if (Files.isSymbolicLink(path) && !isInModulesDirectory(path)) {
+                return path.toRealPath();
+            }
+            return path;
+        } catch (IOException e) {
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
+        }
+    }
+
+    private static boolean isInModulesDirectory(Path path) {
+        Path parent = path.getParent();
+        return parent != null && ProjectConstants.MODULES_ROOT.equals(String.valueOf(parent.getFileName()));
     }
 
     private static Optional<ModuleId> findModule(Project project, String moduleDirectoryName) {
