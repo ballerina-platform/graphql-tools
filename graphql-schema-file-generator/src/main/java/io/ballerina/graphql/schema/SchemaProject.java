@@ -46,14 +46,16 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 /**
  * The compiled Ballerina source that the SDL schemas are generated from: a standalone Ballerina file, the default
@@ -70,6 +72,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
     private static final String ERROR_CANNOT_READ = "Cannot read \"%s\".";
     private static final String PARENT_DIRECTORY = "..";
     private static final String CURRENT_DIRECTORY = ".";
+    private static final String HIDDEN_PREFIX = ".";
     private static final String ERROR_FILE_IN_PACKAGE =
             "\"%s\" is part of the package at \"%s\". Pass the package directory or a module directory instead.";
     private static final String ERROR_NOT_PACKAGE_OR_MODULE = "\"%s\" is not a Ballerina package or module directory.";
@@ -348,12 +351,49 @@ public record SchemaProject(List<SchemaDocument> documents) {
         return Optional.empty();
     }
 
+    // A directory that cannot be opened is reported through visitFileFailed, so it is named too. The build output and
+    // hidden directories are skipped, since the loader does not read them and they are not the cause.
     private static Optional<Path> findUnreadable(Path packageRoot) {
-        try (Stream<Path> paths = Files.walk(packageRoot)) {
-            return paths.filter(path -> !Files.isReadable(path)).findFirst();
-        } catch (IOException | UncheckedIOException e) {
+        AtomicReference<Path> unreadable = new AtomicReference<>();
+        try {
+            Files.walkFileTree(packageRoot, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes) {
+                    if (!directory.equals(packageRoot) && isSkipped(packageRoot, directory)) {
+                        return FileVisitResult.SKIP_SUBTREE;
+                    }
+                    return found(directory);
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) {
+                    return found(file);
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException e) {
+                    unreadable.set(file);
+                    return FileVisitResult.TERMINATE;
+                }
+
+                private FileVisitResult found(Path path) {
+                    if (Files.isReadable(path)) {
+                        return FileVisitResult.CONTINUE;
+                    }
+                    unreadable.set(path);
+                    return FileVisitResult.TERMINATE;
+                }
+            });
+        } catch (IOException e) {
             return Optional.empty();
         }
+        return Optional.ofNullable(unreadable.get());
+    }
+
+    private static boolean isSkipped(Path packageRoot, Path directory) {
+        String name = String.valueOf(directory.getFileName());
+        return name.startsWith(HIDDEN_PREFIX)
+                || (directory.getParent().equals(packageRoot) && ProjectConstants.TARGET_DIR_NAME.equals(name));
     }
 
     // The module is read from the package after compiling, since the GraphQL compiler plugin adds the encoded

@@ -476,11 +476,12 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
     @DataProvider(name = "unreadableFiles")
     public Object[][] unreadableFiles() {
-        return new Object[][]{{"", "reviews.bal"}, {"modules/orders", "modules/orders/orders.bal"}};
+        return new Object[][]{{"", "reviews.bal"}, {"modules/orders", "modules/orders/orders.bal"},
+                {"", "modules/orders"}};
     }
 
-    @Test(description = "Test that a file the loader cannot read is named, instead of saying the directory is not a "
-            + "package", dataProvider = "unreadableFiles")
+    @Test(description = "Test that a file or directory the loader cannot read is named, instead of saying the "
+            + "directory is not a package", dataProvider = "unreadableFiles")
     public void testUnreadableFileInPackageReported(String input, String unreadableFile) throws IOException {
         Path workDir = Files.createTempDirectory(this.tmpDir, "unreadable-file");
         Path packageRoot = workDir.resolve("shop");
@@ -500,6 +501,38 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
             Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         } finally {
             file.setReadable(true);
+        }
+    }
+
+    @Test(description = "Test that unreadable files in the build output and hidden directories are not named as the "
+            + "cause, since the loader does not read them")
+    public void testUnreadableBuildOutputIgnored() throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "unreadable-build-output");
+        Path packageRoot = workDir.resolve("shop");
+        FileUtils.copyDirectory(new File(validService("project_3")), packageRoot.toFile());
+        File buildOutput = Files.createDirectories(packageRoot.resolve(Paths.get("target", "cache")))
+                .resolve("stale.txt").toFile();
+        File hidden = Files.createDirectories(packageRoot.resolve(".idea")).resolve("workspace.xml").toFile();
+        File source = packageRoot.resolve("reviews.bal").toFile();
+        Files.writeString(buildOutput.toPath(), "");
+        Files.writeString(hidden.toPath(), "");
+        List<File> unreadable = List.of(buildOutput, hidden, source);
+        for (File file : unreadable) {
+            if (!file.setReadable(false) || file.canRead()) {
+                throw new SkipException("Files cannot be made unreadable here, e.g. when running as root");
+            }
+        }
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        try {
+            String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), packageRoot.toString(),
+                    "-o", outputPath.toString());
+
+            Assert.assertTrue(output.contains(String.format("SDL schema generation failed: Cannot read \"%s\".",
+                    source.toPath())), output);
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        } finally {
+            unreadable.forEach(file -> file.setReadable(true));
         }
     }
 
