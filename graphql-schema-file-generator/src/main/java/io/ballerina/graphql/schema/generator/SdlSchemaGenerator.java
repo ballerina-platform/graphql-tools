@@ -34,10 +34,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 import static io.ballerina.graphql.schema.generator.GraphqlServiceFinder.formatBasePath;
@@ -61,43 +59,56 @@ public class SdlSchemaGenerator {
 
     private static List<SdlSchema> generateSdlSchema(SchemaProject project, String serviceBasePath)
             throws SchemaGenerationException {
-        // The services keep the order they are found in, so the same service gets the added number on every run.
-        Map<String, GraphqlService> servicesToGenerate = new LinkedHashMap<>();
-        List<String> availableServices = new ArrayList<>();
-        int duplicateCount = 0;
-        for (GraphqlService service : GraphqlServiceFinder.find(project)) {
+        List<NamedService> namedServices = nameServices(GraphqlServiceFinder.find(project));
+        List<NamedService> servicesToGenerate = namedServices;
+        if (serviceBasePath != null) {
             // A service object has no base path, so it is skipped when a service base path is given.
-            if (service.serviceObject() && serviceBasePath != null) {
-                continue;
+            List<NamedService> services = namedServices.stream()
+                    .filter(namedService -> !namedService.service().serviceObject())
+                    .toList();
+            servicesToGenerate = services.stream()
+                    .filter(namedService -> formatBasePath(serviceBasePath).equals(namedService.service().basePath()))
+                    .toList();
+            if (servicesToGenerate.isEmpty()) {
+                // A root service has an empty base path, so it is listed as "/".
+                List<String> availableServices = services.stream()
+                        .map(namedService -> namedService.service().basePath())
+                        .map(basePath -> basePath.isEmpty() ? ROOT_BASE_PATH : basePath)
+                        .toList();
+                throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_101, null, serviceBasePath,
+                        availableServices.toString());
             }
+        }
+        List<SdlSchema> outputs = new ArrayList<>();
+        for (NamedService namedService : servicesToGenerate) {
+            Schema schemaObject = decodeSchema(namedService.service().encodedSchema());
+            outputs.add(new SdlSchema(namedService.fileName(), SdlSchemaStringGenerator.generate(schemaObject)));
+        }
+        return outputs;
+    }
+
+    // Every service is named before --service filters them, so a service gets the same file name in a filtered run
+    // as in a full run, and writing one service can't overwrite the schema of another. The services keep the order
+    // they are found in, so the same service gets the added number on every run.
+    private static List<NamedService> nameServices(List<GraphqlService> services) {
+        List<NamedService> namedServices = new ArrayList<>();
+        Set<String> usedServiceNames = new HashSet<>();
+        Set<String> usedFileNames = new HashSet<>();
+        int duplicateCount = 0;
+        for (GraphqlService service : services) {
             String serviceName = service.basePath();
-            if (servicesToGenerate.containsKey(serviceName)) {
+            if (usedServiceNames.contains(serviceName)) {
                 duplicateCount += 1;
                 serviceName = getUpdatedServiceName(serviceName, duplicateCount);
             }
-            if (serviceBasePath == null) {
-                servicesToGenerate.put(serviceName, service);
-                continue;
-            }
-            // A root service has an empty base path, so it is listed as "/".
-            availableServices.add(service.basePath().isEmpty() ? ROOT_BASE_PATH : service.basePath());
-            if (formatBasePath(serviceBasePath).equals(service.basePath())) {
-                servicesToGenerate.put(serviceName, service);
-            }
+            usedServiceNames.add(serviceName);
+            String fileName = uniqueFileName(SchemaFileName.of(service.filePath(), serviceName), usedFileNames);
+            namedServices.add(new NamedService(fileName, service));
         }
-        if (serviceBasePath != null && servicesToGenerate.isEmpty()) {
-            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_101, null, serviceBasePath,
-                    availableServices.toString());
-        }
-        List<SdlSchema> outputs = new ArrayList<>();
-        Set<String> usedFileNames = new HashSet<>();
-        for (Map.Entry<String, GraphqlService> schema : servicesToGenerate.entrySet()) {
-            String sdlFileName = uniqueFileName(SchemaFileName.of(schema.getValue().filePath(), schema.getKey()),
-                    usedFileNames);
-            Schema schemaObject = decodeSchema(schema.getValue().encodedSchema());
-            outputs.add(new SdlSchema(sdlFileName, SdlSchemaStringGenerator.generate(schemaObject)));
-        }
-        return outputs;
+        return namedServices;
+    }
+
+    private record NamedService(String fileName, GraphqlService service) {
     }
 
     // Different base paths can give the same file name, e.g. "/" in main.bal and "/main", and names that differ only

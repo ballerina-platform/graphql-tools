@@ -556,6 +556,25 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
                 output);
     }
 
+    @Test(description = "Test that --service names a service the same as a full run, so writing it with --force "
+            + "doesn't overwrite the schema of another service")
+    public void testServiceFlagKeepsFullRunFileName() throws IOException {
+        Path outputPath = Files.createTempDirectory(this.tmpDir, "name-clash-service");
+        ExitCodeCaptor fullRunCaptor = new ExitCodeCaptor();
+        String fullRunOutput = run(fullRunCaptor, recordingPrompt(new ArrayList<>(), "y"),
+                validService("project_name_clash"), "-o", outputPath.toString());
+        Assert.assertEquals(fullRunCaptor.getExitCode(), 0, fullRunOutput);
+
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("project_name_clash"),
+                "-o", outputPath.toString(), "--service", "/main", "--force");
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertTrue(output.contains("-- schema_main_1.graphql"), output);
+        Assert.assertTrue(Files.readString(outputPath.resolve("schema_main.graphql")).contains("rootField"), output);
+        Assert.assertTrue(Files.readString(outputPath.resolve("schema_main_1.graphql")).contains("mainField"), output);
+    }
+
     @Test(description = "Test that the services of a file that imports ballerina/graphql with another prefix are "
             + "generated together with the services of the other files")
     public void testAliasedGraphqlImport() throws IOException {
