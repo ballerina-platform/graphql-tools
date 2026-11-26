@@ -616,6 +616,29 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
+    @Test(description = "Test that quotes and braces in the input path are printed as they are in the input errors")
+    public void testInputErrorsWithFormatCharacters() throws IOException {
+        Path missing = this.tmpDir.resolve("shop{1}");
+        ExitCodeCaptor missingCaptor = new ExitCodeCaptor();
+        String missingOutput = run(missingCaptor, missing.toString());
+        Assert.assertTrue(missingOutput.contains(String.format("\"%s\" does not exist.", missing)), missingOutput);
+        assertInvalidTarget(missingOutput, missingCaptor);
+
+        Path unsupported = Files.writeString(this.tmpDir.resolve("it's {a}.txt"), "");
+        ExitCodeCaptor unsupportedCaptor = new ExitCodeCaptor();
+        String unsupportedOutput = run(unsupportedCaptor, unsupported.toString());
+        Assert.assertTrue(unsupportedOutput.contains(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, unsupported)),
+                unsupportedOutput);
+        assertInvalidTarget(unsupportedOutput, unsupportedCaptor);
+
+        Path schema = this.tmpDir.resolve("o'brien{}.graphql");
+        ExitCodeCaptor schemaCaptor = new ExitCodeCaptor();
+        String schemaOutput = run(schemaCaptor, schema.toString());
+        Assert.assertTrue(schemaOutput.contains(String.format("File \"%s\" is a GraphQL schema", schema)),
+                schemaOutput);
+        assertUsageError(schemaOutput, schemaCaptor);
+    }
+
     @DataProvider(name = "schemaFileInputFlags")
     public Object[][] createSchemaFileInputFlagsData() {
         return new Object[][]{

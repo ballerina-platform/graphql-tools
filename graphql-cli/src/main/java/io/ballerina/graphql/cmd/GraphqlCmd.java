@@ -106,6 +106,7 @@ public class GraphqlCmd implements BLauncherCmd {
             "Unknown option \"%s\". Run \"bal graphql --help\" to see the available options.";
     private static final String ERROR_MULTIPLE_INPUTS = "Only one input file can be given. Found: %s.";
     private static final String ERROR_INPUT_NOT_FOUND = "\"%s\" does not exist.";
+    private static final String MESSAGE_PATTERN = "{0}";
     // Not private: the @Command annotation on the class can only reference non-private constants.
     static final String HEADER =
             "  bal graphql - Generate Ballerina GraphQL services and clients, and GraphQL schemas";
@@ -484,13 +485,18 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private static ToolException usageError(String message) {
-        return new ToolException(ExitCodes.USAGE, Utils.constructGraphqlDiagnostic(
-                DiagnosticMessages.GRAPHQL_CLI_100.getCode(), message, DiagnosticSeverity.ERROR, null).toString());
+        return toolError(ExitCodes.USAGE, message);
     }
 
     private static ToolException invalidTarget(String message) {
-        return new ToolException(ExitCodes.INVALID_TARGET, Utils.constructGraphqlDiagnostic(
-                DiagnosticMessages.GRAPHQL_CLI_100.getCode(), message, DiagnosticSeverity.ERROR, null).toString());
+        return toolError(ExitCodes.INVALID_TARGET, message);
+    }
+
+    // The diagnostic formats its message with MessageFormat, so the message is passed as the argument of a {0}
+    // pattern, and quotes and braces in an input path are printed as they are.
+    private static ToolException toolError(int exitCode, String message) {
+        return new ToolException(exitCode, Utils.constructGraphqlDiagnostic(DiagnosticMessages.GRAPHQL_CLI_100
+                .getCode(), MESSAGE_PATTERN, DiagnosticSeverity.ERROR, null, message).toString());
     }
 
     private String usage() {
