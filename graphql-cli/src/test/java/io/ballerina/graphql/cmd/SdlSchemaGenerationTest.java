@@ -400,6 +400,35 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
     }
 
+    @DataProvider(name = "unreadableFiles")
+    public Object[][] unreadableFiles() {
+        return new Object[][]{{"", "reviews.bal"}, {"modules/orders", "modules/orders/orders.bal"}};
+    }
+
+    @Test(description = "Test that a file the loader cannot read is named, instead of saying the directory is not a "
+            + "package", dataProvider = "unreadableFiles")
+    public void testUnreadableFileInPackageReported(String input, String unreadableFile) throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "unreadable-file");
+        Path packageRoot = workDir.resolve("shop");
+        FileUtils.copyDirectory(new File(validService("project_3")), packageRoot.toFile());
+        File file = packageRoot.resolve(unreadableFile).toFile();
+        if (!file.setReadable(false) || file.canRead()) {
+            throw new SkipException("Files cannot be made unreadable here, e.g. when running as root");
+        }
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+        try {
+            String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"),
+                    packageRoot.resolve(input).toString(), "-o", outputPath.toString());
+
+            Assert.assertTrue(output.contains(String.format("SDL schema generation failed: Cannot read \"%s\".",
+                    file.toPath())), output);
+            Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
+        } finally {
+            file.setReadable(true);
+        }
+    }
+
     @Test(description = "Test that the Dependencies.toml of the package is not changed")
     public void testDependenciesTomlNotChanged() throws IOException {
         Path outputPath = Files.createTempDirectory(this.tmpDir, "locked");

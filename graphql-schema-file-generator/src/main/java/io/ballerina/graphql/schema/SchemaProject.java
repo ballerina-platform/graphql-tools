@@ -39,12 +39,15 @@ import io.ballerina.projects.util.ProjectConstants;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * The compiled Ballerina source that the SDL schemas are generated from: a standalone Ballerina file, the default
@@ -56,6 +59,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
 
     private static final String ERROR_MISSING_FILE = "Provided Ballerina file path does not exist";
     private static final String ERROR_CANNOT_READ_FILE = "Cannot read provided Ballerina file (Permission denied)";
+    private static final String ERROR_CANNOT_READ = "Cannot read \"%s\".";
     private static final String ERROR_FILE_IN_PACKAGE =
             "\"%s\" is part of the package at \"%s\". Pass the package directory or a module directory instead.";
     private static final String ERROR_NOT_PACKAGE_OR_MODULE = "\"%s\" is not a Ballerina package or module directory.";
@@ -230,13 +234,47 @@ public record SchemaProject(List<SchemaDocument> documents) {
         return Optional.empty();
     }
 
-    // A path that cannot be loaded as a project is not a valid target, e.g. a directory without a Ballerina.toml.
     private static Project loadProject(Path inputPath, Path path) throws SchemaGenerationException {
         try {
             return ProjectLoader.load(path, BUILD_OPTIONS).project();
         } catch (ProjectException e) {
-            throw invalidTarget(Files.isDirectory(path) ? String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath)
-                    : e.getMessage());
+            if (!Files.isDirectory(path)) {
+                throw invalidTarget(e.getMessage());
+            }
+            Optional<Path> packageRoot = findPackageRoot(path);
+            if (packageRoot.isEmpty()) {
+                throw invalidTarget(String.format(ERROR_NOT_PACKAGE_OR_MODULE, inputPath));
+            }
+            // The loader gives up on a package that has a file it cannot read, and reports the directory as an
+            // invalid source file, so the file is looked up to report the actual problem.
+            Optional<Path> unreadable = findUnreadable(packageRoot.get());
+            if (unreadable.isPresent()) {
+                throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null,
+                        String.format(ERROR_CANNOT_READ, unreadable.get()));
+            }
+            throw invalidTarget(e.getMessage());
+        }
+    }
+
+    // A package directory has a Ballerina.toml, and a module directory is modules/<name> of such a directory.
+    private static Optional<Path> findPackageRoot(Path directory) {
+        if (Files.exists(directory.resolve(ProjectConstants.BALLERINA_TOML))) {
+            return Optional.of(directory);
+        }
+        Path modulesDirectory = directory.getParent();
+        if (modulesDirectory != null && modulesDirectory.getParent() != null
+                && ProjectConstants.MODULES_ROOT.equals(String.valueOf(modulesDirectory.getFileName()))
+                && Files.exists(modulesDirectory.getParent().resolve(ProjectConstants.BALLERINA_TOML))) {
+            return Optional.of(modulesDirectory.getParent());
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<Path> findUnreadable(Path packageRoot) {
+        try (Stream<Path> paths = Files.walk(packageRoot)) {
+            return paths.filter(path -> !Files.isReadable(path)).findFirst();
+        } catch (IOException | UncheckedIOException e) {
+            return Optional.empty();
         }
     }
 
