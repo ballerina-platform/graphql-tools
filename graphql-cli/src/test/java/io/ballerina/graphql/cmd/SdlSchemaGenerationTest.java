@@ -325,6 +325,23 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         Assert.assertTrue(Files.readString(outputPath.resolve("schema_books.graphql")).contains("type Book {"), output);
     }
 
+    @Test(description = "Test that an error in the test sources of a sibling package doesn't stop the generation")
+    public void testSiblingTestSourcesIgnored() throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "workspace-sibling-tests");
+        Path workspace = workDir.resolve("workspace");
+        FileUtils.copyDirectory(new File(validService("workspace_1")), workspace.toFile());
+        Path siblingTests = Files.createDirectories(workspace.resolve(Paths.get("common", "tests")));
+        Files.writeString(siblingTests.resolve("broken_test.bal"), "int broken = \"not an int\";\n");
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), workspace.resolve("books").toString(),
+                "-o", outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql"), output);
+    }
+
     @Test(description = "Test that a workspace root is rejected")
     public void testWorkspaceRootRejected() throws IOException {
         Path outputPath = Files.createTempDirectory(this.tmpDir, "workspace-root");

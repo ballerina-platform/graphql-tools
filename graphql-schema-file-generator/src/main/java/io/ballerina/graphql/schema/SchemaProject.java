@@ -130,7 +130,13 @@ public record SchemaProject(List<SchemaDocument> documents) {
                     String.format(ERROR_DEPENDENCIES_NOT_LOCKED, project.currentPackage().packageName().value(),
                             project.sourceRoot()));
         }
-        removeTestDocuments(project);
+        // In a workspace, the sibling packages the package imports are compiled with it, so their test sources are
+        // removed too, or an error in them would stop the generation.
+        if (project.workspaceProject().isPresent()) {
+            project.workspaceProject().get().projects().forEach(SchemaProject::removeTestDocuments);
+        } else {
+            removeTestDocuments(project);
+        }
         return fromModule(project, compile(project, warningHandler), moduleId);
     }
 
