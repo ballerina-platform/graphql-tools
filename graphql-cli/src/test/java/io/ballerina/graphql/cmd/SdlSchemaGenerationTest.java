@@ -527,8 +527,10 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
         String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), validService("old_distribution"),
                 "-o", outputPath.toString());
 
+        // The current update number is left out, so the check still holds after the Ballerina version changes.
         Assert.assertTrue(output.contains("WARNING [old_distribution] Detected an attempt to compile this package "
-                + "using Swan Lake Update 13. However, this package was built using Swan Lake Update 10."), output);
+                + "using Swan Lake Update "), output);
+        Assert.assertTrue(output.contains("However, this package was built using Swan Lake Update 10."), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
         Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql"), output);
         Assert.assertEquals(Files.readAllBytes(dependenciesToml), before, output);
