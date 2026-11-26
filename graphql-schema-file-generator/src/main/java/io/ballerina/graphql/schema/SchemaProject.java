@@ -64,7 +64,7 @@ public record SchemaProject(List<SchemaDocument> documents) {
     private static final String ERROR_NO_PACKAGE_TABLE =
             "\"%s\" is not a Ballerina package. Its Ballerina.toml has no [package] table.";
     private static final String ERROR_DEPENDENCIES_NOT_LOCKED = "Dependencies are not locked for the package "
-            + "\"%s\". Run 'bal build' to lock the dependencies, then re-run. Try: bal build %s";
+            + "\"%s\". Run 'bal build' to lock the dependencies, then re-run. Try: bal build \"%s\"";
     private static final String ERROR_LINKED_MODULE = "\"%s\" is a symbolic link, and the Ballerina compiler does "
             + "not read a module directory that is a symbolic link. Replace the link with the module directory.";
     private static final String ERROR_TEST_FILE =

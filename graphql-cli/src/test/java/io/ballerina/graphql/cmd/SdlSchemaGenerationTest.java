@@ -378,10 +378,26 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
 
         Assert.assertTrue(output.contains(String.format("SDL schema generation failed: Dependencies are not locked "
                 + "for the package \"unlocked_package\". Run 'bal build' to lock the dependencies, then re-run. "
-                + "Try: bal build %s", input.toAbsolutePath().normalize())), output);
+                + "Try: bal build \"%s\"", input.toAbsolutePath().normalize())), output);
         Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
         Assert.assertEquals(fileNames(outputPath), List.of(), output);
         Assert.assertFalse(Files.exists(input.resolve("Dependencies.toml")), output);
+    }
+
+    @Test(description = "Test that the suggested bal build command quotes a package path that has spaces")
+    public void testUnlockedPackagePathWithSpaces() throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "unlocked-spaces");
+        Path packageRoot = workDir.resolve("my shop");
+        FileUtils.copyDirectory(resourceDir.resolve(Paths.get("graphqlServices", "invalid", "unlocked_package"))
+                .toFile(), packageRoot.toFile());
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), packageRoot.toString(), "-o",
+                outputPath.toString());
+
+        Assert.assertTrue(output.contains(String.format("Try: bal build \"%s\"", packageRoot)), output);
+        Assert.assertEquals(exitCaptor.getExitCode(), 1, output);
     }
 
     @Test(description = "Test that the Dependencies.toml of the package is not changed")
