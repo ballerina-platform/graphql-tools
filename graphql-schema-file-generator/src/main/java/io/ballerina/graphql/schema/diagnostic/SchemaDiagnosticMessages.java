@@ -21,21 +21,23 @@ package io.ballerina.graphql.schema.diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 /**
- * This {@code DiagnosticMessages} enum class represents the error messages related to SDL schema generation.
+ * This {@code SchemaDiagnosticMessages} enum class represents the error messages related to SDL schema generation.
  */
-public enum DiagnosticMessages {
+public enum SchemaDiagnosticMessages {
     SDL_SCHEMA_100("SDL_SCHEMA_100", "Given Ballerina file contains compilation error(s).", DiagnosticSeverity.ERROR),
     SDL_SCHEMA_101("SDL_SCHEMA_101", "No Ballerina services found with name \"%s\" to generate SDL schema. " +
             "These services are available in ballerina file. %s", DiagnosticSeverity.ERROR),
     SDL_SCHEMA_102("SDL_SCHEMA_102", "SDL Schema generation failed due to an error occurred " +
             "in Ballerina GraphQL Package: %s", DiagnosticSeverity.ERROR),
-    SDL_SCHEMA_103("SDL_SCHEMA_103", "SDL schema generation failed: %s", DiagnosticSeverity.ERROR);
+    SDL_SCHEMA_103("SDL_SCHEMA_103", "SDL schema generation failed: %s", DiagnosticSeverity.ERROR),
+    // The input is not a valid target, e.g. a file inside a package or a directory that is not a package or module.
+    SDL_SCHEMA_104("SDL_SCHEMA_104", "SDL schema generation failed: %s", DiagnosticSeverity.ERROR);
 
     private final String code;
     private final String description;
     private final DiagnosticSeverity severity;
 
-    DiagnosticMessages(String code, String description, DiagnosticSeverity severity) {
+    SchemaDiagnosticMessages(String code, String description, DiagnosticSeverity severity) {
         this.code = code;
         this.description = description;
         this.severity = severity;

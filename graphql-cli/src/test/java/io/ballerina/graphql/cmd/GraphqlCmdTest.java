@@ -574,16 +574,18 @@ public class GraphqlCmdTest extends GraphqlTest {
 
     @Test(description = "Test graphql command execution with invalid config file extension")
     public void testExecuteWithInvalidConfigFileExtension() {
-        Path graphqlConfigYaml = resourceDir.resolve(Paths.get("specs", "graphql.config.yam"));
+        Path graphqlConfigYaml = this.tmpDir.resolve("graphql.config.yam");
         String[] args = {graphqlConfigYaml.toString(), "-o", this.tmpDir.toString()};
         ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
         GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
         new CommandLine(graphqlCmd).parseArgs(args);
         String message = String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, graphqlConfigYaml);
         try {
+            Files.writeString(graphqlConfigYaml, "");
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains(message));
+            Assert.assertTrue(output.contains(message), output);
+            assertInvalidTarget(output, exitCaptor);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
@@ -597,19 +599,44 @@ public class GraphqlCmdTest extends GraphqlTest {
     @Test(description = "Test graphql command execution with invalid file extensions",
             dataProvider = "invalidFileNameExtension")
     public void testExecuteWithInvalidFileExtensions(String invalidFileNameExtension) {
-        Path filePath = resourceDir.resolve(Paths.get("specs", invalidFileNameExtension));
+        Path filePath = this.tmpDir.resolve(invalidFileNameExtension);
         String[] args = {filePath.toString(), "-o", this.tmpDir.toString()};
         try {
+            Files.writeString(filePath, "");
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
             GraphqlCmd graphqlCmd = new GraphqlCmd(printStream, tmpDir, exitCaptor);
             new CommandLine(graphqlCmd).parseArgs(args);
             String message = String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, filePath);
             graphqlCmd.execute();
             String output = readOutput(true);
-            Assert.assertTrue(output.contains(message));
+            Assert.assertTrue(output.contains(message), output);
+            assertInvalidTarget(output, exitCaptor);
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
         }
+    }
+
+    @Test(description = "Test that quotes and braces in the input path are printed as they are in the input errors")
+    public void testInputErrorsWithFormatCharacters() throws IOException {
+        Path missing = this.tmpDir.resolve("shop{1}");
+        ExitCodeCaptor missingCaptor = new ExitCodeCaptor();
+        String missingOutput = run(missingCaptor, missing.toString());
+        Assert.assertTrue(missingOutput.contains(String.format("\"%s\" does not exist.", missing)), missingOutput);
+        assertInvalidTarget(missingOutput, missingCaptor);
+
+        Path unsupported = Files.writeString(this.tmpDir.resolve("it's {a}.txt"), "");
+        ExitCodeCaptor unsupportedCaptor = new ExitCodeCaptor();
+        String unsupportedOutput = run(unsupportedCaptor, unsupported.toString());
+        Assert.assertTrue(unsupportedOutput.contains(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, unsupported)),
+                unsupportedOutput);
+        assertInvalidTarget(unsupportedOutput, unsupportedCaptor);
+
+        Path schema = this.tmpDir.resolve("o'brien{}.graphql");
+        ExitCodeCaptor schemaCaptor = new ExitCodeCaptor();
+        String schemaOutput = run(schemaCaptor, schema.toString());
+        Assert.assertTrue(schemaOutput.contains(String.format("File \"%s\" is a GraphQL schema", schema)),
+                schemaOutput);
+        assertUsageError(schemaOutput, schemaCaptor);
     }
 
     @DataProvider(name = "schemaFileInputFlags")
@@ -963,6 +990,11 @@ public class GraphqlCmdTest extends GraphqlTest {
             Assert.assertTrue(output.contains("--object-type"));
             Assert.assertTrue(output.contains("--service-name"), output);
             Assert.assertFalse(output.contains("--input"));
+            Assert.assertTrue(output.contains("bal graphql <service.bal | package-directory | module-directory>"),
+                    output);
+            Assert.assertTrue(output.contains("$ bal graphql ./shop -o ./schemas"), output);
+            Assert.assertTrue(output.contains("$ bal graphql ./shop/modules/orders -o ./schemas"), output);
+            Assert.assertFalse(output.contains("service file"), output);
             Assert.assertEquals(exitCaptor.getExitCode(), 0, "Help flag should exit with code 0");
         } catch (BLauncherException | IOException e) {
             Assert.fail(e.getMessage());
@@ -1020,22 +1052,22 @@ public class GraphqlCmdTest extends GraphqlTest {
         }
     }
 
-    @Test(description = "Test that a folder inside a Ballerina package is rejected as the output")
-    public void testGenerationInPackageSubfolder() throws IOException {
-        Path subfolder = Files.createDirectories(this.tmpDir.resolve("subfolder"));
+    @Test(description = "Test that a directory inside a Ballerina package is rejected as the output")
+    public void testGenerationInPackageSubdirectory() throws IOException {
+        Path subdirectory = Files.createDirectories(this.tmpDir.resolve("subdirectory"));
         try {
             ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
-            String output = run(exitCaptor, SINGLE_OBJECT_CONFIG, "-o", subfolder.toString(), "--mode", "service");
-            Assert.assertTrue(output.contains(notAPackage(subfolder)), output);
+            String output = run(exitCaptor, SINGLE_OBJECT_CONFIG, "-o", subdirectory.toString(), "--mode", "service");
+            Assert.assertTrue(output.contains(notAPackage(subdirectory)), output);
             assertInvalidTarget(output, exitCaptor);
-            Assert.assertFalse(Files.exists(subfolder.resolve("types.bal")), output);
+            Assert.assertFalse(Files.exists(subdirectory.resolve("types.bal")), output);
         } finally {
-            FileUtils.deleteDirectory(subfolder.toFile());
+            FileUtils.deleteDirectory(subdirectory.toFile());
         }
     }
 
-    @Test(description = "Test that a missing output folder outside a Ballerina package is not created")
-    public void testGenerationToMissingFolderOutsidePackage() throws IOException {
+    @Test(description = "Test that a missing output directory outside a Ballerina package is not created")
+    public void testGenerationToMissingDirectoryOutsidePackage() throws IOException {
         Path parent = Files.createTempDirectory("no-package");
         Path outputPath = parent.resolve("output");
         try {

@@ -33,6 +33,7 @@ import picocli.CommandLine;
 
 import java.io.Console;
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -54,7 +55,7 @@ import static io.ballerina.graphql.cmd.Constants.MESSAGE_FOR_MISMATCH_MODE_AND_F
         header = GraphqlCmd.HEADER,
         synopsisHeading = "%nSYNOPSIS%n",
         customSynopsis = {
-                "  bal graphql <service.bal>",
+                "  bal graphql <service.bal | package-directory | module-directory>",
                 "              [-o | --output <output>]",
                 "              [--service <service-base-path>]",
                 "              [--force]",
@@ -104,6 +105,8 @@ public class GraphqlCmd implements BLauncherCmd {
     private static final String ERROR_UNKNOWN_OPTION =
             "Unknown option \"%s\". Run \"bal graphql --help\" to see the available options.";
     private static final String ERROR_MULTIPLE_INPUTS = "Only one input file can be given. Found: %s.";
+    private static final String ERROR_INPUT_NOT_FOUND = "\"%s\" does not exist.";
+    private static final String MESSAGE_PATTERN = "{0}";
     // Not private: the @Command annotation on the class can only reference non-private constants.
     static final String HEADER =
             "  bal graphql - Generate Ballerina GraphQL services and clients, and GraphQL schemas";
@@ -111,10 +114,14 @@ public class GraphqlCmd implements BLauncherCmd {
             "Generate Ballerina GraphQL services and clients, and GraphQL schemas.";
     static final String DESCRIPTION_DETAILS =
             "Services and clients are generated from a balGraphQL.toml file, and schemas are generated " +
-                    "from a Ballerina GraphQL service.";
+                    "from the GraphQL services in a Ballerina file, package or module.";
     static final String EXAMPLES =
             "  Generate a GraphQL schema for a Ballerina GraphQL service:%n" +
                     "    $ bal graphql service.bal -o ./output --service /graphql%n%n" +
+                    "  Generate GraphQL schemas for the services in the default module of a Ballerina package:%n" +
+                    "    $ bal graphql ./shop -o ./schemas%n%n" +
+                    "  Generate GraphQL schemas for the services in the \"orders\" module of a Ballerina package:%n" +
+                    "    $ bal graphql ./shop/modules/orders -o ./schemas%n%n" +
                     "  Generate into the current Ballerina package from a balGraphQL.toml file (client if " +
                     "documents are configured, otherwise service):%n" +
                     "    $ bal graphql balGraphQL.toml%n%n" +
@@ -133,13 +140,16 @@ public class GraphqlCmd implements BLauncherCmd {
                     "    $ bal graphql balGraphQL.toml --dry-run%n" +
                     "    $ bal graphql balGraphQL.toml --force";
     private static final String INPUT_DESCRIPTION =
-            "Path to a balGraphQL.toml file (client or service generation) or a Ballerina GraphQL service " +
-                    "file (schema generation).";
+            "Path to a balGraphQL.toml file (client or service generation), or for schema generation, a standalone "
+                    + "Ballerina file, a Ballerina package directory (its default module) or a module directory "
+                    + "(modules/<name>). In a workspace, give the directory of one of its packages. A package needs "
+                    + "a Dependencies.toml, so run 'bal build' first. Test services are not included.";
     private static final String OUTPUT_DESCRIPTION =
             "Directory to write the generated files to. Defaults to the current directory. For client and service "
                     + "generation, it must be the root of a Ballerina package.";
     private static final String SERVICE_DESCRIPTION =
-            "Base path of the service to generate the schema for. Defaults to all GraphQL services in the file.";
+            "Base path of the service to generate the schema for, e.g. /graphql or / for the root path. Defaults to "
+                    + "all GraphQL services in the input file or module.";
     private static final String MODE_DESCRIPTION =
             "Operation mode for a balGraphQL.toml file: client or service. Inferred from the file when not " +
                     "given: client when documents are configured, otherwise service.";
@@ -358,8 +368,11 @@ public class GraphqlCmd implements BLauncherCmd {
             throw usageError(String.format(ERROR_SCHEMA_FILE_INPUT, inputPath));
         }
 
+        // An input that does not exist, or is not a supported file, is not a valid target (TGT-6, TGT-8).
         if (!validInputFileExtension(inputPath)) {
-            throw usageError(String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath));
+            throw invalidTarget(Files.exists(Paths.get(inputPath))
+                    ? String.format(MESSAGE_FOR_INVALID_FILE_EXTENSION, inputPath)
+                    : String.format(ERROR_INPUT_NOT_FOUND, inputPath));
         }
 
         if (isConfigFileInput(inputPath) && !isBalGraphqlConfigFile(inputPath)) {
@@ -472,8 +485,18 @@ public class GraphqlCmd implements BLauncherCmd {
     }
 
     private static ToolException usageError(String message) {
-        return new ToolException(ExitCodes.USAGE, Utils.constructGraphqlDiagnostic(
-                DiagnosticMessages.GRAPHQL_CLI_100.getCode(), message, DiagnosticSeverity.ERROR, null).toString());
+        return toolError(ExitCodes.USAGE, message);
+    }
+
+    private static ToolException invalidTarget(String message) {
+        return toolError(ExitCodes.INVALID_TARGET, message);
+    }
+
+    // The diagnostic formats its message with MessageFormat, so the message is passed as the argument of a {0}
+    // pattern, and quotes and braces in an input path are printed as they are.
+    private static ToolException toolError(int exitCode, String message) {
+        return new ToolException(exitCode, Utils.constructGraphqlDiagnostic(DiagnosticMessages.GRAPHQL_CLI_100
+                .getCode(), MESSAGE_PATTERN, DiagnosticSeverity.ERROR, null, message).toString());
     }
 
     private String usage() {

@@ -28,6 +28,7 @@ dependencies {
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-parser:${ballerinaLangVersion}"
     implementation "org.ballerinalang:ballerina-tools-api:${ballerinaLangVersion}"
+    implementation "org.ballerinalang:toml-parser:${ballerinaLangVersion}"
     implementation "io.ballerina.stdlib:graphql-commons:${stdlibGraphqlVersion}"
     implementation "commons-io:commons-io:${commonsIoVersion}"
 

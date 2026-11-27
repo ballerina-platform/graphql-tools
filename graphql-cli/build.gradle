@@ -144,12 +144,22 @@ task initializeVariables {
     }
 }
 
+// The tests use an empty Ballerina home of their own, so they only see the packages in the distribution, and not
+// the ones in the local cache (~/.ballerina) of the machine that runs them.
+def testBallerinaHome = layout.buildDirectory.dir("ballerina-home").get().asFile
+
 test {
     systemProperties = [ "target.dir": "$project.buildDir",
                          "distributions.dir": bDistribution,
                          "ballerina.home": bDistribution,
                          "ballerina.version": "jballerina-tools-${ballerinaLangVersion}"
     ]
+    environment "BALLERINA_HOME_DIR", testBallerinaHome.absolutePath
+
+    doFirst {
+        delete testBallerinaHome
+        testBallerinaHome.mkdirs()
+    }
 
     testLogging {
         showStackTraces = true

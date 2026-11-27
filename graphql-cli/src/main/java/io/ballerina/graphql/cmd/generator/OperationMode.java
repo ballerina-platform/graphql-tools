@@ -20,6 +20,8 @@ package io.ballerina.graphql.cmd.generator;
 
 import io.ballerina.graphql.cmd.config.BalGraphqlConfig;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
@@ -60,6 +62,10 @@ public enum OperationMode {
     }
 
     public static Optional<OperationMode> fromInputPath(String inputPath) {
+        // A directory is a Ballerina package or module, which only schema generation reads.
+        if (Files.isDirectory(Paths.get(inputPath))) {
+            return Optional.of(SCHEMA);
+        }
         return Arrays.stream(OperationMode.values())
                 .filter(mode -> mode.accepts(inputPath))
                 .findFirst();

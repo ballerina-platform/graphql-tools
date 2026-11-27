@@ -18,216 +18,130 @@
 
 package io.ballerina.graphql.schema.generator;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.ObjectConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.graphql.schema.diagnostic.DiagnosticMessages;
-import io.ballerina.graphql.schema.exception.SchemaFileGenerationException;
-import io.ballerina.projects.DiagnosticResult;
-import io.ballerina.projects.Document;
-import io.ballerina.projects.DocumentId;
-import io.ballerina.projects.Module;
-import io.ballerina.projects.ModuleId;
-import io.ballerina.projects.Package;
-import io.ballerina.projects.PackageCompilation;
-import io.ballerina.projects.Project;
-import io.ballerina.projects.ProjectKind;
-import io.ballerina.projects.directory.ProjectLoader;
+import io.ballerina.graphql.schema.SchemaFileName;
+import io.ballerina.graphql.schema.SchemaProject;
+import io.ballerina.graphql.schema.diagnostic.SchemaDiagnosticMessages;
+import io.ballerina.graphql.schema.exception.SchemaGenerationException;
+import io.ballerina.graphql.schema.generator.GraphqlServiceFinder.GraphqlService;
 import io.ballerina.stdlib.graphql.commons.types.Schema;
 import io.ballerina.stdlib.graphql.commons.utils.SdlSchemaStringGenerator;
-import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import org.apache.commons.io.FilenameUtils;
 
-import java.io.PrintStream;
-import java.nio.file.Path;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
+import java.util.Set;
 
-import static io.ballerina.graphql.schema.Constants.EMPTY_STRING;
-import static io.ballerina.graphql.schema.Constants.PERIOD;
-import static io.ballerina.graphql.schema.utils.Utils.createOutputDirectory;
-import static io.ballerina.graphql.schema.utils.Utils.formatBasePath;
-import static io.ballerina.graphql.schema.utils.Utils.getDecodedSchema;
-import static io.ballerina.graphql.schema.utils.Utils.getSchemaString;
-import static io.ballerina.graphql.schema.utils.Utils.getSdlFileName;
-import static io.ballerina.graphql.schema.utils.Utils.getServiceBasePath;
-import static io.ballerina.graphql.schema.utils.Utils.isGraphqlService;
-import static io.ballerina.graphql.schema.utils.Utils.writeFile;
-import static io.ballerina.stdlib.graphql.commons.utils.Utils.isGraphQLServiceObjectDeclaration;
+import static io.ballerina.graphql.schema.generator.GraphqlServiceFinder.formatBasePath;
 
 /**
  * This class implements the GraphQL SDL schema generation.
  */
 public class SdlSchemaGenerator {
 
+    private static final String ERROR_INVALID_SCHEMA_STRING = "Invalid schema string found";
+    private static final String ERROR_CANNOT_READ_SCHEMA_STRING = "Cannot read decoded schema string";
+    private static final String ROOT_BASE_PATH = "/";
+    private static final String UNIQUE_NAME_SEPARATOR = "_";
+
     private SdlSchemaGenerator() {}
 
-    public static void generate(Path filePath, Path outPath, String serviceBasePath, PrintStream outStream)
-            throws SchemaFileGenerationException {
-        writeSchemaFiles(generateSchemaDefinitions(filePath, serviceBasePath), outPath, outStream);
+    public static List<SdlSchema> generateSchemaDefinitions(SchemaProject project, String serviceBasePath)
+            throws SchemaGenerationException {
+        return generateSdlSchema(project, serviceBasePath);
     }
 
-    public static List<SdlSchema> generateSchemaDefinitions(Path filePath, String serviceBasePath)
-            throws SchemaFileGenerationException {
-        Project project = ProjectLoader.loadProject(filePath);
-        PackageCompilation compilation = getPackageCompilation(project);
-        Package packageName = project.currentPackage();
-        DocumentId docId;
-        Document doc;
-        if (project.kind().equals(ProjectKind.BUILD_PROJECT)) {
-            docId = project.documentId(filePath);
-            ModuleId moduleId = docId.moduleId();
-            doc = project.currentPackage().module(moduleId).document(docId);
-        } else {
-            Module currentModule = packageName.getDefaultModule();
-            docId = currentModule.documentIds().iterator().next();
-            doc = currentModule.document(docId);
+    private static List<SdlSchema> generateSdlSchema(SchemaProject project, String serviceBasePath)
+            throws SchemaGenerationException {
+        List<NamedService> namedServices = nameServices(GraphqlServiceFinder.find(project));
+        List<NamedService> servicesToGenerate = namedServices;
+        if (serviceBasePath != null) {
+            // A service object has no base path, so it is skipped when a service base path is given.
+            List<NamedService> services = namedServices.stream()
+                    .filter(namedService -> !namedService.service().serviceObject())
+                    .toList();
+            servicesToGenerate = services.stream()
+                    .filter(namedService -> formatBasePath(serviceBasePath).equals(namedService.service().basePath()))
+                    .toList();
+            if (servicesToGenerate.isEmpty()) {
+                // A root service has an empty base path, so it is listed as "/".
+                List<String> availableServices = services.stream()
+                        .map(namedService -> namedService.service().basePath())
+                        .map(basePath -> basePath.isEmpty() ? ROOT_BASE_PATH : basePath)
+                        .toList();
+                throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_101, null, serviceBasePath,
+                        availableServices.toString());
+            }
         }
-
-        SyntaxTree syntaxTree = doc.syntaxTree();
-        SemanticModel semanticModel = compilation.getSemanticModel(docId.moduleId());
-        return generateSdlSchema(syntaxTree, semanticModel, serviceBasePath);
-    }
-
-    public static void writeSchemaFiles(List<SdlSchema> schemaDefinitions, Path outPath, PrintStream outStream)
-            throws SchemaFileGenerationException {
-        List<String> fileNames = new ArrayList<>();
-        for (SdlSchema definition : schemaDefinitions) {
-            String fileName = definition.getName();
-            createOutputDirectory(outPath);
-            writeFile(outPath.resolve(fileName), definition.getSchema());
-            fileNames.add(fileName);
-        }
-        if (fileNames.isEmpty()) {
-            outStream.println("Given Ballerina file does not contain any GraphQL services");
-            return;
-        }
-        outStream.println("SDL Schema(s) generated successfully and copied to :");
-        Iterator<String> iterator = fileNames.iterator();
-        while (iterator.hasNext()) {
-            outStream.println("-- " + iterator.next());
-        }
-    }
-
-    private static List<SdlSchema> generateSdlSchema(SyntaxTree syntaxTree, SemanticModel semanticModel,
-                                                     String serviceBasePath) throws SchemaFileGenerationException {
-        Map<String, String> servicesToGenerate = new HashMap<>();
-        List<String> availableServices = new ArrayList<>();
         List<SdlSchema> outputs = new ArrayList<>();
-
-        ModulePartNode modulePartNode = syntaxTree.rootNode();
-        extractSchemaStringsFromServices(serviceBasePath, modulePartNode, semanticModel, availableServices,
-                servicesToGenerate);
-        // If there are no services found for a given service name.
-        if (serviceBasePath != null && servicesToGenerate.isEmpty()) {
-            throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_101, null, serviceBasePath,
-                    availableServices.toString());
-        }
-        // Generating schema for selected services
-        for (Map.Entry<String, String> schema : servicesToGenerate.entrySet()) {
-            String sdlFileName = getSdlFileName(syntaxTree.filePath(), schema.getKey());
-            Schema schemaObject = getDecodedSchema(schema.getValue());
-            String sdlSchemaString = SdlSchemaStringGenerator.generate(schemaObject);
-            SdlSchema sdlSchema = new SdlSchema(sdlFileName, sdlSchemaString);
-            outputs.add(sdlSchema);
+        for (NamedService namedService : servicesToGenerate) {
+            Schema schemaObject = decodeSchema(namedService.service().encodedSchema());
+            outputs.add(new SdlSchema(namedService.fileName(), SdlSchemaStringGenerator.generate(schemaObject)));
         }
         return outputs;
     }
 
-    /**
-     * Filter the GraphQL schemas from the service node.
-     * This method not filter services declared as module-level variables,
-     * since the service base path info is not included in node.
-     * Hence, extract schemas for all the GraphQL services with variable declaration.
-     */
-    public static void extractSchemaStringsFromServices(String serviceBasePath, ModulePartNode modulePartNode,
-                                                        SemanticModel semanticModel, List<String> availableServices,
-                                                        Map<String, String> schemasToGenerate)
-                                                        throws SchemaFileGenerationException {
+    // Every service is named before --service filters them, so a service gets the same file name in a filtered run
+    // as in a full run, and writing one service can't overwrite the schema of another. The services keep the order
+    // they are found in, so the same service gets the added number on every run.
+    private static List<NamedService> nameServices(List<GraphqlService> services) {
+        List<NamedService> namedServices = new ArrayList<>();
+        Set<String> usedServiceNames = new HashSet<>();
+        Set<String> usedFileNames = new HashSet<>();
         int duplicateCount = 0;
-        for (Node node : modulePartNode.members()) {
-            SyntaxKind syntaxKind = node.kind();
-            if (syntaxKind == SyntaxKind.SERVICE_DECLARATION) {
-                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) node;
-                if (isGraphqlService(serviceNode, semanticModel)) {
-                    String actualBasePath = getServiceBasePath(serviceNode);
-                    String schema = getSchemaString(serviceNode);
-                    String updatedServiceName = actualBasePath;
-                    if (schemasToGenerate.containsKey(actualBasePath)) {
-                        duplicateCount += 1;
-                        updatedServiceName = getUpdatedServiceName(actualBasePath, duplicateCount);
-                    }
-                    addToList(serviceBasePath, actualBasePath, updatedServiceName, schema, availableServices,
-                            schemasToGenerate);
-                }
-            } else if (syntaxKind == SyntaxKind.MODULE_VAR_DECL && serviceBasePath == null) {
-                // if the service base path is given, the schema is not generated for the services with
-                // module level variable declarations since base path is unknown.
-                ModuleVariableDeclarationNode moduleVariableNode = (ModuleVariableDeclarationNode) node;
-                if (!isGraphQLServiceObjectDeclaration(moduleVariableNode)) {
-                    continue;
-                }
-                if (moduleVariableNode.initializer().isEmpty()) {
-                    continue;
-                }
-                ExpressionNode expressionNode = moduleVariableNode.initializer().get();
-                if (expressionNode.kind() == SyntaxKind.OBJECT_CONSTRUCTOR) {
-                    ObjectConstructorExpressionNode graphqlServiceObject =
-                            (ObjectConstructorExpressionNode) moduleVariableNode.initializer().get();
-                    String schema = getSchemaString(graphqlServiceObject);
-                    String service = EMPTY_STRING;
-                    if (schemasToGenerate.containsKey(service)) {
-                        duplicateCount += 1;
-                        service = getUpdatedServiceName(service, duplicateCount);
-                    }
-                    schemasToGenerate.put(service, schema);
-                }
+        for (GraphqlService service : services) {
+            String serviceName = service.basePath();
+            if (usedServiceNames.contains(serviceName)) {
+                duplicateCount += 1;
+                serviceName = getUpdatedServiceName(serviceName, duplicateCount);
             }
+            usedServiceNames.add(serviceName);
+            String fileName = uniqueFileName(SchemaFileName.of(service.filePath(), serviceName), usedFileNames);
+            namedServices.add(new NamedService(fileName, service));
         }
+        return namedServices;
     }
 
-    private static void addToList(String serviceBasePath, String actualPath, String updateServiceName, String schema,
-                                  List<String> availableServices, Map<String, String> schemasToGenerate) {
-        if (serviceBasePath != null) {
-            availableServices.add(actualPath);
-            if (formatBasePath(serviceBasePath).equals(actualPath)) {
-                schemasToGenerate.put(updateServiceName, schema);
-            }
-        } else {
-            schemasToGenerate.put(updateServiceName, schema);
+    private record NamedService(String fileName, GraphqlService service) {
+    }
+
+    // Different base paths can give the same file name, e.g. "/" in main.bal and "/main", and names that differ only
+    // in case are the same file on some file systems. A number is added until the name is free, so no schema is lost.
+    private static String uniqueFileName(String fileName, Set<String> usedFileNames) {
+        String baseName = FilenameUtils.removeExtension(fileName);
+        String extension = FilenameUtils.EXTENSION_SEPARATOR + FilenameUtils.getExtension(fileName);
+        String uniqueName = fileName;
+        for (int number = 1; !usedFileNames.add(uniqueName.toLowerCase(Locale.ROOT)); number++) {
+            uniqueName = baseName + UNIQUE_NAME_SEPARATOR + number + extension;
         }
+        return uniqueName;
     }
 
     private static String getUpdatedServiceName(String serviceName, int duplicateCount) {
         if (serviceName.isBlank()) {
-            return PERIOD + duplicateCount;
+            return SchemaFileName.DUPLICATE_SEPARATOR + duplicateCount;
         } else {
-            return serviceName + PERIOD + duplicateCount;
+            return serviceName + SchemaFileName.DUPLICATE_SEPARATOR + duplicateCount;
         }
     }
 
-    private static PackageCompilation getPackageCompilation(Project project) throws SchemaFileGenerationException {
-        DiagnosticResult diagnosticResult = project.currentPackage().runCodeGenAndModifyPlugins();
-        boolean hasErrors = diagnosticResult
-                .diagnostics().stream()
-                .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
-        if (!hasErrors) {
-            PackageCompilation compilation = project.currentPackage().getCompilation();
-            hasErrors = compilation.diagnosticResult()
-                    .diagnostics().stream()
-                    .anyMatch(d -> DiagnosticSeverity.ERROR.equals(d.diagnosticInfo().severity()));
-            if (!hasErrors) {
-                return compilation;
-            }
+    private static Schema decodeSchema(String encodedSchema) throws SchemaGenerationException {
+        if (encodedSchema == null || encodedSchema.isBlank()) {
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
+                    ERROR_INVALID_SCHEMA_STRING);
         }
-        throw new SchemaFileGenerationException(DiagnosticMessages.SDL_SCHEMA_100, null);
+        byte[] decodedSchema = Base64.getDecoder().decode(encodedSchema.getBytes(StandardCharsets.UTF_8));
+        try (ObjectInputStream inputStream = new ObjectInputStream(new ByteArrayInputStream(decodedSchema))) {
+            return (Schema) inputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_102, null,
+                    ERROR_CANNOT_READ_SCHEMA_STRING);
+        }
     }
 }
