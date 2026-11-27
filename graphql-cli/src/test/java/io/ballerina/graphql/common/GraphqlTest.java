@@ -55,7 +55,9 @@ public class GraphqlTest {
 
     @BeforeClass
     public void setup() throws IOException {
-        this.tmpDir = Files.createTempDirectory("graphql-cmd-test-out-" + System.nanoTime());
+        // The real path, since the temp directory is under a link on macOS (/var -> /private/var), and the tool
+        // reports the real path of its input.
+        this.tmpDir = Files.createTempDirectory("graphql-cmd-test-out-" + System.nanoTime()).toRealPath();
         this.console = new ByteArrayOutputStream();
         this.printStream = new PrintStream(this.console);
     }
