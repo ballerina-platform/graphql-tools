@@ -622,6 +622,24 @@ public class SdlSchemaGenerationTest extends GraphqlTest {
                 "schema_reviews_1.graphql"), output);
     }
 
+    @Test(description = "Test that a package linked as modules/<name> outside a package is generated from the real "
+            + "package")
+    public void testLinkedPackageInModulesDirectory() throws IOException {
+        Path workDir = Files.createTempDirectory(this.tmpDir, "linked-package-in-modules");
+        Path linkedPackage = workDir.resolve(Paths.get("modules", "shop"));
+        Files.createDirectories(linkedPackage.getParent());
+        createSymbolicLink(linkedPackage, Path.of(validService("project_3")).toAbsolutePath());
+        Path outputPath = Files.createDirectory(workDir.resolve("out"));
+        ExitCodeCaptor exitCaptor = new ExitCodeCaptor();
+
+        String output = run(exitCaptor, recordingPrompt(new ArrayList<>(), "y"), linkedPackage.toString(), "-o",
+                outputPath.toString());
+
+        Assert.assertEquals(exitCaptor.getExitCode(), 0, output);
+        Assert.assertEquals(fileNames(outputPath), List.of("schema_books.graphql", "schema_main.graphql",
+                "schema_reviews_1.graphql"), output);
+    }
+
     @Test(description = "Test that \"..\" after a symbolic link goes up from the real directory of the link, so the "
             + "package the path points to is generated")
     public void testParentDirectoryAfterLink() throws IOException {

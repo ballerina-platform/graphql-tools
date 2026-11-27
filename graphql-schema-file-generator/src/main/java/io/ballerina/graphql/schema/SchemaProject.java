@@ -267,9 +267,9 @@ public record SchemaProject(List<SchemaDocument> documents) {
     }
 
     // The parent is resolved to its real path, so links and ".." in it are followed the way the file system follows
-    // them. The last part is kept as given only when it is a linked module directory, so its modules/<name> layout
-    // can be detected and reported. Any other link, such as a linked package directory, is resolved, since the
-    // compiler does not read the files of a linked directory.
+    // them. The last part is kept as given only when it is a linked module directory of a package, so its
+    // modules/<name> layout can be detected and reported. Any other link, such as a linked package directory, is
+    // resolved, since the compiler does not read the files of a linked directory.
     private static Path toReadablePath(Path inputPath) throws SchemaGenerationException {
         File input = inputPath.toFile();
         if (!input.exists()) {
@@ -287,18 +287,13 @@ public record SchemaProject(List<SchemaDocument> documents) {
                 return absolutePath.toRealPath();
             }
             Path path = absolutePath.getParent().toRealPath().resolve(fileName);
-            if (Files.isSymbolicLink(path) && !isInModulesDirectory(path)) {
+            if (Files.isSymbolicLink(path) && findModulePackageRoot(path).isEmpty()) {
                 return path.toRealPath();
             }
             return path;
         } catch (IOException e) {
             throw new SchemaGenerationException(SchemaDiagnosticMessages.SDL_SCHEMA_103, null, e.toString());
         }
-    }
-
-    private static boolean isInModulesDirectory(Path path) {
-        Path parent = path.getParent();
-        return parent != null && ProjectConstants.MODULES_ROOT.equals(String.valueOf(parent.getFileName()));
     }
 
     private static Optional<ModuleId> findModule(Project project, String moduleDirectoryName) {
@@ -339,18 +334,24 @@ public record SchemaProject(List<SchemaDocument> documents) {
         }
     }
 
-    // A package directory has a Ballerina.toml, and a module directory is modules/<name> of such a directory.
+    // A package directory has a Ballerina.toml.
     private static Optional<Path> findPackageRoot(Path directory) {
         if (Files.exists(directory.resolve(ProjectConstants.BALLERINA_TOML))) {
             return Optional.of(directory);
         }
+        return findModulePackageRoot(directory);
+    }
+
+    // A module directory is modules/<name> of a package directory.
+    private static Optional<Path> findModulePackageRoot(Path directory) {
         Path modulesDirectory = directory.getParent();
-        if (modulesDirectory != null && modulesDirectory.getParent() != null
-                && ProjectConstants.MODULES_ROOT.equals(String.valueOf(modulesDirectory.getFileName()))
-                && Files.exists(modulesDirectory.getParent().resolve(ProjectConstants.BALLERINA_TOML))) {
-            return Optional.of(modulesDirectory.getParent());
+        if (modulesDirectory == null || modulesDirectory.getParent() == null
+                || !ProjectConstants.MODULES_ROOT.equals(String.valueOf(modulesDirectory.getFileName()))) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        Path packageRoot = modulesDirectory.getParent();
+        return Files.exists(packageRoot.resolve(ProjectConstants.BALLERINA_TOML))
+                ? Optional.of(packageRoot) : Optional.empty();
     }
 
     // A directory that cannot be opened is reported through visitFileFailed, so it is named too. The build output and
